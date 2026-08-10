@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>time</title>
+    <title>公开手账 · 时间流</title>
 
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js">
@@ -31,7 +31,7 @@
             --accent-color: #1d9bf0;
             --font-family: 'LXGW WenKai Screen', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-            /* 播放器变量 (保持兼容) */
+            /* 播放器变量 */
             --paper: #ffffff;
             --border: rgba(0, 0, 0, 0.08);
             --p-shadow: none;
@@ -44,8 +44,10 @@
             --bg-player: #ffffff;
             --dot-normal: #cfd9de;
             --img-brightness: 1;
-            --profile-bg-height: 160px;
-            --avatar-size: 80px;
+
+            /* 头像 & 背景高度 (变大) */
+            --profile-bg-height: 220px;
+            --avatar-size: 120px;
         }
 
         /* 深色模式变量 */
@@ -93,14 +95,25 @@
             transition: background 0.3s ease, color 0.3s ease;
             min-height: 100vh;
             padding-bottom: 32px;
+            position: relative;
         }
 
-        /* ========== Profile 头部 (极简) ========== */
+        /* ========== 核心：两侧垂直线 (矩形边框) ========== */
+        .app {
+            max-width: 600px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border-light);
+            border-right: 1px solid var(--border-light);
+            min-height: 100vh;
+            transition: border-color 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== Profile 头部 ========== */
         .profile-header {
             position: relative;
             width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
             height: var(--profile-bg-height);
             overflow: visible;
             background: var(--bg);
@@ -124,16 +137,16 @@
             width: var(--avatar-size);
             height: var(--avatar-size);
             border-radius: 50%;
-            border: 3px solid var(--bg);
+            border: 4px solid var(--bg);
             background: var(--bg);
             overflow: hidden;
             z-index: 2;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             transition: border-color 0.3s;
         }
         body.dark .profile-avatar {
             border-color: #000000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
         }
         .profile-avatar img {
             width: 100%;
@@ -145,8 +158,6 @@
         /* ========== 主要内容容器 ========== */
         .main-wrapper {
             width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
             padding: 0 16px;
             padding-top: calc(var(--avatar-size) / 2 + 20px);
         }
@@ -157,7 +168,6 @@
             flex-direction: column;
         }
 
-        /* 每条说说 — 无卡片，只有分割线 */
         .post-item {
             padding: 16px 0;
             border-bottom: 1px solid var(--border-light);
@@ -166,7 +176,6 @@
         .post-item:last-child {
             border-bottom: none;
         }
-        /* 极简 hover 效果 */
         .post-item:hover {
             background: rgba(0, 0, 0, 0.01);
         }
@@ -208,7 +217,7 @@
             margin-bottom: 0;
         }
 
-        /* ===== 图片布局 (极简无圆角) ===== */
+        /* ===== 图片布局 ===== */
         .post-images {
             margin-top: 8px;
             border-radius: 0;
@@ -499,12 +508,13 @@
             color: var(--text-main);
         }
 
+        /* ===== 抽屉 body — flex 列，让播放器撑满 ===== */
         .drawer-body {
             flex: 1 1 auto;
             min-height: 0;
-            overflow-y: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         .drawer-body::-webkit-scrollbar {
             display: none;
@@ -512,8 +522,10 @@
             height: 0;
         }
 
-        /* ===== 播放器在抽屉内适配 (极简) ===== */
+        /* ===== 播放器在抽屉内适配 (极简 + 高度自适应) ===== */
         .drawer .hw-playlist {
+            flex: 1 1 auto;
+            min-height: 0;
             width: 100% !important;
             max-width: none !important;
             margin: 0 !important;
@@ -525,16 +537,18 @@
             transform: none !important;
             font-family: var(--font-family);
             overflow: visible !important;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+            display: flex !important;
+            flex-direction: column !important;
+            height: auto !important;
         }
         .drawer .hw-playlist:hover {
             transform: none !important;
             box-shadow: none !important;
         }
+
         .drawer .hw-pl-header {
             padding: 4px 0 6px;
+            flex: 0 0 auto;
         }
         .drawer .hw-pl-cover {
             width: 64px;
@@ -552,9 +566,11 @@
         .drawer .hw-pl-count {
             font-size: 0.72rem;
         }
+
         .drawer .hw-pl-controls {
             gap: 8px;
             margin-bottom: 6px;
+            flex: 0 0 auto;
         }
         .drawer .hw-play {
             width: 44px;
@@ -583,6 +599,33 @@
         .drawer .hw-play:hover {
             background: var(--accent-dark) !important;
         }
+
+        .drawer .hw-pl-progress-row {
+            flex: 0 0 auto;
+            margin-bottom: 6px;
+        }
+        .drawer .hw-pl-view-lyrics {
+            flex: 0 0 auto;
+            height: 100px;
+            min-height: 50px;
+            margin-bottom: 6px;
+            border: none !important;
+            background: var(--bg-player);
+            border-radius: 0 !important;
+            padding: 6px 4px;
+            border-top: 1px solid var(--border-light) !important;
+            border-bottom: 1px solid var(--border-light) !important;
+        }
+        .drawer .hw-lyrics-line {
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+        .drawer .hw-lyrics-line.active {
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+
+        /* ===== 歌单列表 — 自动填充剩余高度 ===== */
         .drawer .hw-pl-list {
             flex: 1 1 auto;
             min-height: 0;
@@ -592,12 +635,14 @@
             border-top: 1px solid var(--border-light);
             scrollbar-width: none;
             -ms-overflow-style: none;
+            max-height: none !important;
         }
         .drawer .hw-pl-list::-webkit-scrollbar {
             display: none;
             width: 0;
             height: 0;
         }
+
         .drawer .hw-pl-row {
             padding: 5px 2px;
             border-radius: 0;
@@ -619,26 +664,7 @@
         .drawer .hw-pl-row-artist {
             font-size: 0.68rem;
         }
-        .drawer .hw-pl-view-lyrics {
-            height: 120px;
-            min-height: 60px;
-            margin-bottom: 6px;
-            border: none !important;
-            background: var(--bg-player);
-            border-radius: 0 !important;
-            padding: 6px 4px;
-        }
-        .drawer .hw-lyrics-line {
-            font-size: 0.8rem;
-            line-height: 1.6;
-        }
-        .drawer .hw-lyrics-line.active {
-            font-size: 0.9rem;
-            color: var(--accent);
-        }
-        .drawer .hw-progress-row {
-            margin-bottom: 6px;
-        }
+
         .drawer .hw-time {
             font-size: 0.72rem;
             min-width: 32px;
@@ -663,6 +689,7 @@
             border: none;
             border-radius: 50%;
         }
+
         .drawer .hw-pl-shuffle,
         .drawer .hw-pl-repeat,
         .drawer .hw-pl-lyrics-toggle {
@@ -685,8 +712,8 @@
         /* ========== 响应式 ========== */
         @media (max-width: 640px) {
             :root {
-                --profile-bg-height: 140px;
-                --avatar-size: 72px;
+                --profile-bg-height: 180px;
+                --avatar-size: 90px;
             }
             .main-wrapper {
                 padding: 0 12px;
@@ -733,8 +760,8 @@
                 height: 26px;
             }
             .drawer .hw-pl-view-lyrics {
-                height: 100px;
-                min-height: 50px;
+                height: 80px;
+                min-height: 40px;
             }
             .drawer .hw-lyrics-line {
                 font-size: 0.74rem;
@@ -751,12 +778,16 @@
             .layout-1 {
                 max-height: 340px;
             }
+            .app {
+                border-left: none;
+                border-right: none;
+            }
         }
 
         @media (max-width: 400px) {
             :root {
-                --profile-bg-height: 120px;
-                --avatar-size: 64px;
+                --profile-bg-height: 160px;
+                --avatar-size: 80px;
             }
             .main-wrapper {
                 padding-top: calc(var(--avatar-size) / 2 + 12px);
@@ -802,8 +833,8 @@
                 height: 22px;
             }
             .drawer .hw-pl-view-lyrics {
-                height: 80px;
-                min-height: 40px;
+                height: 60px;
+                min-height: 30px;
             }
             .drawer .hw-lyrics-line {
                 font-size: 0.7rem;
@@ -811,12 +842,31 @@
             .drawer .hw-lyrics-line.active {
                 font-size: 0.78rem;
             }
+            .app {
+                border-left: none;
+                border-right: none;
+            }
+        }
+
+        /* 当屏幕宽度 > 640px 时，垂直线显示；移动端隐藏，因为屏幕窄不需要 */
+        @media (min-width: 641px) {
+            .app {
+                border-left: 1px solid var(--border-light);
+                border-right: 1px solid var(--border-light);
+            }
+        }
+        /* 移动端（< 641px）边框隐藏，因为屏幕太窄，线会挤占空间 */
+        @media (max-width: 640px) {
+            .app {
+                border-left: none !important;
+                border-right: none !important;
+            }
         }
     </style>
 
     <!-- ========== hw-music-player.css 精简版 ========== -->
     <style>
-        /* 极简版播放器样式 — 保留功能，去除装饰 */
+        /* 极简版播放器样式 */
         .hw-player {
             position: relative;
             width: min(100%, 360px);
@@ -1328,64 +1378,70 @@
 
 <body>
 
-    <!-- ========== Profile 头部 ========== -->
-    <header class="profile-header">
-        <div class="profile-bg"></div>
-        <div class="profile-avatar">
-            <img src="https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1786337462109_28948.png&n=-1" alt="Avatar" />
-        </div>
-    </header>
+    <!-- ========== .app 容器：包含所有主要内容，左右边框形成垂直线 ========== -->
+    <div class="app">
 
-    <!-- ========== 主要内容 ========== -->
-    <div class="main-wrapper">
-        <div id="app">
-            <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
-            <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
+        <!-- Profile 头部 -->
+        <header class="profile-header">
+            <div class="profile-bg"></div>
+            <div class="profile-avatar">
+                <img src="https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1786337462109_28948.png&n=-1" alt="Avatar" />
+            </div>
+        </header>
 
-            <div v-else class="feed">
-                <div v-for="(post, idx) in posts" :key="idx" class="post-item">
-                    <div class="post-header">
-                        <span class="time-badge">{{ formatTime(post.date) }}</span>
+        <!-- 主要内容 -->
+        <div class="main-wrapper">
+            <div id="app">
+                <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
+                <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
+
+                <div v-else class="feed">
+                    <div v-for="(post, idx) in posts" :key="idx" class="post-item">
+                        <div class="post-header">
+                            <span class="time-badge">{{ formatTime(post.date) }}</span>
+                        </div>
+                        <div class="post-content">{{ post.content }}</div>
+
+                        <!-- 图片布局 -->
+                        <div v-if="post.images && post.images.length === 1" class="post-images layout-1">
+                            <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
+                                <img :src="post.images[0]" alt="图1" loading="lazy">
+                            </a>
+                        </div>
+
+                        <div v-else-if="post.images && post.images.length === 2" class="post-images layout-2">
+                            <a v-for="(img, i) in post.images" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="img-link">
+                                <img :src="img" :alt="'图'+(i+1)" loading="lazy">
+                            </a>
+                        </div>
+
+                        <div v-else-if="post.images && post.images.length >= 3" class="post-images layout-3plus">
+                            <a v-for="(img, i) in post.images.slice(0,9)" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="grid-item">
+                                <img :src="img" :alt="'图'+(i+1)" loading="lazy">
+                                <div v-if="i === 8 && post.images.length > 9" class="more-overlay">
+                                    +{{ post.images.length - 9 }}
+                                </div>
+                            </a>
+                            <a v-for="(img, i) in post.images.slice(9)" :key="'more-'+i" :href="img" :data-fancybox="'gallery-' + idx" style="display:none;"></a>
+                        </div>
                     </div>
-                    <div class="post-content">{{ post.content }}</div>
 
-                    <!-- 图片布局 -->
-                    <div v-if="post.images && post.images.length === 1" class="post-images layout-1">
-                        <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
-                            <img :src="post.images[0]" alt="图1" loading="lazy">
-                        </a>
+                    <!-- 加载状态 -->
+                    <div class="loader" v-if="!loading && hasMore">
+                        <button @click="loadMore">加载更多</button>
                     </div>
-
-                    <div v-else-if="post.images && post.images.length === 2" class="post-images layout-2">
-                        <a v-for="(img, i) in post.images" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="img-link">
-                            <img :src="img" :alt="'图'+(i+1)" loading="lazy">
-                        </a>
+                    <div class="loader" v-if="loading">
+                        <span>加载中…</span>
                     </div>
-
-                    <div v-else-if="post.images && post.images.length >= 3" class="post-images layout-3plus">
-                        <a v-for="(img, i) in post.images.slice(0,9)" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="grid-item">
-                            <img :src="img" :alt="'图'+(i+1)" loading="lazy">
-                            <div v-if="i === 8 && post.images.length > 9" class="more-overlay">
-                                +{{ post.images.length - 9 }}
-                            </div>
-                        </a>
-                        <a v-for="(img, i) in post.images.slice(9)" :key="'more-'+i" :href="img" :data-fancybox="'gallery-' + idx" style="display:none;"></a>
+                    <div class="loader" v-if="!loading && !hasMore && posts.length > 0">
+                        <span class="no-more">— 已全部加载 —</span>
                     </div>
-                </div>
-
-                <!-- 加载状态 -->
-                <div class="loader" v-if="!loading && hasMore">
-                    <button @click="loadMore">加载更多</button>
-                </div>
-                <div class="loader" v-if="loading">
-                    <span>加载中…</span>
-                </div>
-                <div class="loader" v-if="!loading && !hasMore && posts.length > 0">
-                    <span class="no-more">— 已全部加载 —</span>
                 </div>
             </div>
         </div>
+
     </div>
+    <!-- ========== .app 结束 ========== -->
 
     <!-- ========== 右上角固定按钮 ========== -->
     <div class="top-actions">
@@ -1420,7 +1476,7 @@
     <!-- 脚本                                                          -->
     <!-- ============================================================ -->
 
-    <!-- hw-music-player.js 完整内容 -->
+    <!-- hw-music-player.js -->
     <script>
         (function() {
             const NETEASE_SONG_INFO_API = (id) =>
@@ -2100,7 +2156,7 @@
         })();
     </script>
 
-    <!-- ===== Vue 应用脚本 ===== -->
+    <!-- ===== Vue 应用 ===== -->
     <script>
         const { createApp } = Vue;
 
