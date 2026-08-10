@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公开手账 · 时间流</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- 使用 Fancybox 实现图片灯箱 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .main-wrapper {
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #1d1d1f;
+      text-align: center;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-body {
+      padding: 12px 16px 8px;
+    }
+
+    .time {
+      font-size: 0.8rem;
+      color: #86868b;
+      margin-bottom: 6px;
+    }
+
+    .content {
+      font-size: 0.95rem;
+      color: #1d1d1f;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-images {
+      background-color: rgba(0,0,0,0.05);
+      border-radius: 0;
+    }
+
+    /* 单图 */
+    .layout-1 {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      max-height: 500px;
+      overflow: hidden;
+    }
+    .layout-1 .img-link {
+      display: block;
+      width: 100%;
+    }
+    .layout-1 .img-link img {
+      width: 100%;
+      height: auto;
+      max-height: 500px;
+      object-fit: contain;
+      display: block;
+      border-radius: 0;
+    }
+
+    /* 双图 */
+    .layout-2 {
+      display: flex;
+      gap: 2px;
+    }
+    .layout-2 .img-link {
+      flex: 1;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+    }
+    .layout-2 .img-link img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0;
+    }
+
+    /* 三列九宫格 */
+    .layout-3plus {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .grid-item {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 0;
+    }
+
+    .more-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      backdrop-filter: blur(2px);
+    }
+
+    .loader {
+      text-align: center;
+      padding: 30px;
+      color: #86868b;
+    }
+
+    .loader button {
+      background: rgba(255,255,255,0.6);
+      border: 1px solid #ccc;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: background 0.2s;
+    }
+    .loader button:hover {
+      background: rgba(255,255,255,0.9);
+    }
+
+    .loader .no-more {
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 60px;
+      color: #86868b;
+    }
+
+    @media (max-width: 700px) {
+      body { padding: 10px; }
+      .layout-1 { max-height: 350px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="main-wrapper">
+      <h1>🧊 公开手账 · 时间流</h1>
+
+      <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
+      <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
+
+      <div v-else class="feed">
+        <div v-for="(post, idx) in posts" :key="idx" class="card">
+          <div class="card-body">
+            <div class="time">{{ formatTime(post.date) }}</div>
+            <div class="content">{{ post.content }}</div>
+          </div>
+
+          <!-- 图片布局 -->
+          <div v-if="post.images && post.images.length === 1" class="card-images layout-1">
+            <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
+              <img :src="post.images[0]" alt="图1" loading="lazy">
+            </a>
+          </div>
+
+          <div v-else-if="post.images && post.images.length === 2" class="card-images layout-2">
+            <a v-for="(img, i) in post.images" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="img-link">
+              <img :src="img" :alt="'图'+(i+1)" loading="lazy">
+            </a>
+          </div>
+
+          <div v-else-if="post.images && post.images.length >= 3" class="card-images layout-3plus">
+            <a v-for="(img, i) in post.images.slice(0,9)" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="grid-item">
+              <img :src="img" :alt="'图'+(i+1)" loading="lazy">
+              <div v-if="i === 8 && post.images.length > 9" class="more-overlay">
+                +{{ post.images.length - 9 }}
+              </div>
+            </a>
+            <!-- 隐藏的额外图片，用于 fancybox 展示 -->
+            <a v-for="(img, i) in post.images.slice(9)" :key="'more-'+i" :href="img" :data-fancybox="'gallery-' + idx" style="display:none;"></a>
+          </div>
+        </div>
+
+        <!-- 加载更多区域 -->
+        <div class="loader" v-if="!loading && hasMore">
+          <button @click="loadMore">加载更多</button>
+        </div>
+        <div class="loader" v-if="loading">
+          <span>加载中…</span>
+        </div>
+        <div class="loader" v-if="!loading && !hasMore && posts.length > 0">
+          <span class="no-more">— 已全部加载 —</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          posts: [],
+          page: 1,
+          totalPages: 1,
+          loading: false,
+          hasMore: true,
+          apiBase: 'https://pub.199105.xyz/api/public-memos', // Worker 地址
+        };
+      },
+      methods: {
+        formatTime(timeStr) {
+          if (!timeStr) return '';
+          return timeStr.replace(/\//g, '-');
+        },
+        async fetchPosts(page = 1) {
+          this.loading = true;
+          try {
+            const res = await fetch(`${this.apiBase}?page=${page}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json();
+            if (json.error) throw new Error(json.error);
+            return json;
+          } catch (e) {
+            console.error('加载失败', e);
+            alert('数据加载失败，请刷新重试');
+            return null;
+          } finally {
+            this.loading = false;
+          }
+        },
+        async loadMore() {
+          if (this.loading || !this.hasMore) return;
+          const nextPage = this.page + 1;
+          const result = await this.fetchPosts(nextPage);
+          if (result && result.data) {
+            this.posts = this.posts.concat(result.data);
+            this.page = result.page;
+            this.totalPages = result.totalPages;
+            this.hasMore = this.page < this.totalPages;
+          }
+        },
+        async init() {
+          const result = await this.fetchPosts(1);
+          if (result && result.data) {
+            this.posts = result.data;
+            this.page = result.page;
+            this.totalPages = result.totalPages;
+            this.hasMore = this.page < this.totalPages;
+          }
+          // 初始化 fancybox（延迟到 DOM 渲染完成）
+          this.$nextTick(() => {
+            if (typeof Fancybox !== 'undefined') {
+              Fancybox.bind('[data-fancybox]', {});
+            }
+          });
+        }
+      },
+      mounted() {
+        this.init();
+      },
+      watch: {
+        posts() {
+          // 每次新数据渲染后重新绑定 fancybox
+          this.$nextTick(() => {
+            if (typeof Fancybox !== 'undefined') {
+              Fancybox.bind('[data-fancybox]', {});
+            }
+          });
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
