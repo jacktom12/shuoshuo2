@@ -46,6 +46,8 @@
             --bg: #f0f2f6;
             --dot-normal: #d0d7e2;
             --img-brightness: 1;
+            --profile-bg-height: 200px;
+            --avatar-size: 100px;
         }
 
         /* 深色模式变量 */
@@ -81,200 +83,66 @@
             background-attachment: fixed;
             min-height: 100vh;
             color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            padding-bottom: 60px;
             transition: background 0.35s ease, color 0.3s ease;
+            padding-bottom: 40px;
         }
 
-        .main-wrapper {
+        /* ========== Profile 头部 ========== */
+        .profile-header {
+            position: relative;
             width: 100%;
-            max-width: 600px;
-            padding: 0 16px;
-        }
-
-        /* ========== 顶部播放器容器 ========== */
-        .player-top-wrap {
-            position: sticky;
-            top: 12px;
-            z-index: 110;
-            margin-top: 12px;
-            margin-bottom: 20px;
-            border-radius: var(--radius-card);
+            height: var(--profile-bg-height);
+            overflow: hidden;
             background: var(--card-bg);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
-            padding: 12px 14px 14px;
-            transition: background 0.35s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .profile-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1784331329665_42358.webp&n=-1');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.9);
+        }
+        body.dark .profile-bg {
+            filter: brightness(0.6);
         }
 
-        /* 播放器内部使用 hw-playlist 样式，但去掉外边距和背景，完全继承毛玻璃 */
-        .player-top-wrap .hw-playlist {
-            width: 100% !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: transparent !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            transform: none !important;
-            font-family: 'LXGW WenKai Screen', sans-serif;
-            overflow: visible !important;
-        }
-        .player-top-wrap .hw-playlist:hover {
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        .player-top-wrap .hw-pl-header {
-            padding: 4px 0 6px;
-        }
-        .player-top-wrap .hw-pl-cover {
-            width: 64px;
-            height: 64px;
-            flex: 0 0 64px;
-            border-radius: 10px;
-        }
-        .player-top-wrap .hw-pl-title {
-            font-size: 1rem;
-            font-weight: 800;
-        }
-        .player-top-wrap .hw-pl-artist {
-            font-size: 0.8rem;
-        }
-        .player-top-wrap .hw-pl-count {
-            font-size: 0.7rem;
-        }
-        .player-top-wrap .hw-pl-controls {
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-        .player-top-wrap .hw-play {
-            width: 44px;
-            height: 38px;
-        }
-        .player-top-wrap .hw-btn {
-            width: 34px;
-            height: 30px;
-        }
-        .player-top-wrap .hw-pl-list {
-            max-height: 150px;
-            padding-top: 4px;
-            margin-top: 2px;
-            border-top: 1.5px dashed var(--border);
-        }
-        .player-top-wrap .hw-pl-row {
-            padding: 4px 2px;
-        }
-        .player-top-wrap .hw-pl-row-thumb {
-            width: 28px;
-            height: 28px;
-            flex: 0 0 28px;
-        }
-        .player-top-wrap .hw-pl-row-title {
-            font-size: 0.78rem;
-        }
-        .player-top-wrap .hw-pl-row-artist {
-            font-size: 0.66rem;
-        }
-        .player-top-wrap .hw-pl-view-lyrics {
-            height: 120px;
-            min-height: 80px;
-            margin-bottom: 6px;
-        }
-        .player-top-wrap .hw-lyrics-line {
-            font-size: 0.78rem;
-            line-height: 1.6;
-        }
-        .player-top-wrap .hw-lyrics-line.active {
-            font-size: 0.88rem;
-        }
-        .player-top-wrap .hw-progress-row {
-            margin-bottom: 6px;
-        }
-        .player-top-wrap .hw-time {
-            font-size: 0.7rem;
-            min-width: 32px;
-        }
-        .player-top-wrap .hw-progress {
-            height: 5px;
-        }
-        .player-top-wrap .hw-progress::-webkit-slider-thumb {
-            width: 14px;
-            height: 14px;
-        }
-        .player-top-wrap .hw-progress::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* 顶部播放器 + 主题切换按钮 的 Flex 行 */
-        .player-top-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2px;
-        }
-        .player-top-head .pl-title-area {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-main);
-            letter-spacing: 0.3px;
-        }
-        .player-top-head .pl-title-area .icon-note {
-            font-size: 1.1rem;
-            opacity: 0.7;
-        }
-
-        /* 主题切换按钮 — 毛玻璃小圆钮 */
-        .theme-toggle-btn {
-            appearance: none;
-            background: rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border: 1px solid var(--card-border);
+        .profile-avatar {
+            position: absolute;
+            bottom: calc(-1 * var(--avatar-size) / 2);
+            left: 50%;
+            transform: translateX(-50%);
+            width: var(--avatar-size);
+            height: var(--avatar-size);
             border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--text-main);
-            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            flex: 0 0 38px;
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            background: var(--card-bg);
+            overflow: hidden;
+            z-index: 2;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transition: border-color 0.3s;
         }
-        .theme-toggle-btn:hover {
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.55);
+        body.dark .profile-avatar {
+            border-color: rgba(60, 66, 80, 0.8);
         }
-        .theme-toggle-btn:active {
-            transform: scale(0.92);
-        }
-        body.dark .theme-toggle-btn {
-            background: rgba(60, 66, 80, 0.5);
-            border-color: rgba(120, 130, 150, 0.3);
-            color: #e8edf5;
-        }
-        body.dark .theme-toggle-btn:hover {
-            background: rgba(80, 88, 108, 0.6);
-        }
-
-        /* iconify 图标在按钮内居中 */
-        .theme-toggle-btn .iconify {
-            width: 22px;
-            height: 22px;
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
         }
 
-        /* ========== 原手账卡片 Feed ========== */
+        /* ========== 主要内容容器 ========== */
+        .main-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 16px;
+            padding-top: calc(var(--avatar-size) / 2 + 16px);
+            /* 为头像留出空间 */
+        }
+
+        /* ========== 手账卡片 Feed ========== */
         .feed {
             display: flex;
             flex-direction: column;
@@ -423,7 +291,7 @@
             backdrop-filter: blur(4px);
         }
 
-        /* 深色模式下所有图片亮度 70% (包括手账图和播放器图) */
+        /* 深色模式下所有图片亮度 70% */
         body.dark .card-images img,
         body.dark .layout-1 img,
         body.dark .layout-2 img,
@@ -434,13 +302,11 @@
         body.dark .hw-disc {
             filter: brightness(0.7) !important;
         }
-        /* 播放器封面图单独处理，避免覆盖 .hw-disc 的 filter */
         body.dark .hw-cover-img,
         body.dark .hw-pl-cover-img,
         body.dark .hw-pl-row-thumb img {
             filter: brightness(0.7) !important;
         }
-        /* 唱盘保留原有亮度控制，但叠加 0.7 */
         body.dark .hw-disc {
             filter: brightness(0.7) !important;
         }
@@ -478,79 +344,359 @@
             color: var(--text-muted);
         }
 
+        /* ========== 右上角固定按钮 ========== */
+        .top-actions {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .music-btn,
+        .theme-toggle-btn {
+            appearance: none;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+            flex: 0 0 44px;
+            font-size: 1.4rem;
+            line-height: 1;
+            padding: 0;
+        }
+        .music-btn:hover,
+        .theme-toggle-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .music-btn:active,
+        .theme-toggle-btn:active {
+            transform: scale(0.92);
+        }
+        body.dark .music-btn,
+        body.dark .theme-toggle-btn {
+            background: rgba(60, 66, 80, 0.6);
+            border-color: rgba(120, 130, 150, 0.3);
+            color: #e8edf5;
+        }
+        body.dark .music-btn:hover,
+        body.dark .theme-toggle-btn:hover {
+            background: rgba(80, 88, 108, 0.7);
+        }
+
+        .music-btn svg {
+            width: 1.4em;
+            height: 1.4em;
+            display: block;
+        }
+
+        /* 播放指示点 */
+        .music-btn.playing-dot {
+            position: relative;
+        }
+        .music-btn.playing-dot::after {
+            content: "";
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+            animation: pulse-dot 1.2s ease-in-out infinite;
+        }
+        body.dark .music-btn.playing-dot::after {
+            box-shadow: 0 0 0 2px rgba(34, 34, 38, 0.9);
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        .theme-toggle-btn .iconify {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* ========== 侧滑播放器面板 ========== */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+        .drawer-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 85%;
+            max-width: 420px;
+            z-index: 2100;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px 20px;
+            border-left: 1px solid var(--card-border);
+            overflow: hidden;
+        }
+        .drawer.open {
+            transform: translateX(0);
+        }
+        body.dark .drawer {
+            background: rgba(38, 42, 50, 0.95);
+            border-left-color: rgba(120, 130, 150, 0.2);
+        }
+
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex: 0 0 auto;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .drawer-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .drawer-close {
+            appearance: none;
+            background: transparent;
+            border: none;
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+        .drawer-close:hover {
+            color: var(--text-main);
+        }
+
+        .drawer-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;
+        }
+        .drawer-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        .drawer-body::-webkit-scrollbar-thumb {
+            background: var(--dot-normal);
+            border-radius: 4px;
+        }
+
+        /* 播放器在抽屉内的样式适配 */
+        .drawer .hw-playlist {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            transform: none !important;
+            font-family: 'LXGW WenKai Screen', sans-serif;
+            overflow: visible !important;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .drawer .hw-playlist:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .drawer .hw-pl-header {
+            padding: 4px 0 6px;
+        }
+        .drawer .hw-pl-cover {
+            width: 72px;
+            height: 72px;
+            flex: 0 0 72px;
+            border-radius: 10px;
+        }
+        .drawer .hw-pl-title {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+        .drawer .hw-pl-artist {
+            font-size: 0.85rem;
+        }
+        .drawer .hw-pl-count {
+            font-size: 0.75rem;
+        }
+        .drawer .hw-pl-controls {
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .drawer .hw-play {
+            width: 48px;
+            height: 40px;
+        }
+        .drawer .hw-btn {
+            width: 36px;
+            height: 32px;
+        }
+        .drawer .hw-pl-list {
+            max-height: 220px;
+            padding-top: 6px;
+            margin-top: 2px;
+            border-top: 1.5px dashed var(--border);
+            overflow-y: auto;
+            flex: 1 1 auto;
+        }
+        .drawer .hw-pl-row {
+            padding: 5px 2px;
+        }
+        .drawer .hw-pl-row-thumb {
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+        }
+        .drawer .hw-pl-row-title {
+            font-size: 0.82rem;
+        }
+        .drawer .hw-pl-row-artist {
+            font-size: 0.7rem;
+        }
+        .drawer .hw-pl-view-lyrics {
+            height: 140px;
+            min-height: 80px;
+            margin-bottom: 8px;
+        }
+        .drawer .hw-lyrics-line {
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+        .drawer .hw-lyrics-line.active {
+            font-size: 0.92rem;
+        }
+        .drawer .hw-progress-row {
+            margin-bottom: 8px;
+        }
+        .drawer .hw-time {
+            font-size: 0.75rem;
+            min-width: 34px;
+        }
+        .drawer .hw-progress {
+            height: 5px;
+        }
+        .drawer .hw-progress::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+        }
+        .drawer .hw-progress::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+        }
+
         /* ========== 响应式 ========== */
         @media (max-width: 640px) {
+            :root {
+                --profile-bg-height: 160px;
+                --avatar-size: 80px;
+            }
             .main-wrapper {
                 padding: 0 12px;
+                padding-top: calc(var(--avatar-size) / 2 + 12px);
             }
-            .player-top-wrap {
-                padding: 10px 12px 12px;
-                border-radius: 16px;
-                top: 10px;
-                margin-top: 10px;
-                margin-bottom: 16px;
+            .top-actions {
+                top: 12px;
+                right: 12px;
+                gap: 8px;
             }
-            .player-top-wrap .hw-pl-cover {
-                width: 52px;
-                height: 52px;
-                flex: 0 0 52px;
-            }
-            .player-top-wrap .hw-pl-title {
-                font-size: 0.9rem;
-            }
-            .player-top-wrap .hw-pl-artist {
-                font-size: 0.72rem;
-            }
-            .player-top-wrap .hw-play {
-                width: 40px;
-                height: 34px;
-            }
-            .player-top-wrap .hw-btn {
-                width: 30px;
-                height: 28px;
-            }
-            .player-top-wrap .hw-pl-list {
-                max-height: 120px;
-            }
-            .player-top-wrap .hw-pl-row {
-                padding: 3px 2px;
-            }
-            .player-top-wrap .hw-pl-row-thumb {
-                width: 24px;
-                height: 24px;
-                flex: 0 0 24px;
-            }
-            .player-top-wrap .hw-pl-row-title {
-                font-size: 0.72rem;
-            }
-            .player-top-wrap .hw-pl-row-artist {
-                font-size: 0.62rem;
-            }
-            .player-top-wrap .hw-pl-view-lyrics {
-                height: 100px;
-                min-height: 60px;
-            }
-            .player-top-wrap .hw-lyrics-line {
-                font-size: 0.72rem;
-            }
-            .player-top-wrap .hw-lyrics-line.active {
-                font-size: 0.82rem;
-            }
-
-            .player-top-head .pl-title-area {
-                font-size: 0.75rem;
-            }
+            .music-btn,
             .theme-toggle-btn {
-                width: 34px;
-                height: 34px;
-                flex: 0 0 34px;
-                font-size: 1rem;
+                width: 38px;
+                height: 38px;
+                flex: 0 0 38px;
+                font-size: 1.2rem;
+            }
+            .music-btn svg {
+                width: 1.2em;
+                height: 1.2em;
             }
             .theme-toggle-btn .iconify {
-                width: 19px;
-                height: 19px;
+                width: 20px;
+                height: 20px;
             }
-
+            .drawer {
+                width: 88%;
+                max-width: none;
+                padding: 12px 10px 16px;
+            }
+            .drawer .hw-pl-cover {
+                width: 60px;
+                height: 60px;
+                flex: 0 0 60px;
+            }
+            .drawer .hw-pl-title {
+                font-size: 0.92rem;
+            }
+            .drawer .hw-play {
+                width: 42px;
+                height: 36px;
+            }
+            .drawer .hw-btn {
+                width: 32px;
+                height: 28px;
+            }
+            .drawer .hw-pl-list {
+                max-height: 180px;
+            }
+            .drawer .hw-pl-view-lyrics {
+                height: 120px;
+                min-height: 60px;
+            }
+            .drawer .hw-lyrics-line {
+                font-size: 0.76rem;
+            }
+            .drawer .hw-lyrics-line.active {
+                font-size: 0.86rem;
+            }
             .card {
                 padding: 16px;
                 border-radius: 16px;
@@ -561,33 +707,65 @@
         }
 
         @media (max-width: 400px) {
-            .player-top-wrap .hw-pl-cover {
-                width: 44px;
-                height: 44px;
-                flex: 0 0 44px;
+            :root {
+                --profile-bg-height: 140px;
+                --avatar-size: 70px;
             }
-            .player-top-wrap .hw-pl-title {
-                font-size: 0.8rem;
+            .main-wrapper {
+                padding-top: calc(var(--avatar-size) / 2 + 10px);
             }
-            .player-top-wrap .hw-play {
-                width: 36px;
-                height: 30px;
+            .top-actions {
+                top: 10px;
+                right: 10px;
+                gap: 6px;
             }
-            .player-top-wrap .hw-btn {
-                width: 26px;
-                height: 24px;
-            }
-            .player-top-wrap .hw-pl-list {
-                max-height: 100px;
-            }
+            .music-btn,
             .theme-toggle-btn {
-                width: 30px;
-                height: 30px;
-                flex: 0 0 30px;
+                width: 34px;
+                height: 34px;
+                flex: 0 0 34px;
+                font-size: 1rem;
+            }
+            .music-btn svg {
+                width: 1em;
+                height: 1em;
             }
             .theme-toggle-btn .iconify {
-                width: 17px;
-                height: 17px;
+                width: 18px;
+                height: 18px;
+            }
+            .drawer {
+                width: 92%;
+                padding: 10px 8px 14px;
+            }
+            .drawer .hw-pl-cover {
+                width: 50px;
+                height: 50px;
+                flex: 0 0 50px;
+            }
+            .drawer .hw-pl-title {
+                font-size: 0.82rem;
+            }
+            .drawer .hw-play {
+                width: 38px;
+                height: 32px;
+            }
+            .drawer .hw-btn {
+                width: 28px;
+                height: 24px;
+            }
+            .drawer .hw-pl-list {
+                max-height: 150px;
+            }
+            .drawer .hw-pl-view-lyrics {
+                height: 100px;
+                min-height: 50px;
+            }
+            .drawer .hw-lyrics-line {
+                font-size: 0.7rem;
+            }
+            .drawer .hw-lyrics-line.active {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -1139,254 +1317,36 @@
             }
         }
 
-        /* ===== global music sheet ===== */
-        .hw-music-sheet-backdrop {
-            position: fixed;
-            inset: 0;
-            z-index: 6100;
-            background: transparent;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .hw-music-sheet-backdrop.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        body.hw-music-sheet-open .menu {
-            z-index: 6300;
-        }
-
+        /* ===== global music sheet (保留但未使用，避免干扰) ===== */
+        .hw-music-sheet-backdrop,
         .hw-music-sheet {
-            --hw-menu-clearance: calc(84px + env(safe-area-inset-bottom, 0px));
-            position: fixed;
-            left: 50%;
-            bottom: var(--hw-menu-clearance);
-            top: auto;
-            width: min(100% - 16px, 520px);
-            height: min(72vh, calc(100dvh - var(--hw-menu-clearance) - 18px - env(safe-area-inset-top, 0px)));
-            max-height: min(720px, calc(100dvh - var(--hw-menu-clearance) - 18px - env(safe-area-inset-top, 0px)));
-            transform: translate(-50%, calc(100% + 28px));
-            z-index: 6200;
-            display: flex;
-            flex-direction: column;
-            background: rgba(255, 249, 230, 0.94);
-            border: 1px solid rgba(50, 50, 50, .12);
-            border-radius: 24px;
-            box-shadow: 0 18px 48px rgba(50, 50, 50, .18), 0 2px 0 rgba(255, 255, 255, .35) inset;
-            backdrop-filter: blur(18px) saturate(160%);
-            -webkit-backdrop-filter: blur(18px) saturate(160%);
-            padding: 10px 14px 12px;
-            transition: transform .34s cubic-bezier(.22, 1, .36, 1), opacity .24s ease;
-            opacity: 0;
-            font-family: 'LXGW WenKai Screen', sans-serif;
-            overflow: hidden;
-            pointer-events: none;
-            will-change: transform, opacity;
-        }
-        .hw-music-sheet.open {
-            transform: translate(-50%, 0);
-            opacity: 1;
-            pointer-events: auto;
-        }
-        body.dark .hw-music-sheet {
-            background: rgba(28, 28, 32, 0.94);
-            border-color: rgba(255, 255, 255, .12);
-            box-shadow: 0 18px 48px rgba(0, 0, 0, .42), 0 1px 0 rgba(255, 255, 255, .06) inset;
-        }
-
-        .hw-music-sheet-handle {
-            width: 42px;
-            height: 5px;
-            border-radius: 999px;
-            background: rgba(50, 50, 50, .18);
-            margin: 2px auto 10px;
-            flex: 0 0 auto;
-        }
-        body.dark .hw-music-sheet-handle {
-            background: rgba(255, 255, 255, .2)
-        }
-
-        .hw-music-sheet-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 8px;
-            flex: 0 0 auto;
-        }
-        .hw-music-sheet-title {
-            font-size: 1rem;
-            font-weight: 900;
-            color: var(--text);
-        }
-        .hw-music-sheet-close {
-            appearance: none;
-            border: 1.5px solid var(--border, rgba(50, 50, 50, .18));
-            background: var(--bg, rgba(255, 249, 230, .56));
-            color: var(--text);
-            width: 34px;
-            height: 34px;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1rem;
-            line-height: 1;
-            box-shadow: 2px 2px 0 var(--border, rgba(50, 50, 50, .12));
-        }
-        .hw-music-sheet-close:hover {
-            transform: translateY(-1px)
-        }
-        .hw-music-sheet-close:active {
-            transform: scale(.96)
-        }
-
-        .hw-music-sheet-body {
-            flex: 1 1 auto;
-            min-height: 0;
-            overflow: auto;
-            padding-bottom: 4px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .hw-music-sheet-body::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-            display: none
-        }
-
-        .hw-music-sheet .hw-playlist-mount {
-            width: 100%;
-            height: 100%;
-        }
-        .hw-music-sheet .hw-playlist {
-            width: 100%;
-            max-width: none;
-            height: 100%;
-            margin: 0;
-            padding: 4px 2px 2px;
-            border: 0;
-            box-shadow: none;
-            background: transparent;
-            transform: none !important;
-            border-radius: 0;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .hw-music-sheet .hw-playlist:hover {
-            transform: none !important;
-            box-shadow: none;
-        }
-        .hw-music-sheet .hw-pl-view-normal,
-        .hw-music-sheet .hw-pl-view-lyrics,
-        .hw-music-sheet .hw-pl-progress-row,
-        .hw-music-sheet .hw-pl-controls {
-            flex: 0 0 auto;
-        }
-        .hw-music-sheet .hw-pl-list {
-            flex: 1 1 auto;
-            min-height: 0;
-            max-height: none;
-            overflow-y: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .hw-music-sheet .hw-pl-list::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-            display: none
-        }
-        .hw-music-sheet .hw-pl-view-lyrics {
-            flex: 1 1 auto;
-            min-height: 160px;
-            height: auto;
-            max-height: none;
-        }
-        .hw-music-sheet .hw-lyrics-scroll-full {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .hw-music-sheet .hw-lyrics-scroll-full::-webkit-scrollbar {
-            width: 0;
-            height: 0;
-            display: none
-        }
-
-        #openMusicBtn.playing-dot {
-            position: relative
-        }
-        #openMusicBtn.playing-dot::after {
-            content: "";
-            position: absolute;
-            top: 8px;
-            right: calc(50% - 14px);
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--accent, #e5aa70);
-            box-shadow: 0 0 0 2px rgba(255, 249, 230, .85);
-        }
-        body.dark #openMusicBtn.playing-dot::after {
-            box-shadow: 0 0 0 2px rgba(34, 34, 38, .9);
-        }
-
-        @media (max-width:480px) {
-            .hw-music-sheet {
-                --hw-menu-clearance: calc(78px + env(safe-area-inset-bottom, 0px));
-                width: calc(100% - 12px);
-                height: min(74vh, calc(100dvh - var(--hw-menu-clearance) - 14px - env(safe-area-inset-top, 0px)));
-                max-height: calc(100dvh - var(--hw-menu-clearance) - 14px - env(safe-area-inset-top, 0px));
-                padding: 10px 12px 10px;
-                border-radius: 20px;
-            }
-            .hw-music-sheet .hw-pl-view-lyrics {
-                min-height: 140px
-            }
+            display: none !important;
         }
     </style>
+
 </head>
 
 <body>
 
-    <!-- ============================================================ -->
-    <!-- 顶部：毛玻璃歌单播放器 + 主题切换按钮                         -->
-    <!-- ============================================================ -->
-    <div class="main-wrapper">
-
-        <div class="player-top-wrap" id="playerTopWrap">
-            <!-- 播放器头部：标题 + 主题切换 -->
-            <div class="player-top-head">
-                <div class="pl-title-area">
-                    <span class="icon-note">🎵</span>
-                    <span>公开手账 · 时间流</span>
-                </div>
-                <button class="theme-toggle-btn" id="themeToggle" aria-label="切换深浅色模式" title="切换深浅色模式">
-                    <!-- iconify 图标：浅色模式显示太阳，深色模式显示月亮，由 JS 动态切换 data-icon -->
-                    <span class="iconify" data-icon="carbon:sun" id="themeIcon"></span>
-                </button>
-            </div>
-
-            <!-- 歌单挂载点：hw-music-player.js 会在此渲染播放器 -->
-            <div class="hw-playlist-mount" id="topPlayer" data-hw-list-id="9127652363"></div>
+    <!-- ========== Profile 头部 ========== -->
+    <header class="profile-header">
+        <div class="profile-bg"></div>
+        <div class="profile-avatar">
+            <img src="https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1786337462109_28948.png&n=-1" alt="Avatar" />
         </div>
+    </header>
 
-        <!-- ============================================================ -->
-        <!-- Vue 应用：手账时间流                                         -->
-        <!-- ============================================================ -->
+    <!-- ========== 主要内容 ========== -->
+    <div class="main-wrapper">
         <div id="app">
-
             <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
             <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
 
             <div v-else class="feed">
                 <div v-for="(post, idx) in posts" :key="idx" class="card">
-
                     <div class="card-header">
                         <span class="time-badge">{{ formatTime(post.date) }}</span>
                     </div>
-
                     <div class="content">{{ post.content }}</div>
 
                     <!-- 图片布局 -->
@@ -1411,7 +1371,6 @@
                         </a>
                         <a v-for="(img, i) in post.images.slice(9)" :key="'more-'+i" :href="img" :data-fancybox="'gallery-' + idx" style="display:none;"></a>
                     </div>
-
                 </div>
 
                 <!-- 加载状态 -->
@@ -1425,19 +1384,43 @@
                     <span class="no-more">— 已全部加载 —</span>
                 </div>
             </div>
-
         </div>
-        <!-- /Vue app -->
-
     </div>
-    <!-- /main-wrapper -->
+
+    <!-- ========== 右上角固定按钮 ========== -->
+    <div class="top-actions">
+        <button class="music-btn" id="musicToggleBtn" aria-label="音乐播放器" title="音乐播放器">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+                <path d="M0 0h24v24H0z" fill="none" />
+                <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
+                    <circle cx="9" cy="18" r="3" />
+                    <path d="M12 18V3m0 0l6 1v4l-6-1z" />
+                </g>
+            </svg>
+        </button>
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="切换深浅色模式" title="切换深浅色模式">
+            <span class="iconify" data-icon="carbon:sun" id="themeIcon"></span>
+        </button>
+    </div>
+
+    <!-- ========== 侧滑播放器面板 ========== -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <div class="drawer" id="musicDrawer">
+        <div class="drawer-header">
+            <span class="drawer-title">🎵 歌单播放器</span>
+            <button class="drawer-close" id="drawerCloseBtn" aria-label="关闭播放器">✕</button>
+        </div>
+        <div class="drawer-body">
+            <div class="hw-playlist-mount" id="drawerPlayerMount" data-hw-list-id="9127652363"></div>
+        </div>
+    </div>
 
 
     <!-- ============================================================ -->
     <!-- 脚本                                                          -->
     <!-- ============================================================ -->
 
-    <!-- hw-music-player.js 完整内容 -->
+    <!-- hw-music-player.js 完整内容（已移除自动初始化） -->
     <script>
         (function() {
             const NETEASE_SONG_INFO_API = (id) =>
@@ -2109,166 +2092,15 @@
                     mountOnePlaylist(el); });
             }
 
-            const DEFAULT_GLOBAL_LIST_ID = '9127652363';
-            let globalSheet = null;
-
-            function ensureGlobalSheet(listId) {
-                const targetListId = String(listId || DEFAULT_GLOBAL_LIST_ID);
-                if (globalSheet && globalSheet.el) return globalSheet;
-
-                let backdrop = document.getElementById('hwMusicSheetBackdrop');
-                let sheet = document.getElementById('hwMusicSheet');
-                let mountEl = document.getElementById('hwGlobalPlaylistMount');
-                let openBtn = document.getElementById('openMusicBtn');
-
-                if (!backdrop) {
-                    backdrop = document.createElement('div');
-                    backdrop.id = 'hwMusicSheetBackdrop';
-                    backdrop.className = 'hw-music-sheet-backdrop';
-                    document.body.appendChild(backdrop);
-                }
-                if (!sheet) {
-                    sheet = document.createElement('div');
-                    sheet.id = 'hwMusicSheet';
-                    sheet.className = 'hw-music-sheet';
-                    sheet.setAttribute('role', 'dialog');
-                    sheet.setAttribute('aria-modal', 'true');
-                    sheet.setAttribute('aria-label', '歌单播放器');
-                    sheet.innerHTML = `
-                <div class="hw-music-sheet-handle" aria-hidden="true"></div>
-                <div class="hw-music-sheet-header">
-                  <div class="hw-music-sheet-title">歌单播放器</div>
-                  <button type="button" class="hw-music-sheet-close" id="hwMusicSheetClose" title="关闭" aria-label="关闭">✕</button>
-                </div>
-                <div class="hw-music-sheet-body">
-                  <div class="hw-playlist-mount" id="hwGlobalPlaylistMount" data-hw-list-id="${escapeAttr(targetListId)}" data-hw-mount-id="hw-global-list"></div>
-                </div>
-              `;
-                    document.body.appendChild(sheet);
-                    mountEl = document.getElementById('hwGlobalPlaylistMount');
-                } else if (mountEl) {
-                    mountEl.setAttribute('data-hw-list-id', targetListId);
-                }
-
-                const closeBtn = document.getElementById('hwMusicSheetClose');
-                const isOpen = () => sheet.classList.contains('open');
-
-                const setOpen = (open) => {
-                    sheet.classList.toggle('open', open);
-                    backdrop.classList.toggle('open', open);
-                    document.body.classList.toggle('hw-music-sheet-open', open);
-                    if (openBtn) openBtn.classList.toggle('active', open);
-                    if (open) {
-                        ensureAudioEl();
-                        if (mountEl && !mountEl.dataset.hwMounted) {
-                            mountEl.dataset.hwMounted = '1';
-                            mountOnePlaylist(mountEl);
-                        } else if (mountEl) {
-                            const card = mountEl.querySelector('.hw-playlist');
-                            if (card) refreshPlaylistUI(card, targetListId);
-                        }
-                    }
-                };
-
-                const open = () => setOpen(true);
-                const close = () => setOpen(false);
-                const toggle = () => setOpen(!isOpen());
-
-                backdrop.addEventListener('click', close);
-
-                if (!document.documentElement.dataset.hwMusicMenuCloseBound) {
-                    document.documentElement.dataset.hwMusicMenuCloseBound = '1';
-                    document.addEventListener('click', (e) => {
-                        if (!globalSheet || !globalSheet.isOpen()) return;
-                        const item = e.target && e.target.closest ? e.target.closest('.menu .menu-item') :
-                            null;
-                        if (!item) return;
-                        if (item.id === 'openMusicBtn') return;
-                        globalSheet.close();
-                    }, true);
-                }
-                if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault();
-                    e.stopPropagation();
-                    close(); });
-                sheet.addEventListener('click', (e) => e.stopPropagation());
-
-                let dragStartY = null;
-                const handle = sheet.querySelector('.hw-music-sheet-handle');
-                const onPointerDown = (e) => {
-                    dragStartY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
-                };
-                const onPointerMove = (e) => {
-                    if (dragStartY == null) return;
-                    const y = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
-                    if (y != null && y - dragStartY > 70) { dragStartY = null;
-                        close(); }
-                };
-                const onPointerUp = () => { dragStartY = null; };
-                if (handle) {
-                    handle.addEventListener('mousedown', onPointerDown);
-                    handle.addEventListener('touchstart', onPointerDown, { passive: true });
-                }
-                window.addEventListener('mousemove', onPointerMove);
-                window.addEventListener('touchmove', onPointerMove, { passive: true });
-                window.addEventListener('mouseup', onPointerUp);
-                window.addEventListener('touchend', onPointerUp);
-
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && isOpen()) close();
-                });
-
-                const syncMenuDot = () => {
-                    if (!openBtn) openBtn = document.getElementById('openMusicBtn');
-                    if (!openBtn) return;
-                    openBtn.classList.toggle('playing-dot', !!state.isPlaying);
-                };
-                document.addEventListener('hwplayer:update', syncMenuDot);
-                syncMenuDot();
-
-                if (mountEl && !mountEl.dataset.hwMounted) {
-                    mountEl.dataset.hwMounted = '1';
-                    mountOnePlaylist(mountEl);
-                }
-
-                globalSheet = { el: sheet, backdrop, open, close, toggle, isOpen, listId: targetListId };
-                return globalSheet;
-            }
-
-            function openGlobalSheet(listId) { return ensureGlobalSheet(listId).open(); }
-
-            function closeGlobalSheet() { if (globalSheet) globalSheet.close(); }
-
-            function toggleGlobalSheet(listId) { return ensureGlobalSheet(listId).toggle(); }
-
-            function initGlobalPlayer(listId) {
-                const sheet = ensureGlobalSheet(listId || DEFAULT_GLOBAL_LIST_ID);
-                const btn = document.getElementById('openMusicBtn');
-                if (btn && !btn.dataset.hwBound) {
-                    btn.dataset.hwBound = '1';
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        sheet.toggle();
-                    });
-                }
-                return sheet;
-            }
-
+            // 移除自动初始化，由外部手动调用 mountAll
             window.HWPlayer = {
                 parseShortcodes,
                 mountAll,
-                initGlobalPlayer,
-                openGlobalSheet,
-                closeGlobalSheet,
-                toggleGlobalSheet,
                 getState: () => ({ ...state }),
+                // 暴露一些内部方法供调试，但不需要
             };
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => initGlobalPlayer(DEFAULT_GLOBAL_LIST_ID));
-            } else {
-                initGlobalPlayer(DEFAULT_GLOBAL_LIST_ID);
-            }
+            // 不自动执行 initGlobalPlayer
         })();
     </script>
 
@@ -2349,14 +2181,13 @@
         }).mount('#app');
     </script>
 
-    <!-- ===== 主题切换逻辑 ===== -->
+    <!-- ===== 主题切换 & 播放器抽屉控制 ===== -->
     <script>
         (function() {
+            // ----- 主题切换 -----
             const toggleBtn = document.getElementById('themeToggle');
             const iconEl = document.getElementById('themeIcon');
-            // 检测系统偏好
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            // 读取 localStorage 存储的主题
             let stored = localStorage.getItem('hwTheme');
             let isDark = false;
 
@@ -2366,16 +2197,12 @@
 
             function applyTheme(dark) {
                 document.body.classList.toggle('dark', dark);
-                // 更新 iconify 图标
                 if (iconEl) {
                     iconEl.setAttribute('data-icon', dark ? 'carbon:moon' : 'carbon:sun');
                 }
-                // 存储偏好
                 localStorage.setItem('hwTheme', dark ? 'dark' : 'light');
                 isDark = dark;
             }
-
-            // 初始应用
             applyTheme(isDark);
 
             if (toggleBtn) {
@@ -2384,8 +2211,6 @@
                     applyTheme(!isDark);
                 });
             }
-
-            // 监听系统主题变化（仅当用户未手动设置时）
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                 const stored = localStorage.getItem('hwTheme');
                 if (!stored) {
@@ -2393,30 +2218,92 @@
                 }
             });
 
-            // 暴露给 HWPlayer 的 mount 回调，用于刷新布局
+            // ----- 播放器抽屉控制 -----
+            const musicBtn = document.getElementById('musicToggleBtn');
+            const drawer = document.getElementById('musicDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            const closeBtn = document.getElementById('drawerCloseBtn');
+
+            function openDrawer() {
+                drawer.classList.add('open');
+                overlay.classList.add('open');
+                // 如果播放器尚未挂载，则挂载
+                const mount = document.getElementById('drawerPlayerMount');
+                if (mount && !mount.dataset.hwMounted && window.HWPlayer) {
+                    window.HWPlayer.mountAll(); // 会挂载所有 .hw-playlist-mount，包括这个
+                }
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDrawer() {
+                drawer.classList.remove('open');
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            if (musicBtn) {
+                musicBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (drawer.classList.contains('open')) {
+                        closeDrawer();
+                    } else {
+                        openDrawer();
+                    }
+                });
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeDrawer();
+                });
+            }
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    closeDrawer();
+                });
+            }
+            // 按 ESC 关闭
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && drawer.classList.contains('open')) {
+                    closeDrawer();
+                }
+            });
+
+            // ----- 音乐按钮播放指示点（监听播放状态）-----
+            function updateMusicDot() {
+                if (!musicBtn) return;
+                if (window.HWPlayer) {
+                    const state = window.HWPlayer.getState();
+                    if (state.isPlaying) {
+                        musicBtn.classList.add('playing-dot');
+                    } else {
+                        musicBtn.classList.remove('playing-dot');
+                    }
+                }
+            }
+            document.addEventListener('hwplayer:update', updateMusicDot);
+            // 初始检测
+            setTimeout(updateMusicDot, 500);
+
+            // 暴露 mount 触发回调，用于布局更新
             window.HWonMasonryNeeded = function() {
-                // 简单触发 resize 以重排
+                // 可触发 resize
                 window.dispatchEvent(new Event('resize'));
             };
 
-            // 当播放器挂载完成后，确保图标正确
+            // 页面加载完成后挂载播放器（如果尚未挂载）
             document.addEventListener('DOMContentLoaded', function() {
-                // 再次确保图标状态
-                const dark = document.body.classList.contains('dark');
-                if (iconEl) {
-                    iconEl.setAttribute('data-icon', dark ? 'carbon:moon' : 'carbon:sun');
+                if (window.HWPlayer) {
+                    // 挂载所有 .hw-playlist-mount（包括 drawer 内的）
+                    window.HWPlayer.mountAll();
                 }
-                // 手动触发一次 mountAll 以渲染顶部的歌单播放器
-                if (window.HWPlayer && window.HWPlayer.mountAll) {
-                    // 延迟一点点，确保 DOM 已就绪
-                    setTimeout(() => {
-                        const topPlayer = document.getElementById('topPlayer');
-                        if (topPlayer && !topPlayer.dataset.hwMounted) {
-                            window.HWPlayer.mountAll();
-                        }
-                    }, 50);
-                }
+                // 确保 Fancybox 重新绑定（Vue 已做）
             });
+
+            // 当 drawer 打开时，若播放器未挂载，则挂载（已在 openDrawer 中处理）
+            // 但为了保险，我们也可以预加载，但最好在打开时加载。
+            // 另外，如果 drawer 内的播放器已经挂载，但列表可能未刷新，我们可以在打开时刷新 UI。
+            // 但 mountAll 已经做了，且播放器会自动更新。
 
         })();
     </script>
