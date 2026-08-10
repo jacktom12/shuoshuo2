@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>公开手账 · 时间流</title>
+    <title>time</title>
 
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js">
@@ -31,7 +31,6 @@
             --accent-color: #1d9bf0;
             --font-family: 'LXGW WenKai Screen', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-            /* 播放器变量 */
             --paper: #ffffff;
             --border: rgba(0, 0, 0, 0.08);
             --p-shadow: none;
@@ -45,12 +44,10 @@
             --dot-normal: #cfd9de;
             --img-brightness: 1;
 
-            /* 头像 & 背景高度 (变大) */
             --profile-bg-height: 220px;
             --avatar-size: 120px;
         }
 
-        /* 深色模式变量 */
         body.dark {
             --bg: #000000;
             --text-main: #e7e9ea;
@@ -75,7 +72,6 @@
             box-sizing: border-box;
         }
 
-        /* 隐藏所有滚动条 (保留滚动功能) */
         html,
         body {
             scrollbar-width: none;
@@ -95,10 +91,9 @@
             transition: background 0.3s ease, color 0.3s ease;
             min-height: 100vh;
             padding-bottom: 32px;
-            position: relative;
         }
 
-        /* ========== 核心：两侧垂直线 (矩形边框) ========== */
+        /* ===== 两侧垂直线 (矩形边框) ===== */
         .app {
             max-width: 600px;
             margin: 0 auto;
@@ -106,11 +101,9 @@
             border-right: 1px solid var(--border-light);
             min-height: 100vh;
             transition: border-color 0.3s ease;
-            position: relative;
-            z-index: 1;
         }
 
-        /* ========== Profile 头部 ========== */
+        /* ===== Profile 头部 ===== */
         .profile-header {
             position: relative;
             width: 100%;
@@ -118,14 +111,16 @@
             overflow: visible;
             background: var(--bg);
         }
-        .profile-bg {
-            position: absolute;
-            inset: 0;
-            background-image: url('https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1784331329665_42358.webp&n=-1');
-            background-size: cover;
-            background-position: center;
-            filter: brightness(0.95);
-        }
+       .profile-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('...');
+    background-size: contain;        /* 改为 contain */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--bg);     /* 留白处显示背景色，默认为白色/黑色 */
+    filter: brightness(0.95);
+}
         body.dark .profile-bg {
             filter: brightness(0.5);
         }
@@ -155,14 +150,13 @@
             display: block;
         }
 
-        /* ========== 主要内容容器 ========== */
+        /* ===== 主内容 ===== */
         .main-wrapper {
             width: 100%;
             padding: 0 16px;
             padding-top: calc(var(--avatar-size) / 2 + 20px);
         }
 
-        /* ========== Feed — 极简分割线风格 ========== */
         .feed {
             display: flex;
             flex-direction: column;
@@ -211,7 +205,6 @@
             white-space: pre-wrap;
             word-break: break-word;
             margin-bottom: 10px;
-            transition: color 0.3s ease;
         }
         .post-content:last-child {
             margin-bottom: 0;
@@ -220,10 +213,8 @@
         /* ===== 图片布局 ===== */
         .post-images {
             margin-top: 8px;
-            border-radius: 0;
             overflow: hidden;
         }
-
         .layout-1 {
             width: 100%;
             max-height: 480px;
@@ -231,7 +222,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 0;
         }
         .layout-1 .img-link {
             width: 100%;
@@ -242,7 +232,6 @@
             max-height: 480px;
             object-fit: cover;
             display: block;
-            border-radius: 0;
             transition: filter 0.3s ease;
         }
         .layout-1 img:hover {
@@ -257,7 +246,6 @@
         .layout-2 .img-link {
             aspect-ratio: 1 / 1;
             overflow: hidden;
-            border-radius: 0;
         }
         .layout-2 img {
             width: 100%;
@@ -279,7 +267,6 @@
             position: relative;
             aspect-ratio: 1 / 1;
             overflow: hidden;
-            border-radius: 0;
             cursor: pointer;
         }
         .grid-item img {
@@ -304,7 +291,6 @@
             font-weight: 600;
         }
 
-        /* 深色模式图片亮度 */
         body.dark .post-images img,
         body.dark .layout-1 img,
         body.dark .layout-2 img,
@@ -318,7 +304,7 @@
             filter: brightness(0.7) !important;
         }
 
-        /* ========== 加载 & 空状态 ========== */
+        /* ===== 加载状态 ===== */
         .loader {
             text-align: center;
             padding: 24px 0;
@@ -352,7 +338,7 @@
             color: var(--text-muted);
         }
 
-        /* ========== 右上角固定按钮 — 透明背景 ========== */
+        /* ===== 右上角按钮 (透明) ===== */
         .top-actions {
             position: fixed;
             top: 16px;
@@ -408,7 +394,6 @@
             height: 22px;
         }
 
-        /* 播放指示点 */
         .music-btn.playing-dot {
             position: relative;
         }
@@ -436,7 +421,7 @@
             }
         }
 
-        /* ========== 侧滑播放器抽屉 ========== */
+        /* ===== 抽屉播放器 ===== */
         .drawer-overlay {
             position: fixed;
             inset: 0;
@@ -508,7 +493,6 @@
             color: var(--text-main);
         }
 
-        /* ===== 抽屉 body — flex 列，让播放器撑满 ===== */
         .drawer-body {
             flex: 1 1 auto;
             min-height: 0;
@@ -522,9 +506,9 @@
             height: 0;
         }
 
-        /* ===== 播放器在抽屉内适配 (极简 + 高度自适应) ===== */
+        /* ===== 播放器在抽屉内 (关键: 填充剩余高度) ===== */
         .drawer .hw-playlist {
-            flex: 1 1 auto;
+            flex: 1 1 0;          /* 填充剩余空间 */
             min-height: 0;
             width: 100% !important;
             max-width: none !important;
@@ -539,7 +523,6 @@
             overflow: visible !important;
             display: flex !important;
             flex-direction: column !important;
-            height: auto !important;
         }
         .drawer .hw-playlist:hover {
             transform: none !important;
@@ -547,8 +530,8 @@
         }
 
         .drawer .hw-pl-header {
-            padding: 4px 0 6px;
             flex: 0 0 auto;
+            padding: 4px 0 6px;
         }
         .drawer .hw-pl-cover {
             width: 64px;
@@ -568,9 +551,9 @@
         }
 
         .drawer .hw-pl-controls {
+            flex: 0 0 auto;
             gap: 8px;
             margin-bottom: 6px;
-            flex: 0 0 auto;
         }
         .drawer .hw-play {
             width: 44px;
@@ -625,11 +608,11 @@
             color: var(--accent);
         }
 
-        /* ===== 歌单列表 — 自动填充剩余高度 ===== */
+        /* ===== 歌单列表 — 填充剩余高度并滚动 ===== */
         .drawer .hw-pl-list {
-            flex: 1 1 auto;
+            flex: 1 1 0;           /* 占据剩余全部空间 */
             min-height: 0;
-            overflow-y: auto;
+            overflow-y: auto;      /* 内容溢出时滚动 */
             padding-top: 6px;
             margin-top: 4px;
             border-top: 1px solid var(--border-light);
@@ -709,7 +692,7 @@
             border: none;
         }
 
-        /* ========== 响应式 ========== */
+        /* ===== 响应式 ===== */
         @media (max-width: 640px) {
             :root {
                 --profile-bg-height: 180px;
@@ -848,14 +831,12 @@
             }
         }
 
-        /* 当屏幕宽度 > 640px 时，垂直线显示；移动端隐藏，因为屏幕窄不需要 */
         @media (min-width: 641px) {
             .app {
                 border-left: 1px solid var(--border-light);
                 border-right: 1px solid var(--border-light);
             }
         }
-        /* 移动端（< 641px）边框隐藏，因为屏幕太窄，线会挤占空间 */
         @media (max-width: 640px) {
             .app {
                 border-left: none !important;
@@ -864,9 +845,8 @@
         }
     </style>
 
-    <!-- ========== hw-music-player.css 精简版 ========== -->
+    <!-- ===== hw-music-player.css 精简版 ===== -->
     <style>
-        /* 极简版播放器样式 */
         .hw-player {
             position: relative;
             width: min(100%, 360px);
@@ -879,7 +859,6 @@
             transform: none !important;
             font-family: var(--font-family);
             overflow: hidden;
-            transition: none;
         }
         .hw-player:hover {
             transform: none !important;
@@ -1147,7 +1126,6 @@
             transform: scale(0.92);
         }
 
-        /* 播放列表极简 */
         .hw-playlist {
             position: relative;
             width: min(100%, 400px);
@@ -1326,7 +1304,6 @@
             font-size: 0.82rem;
         }
 
-        /* 全局音乐 sheet 隐藏 */
         .hw-music-sheet-backdrop,
         .hw-music-sheet {
             display: none !important;
@@ -1378,10 +1355,9 @@
 
 <body>
 
-    <!-- ========== .app 容器：包含所有主要内容，左右边框形成垂直线 ========== -->
     <div class="app">
 
-        <!-- Profile 头部 -->
+        <!-- Profile -->
         <header class="profile-header">
             <div class="profile-bg"></div>
             <div class="profile-avatar">
@@ -1389,7 +1365,7 @@
             </div>
         </header>
 
-        <!-- 主要内容 -->
+        <!-- 主内容 -->
         <div class="main-wrapper">
             <div id="app">
                 <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
@@ -1402,7 +1378,6 @@
                         </div>
                         <div class="post-content">{{ post.content }}</div>
 
-                        <!-- 图片布局 -->
                         <div v-if="post.images && post.images.length === 1" class="post-images layout-1">
                             <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
                                 <img :src="post.images[0]" alt="图1" loading="lazy">
@@ -1426,7 +1401,6 @@
                         </div>
                     </div>
 
-                    <!-- 加载状态 -->
                     <div class="loader" v-if="!loading && hasMore">
                         <button @click="loadMore">加载更多</button>
                     </div>
@@ -1441,9 +1415,8 @@
         </div>
 
     </div>
-    <!-- ========== .app 结束 ========== -->
 
-    <!-- ========== 右上角固定按钮 ========== -->
+    <!-- ===== 右上角按钮 ===== -->
     <div class="top-actions">
         <button class="music-btn" id="musicToggleBtn" aria-label="音乐播放器" title="音乐播放器">
             <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
@@ -1459,7 +1432,7 @@
         </button>
     </div>
 
-    <!-- ========== 侧滑播放器面板 ========== -->
+    <!-- ===== 抽屉播放器 ===== -->
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <div class="drawer" id="musicDrawer">
         <div class="drawer-header">
@@ -1471,12 +1444,7 @@
         </div>
     </div>
 
-
-    <!-- ============================================================ -->
-    <!-- 脚本                                                          -->
-    <!-- ============================================================ -->
-
-    <!-- hw-music-player.js -->
+    <!-- ===== 脚本 ===== -->
     <script>
         (function() {
             const NETEASE_SONG_INFO_API = (id) =>
@@ -2156,7 +2124,7 @@
         })();
     </script>
 
-    <!-- ===== Vue 应用 ===== -->
+    <!-- Vue -->
     <script>
         const { createApp } = Vue;
 
@@ -2233,10 +2201,10 @@
         }).mount('#app');
     </script>
 
-    <!-- ===== 主题切换 & 播放器抽屉控制 ===== -->
+    <!-- 主题切换 & 抽屉控制 -->
     <script>
         (function() {
-            // ----- 主题切换 -----
+            // 主题
             const toggleBtn = document.getElementById('themeToggle');
             const iconEl = document.getElementById('themeIcon');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -2270,7 +2238,7 @@
                 }
             });
 
-            // ----- 播放器抽屉控制 -----
+            // 抽屉
             const musicBtn = document.getElementById('musicToggleBtn');
             const drawer = document.getElementById('musicDrawer');
             const overlay = document.getElementById('drawerOverlay');
@@ -2319,7 +2287,7 @@
                 }
             });
 
-            // ----- 音乐按钮播放指示点 -----
+            // 播放状态指示
             function updateMusicDot() {
                 if (!musicBtn) return;
                 if (window.HWPlayer) {
