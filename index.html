@@ -1,420 +1,2425 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>公开手账 · 时间流</title>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <!-- Fancybox 图片灯箱 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-  <style>
-    :root {
-      --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-      --card-bg: rgba(255, 255, 255, 0.82);
-      --card-border: rgba(255, 255, 255, 0.8);
-      --text-main: #2c3e50;
-      --text-muted: #8c98a4;
-      --accent-color: #4a90e2;
-      --radius-card: 20px;
-      --radius-img: 12px;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>公开手账 · 时间流</title>
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js">
+    </script>
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg-gradient);
-      background-attachment: fixed;
-      min-height: 100vh;
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      padding-bottom: 60px;
-    }
+    <!-- Fancybox 图片灯箱 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js">
+    </script>
 
-    /* 限制单列最佳阅读宽度 600px */
-    .main-wrapper {
-      width: 100%;
-      max-width: 600px;
-      padding: 0 16px;
-    }
+    <!-- LXGW WenKai Screen 字体 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" />
 
-    /* 悬浮吸顶 Header */
-    .header {
-      position: sticky;
-      top: 12px;
-      z-index: 100;
-      margin-top: 16px;
-      margin-bottom: 24px;
-      padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: 30px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    <!-- Iconify 图标库（用于主题切换按钮） -->
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js">
+    </script>
 
-    .header h1 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    <style>
+        /* ========== 全局变量 & 重置 ========== */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.82);
+            --card-border: rgba(255, 255, 255, 0.8);
+            --text-main: #2c3e50;
+            --text-muted: #8c98a4;
+            --accent-color: #4a90e2;
+            --radius-card: 20px;
+            --radius-img: 12px;
 
-    .feed {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
+            /* 播放器变量 (与 hw-music-player.css 对齐) */
+            --paper: rgba(255, 255, 255, 0.78);
+            --border: rgba(0, 0, 0, 0.10);
+            --p-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            --sketch-radius-1: 20px;
+            --sketch-radius-btn: 12px;
+            --text: #2c3e50;
+            --secondary-text: #6b7a8a;
+            --accent: #4a90e2;
+            --accent-dark: #357abd;
+            --bg: #f0f2f6;
+            --dot-normal: #d0d7e2;
+            --img-brightness: 1;
+        }
 
-    /* 卡片基础样式 */
-    .card {
-      width: 100%;
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: var(--radius-card);
-      border: 1px solid var(--card-border);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.02);
-      padding: 20px;
-      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
-      overflow: hidden;
-    }
+        /* 深色模式变量 */
+        body.dark {
+            --bg-gradient: linear-gradient(135deg, #1a1d23 0%, #2a2e36 100%);
+            --card-bg: rgba(40, 44, 52, 0.82);
+            --card-border: rgba(70, 76, 88, 0.6);
+            --text-main: #e8edf5;
+            --text-muted: #9aa4b0;
+            --accent-color: #6a9ef0;
 
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
-    }
+            --paper: rgba(38, 42, 50, 0.82);
+            --border: rgba(120, 130, 150, 0.25);
+            --p-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            --text: #e8edf5;
+            --secondary-text: #9aa4b0;
+            --accent: #6a9ef0;
+            --accent-dark: #4f82d6;
+            --bg: #22262e;
+            --dot-normal: #3d434e;
+            --img-brightness: 0.7;
+        }
 
-    .card-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* 时间戳标签 */
-    .time-badge {
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      background: rgba(0, 0, 0, 0.03);
-      padding: 4px 10px;
-      border-radius: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
+        body {
+            font-family: 'LXGW WenKai Screen', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding-bottom: 60px;
+            transition: background 0.35s ease, color 0.3s ease;
+        }
 
-    .time-badge::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      background-color: var(--accent-color);
-      border-radius: 50%;
-      display: inline-block;
-    }
+        .main-wrapper {
+            width: 100%;
+            max-width: 600px;
+            padding: 0 16px;
+        }
 
-    /* 正文 */
-    .content {
-      font-size: 0.98rem;
-      line-height: 1.65;
-      color: #334155;
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-bottom: 12px;
-    }
+        /* ========== 顶部播放器容器 ========== */
+        .player-top-wrap {
+            position: sticky;
+            top: 12px;
+            z-index: 110;
+            margin-top: 12px;
+            margin-bottom: 20px;
+            border-radius: var(--radius-card);
+            background: var(--card-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+            padding: 12px 14px 14px;
+            transition: background 0.35s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
 
-    .content:last-child {
-      margin-bottom: 0;
-    }
+        /* 播放器内部使用 hw-playlist 样式，但去掉外边距和背景，完全继承毛玻璃 */
+        .player-top-wrap .hw-playlist {
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            transform: none !important;
+            font-family: 'LXGW WenKai Screen', sans-serif;
+            overflow: visible !important;
+        }
+        .player-top-wrap .hw-playlist:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .player-top-wrap .hw-pl-header {
+            padding: 4px 0 6px;
+        }
+        .player-top-wrap .hw-pl-cover {
+            width: 64px;
+            height: 64px;
+            flex: 0 0 64px;
+            border-radius: 10px;
+        }
+        .player-top-wrap .hw-pl-title {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+        .player-top-wrap .hw-pl-artist {
+            font-size: 0.8rem;
+        }
+        .player-top-wrap .hw-pl-count {
+            font-size: 0.7rem;
+        }
+        .player-top-wrap .hw-pl-controls {
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .player-top-wrap .hw-play {
+            width: 44px;
+            height: 38px;
+        }
+        .player-top-wrap .hw-btn {
+            width: 34px;
+            height: 30px;
+        }
+        .player-top-wrap .hw-pl-list {
+            max-height: 150px;
+            padding-top: 4px;
+            margin-top: 2px;
+            border-top: 1.5px dashed var(--border);
+        }
+        .player-top-wrap .hw-pl-row {
+            padding: 4px 2px;
+        }
+        .player-top-wrap .hw-pl-row-thumb {
+            width: 28px;
+            height: 28px;
+            flex: 0 0 28px;
+        }
+        .player-top-wrap .hw-pl-row-title {
+            font-size: 0.78rem;
+        }
+        .player-top-wrap .hw-pl-row-artist {
+            font-size: 0.66rem;
+        }
+        .player-top-wrap .hw-pl-view-lyrics {
+            height: 120px;
+            min-height: 80px;
+            margin-bottom: 6px;
+        }
+        .player-top-wrap .hw-lyrics-line {
+            font-size: 0.78rem;
+            line-height: 1.6;
+        }
+        .player-top-wrap .hw-lyrics-line.active {
+            font-size: 0.88rem;
+        }
+        .player-top-wrap .hw-progress-row {
+            margin-bottom: 6px;
+        }
+        .player-top-wrap .hw-time {
+            font-size: 0.7rem;
+            min-width: 32px;
+        }
+        .player-top-wrap .hw-progress {
+            height: 5px;
+        }
+        .player-top-wrap .hw-progress::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+        }
+        .player-top-wrap .hw-progress::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+        }
 
-    /* 图片区域通用配置 */
-    .card-images {
-      border-radius: var(--radius-img);
-      overflow: hidden;
-      margin-top: 10px;
-    }
+        /* 顶部播放器 + 主题切换按钮 的 Flex 行 */
+        .player-top-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+        .player-top-head .pl-title-area {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 0.3px;
+        }
+        .player-top-head .pl-title-area .icon-note {
+            font-size: 1.1rem;
+            opacity: 0.7;
+        }
 
-    /* 单图样式 */
-    .layout-1 {
-      width: 100%;
-      max-height: 480px;
-      background: rgba(0, 0, 0, 0.02);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: var(--radius-img);
-    }
-    
-    .layout-1 .img-link {
-      width: 100%;
-      display: block;
-    }
+        /* 主题切换按钮 — 毛玻璃小圆钮 */
+        .theme-toggle-btn {
+            appearance: none;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid var(--card-border);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            flex: 0 0 38px;
+        }
+        .theme-toggle-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.55);
+        }
+        .theme-toggle-btn:active {
+            transform: scale(0.92);
+        }
+        body.dark .theme-toggle-btn {
+            background: rgba(60, 66, 80, 0.5);
+            border-color: rgba(120, 130, 150, 0.3);
+            color: #e8edf5;
+        }
+        body.dark .theme-toggle-btn:hover {
+            background: rgba(80, 88, 108, 0.6);
+        }
 
-    .layout-1 img {
-      width: 100%;
-      max-height: 480px;
-      object-fit: cover;
-      display: block;
-      border-radius: var(--radius-img);
-      transition: transform 0.3s ease;
-    }
+        /* iconify 图标在按钮内居中 */
+        .theme-toggle-btn .iconify {
+            width: 22px;
+            height: 22px;
+            display: block;
+        }
 
-    .layout-1 img:hover {
-      transform: scale(1.015);
-    }
+        /* ========== 原手账卡片 Feed ========== */
+        .feed {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-    /* 双图样式 */
-    .layout-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
+        .card {
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--radius-card);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.02);
+            padding: 20px;
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, background 0.35s ease, border-color 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
+        }
 
-    .layout-2 .img-link {
-      aspect-ratio: 1 / 1;
-      overflow: hidden;
-      border-radius: calc(var(--radius-img) - 4px);
-    }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .time-badge {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.03);
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .time-badge::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            display: inline-block;
+        }
 
-    .layout-2 img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.3s ease;
-    }
+        .content {
+            font-size: 0.98rem;
+            line-height: 1.65;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-bottom: 12px;
+            transition: color 0.3s ease;
+        }
+        .content:last-child {
+            margin-bottom: 0;
+        }
 
-    .layout-2 img:hover {
-      transform: scale(1.03);
-    }
+        .card-images {
+            border-radius: var(--radius-img);
+            overflow: hidden;
+            margin-top: 10px;
+        }
 
-    /* 三列九宫格 */
-    .layout-3plus {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-    }
+        .layout-1 {
+            width: 100%;
+            max-height: 480px;
+            background: rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--radius-img);
+        }
+        .layout-1 .img-link {
+            width: 100%;
+            display: block;
+        }
+        .layout-1 img {
+            width: 100%;
+            max-height: 480px;
+            object-fit: cover;
+            display: block;
+            border-radius: var(--radius-img);
+            transition: transform 0.3s ease, filter 0.4s ease;
+        }
+        .layout-1 img:hover {
+            transform: scale(1.015);
+        }
 
-    .grid-item {
-      position: relative;
-      aspect-ratio: 1 / 1;
-      overflow: hidden;
-      border-radius: calc(var(--radius-img) - 6px);
-      cursor: pointer;
-    }
+        .layout-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .layout-2 .img-link {
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border-radius: calc(var(--radius-img) - 4px);
+        }
+        .layout-2 img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease, filter 0.4s ease;
+        }
+        .layout-2 img:hover {
+            transform: scale(1.03);
+        }
 
-    .grid-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.3s ease;
-    }
+        .layout-3plus {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .grid-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border-radius: calc(var(--radius-img) - 6px);
+            cursor: pointer;
+        }
+        .grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease, filter 0.4s ease;
+        }
+        .grid-item:hover img {
+            transform: scale(1.04);
+        }
+        .more-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+        }
 
-    .grid-item:hover img {
-      transform: scale(1.04);
-    }
+        /* 深色模式下所有图片亮度 70% (包括手账图和播放器图) */
+        body.dark .card-images img,
+        body.dark .layout-1 img,
+        body.dark .layout-2 img,
+        body.dark .grid-item img,
+        body.dark .hw-cover-img,
+        body.dark .hw-pl-cover-img,
+        body.dark .hw-pl-row-thumb img,
+        body.dark .hw-disc {
+            filter: brightness(0.7) !important;
+        }
+        /* 播放器封面图单独处理，避免覆盖 .hw-disc 的 filter */
+        body.dark .hw-cover-img,
+        body.dark .hw-pl-cover-img,
+        body.dark .hw-pl-row-thumb img {
+            filter: brightness(0.7) !important;
+        }
+        /* 唱盘保留原有亮度控制，但叠加 0.7 */
+        body.dark .hw-disc {
+            filter: brightness(0.7) !important;
+        }
 
-    .more-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      font-size: 1.25rem;
-      font-weight: 600;
-      backdrop-filter: blur(4px);
-    }
+        /* ========== 加载 & 空状态 ========== */
+        .loader {
+            text-align: center;
+            padding: 24px 0;
+            color: var(--text-muted);
+        }
+        .loader button {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--card-border);
+            padding: 10px 28px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+        .loader button:hover {
+            background: #ffffff;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+        .loader .no-more {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .empty {
+            text-align: center;
+            padding: 80px 0;
+            color: var(--text-muted);
+        }
 
-    /* 加载与空状态 */
-    .loader {
-      text-align: center;
-      padding: 24px 0;
-      color: var(--text-muted);
-    }
+        /* ========== 响应式 ========== */
+        @media (max-width: 640px) {
+            .main-wrapper {
+                padding: 0 12px;
+            }
+            .player-top-wrap {
+                padding: 10px 12px 12px;
+                border-radius: 16px;
+                top: 10px;
+                margin-top: 10px;
+                margin-bottom: 16px;
+            }
+            .player-top-wrap .hw-pl-cover {
+                width: 52px;
+                height: 52px;
+                flex: 0 0 52px;
+            }
+            .player-top-wrap .hw-pl-title {
+                font-size: 0.9rem;
+            }
+            .player-top-wrap .hw-pl-artist {
+                font-size: 0.72rem;
+            }
+            .player-top-wrap .hw-play {
+                width: 40px;
+                height: 34px;
+            }
+            .player-top-wrap .hw-btn {
+                width: 30px;
+                height: 28px;
+            }
+            .player-top-wrap .hw-pl-list {
+                max-height: 120px;
+            }
+            .player-top-wrap .hw-pl-row {
+                padding: 3px 2px;
+            }
+            .player-top-wrap .hw-pl-row-thumb {
+                width: 24px;
+                height: 24px;
+                flex: 0 0 24px;
+            }
+            .player-top-wrap .hw-pl-row-title {
+                font-size: 0.72rem;
+            }
+            .player-top-wrap .hw-pl-row-artist {
+                font-size: 0.62rem;
+            }
+            .player-top-wrap .hw-pl-view-lyrics {
+                height: 100px;
+                min-height: 60px;
+            }
+            .player-top-wrap .hw-lyrics-line {
+                font-size: 0.72rem;
+            }
+            .player-top-wrap .hw-lyrics-line.active {
+                font-size: 0.82rem;
+            }
 
-    .loader button {
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid var(--card-border);
-      padding: 10px 28px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      color: var(--text-main);
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-      transition: all 0.2s ease;
-    }
+            .player-top-head .pl-title-area {
+                font-size: 0.75rem;
+            }
+            .theme-toggle-btn {
+                width: 34px;
+                height: 34px;
+                flex: 0 0 34px;
+                font-size: 1rem;
+            }
+            .theme-toggle-btn .iconify {
+                width: 19px;
+                height: 19px;
+            }
 
-    .loader button:hover {
-      background: #ffffff;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-      transform: translateY(-1px);
-    }
+            .card {
+                padding: 16px;
+                border-radius: 16px;
+            }
+            .layout-1 {
+                max-height: 380px;
+            }
+        }
 
-    .loader .no-more {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-    }
+        @media (max-width: 400px) {
+            .player-top-wrap .hw-pl-cover {
+                width: 44px;
+                height: 44px;
+                flex: 0 0 44px;
+            }
+            .player-top-wrap .hw-pl-title {
+                font-size: 0.8rem;
+            }
+            .player-top-wrap .hw-play {
+                width: 36px;
+                height: 30px;
+            }
+            .player-top-wrap .hw-btn {
+                width: 26px;
+                height: 24px;
+            }
+            .player-top-wrap .hw-pl-list {
+                max-height: 100px;
+            }
+            .theme-toggle-btn {
+                width: 30px;
+                height: 30px;
+                flex: 0 0 30px;
+            }
+            .theme-toggle-btn .iconify {
+                width: 17px;
+                height: 17px;
+            }
+        }
+    </style>
 
-    .empty {
-      text-align: center;
-      padding: 80px 0;
-      color: var(--text-muted);
-    }
+    <!-- ========== hw-music-player.css 完整内容 ========== -->
+    <style>
+        /* hw-music-player.css — 完整保留，仅微调变量适配 */
+        .hw-player {
+            position: relative;
+            width: min(100%, 360px);
+            margin: 14px auto 6px;
+            padding: 16px 16px 14px;
+            background: var(--paper);
+            border: 2px solid var(--border);
+            border-radius: var(--sketch-radius-1);
+            box-shadow: var(--p-shadow);
+            transform: rotate(-0.4deg) skewX(-0.6deg);
+            font-family: 'LXGW WenKai Screen', sans-serif;
+            overflow: hidden;
+            transition: transform .2s ease, box-shadow .2s ease
+        }
+        .hw-player:hover {
+            transform: rotate(0deg) skewX(0deg) translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--border)
+        }
+        .hw-note-corner {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 26px;
+            height: 26px;
+            color: var(--accent);
+            font-size: 20px;
+            line-height: 1;
+            transform: rotate(-12deg);
+            pointer-events: none;
+            opacity: .9;
+            z-index: 2
+        }
+        .hw-player-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px
+        }
+        .hw-disc-wrap {
+            position: relative;
+            width: 92px;
+            height: 92px;
+            flex: 0 0 92px
+        }
+        .hw-disc {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #cfd8e8 0%, #9aa6bd 30%, #4b5468 55%, #23262f 78%, #101116 100%);
+            background-size: cover;
+            background-position: center;
+            border: 3px solid var(--border);
+            box-shadow: 2px 2px 0 var(--border);
+            position: relative;
+            animation: hw-spin 3.2s linear infinite;
+            animation-play-state: paused
+        }
+        .hw-disc-wrap.spinning .hw-disc {
+            animation-play-state: running
+        }
+        .hw-disc::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: repeating-radial-gradient(circle, rgba(255, 255, 255, 0.12) 0px, rgba(255, 255, 255, 0.12) 1px, transparent 1px, transparent 6px);
+            mix-blend-mode: overlay
+        }
+        .hw-disc::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 26px;
+            height: 26px;
+            margin: -13px 0 0 -13px;
+            border-radius: 50%;
+            background: var(--paper);
+            border: 2px solid var(--border)
+        }
+        @keyframes hw-spin {
+            from {
+                transform: rotate(0deg)
+            }
+            to {
+                transform: rotate(360deg)
+            }
+        }
+        .hw-cover {
+            width: 92px;
+            height: 92px;
+            flex: 0 0 92px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            box-shadow: 3px 3px 0 var(--border);
+            overflow: hidden;
+            background: var(--bg);
+            transform: rotate(2deg)
+        }
+        .hw-cover-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            filter: brightness(var(--img-brightness))
+        }
+        .hw-meta {
+            text-align: center;
+            margin: 4px 0 10px
+        }
+        .hw-title {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: var(--text);
+            line-height: 1.3
+        }
+        .hw-artist {
+            font-size: .92rem;
+            color: var(--secondary-text);
+            margin-top: 2px
+        }
+        .hw-album {
+            font-size: .82rem;
+            color: var(--secondary-text);
+            margin-top: 1px;
+            font-style: italic
+        }
 
-    @media (max-width: 640px) {
-      .main-wrapper { padding: 0 12px; }
-      .card { padding: 16px; border-radius: 16px; }
-      .layout-1 { max-height: 380px; }
-    }
-  </style>
+        .hw-view-lyrics {
+            display: none;
+            flex-direction: column;
+            height: 158px;
+            margin-bottom: 12px;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            padding: 8px 6px
+        }
+        .hw-player.lyrics-mode .hw-view-normal {
+            display: none
+        }
+        .hw-player.lyrics-mode .hw-view-lyrics {
+            display: flex
+        }
+        .hw-lyrics-scroll-full {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 6px;
+            scrollbar-width: none;
+            -ms-overflow-style: none
+        }
+        .hw-lyrics-scroll-full::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none
+        }
+        .hw-lyrics-line {
+            color: var(--secondary-text);
+            padding: 3px 4px;
+            text-align: center;
+            font-size: .86rem;
+            line-height: 1.7;
+            transition: color .2s ease, font-weight .2s ease, font-size .2s ease
+        }
+        .hw-lyrics-line.active {
+            color: var(--accent-dark);
+            font-weight: 900;
+            font-size: .98rem
+        }
+        .hw-lyrics-empty {
+            margin: auto;
+            text-align: center;
+            color: var(--secondary-text);
+            font-size: .85rem;
+            padding: 6px
+        }
+
+        .hw-progress-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px
+        }
+        .hw-time {
+            font-size: .78rem;
+            color: var(--secondary-text);
+            font-weight: 700;
+            min-width: 38px
+        }
+        .hw-time.hw-dur {
+            text-align: right
+        }
+        .hw-progress {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--dot-normal);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            border: 1px solid var(--border)
+        }
+        .hw-progress::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            box-shadow: 1px 1px 0 var(--border)
+        }
+        .hw-progress::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--border);
+            cursor: pointer
+        }
+
+        .hw-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px
+        }
+        .hw-btn {
+            border: 2px solid var(--border);
+            background: var(--paper);
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s ease;
+            position: relative
+        }
+        .hw-btn svg {
+            display: block
+        }
+        .hw-play {
+            width: 52px;
+            height: 44px;
+            border-radius: var(--sketch-radius-btn);
+            background: var(--accent);
+            box-shadow: 3px 3px 0 var(--border);
+            transform: rotate(-1deg)
+        }
+        .hw-play:hover {
+            background: var(--accent-dark);
+            transform: rotate(0deg) translateY(-1px)
+        }
+        .hw-like,
+        .hw-repeat,
+        .hw-lyrics-toggle,
+        .hw-pl-shuffle,
+        .hw-pl-repeat,
+        .hw-pl-lyrics-toggle {
+            width: 38px;
+            height: 34px;
+            border-radius: var(--sketch-radius-btn);
+            box-shadow: 2px 2px 0 var(--border);
+            transform: rotate(2deg)
+        }
+        .hw-repeat,
+        .hw-pl-shuffle,
+        .hw-pl-repeat,
+        .hw-lyrics-toggle,
+        .hw-pl-lyrics-toggle {
+            transform: rotate(-2deg)
+        }
+        .hw-like {
+            color: #c0605f
+        }
+        .hw-like.active {
+            background: #f6b8b6;
+            transform: rotate(0deg) scale(1.08)
+        }
+        .hw-repeat.active,
+        .hw-pl-shuffle.active,
+        .hw-pl-repeat.active,
+        .hw-lyrics-toggle.active,
+        .hw-pl-lyrics-toggle.active {
+            background: var(--accent);
+            color: #fff;
+            transform: rotate(0deg) scale(1.05)
+        }
+        .hw-repeat-badge {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent-dark);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid var(--paper);
+            line-height: 1
+        }
+        .hw-btn:active {
+            transform: scale(0.92)
+        }
+        body.dark .hw-disc {
+            filter: brightness(0.92)
+        }
+        body.dark .hw-player {
+            box-shadow: 4px 5px 0px rgba(255, 255, 255, 0.05)
+        }
+        body.dark .hw-like.active {
+            background: #8a4a49;
+            color: #ffd6d5
+        }
+        body.dark .hw-repeat.active,
+        body.dark .hw-pl-shuffle.active,
+        body.dark .hw-pl-repeat.active,
+        body.dark .hw-lyrics-toggle.active,
+        body.dark .hw-pl-lyrics-toggle.active {
+            background: var(--accent-dark)
+        }
+        @media (max-width:480px) {
+            .hw-player {
+                width: 100%;
+                padding: 12px 12px 10px
+            }
+            .hw-disc-wrap,
+            .hw-cover {
+                width: 72px;
+                height: 72px;
+                flex-basis: 72px
+            }
+            .hw-title {
+                font-size: 1rem
+            }
+            .hw-controls {
+                gap: 9px
+            }
+            .hw-play {
+                width: 46px;
+                height: 38px
+            }
+            .hw-view-lyrics {
+                height: 130px
+            }
+        }
+
+        .hw-playlist {
+            position: relative;
+            width: min(100%, 400px);
+            margin: 14px auto 6px;
+            padding: 16px 16px 12px;
+            background: var(--paper);
+            border: 2px solid var(--border);
+            border-radius: var(--sketch-radius-1);
+            box-shadow: var(--p-shadow);
+            transform: rotate(0.3deg) skewX(0.4deg);
+            font-family: 'LXGW WenKai Screen', sans-serif;
+            overflow: hidden
+        }
+        .hw-playlist:hover {
+            transform: rotate(0deg) skewX(0deg) translate(-2px, -2px);
+            box-shadow: 6px 6px 0px var(--border)
+        }
+        .hw-pl-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px
+        }
+        .hw-pl-cover {
+            width: 76px;
+            height: 76px;
+            flex: 0 0 76px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            box-shadow: 3px 3px 0 var(--border);
+            overflow: hidden;
+            background: var(--bg)
+        }
+        .hw-pl-meta {
+            flex: 1;
+            min-width: 0
+        }
+        .hw-pl-title {
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+        .hw-pl-artist {
+            font-size: .85rem;
+            color: var(--secondary-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px
+        }
+        .hw-pl-count {
+            font-size: .72rem;
+            color: var(--secondary-text);
+            margin-top: 3px
+        }
+        .hw-pl-view-lyrics {
+            display: none;
+            flex-direction: column;
+            height: 158px;
+            margin-bottom: 10px;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            padding: 8px 6px
+        }
+        .hw-playlist.lyrics-mode .hw-pl-view-normal {
+            display: none
+        }
+        .hw-playlist.lyrics-mode .hw-pl-view-lyrics {
+            display: flex
+        }
+        .hw-pl-progress-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px
+        }
+        .hw-pl-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px
+        }
+        .hw-pl-list {
+            max-height: 220px;
+            overflow-y: auto;
+            border-top: 1.5px dashed var(--border);
+            padding-top: 6px;
+            scrollbar-width: none;
+            -ms-overflow-style: none
+        }
+        .hw-pl-list::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none
+        }
+        .hw-pl-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .15s ease
+        }
+        .hw-pl-row:hover {
+            background: var(--bg)
+        }
+        .hw-pl-row.playing {
+            background: var(--dot-normal)
+        }
+        .hw-pl-row-idx {
+            width: 18px;
+            text-align: center;
+            font-size: .72rem;
+            color: var(--secondary-text);
+            flex: 0 0 18px
+        }
+        .hw-pl-row.playing .hw-pl-row-idx {
+            color: var(--accent-dark)
+        }
+        .hw-pl-row-thumb {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            border-radius: 5px;
+            border: 1.5px solid var(--border);
+            overflow: hidden;
+            background: var(--bg)
+        }
+        .hw-pl-row-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+        .hw-pl-row-info {
+            flex: 1;
+            min-width: 0
+        }
+        .hw-pl-row-title {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+        .hw-pl-row-artist {
+            font-size: .72rem;
+            color: var(--secondary-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+        .hw-pl-row-playicon {
+            flex: 0 0 16px;
+            text-align: center;
+            color: var(--accent-dark);
+            opacity: 0
+        }
+        .hw-pl-row.playing .hw-pl-row-playicon {
+            opacity: 1
+        }
+        .hw-pl-loading,
+        .hw-pl-error {
+            text-align: center;
+            padding: 18px 8px;
+            color: var(--secondary-text);
+            font-size: .85rem
+        }
+        @media (max-width:480px) {
+            .hw-playlist {
+                width: 100%;
+                padding: 12px 12px 10px
+            }
+            .hw-pl-cover {
+                width: 60px;
+                height: 60px;
+                flex-basis: 60px
+            }
+            .hw-pl-list {
+                max-height: 180px
+            }
+            .hw-pl-view-lyrics {
+                height: 130px
+            }
+        }
+
+        /* ===== global music sheet ===== */
+        .hw-music-sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 6100;
+            background: transparent;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .hw-music-sheet-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        body.hw-music-sheet-open .menu {
+            z-index: 6300;
+        }
+
+        .hw-music-sheet {
+            --hw-menu-clearance: calc(84px + env(safe-area-inset-bottom, 0px));
+            position: fixed;
+            left: 50%;
+            bottom: var(--hw-menu-clearance);
+            top: auto;
+            width: min(100% - 16px, 520px);
+            height: min(72vh, calc(100dvh - var(--hw-menu-clearance) - 18px - env(safe-area-inset-top, 0px)));
+            max-height: min(720px, calc(100dvh - var(--hw-menu-clearance) - 18px - env(safe-area-inset-top, 0px)));
+            transform: translate(-50%, calc(100% + 28px));
+            z-index: 6200;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 249, 230, 0.94);
+            border: 1px solid rgba(50, 50, 50, .12);
+            border-radius: 24px;
+            box-shadow: 0 18px 48px rgba(50, 50, 50, .18), 0 2px 0 rgba(255, 255, 255, .35) inset;
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            padding: 10px 14px 12px;
+            transition: transform .34s cubic-bezier(.22, 1, .36, 1), opacity .24s ease;
+            opacity: 0;
+            font-family: 'LXGW WenKai Screen', sans-serif;
+            overflow: hidden;
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+        .hw-music-sheet.open {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        body.dark .hw-music-sheet {
+            background: rgba(28, 28, 32, 0.94);
+            border-color: rgba(255, 255, 255, .12);
+            box-shadow: 0 18px 48px rgba(0, 0, 0, .42), 0 1px 0 rgba(255, 255, 255, .06) inset;
+        }
+
+        .hw-music-sheet-handle {
+            width: 42px;
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(50, 50, 50, .18);
+            margin: 2px auto 10px;
+            flex: 0 0 auto;
+        }
+        body.dark .hw-music-sheet-handle {
+            background: rgba(255, 255, 255, .2)
+        }
+
+        .hw-music-sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex: 0 0 auto;
+        }
+        .hw-music-sheet-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+        .hw-music-sheet-close {
+            appearance: none;
+            border: 1.5px solid var(--border, rgba(50, 50, 50, .18));
+            background: var(--bg, rgba(255, 249, 230, .56));
+            color: var(--text);
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            box-shadow: 2px 2px 0 var(--border, rgba(50, 50, 50, .12));
+        }
+        .hw-music-sheet-close:hover {
+            transform: translateY(-1px)
+        }
+        .hw-music-sheet-close:active {
+            transform: scale(.96)
+        }
+
+        .hw-music-sheet-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .hw-music-sheet-body::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none
+        }
+
+        .hw-music-sheet .hw-playlist-mount {
+            width: 100%;
+            height: 100%;
+        }
+        .hw-music-sheet .hw-playlist {
+            width: 100%;
+            max-width: none;
+            height: 100%;
+            margin: 0;
+            padding: 4px 2px 2px;
+            border: 0;
+            box-shadow: none;
+            background: transparent;
+            transform: none !important;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .hw-music-sheet .hw-playlist:hover {
+            transform: none !important;
+            box-shadow: none;
+        }
+        .hw-music-sheet .hw-pl-view-normal,
+        .hw-music-sheet .hw-pl-view-lyrics,
+        .hw-music-sheet .hw-pl-progress-row,
+        .hw-music-sheet .hw-pl-controls {
+            flex: 0 0 auto;
+        }
+        .hw-music-sheet .hw-pl-list {
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: none;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .hw-music-sheet .hw-pl-list::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none
+        }
+        .hw-music-sheet .hw-pl-view-lyrics {
+            flex: 1 1 auto;
+            min-height: 160px;
+            height: auto;
+            max-height: none;
+        }
+        .hw-music-sheet .hw-lyrics-scroll-full {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .hw-music-sheet .hw-lyrics-scroll-full::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none
+        }
+
+        #openMusicBtn.playing-dot {
+            position: relative
+        }
+        #openMusicBtn.playing-dot::after {
+            content: "";
+            position: absolute;
+            top: 8px;
+            right: calc(50% - 14px);
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent, #e5aa70);
+            box-shadow: 0 0 0 2px rgba(255, 249, 230, .85);
+        }
+        body.dark #openMusicBtn.playing-dot::after {
+            box-shadow: 0 0 0 2px rgba(34, 34, 38, .9);
+        }
+
+        @media (max-width:480px) {
+            .hw-music-sheet {
+                --hw-menu-clearance: calc(78px + env(safe-area-inset-bottom, 0px));
+                width: calc(100% - 12px);
+                height: min(74vh, calc(100dvh - var(--hw-menu-clearance) - 14px - env(safe-area-inset-top, 0px)));
+                max-height: calc(100dvh - var(--hw-menu-clearance) - 14px - env(safe-area-inset-top, 0px));
+                padding: 10px 12px 10px;
+                border-radius: 20px;
+            }
+            .hw-music-sheet .hw-pl-view-lyrics {
+                min-height: 140px
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div id="app">
+
+    <!-- ============================================================ -->
+    <!-- 顶部：毛玻璃歌单播放器 + 主题切换按钮                         -->
+    <!-- ============================================================ -->
     <div class="main-wrapper">
-      
-      <!-- 吸顶 Header -->
-      <header class="header">
-        <h1>🧊 公开手账 · 时间流</h1>
-      </header>
 
-      <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
-      <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
+        <div class="player-top-wrap" id="playerTopWrap">
+            <!-- 播放器头部：标题 + 主题切换 -->
+            <div class="player-top-head">
+                <div class="pl-title-area">
+                    <span class="icon-note">🎵</span>
+                    <span>公开手账 · 时间流</span>
+                </div>
+                <button class="theme-toggle-btn" id="themeToggle" aria-label="切换深浅色模式" title="切换深浅色模式">
+                    <!-- iconify 图标：浅色模式显示太阳，深色模式显示月亮，由 JS 动态切换 data-icon -->
+                    <span class="iconify" data-icon="carbon:sun" id="themeIcon"></span>
+                </button>
+            </div>
 
-      <div v-else class="feed">
-        <div v-for="(post, idx) in posts" :key="idx" class="card">
-          
-          <div class="card-header">
-            <span class="time-badge">{{ formatTime(post.date) }}</span>
-          </div>
-
-          <div class="content">{{ post.content }}</div>
-
-          <!-- 图片布局 -->
-          <div v-if="post.images && post.images.length === 1" class="card-images layout-1">
-            <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
-              <img :src="post.images[0]" alt="图1" loading="lazy">
-            </a>
-          </div>
-
-          <div v-else-if="post.images && post.images.length === 2" class="card-images layout-2">
-            <a v-for="(img, i) in post.images" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="img-link">
-              <img :src="img" :alt="'图'+(i+1)" loading="lazy">
-            </a>
-          </div>
-
-          <div v-else-if="post.images && post.images.length >= 3" class="card-images layout-3plus">
-            <a v-for="(img, i) in post.images.slice(0,9)" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="grid-item">
-              <img :src="img" :alt="'图'+(i+1)" loading="lazy">
-              <div v-if="i === 8 && post.images.length > 9" class="more-overlay">
-                +{{ post.images.length - 9 }}
-              </div>
-            </a>
-            <a v-for="(img, i) in post.images.slice(9)" :key="'more-'+i" :href="img" :data-fancybox="'gallery-' + idx" style="display:none;"></a>
-          </div>
-
+            <!-- 歌单挂载点：hw-music-player.js 会在此渲染播放器 -->
+            <div class="hw-playlist-mount" id="topPlayer" data-hw-list-id="9127652363"></div>
         </div>
 
-        <!-- 加载状态 -->
-        <div class="loader" v-if="!loading && hasMore">
-          <button @click="loadMore">加载更多</button>
+        <!-- ============================================================ -->
+        <!-- Vue 应用：手账时间流                                         -->
+        <!-- ============================================================ -->
+        <div id="app">
+
+            <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
+            <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
+
+            <div v-else class="feed">
+                <div v-for="(post, idx) in posts" :key="idx" class="card">
+
+                    <div class="card-header">
+                        <span class="time-badge">{{ formatTime(post.date) }}</span>
+                    </div>
+
+                    <div class="content">{{ post.content }}</div>
+
+                    <!-- 图片布局 -->
+                    <div v-if="post.images && post.images.length === 1" class="card-images layout-1">
+                        <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
+                            <img :src="post.images[0]" alt="图1" loading="lazy">
+                        </a>
+                    </div>
+
+                    <div v-else-if="post.images && post.images.length === 2" class="card-images layout-2">
+                        <a v-for="(img, i) in post.images" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="img-link">
+                            <img :src="img" :alt="'图'+(i+1)" loading="lazy">
+                        </a>
+                    </div>
+
+                    <div v-else-if="post.images && post.images.length >= 3" class="card-images layout-3plus">
+                        <a v-for="(img, i) in post.images.slice(0,9)" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="grid-item">
+                            <img :src="img" :alt="'图'+(i+1)" loading="lazy">
+                            <div v-if="i === 8 && post.images.length > 9" class="more-overlay">
+                                +{{ post.images.length - 9 }}
+                            </div>
+                        </a>
+                        <a v-for="(img, i) in post.images.slice(9)" :key="'more-'+i" :href="img" :data-fancybox="'gallery-' + idx" style="display:none;"></a>
+                    </div>
+
+                </div>
+
+                <!-- 加载状态 -->
+                <div class="loader" v-if="!loading && hasMore">
+                    <button @click="loadMore">加载更多</button>
+                </div>
+                <div class="loader" v-if="loading">
+                    <span>加载中…</span>
+                </div>
+                <div class="loader" v-if="!loading && !hasMore && posts.length > 0">
+                    <span class="no-more">— 已全部加载 —</span>
+                </div>
+            </div>
+
         </div>
-        <div class="loader" v-if="loading">
-          <span>加载中…</span>
-        </div>
-        <div class="loader" v-if="!loading && !hasMore && posts.length > 0">
-          <span class="no-more">— 已全部加载 —</span>
-        </div>
-      </div>
+        <!-- /Vue app -->
 
     </div>
-  </div>
+    <!-- /main-wrapper -->
 
-  <script>
-    const { createApp } = Vue;
 
-    createApp({
-      data() {
-        return {
-          posts: [],
-          page: 1,
-          totalPages: 1,
-          loading: false,
-          hasMore: true,
-          apiBase: 'https://pub.199105.xyz/api/public-memos',
-        };
-      },
-      methods: {
-        formatTime(timeStr) {
-          if (!timeStr) return '';
-          return timeStr.replace(/\//g, '-');
-        },
-        async fetchPosts(page = 1) {
-          this.loading = true;
-          try {
-            const res = await fetch(`${this.apiBase}?page=${page}`);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const json = await res.json();
-            if (json.error) throw new Error(json.error);
-            return json;
-          } catch (e) {
-            console.error('加载失败', e);
-            alert('数据加载失败，请刷新重试');
-            return null;
-          } finally {
-            this.loading = false;
-          }
-        },
-        async loadMore() {
-          if (this.loading || !this.hasMore) return;
-          const nextPage = this.page + 1;
-          const result = await this.fetchPosts(nextPage);
-          if (result && result.data) {
-            this.posts = this.posts.concat(result.data);
-            this.page = result.page;
-            this.totalPages = result.totalPages;
-            this.hasMore = this.page < this.totalPages;
-          }
-        },
-        async init() {
-          const result = await this.fetchPosts(1);
-          if (result && result.data) {
-            this.posts = result.data;
-            this.page = result.page;
-            this.totalPages = result.totalPages;
-            this.hasMore = this.page < this.totalPages;
-          }
-          this.$nextTick(() => {
-            if (typeof Fancybox !== 'undefined') {
-              Fancybox.bind('[data-fancybox]', {});
+    <!-- ============================================================ -->
+    <!-- 脚本                                                          -->
+    <!-- ============================================================ -->
+
+    <!-- hw-music-player.js 完整内容 -->
+    <script>
+        (function() {
+            const NETEASE_SONG_INFO_API = (id) =>
+                `https://meting.zhheo.com/?server=netease&type=song&id=${id}`;
+            const NETEASE_LRC_API = (id) =>
+                `https://meting.zhheo.com/?server=netease&type=lrc&id=${id}`;
+            const NETEASE_PLAYLIST_API = (id) =>
+                `https://meting.zhheo.com/?server=netease&type=playlist&id=${id}`;
+            const LIKE_STORAGE_KEY = 'hwPlayerLikes';
+
+            const ICONS = {
+                play: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.87l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>',
+                pause: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+                heart: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
+                heartFilled: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
+                repeat: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3"/><path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3"/></svg>',
+                shuffle: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4l3 3l-3 3"/><path d="M18 20l3 -3l-3 -3"/><path d="M3 7h3a5 5 0 0 1 5 5a5 5 0 0 0 5 5h5"/><path d="M21 7h-5a4.978 4.978 0 0 0 -3 1"/><path d="M3 17h3a4.984 4.984 0 0 0 3 -1"/></svg>',
+                lyrics: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h13"/></svg>',
+            };
+
+            const metaCache = new Map();
+            const lyricsCache = new Map();
+            const playlistCache = new Map();
+            let uidSeq = 0;
+
+            const state = { activeId: null, source: null, isPlaying: false, duration: 0, position: 0, queue: null };
+            const positions = new Map();
+            const repeatFlags = new Map();
+
+            let audioEl = null;
+            let audioLoadedTrackId = null;
+            let loadGeneration = 0;
+
+            function isRepeatOn(trackId) { return !!repeatFlags.get(trackId); }
+
+            function setRepeat(trackId, on) {
+                repeatFlags.set(trackId, on);
+                if (state.activeId === trackId && state.source === 'netease' && audioEl && !state.queue) audioEl.loop =
+                on;
             }
-          });
-        }
-      },
-      mounted() {
-        this.init();
-      },
-      watch: {
-        posts() {
-          this.$nextTick(() => {
-            if (typeof Fancybox !== 'undefined') {
-              Fancybox.bind('[data-fancybox]', {});
+
+            function ensureAudioEl() {
+                if (audioEl) return audioEl;
+                audioEl = document.createElement('audio');
+                audioEl.id = 'hwGlobalAudio';
+                audioEl.style.display = 'none';
+                audioEl.preload = 'none';
+                document.body.appendChild(audioEl);
+                audioEl.addEventListener('timeupdate', () => {
+                    state.duration = (audioEl.duration || 0) * 1000;
+                    state.position = (audioEl.currentTime || 0) * 1000;
+                    broadcast();
+                });
+                audioEl.addEventListener('play', () => { state.isPlaying = true;
+                    broadcast(); });
+                audioEl.addEventListener('pause', () => { state.isPlaying = false;
+                    broadcast(); });
+                audioEl.addEventListener('ended', () => {
+                    positions.delete(state.activeId);
+                    if (state.queue) advanceQueue();
+                    else { state.isPlaying = false;
+                        state.position = 0;
+                        broadcast(); }
+                });
+                return audioEl;
             }
-          });
-        }
-      }
-    }).mount('#app');
-  </script>
+
+            function broadcast() { document.dispatchEvent(new CustomEvent('hwplayer:update', { detail: { ...state } })); }
+
+            function saveCurrentPosition() {
+                if (!state.activeId) return;
+                let pos = state.position;
+                if (audioEl && state.source === 'netease') pos = audioEl.currentTime * 1000;
+                if (pos > 0) positions.set(state.activeId, pos);
+            }
+
+            function getSavedPosition(trackId) { return positions.get(trackId) || 0; }
+
+            function switchToNetease(meta, queueCtx) {
+                ensureAudioEl();
+                saveCurrentPosition();
+                const myGen = ++loadGeneration;
+                const resumeMs = getSavedPosition(meta.trackId);
+                state.activeId = meta.trackId;
+                state.source = 'netease';
+                state.duration = 0;
+                state.position = resumeMs;
+                state.isPlaying = false;
+                state.queue = queueCtx || null;
+                broadcast();
+                let loopFlag = false;
+                if (queueCtx) {
+                    const pls = getPlaylistState(queueCtx.listId);
+                    loopFlag = pls.repeatMode === 'one';
+                } else {
+                    loopFlag = isRepeatOn(meta.trackId);
+                }
+                audioEl.loop = loopFlag;
+                const startPlayback = () => {
+                    if (myGen !== loadGeneration) return;
+                    audioEl.currentTime = resumeMs / 1000;
+                    audioEl.play().catch(() => {});
+                };
+                if (audioLoadedTrackId === meta.trackId && audioEl.src) { startPlayback(); return; }
+                audioLoadedTrackId = meta.trackId;
+                audioEl.src = meta.audioUrl;
+                audioEl.load();
+                if (audioEl.readyState >= 1) startPlayback();
+                else audioEl.addEventListener('loadedmetadata', startPlayback, { once: true });
+            }
+
+            function togglePauseCurrent() { if (audioEl) { audioEl.paused ? audioEl.play().catch(() => {}) : audioEl
+                    .pause(); } }
+
+            function playTrack(meta, queueCtx) {
+                const isSameActiveTrack = state.activeId === meta.trackId && !queueCtx && !state.queue;
+                if (isSameActiveTrack) { togglePauseCurrent(); return; }
+                switchToNetease(meta, queueCtx || null);
+            }
+
+            function loadLikes() { try { return new Set(JSON.parse(localStorage.getItem(LIKE_STORAGE_KEY) || '[]')); } catch (
+                e) { return new Set(); } }
+
+            function saveLikes(set) { try { localStorage.setItem(LIKE_STORAGE_KEY, JSON.stringify([...set])); } catch (e) {} }
+            const likedTracks = loadLikes();
+
+            function isLiked(trackId) { return likedTracks.has(trackId); }
+
+            function toggleLike(trackId) {
+                if (likedTracks.has(trackId)) likedTracks.delete(trackId);
+                else likedTracks.add(trackId);
+                saveLikes(likedTracks);
+                document.dispatchEvent(new CustomEvent('hwplayer:like-update', { detail: { trackId, liked: likedTracks
+                            .has(trackId) } }));
+            }
+
+            function parseNeteaseId(url) { const m = url.match(/[?&]id=(\d+)/); return m ? m[1] : null; }
+
+            async function fetchNeteaseMeta(url) {
+                const id = parseNeteaseId(url);
+                if (!id) throw new Error('无法解析网易云歌曲 ID');
+                const res = await fetch(NETEASE_SONG_INFO_API(id));
+                const json = await res.json();
+                const data = Array.isArray(json) ? json[0] : json;
+                if (!data || !data.url) throw new Error('网易云元数据获取失败');
+                return { neteaseId: id, trackId: 'ne-' + id, title: data.name || '未知歌曲', artist: data.artist ||
+                        '未知歌手', album: data.album || '', cover: data.pic || '', audioUrl: data.url };
+            }
+
+            async function getMeta(rawUrl) {
+                if (metaCache.has(rawUrl)) return metaCache.get(rawUrl);
+                const p = fetchNeteaseMeta(rawUrl).catch((err) => ({
+                    trackId: 'err-' + (uidSeq++),
+                    title: '加载失败',
+                    artist: String(err.message || err),
+                    album: '',
+                    cover: '',
+                    audioUrl: ''
+                }));
+                metaCache.set(rawUrl, p);
+                return p;
+            }
+
+            function parseLRC(lrcText) {
+                if (!lrcText) return [];
+                const lines = lrcText.split('\n');
+                const timeTag = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
+                const result = [];
+                for (const line of lines) {
+                    const tags = [...line.matchAll(timeTag)];
+                    if (!tags.length) continue;
+                    const text = line.replace(timeTag, '').trim();
+                    if (!text) continue;
+                    for (const t of tags) {
+                        const min = parseInt(t[1], 10),
+                            sec = parseInt(t[2], 10);
+                        const ms = t[3] ? parseInt(t[3].padEnd(3, '0'), 10) : 0;
+                        result.push({ time: min * 60000 + sec * 1000 + ms, text });
+                    }
+                }
+                result.sort((a, b) => a.time - b.time);
+                return result;
+            }
+
+            async function getLyricsByNeteaseId(neteaseId) {
+                if (lyricsCache.has(neteaseId)) return lyricsCache.get(neteaseId);
+                const p = (async () => {
+                    try {
+                        const res = await fetch(NETEASE_LRC_API(neteaseId));
+                        const lrcText = await res.text();
+                        return { lines: parseLRC(lrcText) };
+                    } catch (e) { return { lines: [] }; }
+                })();
+                lyricsCache.set(neteaseId, p);
+                return p;
+            }
+
+            async function fetchPlaylist(listId) {
+                if (playlistCache.has(listId)) return playlistCache.get(listId);
+                const p = (async () => {
+                    try {
+                        const res = await fetch(NETEASE_PLAYLIST_API(listId));
+                        const json = await res.json();
+                        const arr = Array.isArray(json) ? json : [];
+                        const tracks = arr.map((item) => {
+                            const idMatch = (item.url || '').match(/[?&]id=(\d+)/);
+                            const neteaseId = idMatch ? idMatch[1] : null;
+                            return { neteaseId, trackId: 'ne-' + (neteaseId || uidSeq++), title: item.name ||
+                                    '未知歌曲', artist: item.artist || '未知歌手', cover: item.pic || '',
+                                audioUrl: item.url || '' };
+                        }).filter((t) => t.audioUrl);
+                        return { ok: true, tracks };
+                    } catch (e) { return { ok: false, tracks: [], error: String(e.message || e) }; }
+                })();
+                playlistCache.set(listId, p);
+                return p;
+            }
+
+            function buildOrder(len, shuffle) {
+                const arr = Array.from({ length: len }, (_, i) => i);
+                if (!shuffle) return arr;
+                for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]]; }
+                return arr;
+            }
+
+            const playlistStates = new Map();
+
+            function getPlaylistState(listId) {
+                if (!playlistStates.has(listId)) playlistStates.set(listId, { tracks: [], order: [], posInOrder: 0,
+                    shuffle: false, repeatMode: 'off', lastPlayedIndex: null });
+                return playlistStates.get(listId);
+            }
+
+            function playFromPlaylist(listId, trackIndex) {
+                const pls = getPlaylistState(listId);
+                const track = pls.tracks[trackIndex];
+                if (!track) return;
+                const orderPos = pls.order.indexOf(trackIndex);
+                pls.posInOrder = orderPos >= 0 ? orderPos : 0;
+                pls.lastPlayedIndex = trackIndex;
+                switchToNetease(track, { listId, index: trackIndex });
+                document.dispatchEvent(new CustomEvent('hwplayer:queue-change', { detail: { listId } }));
+            }
+
+            function advanceQueue() {
+                const ctx = state.queue;
+                if (!ctx) return;
+                const pls = getPlaylistState(ctx.listId);
+                let nextOrderPos = pls.posInOrder + 1;
+                if (nextOrderPos >= pls.order.length) {
+                    if (pls.repeatMode === 'all') nextOrderPos = 0;
+                    else { state.isPlaying = false;
+                        state.position = 0;
+                        state.queue = null;
+                        broadcast(); return; }
+                }
+                pls.posInOrder = nextOrderPos;
+                playFromPlaylist(ctx.listId, pls.order[nextOrderPos]);
+            }
+
+            function togglePlaylistShuffle(listId) {
+                const pls = getPlaylistState(listId);
+                pls.shuffle = !pls.shuffle;
+                const currentTrackIndex = state.queue && state.queue.listId === listId ? state.queue.index : null;
+                pls.order = buildOrder(pls.tracks.length, pls.shuffle);
+                if (currentTrackIndex !== null) {
+                    const pos = pls.order.indexOf(currentTrackIndex);
+                    if (pos > 0) { pls.order.splice(pos, 1);
+                        pls.order.unshift(currentTrackIndex); }
+                    pls.posInOrder = 0;
+                }
+                document.dispatchEvent(new CustomEvent('hwplayer:queue-change', { detail: { listId } }));
+            }
+
+            function cyclePlaylistRepeat(listId) {
+                const pls = getPlaylistState(listId);
+                const modes = ['off', 'all', 'one'];
+                pls.repeatMode = modes[(modes.indexOf(pls.repeatMode) + 1) % modes.length];
+                if (audioEl && state.queue && state.queue.listId === listId) {
+                    audioEl.loop = pls.repeatMode === 'one';
+                }
+                document.dispatchEvent(new CustomEvent('hwplayer:queue-change', { detail: { listId } }));
+            }
+
+            const SHORTCODE_SONG_RE = /\{\{<\s*music\s+url=["']([^"']+)["']\s*>\}\}/g;
+            const SHORTCODE_LIST_RE = /\{\{<\s*musiclist\s+id=["']([^"']+)["']\s*>\}\}/g;
+
+            function escapeAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g,
+                '&lt;').replace(/>/g, '&gt;'); }
+
+            function parseShortcodes(text) {
+                if (!text) return text;
+                let out = text;
+                if (SHORTCODE_SONG_RE.test(out)) {
+                    SHORTCODE_SONG_RE.lastIndex = 0;
+                    out = out.replace(SHORTCODE_SONG_RE, (_, url) => { const mountId = 'hwmount-' + (uidSeq++);
+                        return `\n<div class="hw-player-mount" data-hw-url="${escapeAttr(url)}" data-hw-mount-id="${mountId}"></div>\n`; });
+                }
+                if (SHORTCODE_LIST_RE.test(out)) {
+                    SHORTCODE_LIST_RE.lastIndex = 0;
+                    out = out.replace(SHORTCODE_LIST_RE, (_, listId) => { const mountId = 'hwlistmount-' + (
+                            uidSeq++);
+                        return `\n<div class="hw-playlist-mount" data-hw-list-id="${escapeAttr(listId)}" data-hw-mount-id="${mountId}"></div>\n`; });
+                }
+                return out;
+            }
+
+            function skeletonHTML() { return `<div class="hw-player hw-player-loading"><div class="hw-note-corner">♪</div><div class="hw-player-head"><div class="hw-disc-wrap"><div class="hw-disc"></div></div></div><div class="hw-meta"><div class="hw-title">加载中…</div></div></div>`; }
+
+            function cardHTML(meta) {
+                const cover = meta.cover || '';
+                const liked = isLiked(meta.trackId);
+                const repeatOn = isRepeatOn(meta.trackId);
+                return `<div class="hw-player" data-track-id="${meta.trackId}">
+              <div class="hw-note-corner">♪</div>
+              <div class="hw-view-normal">
+                <div class="hw-player-head">
+                  <div class="hw-disc-wrap"><div class="hw-disc" style="${cover ? `background-image:url('${escapeAttr(cover)}')` : ''}"></div></div>
+                  <div class="hw-cover">${cover ? `<img class="hw-cover-img" src="${escapeAttr(cover)}" alt="">` : ''}</div>
+                </div>
+                <div class="hw-meta">
+                  <div class="hw-title">${escapeAttr(meta.title)}</div>
+                  <div class="hw-artist">${escapeAttr(meta.artist || '')}</div>
+                  ${meta.album ? `<div class="hw-album">${escapeAttr(meta.album)}</div>` : ''}
+                </div>
+              </div>
+              <div class="hw-view-lyrics"><div class="hw-lyrics-scroll-full"><div class="hw-lyrics-empty">点击加载歌词…</div></div></div>
+              <div class="hw-progress-row">
+                <span class="hw-time hw-cur">00:00</span>
+                <input type="range" class="hw-progress" min="0" max="1000" value="0">
+                <span class="hw-time hw-dur">00:00</span>
+              </div>
+              <div class="hw-controls">
+                <button class="hw-btn hw-like${liked ? ' active' : ''}" title="喜欢">${liked ? ICONS.heartFilled : ICONS.heart}</button>
+                <button class="hw-btn hw-lyrics-toggle" title="歌词">${ICONS.lyrics}</button>
+                <button class="hw-btn hw-play" title="播放/暂停">${ICONS.play}</button>
+                <button class="hw-btn hw-repeat${repeatOn ? ' active' : ''}" title="单曲循环">${ICONS.repeat}</button>
+              </div>
+            </div>`;
+            }
+
+            function fmtTime(ms) {
+                if (!ms || isNaN(ms)) return '00:00';
+                const s = Math.floor(ms / 1000),
+                    m = Math.floor(s / 60),
+                    ss = s % 60;
+                return `${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+            }
+
+            function refreshCardUI(cardEl, meta) {
+                const isActive = state.activeId === meta.trackId && !state.queue;
+                const playBtn = cardEl.querySelector('.hw-play');
+                const discWrap = cardEl.querySelector('.hw-disc-wrap');
+                const progress = cardEl.querySelector('.hw-progress');
+                const cur = cardEl.querySelector('.hw-cur');
+                const dur = cardEl.querySelector('.hw-dur');
+                const playing = isActive && state.isPlaying;
+                playBtn.innerHTML = playing ? ICONS.pause : ICONS.play;
+                discWrap.classList.toggle('spinning', playing);
+                if (isActive) {
+                    const pct = state.duration ? (state.position / state.duration) * 1000 : 0;
+                    progress.value = Math.min(1000, Math.max(0, pct));
+                    cur.textContent = fmtTime(state.position);
+                    dur.textContent = fmtTime(state.duration);
+                    syncLyrics(cardEl, state.position);
+                } else {
+                    const savedMs = getSavedPosition(meta.trackId);
+                    progress.value = 0;
+                    cur.textContent = savedMs > 0 ? fmtTime(savedMs) : '00:00';
+                    dur.textContent = '00:00';
+                }
+            }
+
+            function refreshLikeUI(cardEl, trackId) {
+                const likeBtn = cardEl.querySelector('.hw-like');
+                if (!likeBtn) return;
+                const liked = isLiked(trackId);
+                likeBtn.classList.toggle('active', liked);
+                likeBtn.innerHTML = liked ? ICONS.heartFilled : ICONS.heart;
+            }
+
+            function refreshRepeatUI(cardEl, trackId) {
+                const repeatBtn = cardEl.querySelector('.hw-repeat');
+                if (!repeatBtn) return;
+                repeatBtn.classList.toggle('active', isRepeatOn(trackId));
+            }
+
+            function renderLyricsList(scrollEl, lyricsResult) {
+                if (!lyricsResult.lines.length) { scrollEl.innerHTML = '<div class="hw-lyrics-empty">暂无歌词</div>'; return; }
+                scrollEl.innerHTML = lyricsResult.lines.map((l, i) =>
+                    `<div class="hw-lyrics-line" data-idx="${i}" data-time="${l.time}">${escapeAttr(l.text)}</div>`).join(
+                    '');
+            }
+
+            function syncLyrics(cardEl, positionMs) {
+                const scroll = cardEl.querySelector('.hw-lyrics-scroll-full');
+                if (!scroll) return;
+                const lineEls = scroll.querySelectorAll('.hw-lyrics-line');
+                if (!lineEls.length) return;
+                let activeIdx = -1;
+                lineEls.forEach((el, i) => { if (Number(el.dataset.time) <= positionMs) activeIdx = i; });
+                lineEls.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+                if (activeIdx >= 0) {
+                    const activeEl = lineEls[activeIdx];
+                    const targetTop = activeEl.offsetTop - scroll.clientHeight / 2 + activeEl.clientHeight / 2;
+                    scroll.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+                }
+            }
+
+            function bindCard(cardEl, meta) {
+                if (cardEl.dataset.hwBound) { refreshCardUI(cardEl, meta);
+                    refreshLikeUI(cardEl, meta.trackId);
+                    refreshRepeatUI(cardEl, meta.trackId); return; }
+                cardEl.dataset.hwBound = '1';
+                const playBtn = cardEl.querySelector('.hw-play');
+                const likeBtn = cardEl.querySelector('.hw-like');
+                const repeatBtn = cardEl.querySelector('.hw-repeat');
+                const lyricsBtn = cardEl.querySelector('.hw-lyrics-toggle');
+                const progress = cardEl.querySelector('.hw-progress');
+
+                playBtn.addEventListener('click', (e) => { e.preventDefault();
+                    e.stopPropagation();
+                    playTrack(meta); });
+                likeBtn.addEventListener('click', (e) => { e.preventDefault();
+                    e.stopPropagation();
+                    toggleLike(meta.trackId); });
+                repeatBtn.addEventListener('click', (e) => { e.preventDefault();
+                    e.stopPropagation();
+                    setRepeat(meta.trackId, !isRepeatOn(meta.trackId));
+                    refreshRepeatUI(cardEl, meta.trackId); });
+                progress.addEventListener('input', (e) => {
+                    e.stopPropagation();
+                    if (state.activeId !== meta.trackId || state.queue || !audioEl) return;
+                    audioEl.currentTime = (Number(progress.value) / 1000) * (audioEl.duration || 0);
+                });
+
+                let lyricsLoaded = false;
+                lyricsBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const nowOn = cardEl.classList.toggle('lyrics-mode');
+                    lyricsBtn.classList.toggle('active', nowOn);
+                    if (nowOn && !lyricsLoaded) {
+                        lyricsLoaded = true;
+                        const lyricsResult = await getLyricsByNeteaseId(meta.neteaseId);
+                        renderLyricsList(cardEl.querySelector('.hw-lyrics-scroll-full'), lyricsResult);
+                        if (state.activeId === meta.trackId) syncLyrics(cardEl, state.position);
+                    }
+                    if (typeof window.HWonMasonryNeeded === 'function') window.HWonMasonryNeeded();
+                });
+
+                cardEl.addEventListener('mousedown', (e) => e.stopPropagation());
+                cardEl.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+                document.addEventListener('hwplayer:update', () => refreshCardUI(cardEl, meta));
+                document.addEventListener('hwplayer:like-update', (e) => { if (e.detail.trackId === meta.trackId)
+                        refreshLikeUI(cardEl, meta.trackId); });
+                refreshCardUI(cardEl, meta);
+                refreshLikeUI(cardEl, meta.trackId);
+                refreshRepeatUI(cardEl, meta.trackId);
+            }
+
+            async function mountOne(mountEl) {
+                const url = mountEl.getAttribute('data-hw-url');
+                if (!url) return;
+                mountEl.innerHTML = skeletonHTML();
+                const meta = await getMeta(url);
+                if (typeof window.HWonMasonryNeeded === 'function') window.HWonMasonryNeeded();
+                mountEl.innerHTML = cardHTML(meta);
+                const cardEl = mountEl.querySelector('.hw-player');
+                bindCard(cardEl, meta);
+                if (typeof window.HWonMasonryNeeded === 'function') window.HWonMasonryNeeded();
+            }
+
+            function playlistSkeletonHTML() { return `<div class="hw-playlist"><div class="hw-pl-loading">歌单加载中…</div></div>`; }
+
+            function playlistErrorHTML(msg) { return `<div class="hw-playlist"><div class="hw-pl-error">歌单加载失败：${escapeAttr(msg)}</div></div>`; }
+
+            function playlistCardHTML(listId, pls) {
+                const track = state.queue && state.queue.listId === listId ? pls.tracks[state.queue.index] : pls.tracks[0];
+                const cover = (track && track.cover) || '';
+                const rowsHTML = pls.tracks.map((t, i) =>
+                    `
+              <div class="hw-pl-row" data-idx="${i}">
+                <span class="hw-pl-row-idx">${i + 1}</span>
+                <div class="hw-pl-row-thumb">${t.cover ? `<img src="${escapeAttr(t.cover)}" alt="">` : ''}</div>
+                <div class="hw-pl-row-info">
+                  <div class="hw-pl-row-title">${escapeAttr(t.title)}</div>
+                  <div class="hw-pl-row-artist">${escapeAttr(t.artist)}</div>
+                </div>
+                <span class="hw-pl-row-playicon">♪</span>
+              </div>`).join('');
+
+                return `<div class="hw-playlist" data-list-id="${escapeAttr(listId)}">
+              <div class="hw-pl-view-normal">
+                <div class="hw-pl-header">
+                  <div class="hw-pl-cover">${cover ? `<img class="hw-cover-img hw-pl-cover-img" src="${escapeAttr(cover)}" alt="">` : ''}</div>
+                  <div class="hw-pl-meta">
+                    <div class="hw-pl-title hw-pl-current-title">${escapeAttr(track ? track.title : '播放列表')}</div>
+                    <div class="hw-pl-artist hw-pl-current-artist">${escapeAttr(track ? track.artist : '')}</div>
+                    <div class="hw-pl-count">共 ${pls.tracks.length} 首</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hw-pl-view-lyrics"><div class="hw-lyrics-scroll-full"><div class="hw-lyrics-empty">点击歌曲开始播放</div></div></div>
+              <div class="hw-pl-progress-row">
+                <span class="hw-time hw-pl-cur">00:00</span>
+                <input type="range" class="hw-progress hw-pl-progress" min="0" max="1000" value="0">
+                <span class="hw-time hw-pl-dur">00:00</span>
+              </div>
+              <div class="hw-pl-controls">
+                <button class="hw-btn hw-pl-shuffle${pls.shuffle ? ' active' : ''}" title="随机播放">${ICONS.shuffle}</button>
+                <button class="hw-btn hw-pl-lyrics-toggle" title="歌词">${ICONS.lyrics}</button>
+                <button class="hw-btn hw-play hw-pl-play" title="播放/暂停">${ICONS.play}</button>
+                <button class="hw-btn hw-pl-repeat${pls.repeatMode !== 'off' ? ' active' : ''}" title="循环模式">${ICONS.repeat}${pls.repeatMode === 'one' ? '<span class="hw-repeat-badge">1</span>' : ''}</button>
+              </div>
+              <div class="hw-pl-list">${rowsHTML}</div>
+            </div>`;
+            }
+
+            function refreshPlaylistUI(cardEl, listId) {
+                const pls = getPlaylistState(listId);
+                const isThisQueueActive = state.queue && state.queue.listId === listId;
+                const playBtn = cardEl.querySelector('.hw-pl-play');
+                const progress = cardEl.querySelector('.hw-pl-progress');
+                const cur = cardEl.querySelector('.hw-pl-cur');
+                const dur = cardEl.querySelector('.hw-pl-dur');
+                const titleEl = cardEl.querySelector('.hw-pl-current-title');
+                const artistEl = cardEl.querySelector('.hw-pl-current-artist');
+                const shuffleBtn = cardEl.querySelector('.hw-pl-shuffle');
+                const repeatBtn = cardEl.querySelector('.hw-pl-repeat');
+                const coverImg = cardEl.querySelector('.hw-pl-cover-img');
+                const rows = cardEl.querySelectorAll('.hw-pl-row');
+
+                shuffleBtn.classList.toggle('active', pls.shuffle);
+                repeatBtn.classList.toggle('active', pls.repeatMode !== 'off');
+                repeatBtn.innerHTML = ICONS.repeat + (pls.repeatMode === 'one' ? '<span class="hw-repeat-badge">1</span>' :
+                    '');
+
+                const playing = isThisQueueActive && state.isPlaying;
+                playBtn.innerHTML = playing ? ICONS.pause : ICONS.play;
+
+                if (isThisQueueActive) {
+                    const track = pls.tracks[state.queue.index];
+                    if (track) { titleEl.textContent = track.title;
+                        artistEl.textContent = track.artist; if (coverImg && track.cover) coverImg.src = track
+                            .cover; }
+                    const pct = state.duration ? (state.position / state.duration) * 1000 : 0;
+                    progress.value = Math.min(1000, Math.max(0, pct));
+                    cur.textContent = fmtTime(state.position);
+                    dur.textContent = fmtTime(state.duration);
+                    rows.forEach((row, i) => row.classList.toggle('playing', i === state.queue.index));
+                    syncLyrics(cardEl, state.position);
+                } else {
+                    const lastTrack = pls.lastPlayedIndex !== null ? pls.tracks[pls.lastPlayedIndex] : null;
+                    const savedMs = lastTrack ? getSavedPosition(lastTrack.trackId) : 0;
+                    if (lastTrack) { titleEl.textContent = lastTrack.title;
+                        artistEl.textContent = lastTrack.artist; if (coverImg && lastTrack.cover) coverImg.src =
+                            lastTrack.cover; }
+                    progress.value = 0;
+                    cur.textContent = savedMs > 0 ? fmtTime(savedMs) : '00:00';
+                    dur.textContent = '00:00';
+                    rows.forEach((row) => row.classList.remove('playing'));
+                }
+            }
+
+            function bindPlaylistCard(cardEl, listId) {
+                const pls = getPlaylistState(listId);
+                const playBtn = cardEl.querySelector('.hw-pl-play');
+                const shuffleBtn = cardEl.querySelector('.hw-pl-shuffle');
+                const repeatBtn = cardEl.querySelector('.hw-pl-repeat');
+                const lyricsBtn = cardEl.querySelector('.hw-pl-lyrics-toggle');
+                const progress = cardEl.querySelector('.hw-pl-progress');
+
+                playBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isThisQueueActive = state.queue && state.queue.listId === listId;
+                    if (isThisQueueActive) togglePauseCurrent();
+                    else playFromPlaylist(listId, pls.order[pls.posInOrder] || 0);
+                });
+
+                shuffleBtn.addEventListener('click', (e) => { e.preventDefault();
+                    e.stopPropagation();
+                    togglePlaylistShuffle(listId); });
+                repeatBtn.addEventListener('click', (e) => { e.preventDefault();
+                    e.stopPropagation();
+                    cyclePlaylistRepeat(listId); });
+
+                progress.addEventListener('input', (e) => {
+                    e.stopPropagation();
+                    const isThisQueueActive = state.queue && state.queue.listId === listId;
+                    if (!isThisQueueActive || !audioEl) return;
+                    audioEl.currentTime = (Number(progress.value) / 1000) * (audioEl.duration || 0);
+                });
+
+                let lyricsLoadedForTrackId = null;
+                lyricsBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const nowOn = cardEl.classList.toggle('lyrics-mode');
+                    lyricsBtn.classList.toggle('active', nowOn);
+                    const isThisQueueActive = state.queue && state.queue.listId === listId;
+                    if (nowOn && isThisQueueActive) {
+                        const track = pls.tracks[state.queue.index];
+                        if (track && lyricsLoadedForTrackId !== track.trackId) {
+                            lyricsLoadedForTrackId = track.trackId;
+                            const lyricsResult = await getLyricsByNeteaseId(track.neteaseId);
+                            renderLyricsList(cardEl.querySelector('.hw-pl-view-lyrics .hw-lyrics-scroll-full'),
+                                lyricsResult);
+                            syncLyrics(cardEl, state.position);
+                        }
+                    }
+                    if (typeof window.HWonMasonryNeeded === 'function') window.HWonMasonryNeeded();
+                });
+
+                cardEl.querySelectorAll('.hw-pl-row').forEach((row) => {
+                    row.addEventListener('click', (e) => { e.preventDefault();
+                        e.stopPropagation();
+                        playFromPlaylist(listId, Number(row.dataset.idx)); });
+                });
+
+                cardEl.addEventListener('mousedown', (e) => e.stopPropagation());
+                cardEl.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+                document.addEventListener('hwplayer:update', () => refreshPlaylistUI(cardEl, listId));
+                document.addEventListener('hwplayer:queue-change', (e) => {
+                    if (e.detail.listId !== listId) return;
+                    refreshPlaylistUI(cardEl, listId);
+                    const isThisQueueActive = state.queue && state.queue.listId === listId;
+                    if (cardEl.classList.contains('lyrics-mode') && isThisQueueActive) {
+                        const track = pls.tracks[state.queue.index];
+                        if (track && lyricsLoadedForTrackId !== track.trackId) {
+                            lyricsLoadedForTrackId = track.trackId;
+                            const scroll = cardEl.querySelector('.hw-pl-view-lyrics .hw-lyrics-scroll-full');
+                            getLyricsByNeteaseId(track.neteaseId).then((r) => { renderLyricsList(scroll, r);
+                                syncLyrics(cardEl, state.position); });
+                        }
+                    }
+                });
+                refreshPlaylistUI(cardEl, listId);
+            }
+
+            async function mountOnePlaylist(mountEl) {
+                const listId = mountEl.getAttribute('data-hw-list-id');
+                if (!listId) return;
+                mountEl.innerHTML = playlistSkeletonHTML();
+                const result = await fetchPlaylist(listId);
+                if (typeof window.HWonMasonryNeeded === 'function') window.HWonMasonryNeeded();
+                if (!result.ok || !result.tracks.length) { mountEl.innerHTML = playlistErrorHTML(result.error ||
+                        '歌单为空'); return; }
+                const pls = getPlaylistState(listId);
+                pls.tracks = result.tracks;
+                pls.order = buildOrder(pls.tracks.length, pls.shuffle);
+                mountEl.innerHTML = playlistCardHTML(listId, pls);
+                const cardEl = mountEl.querySelector('.hw-playlist');
+                bindPlaylistCard(cardEl, listId);
+                if (typeof window.HWonMasonryNeeded === 'function') window.HWonMasonryNeeded();
+            }
+
+            function mountAll(container) {
+                const root = container || document;
+                root.querySelectorAll('.hw-player-mount').forEach((el) => { if (el.dataset.hwMounted) return;
+                    el.dataset.hwMounted = '1';
+                    mountOne(el); });
+                root.querySelectorAll('.hw-playlist-mount').forEach((el) => { if (el.dataset.hwMounted) return;
+                    el.dataset.hwMounted = '1';
+                    mountOnePlaylist(el); });
+            }
+
+            const DEFAULT_GLOBAL_LIST_ID = '9127652363';
+            let globalSheet = null;
+
+            function ensureGlobalSheet(listId) {
+                const targetListId = String(listId || DEFAULT_GLOBAL_LIST_ID);
+                if (globalSheet && globalSheet.el) return globalSheet;
+
+                let backdrop = document.getElementById('hwMusicSheetBackdrop');
+                let sheet = document.getElementById('hwMusicSheet');
+                let mountEl = document.getElementById('hwGlobalPlaylistMount');
+                let openBtn = document.getElementById('openMusicBtn');
+
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
+                    backdrop.id = 'hwMusicSheetBackdrop';
+                    backdrop.className = 'hw-music-sheet-backdrop';
+                    document.body.appendChild(backdrop);
+                }
+                if (!sheet) {
+                    sheet = document.createElement('div');
+                    sheet.id = 'hwMusicSheet';
+                    sheet.className = 'hw-music-sheet';
+                    sheet.setAttribute('role', 'dialog');
+                    sheet.setAttribute('aria-modal', 'true');
+                    sheet.setAttribute('aria-label', '歌单播放器');
+                    sheet.innerHTML = `
+                <div class="hw-music-sheet-handle" aria-hidden="true"></div>
+                <div class="hw-music-sheet-header">
+                  <div class="hw-music-sheet-title">歌单播放器</div>
+                  <button type="button" class="hw-music-sheet-close" id="hwMusicSheetClose" title="关闭" aria-label="关闭">✕</button>
+                </div>
+                <div class="hw-music-sheet-body">
+                  <div class="hw-playlist-mount" id="hwGlobalPlaylistMount" data-hw-list-id="${escapeAttr(targetListId)}" data-hw-mount-id="hw-global-list"></div>
+                </div>
+              `;
+                    document.body.appendChild(sheet);
+                    mountEl = document.getElementById('hwGlobalPlaylistMount');
+                } else if (mountEl) {
+                    mountEl.setAttribute('data-hw-list-id', targetListId);
+                }
+
+                const closeBtn = document.getElementById('hwMusicSheetClose');
+                const isOpen = () => sheet.classList.contains('open');
+
+                const setOpen = (open) => {
+                    sheet.classList.toggle('open', open);
+                    backdrop.classList.toggle('open', open);
+                    document.body.classList.toggle('hw-music-sheet-open', open);
+                    if (openBtn) openBtn.classList.toggle('active', open);
+                    if (open) {
+                        ensureAudioEl();
+                        if (mountEl && !mountEl.dataset.hwMounted) {
+                            mountEl.dataset.hwMounted = '1';
+                            mountOnePlaylist(mountEl);
+                        } else if (mountEl) {
+                            const card = mountEl.querySelector('.hw-playlist');
+                            if (card) refreshPlaylistUI(card, targetListId);
+                        }
+                    }
+                };
+
+                const open = () => setOpen(true);
+                const close = () => setOpen(false);
+                const toggle = () => setOpen(!isOpen());
+
+                backdrop.addEventListener('click', close);
+
+                if (!document.documentElement.dataset.hwMusicMenuCloseBound) {
+                    document.documentElement.dataset.hwMusicMenuCloseBound = '1';
+                    document.addEventListener('click', (e) => {
+                        if (!globalSheet || !globalSheet.isOpen()) return;
+                        const item = e.target && e.target.closest ? e.target.closest('.menu .menu-item') :
+                            null;
+                        if (!item) return;
+                        if (item.id === 'openMusicBtn') return;
+                        globalSheet.close();
+                    }, true);
+                }
+                if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault();
+                    e.stopPropagation();
+                    close(); });
+                sheet.addEventListener('click', (e) => e.stopPropagation());
+
+                let dragStartY = null;
+                const handle = sheet.querySelector('.hw-music-sheet-handle');
+                const onPointerDown = (e) => {
+                    dragStartY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+                };
+                const onPointerMove = (e) => {
+                    if (dragStartY == null) return;
+                    const y = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+                    if (y != null && y - dragStartY > 70) { dragStartY = null;
+                        close(); }
+                };
+                const onPointerUp = () => { dragStartY = null; };
+                if (handle) {
+                    handle.addEventListener('mousedown', onPointerDown);
+                    handle.addEventListener('touchstart', onPointerDown, { passive: true });
+                }
+                window.addEventListener('mousemove', onPointerMove);
+                window.addEventListener('touchmove', onPointerMove, { passive: true });
+                window.addEventListener('mouseup', onPointerUp);
+                window.addEventListener('touchend', onPointerUp);
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && isOpen()) close();
+                });
+
+                const syncMenuDot = () => {
+                    if (!openBtn) openBtn = document.getElementById('openMusicBtn');
+                    if (!openBtn) return;
+                    openBtn.classList.toggle('playing-dot', !!state.isPlaying);
+                };
+                document.addEventListener('hwplayer:update', syncMenuDot);
+                syncMenuDot();
+
+                if (mountEl && !mountEl.dataset.hwMounted) {
+                    mountEl.dataset.hwMounted = '1';
+                    mountOnePlaylist(mountEl);
+                }
+
+                globalSheet = { el: sheet, backdrop, open, close, toggle, isOpen, listId: targetListId };
+                return globalSheet;
+            }
+
+            function openGlobalSheet(listId) { return ensureGlobalSheet(listId).open(); }
+
+            function closeGlobalSheet() { if (globalSheet) globalSheet.close(); }
+
+            function toggleGlobalSheet(listId) { return ensureGlobalSheet(listId).toggle(); }
+
+            function initGlobalPlayer(listId) {
+                const sheet = ensureGlobalSheet(listId || DEFAULT_GLOBAL_LIST_ID);
+                const btn = document.getElementById('openMusicBtn');
+                if (btn && !btn.dataset.hwBound) {
+                    btn.dataset.hwBound = '1';
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        sheet.toggle();
+                    });
+                }
+                return sheet;
+            }
+
+            window.HWPlayer = {
+                parseShortcodes,
+                mountAll,
+                initGlobalPlayer,
+                openGlobalSheet,
+                closeGlobalSheet,
+                toggleGlobalSheet,
+                getState: () => ({ ...state }),
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => initGlobalPlayer(DEFAULT_GLOBAL_LIST_ID));
+            } else {
+                initGlobalPlayer(DEFAULT_GLOBAL_LIST_ID);
+            }
+        })();
+    </script>
+
+    <!-- ===== Vue 应用脚本 ===== -->
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    posts: [],
+                    page: 1,
+                    totalPages: 1,
+                    loading: false,
+                    hasMore: true,
+                    apiBase: 'https://pub.199105.xyz/api/public-memos',
+                };
+            },
+            methods: {
+                formatTime(timeStr) {
+                    if (!timeStr) return '';
+                    return timeStr.replace(/\//g, '-');
+                },
+                async fetchPosts(page = 1) {
+                    this.loading = true;
+                    try {
+                        const res = await fetch(`${this.apiBase}?page=${page}`);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const json = await res.json();
+                        if (json.error) throw new Error(json.error);
+                        return json;
+                    } catch (e) {
+                        console.error('加载失败', e);
+                        alert('数据加载失败，请刷新重试');
+                        return null;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                async loadMore() {
+                    if (this.loading || !this.hasMore) return;
+                    const nextPage = this.page + 1;
+                    const result = await this.fetchPosts(nextPage);
+                    if (result && result.data) {
+                        this.posts = this.posts.concat(result.data);
+                        this.page = result.page;
+                        this.totalPages = result.totalPages;
+                        this.hasMore = this.page < this.totalPages;
+                    }
+                },
+                async init() {
+                    const result = await this.fetchPosts(1);
+                    if (result && result.data) {
+                        this.posts = result.data;
+                        this.page = result.page;
+                        this.totalPages = result.totalPages;
+                        this.hasMore = this.page < this.totalPages;
+                    }
+                    this.$nextTick(() => {
+                        if (typeof Fancybox !== 'undefined') {
+                            Fancybox.bind('[data-fancybox]', {});
+                        }
+                    });
+                }
+            },
+            mounted() {
+                this.init();
+            },
+            watch: {
+                posts() {
+                    this.$nextTick(() => {
+                        if (typeof Fancybox !== 'undefined') {
+                            Fancybox.bind('[data-fancybox]', {});
+                        }
+                    });
+                }
+            }
+        }).mount('#app');
+    </script>
+
+    <!-- ===== 主题切换逻辑 ===== -->
+    <script>
+        (function() {
+            const toggleBtn = document.getElementById('themeToggle');
+            const iconEl = document.getElementById('themeIcon');
+            // 检测系统偏好
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            // 读取 localStorage 存储的主题
+            let stored = localStorage.getItem('hwTheme');
+            let isDark = false;
+
+            if (stored === 'dark') isDark = true;
+            else if (stored === 'light') isDark = false;
+            else isDark = prefersDark;
+
+            function applyTheme(dark) {
+                document.body.classList.toggle('dark', dark);
+                // 更新 iconify 图标
+                if (iconEl) {
+                    iconEl.setAttribute('data-icon', dark ? 'carbon:moon' : 'carbon:sun');
+                }
+                // 存储偏好
+                localStorage.setItem('hwTheme', dark ? 'dark' : 'light');
+                isDark = dark;
+            }
+
+            // 初始应用
+            applyTheme(isDark);
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    applyTheme(!isDark);
+                });
+            }
+
+            // 监听系统主题变化（仅当用户未手动设置时）
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                const stored = localStorage.getItem('hwTheme');
+                if (!stored) {
+                    applyTheme(e.matches);
+                }
+            });
+
+            // 暴露给 HWPlayer 的 mount 回调，用于刷新布局
+            window.HWonMasonryNeeded = function() {
+                // 简单触发 resize 以重排
+                window.dispatchEvent(new Event('resize'));
+            };
+
+            // 当播放器挂载完成后，确保图标正确
+            document.addEventListener('DOMContentLoaded', function() {
+                // 再次确保图标状态
+                const dark = document.body.classList.contains('dark');
+                if (iconEl) {
+                    iconEl.setAttribute('data-icon', dark ? 'carbon:moon' : 'carbon:sun');
+                }
+                // 手动触发一次 mountAll 以渲染顶部的歌单播放器
+                if (window.HWPlayer && window.HWPlayer.mountAll) {
+                    // 延迟一点点，确保 DOM 已就绪
+                    setTimeout(() => {
+                        const topPlayer = document.getElementById('topPlayer');
+                        if (topPlayer && !topPlayer.dataset.hwMounted) {
+                            window.HWPlayer.mountAll();
+                        }
+                    }, 50);
+                }
+            });
+
+        })();
+    </script>
+
 </body>
 </html>
