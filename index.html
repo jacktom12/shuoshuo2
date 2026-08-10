@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>公开手账 · 时间流</title>
+    <title>time</title>
 
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js">
@@ -17,57 +17,53 @@
     <!-- LXGW WenKai Screen 字体 -->
     <link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" />
 
-    <!-- Iconify 图标库（用于主题切换按钮） -->
+    <!-- Iconify 图标库 -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js">
     </script>
 
     <style>
-        /* ========== 全局变量 & 重置 ========== */
+        /* ========== 全局重置 & 极简变量 ========== */
         :root {
-            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-            --card-bg: rgba(255, 255, 255, 0.82);
-            --card-border: rgba(255, 255, 255, 0.8);
-            --text-main: #2c3e50;
-            --text-muted: #8c98a4;
-            --accent-color: #4a90e2;
-            --radius-card: 20px;
-            --radius-img: 12px;
+            --bg: #ffffff;
+            --text-main: #0f1419;
+            --text-muted: #536471;
+            --border-light: #eff3f4;
+            --accent-color: #1d9bf0;
+            --font-family: 'LXGW WenKai Screen', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-            /* 播放器变量 (与 hw-music-player.css 对齐) */
-            --paper: rgba(255, 255, 255, 0.78);
-            --border: rgba(0, 0, 0, 0.10);
-            --p-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-            --sketch-radius-1: 20px;
-            --sketch-radius-btn: 12px;
-            --text: #2c3e50;
-            --secondary-text: #6b7a8a;
-            --accent: #4a90e2;
-            --accent-dark: #357abd;
-            --bg: #f0f2f6;
-            --dot-normal: #d0d7e2;
+            /* 播放器变量 (保持兼容) */
+            --paper: #ffffff;
+            --border: rgba(0, 0, 0, 0.08);
+            --p-shadow: none;
+            --sketch-radius-1: 0px;
+            --sketch-radius-btn: 0px;
+            --text: #0f1419;
+            --secondary-text: #536471;
+            --accent: #1d9bf0;
+            --accent-dark: #1a8cd8;
+            --bg-player: #ffffff;
+            --dot-normal: #cfd9de;
             --img-brightness: 1;
-            --profile-bg-height: 200px;
-            --avatar-size: 100px;
+            --profile-bg-height: 160px;
+            --avatar-size: 80px;
         }
 
         /* 深色模式变量 */
         body.dark {
-            --bg-gradient: linear-gradient(135deg, #1a1d23 0%, #2a2e36 100%);
-            --card-bg: rgba(40, 44, 52, 0.82);
-            --card-border: rgba(70, 76, 88, 0.6);
-            --text-main: #e8edf5;
-            --text-muted: #9aa4b0;
-            --accent-color: #6a9ef0;
+            --bg: #000000;
+            --text-main: #e7e9ea;
+            --text-muted: #71767b;
+            --border-light: #2f3336;
+            --accent-color: #1d9bf0;
 
-            --paper: rgba(38, 42, 50, 0.82);
-            --border: rgba(120, 130, 150, 0.25);
-            --p-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-            --text: #e8edf5;
-            --secondary-text: #9aa4b0;
-            --accent: #6a9ef0;
-            --accent-dark: #4f82d6;
-            --bg: #22262e;
-            --dot-normal: #3d434e;
+            --paper: #000000;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #e7e9ea;
+            --secondary-text: #71767b;
+            --accent: #1d9bf0;
+            --accent-dark: #1a8cd8;
+            --bg-player: #000000;
+            --dot-normal: #333639;
             --img-brightness: 0.7;
         }
 
@@ -77,56 +73,67 @@
             box-sizing: border-box;
         }
 
+        /* 隐藏所有滚动条 (保留滚动功能) */
+        html,
         body {
-            font-family: 'LXGW WenKai Screen', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            min-height: 100vh;
-            color: var(--text-main);
-            transition: background 0.35s ease, color 0.3s ease;
-            padding-bottom: 40px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
         }
 
-        /* ========== Profile 头部 ========== */
-         .profile-header {
-  position: relative;
-  width: 100%;
-  max-width: 600px;          /* 新增：限制宽度与卡片一致 */
-  margin: 0 auto;            /* 新增：居中 */
-  height: var(--profile-bg-height);
-  overflow: visible;         /* 改为 visible，允许头像溢出 */
-  background: var(--card-bg);
-  border-radius: var(--radius-card) var(--radius-card) 0 0; /* 可选，让背景圆角与卡片匹配 */
-}
+        body {
+            font-family: var(--font-family);
+            background: var(--bg);
+            color: var(--text-main);
+            transition: background 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            padding-bottom: 32px;
+        }
+
+        /* ========== Profile 头部 (极简) ========== */
+        .profile-header {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            height: var(--profile-bg-height);
+            overflow: visible;
+            background: var(--bg);
+        }
         .profile-bg {
             position: absolute;
             inset: 0;
             background-image: url('https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1784331329665_42358.webp&n=-1');
             background-size: cover;
             background-position: center;
-            filter: brightness(0.9);
+            filter: brightness(0.95);
         }
         body.dark .profile-bg {
-            filter: brightness(0.6);
+            filter: brightness(0.5);
         }
 
-         .profile-avatar {
-  position: absolute;
-  left: 20px;                /* 改为固定左边距，不居中 */
-  bottom: calc(-1 * var(--avatar-size) / 2);  /* 保持一半在外 */
-  transform: none;           /* 去掉居中偏移 */
-  width: var(--avatar-size);
-  height: var(--avatar-size);
-  border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.9);
-  background: var(--card-bg);
-  overflow: hidden;
-  z-index: 2;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  transition: border-color 0.3s;
-}
+        .profile-avatar {
+            position: absolute;
+            left: 20px;
+            bottom: calc(-1 * var(--avatar-size) / 2);
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+            border-radius: 50%;
+            border: 3px solid var(--bg);
+            background: var(--bg);
+            overflow: hidden;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: border-color 0.3s;
+        }
         body.dark .profile-avatar {
-            border-color: rgba(60, 66, 80, 0.8);
+            border-color: #000000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
         }
         .profile-avatar img {
             width: 100%;
@@ -141,86 +148,81 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 0 16px;
-            padding-top: calc(var(--avatar-size) / 2 + 16px);
-            /* 为头像留出空间 */
+            padding-top: calc(var(--avatar-size) / 2 + 20px);
         }
 
-        /* ========== 手账卡片 Feed ========== */
+        /* ========== Feed — 极简分割线风格 ========== */
         .feed {
             display: flex;
             flex-direction: column;
-            gap: 20px;
         }
 
-        .card {
-            width: 100%;
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: var(--radius-card);
-            border: 1px solid var(--card-border);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.02);
-            padding: 20px;
-            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, background 0.35s ease, border-color 0.3s ease;
-            overflow: hidden;
+        /* 每条说说 — 无卡片，只有分割线 */
+        .post-item {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.15s ease;
         }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
+        .post-item:last-child {
+            border-bottom: none;
+        }
+        /* 极简 hover 效果 */
+        .post-item:hover {
+            background: rgba(0, 0, 0, 0.01);
+        }
+        body.dark .post-item:hover {
+            background: rgba(255, 255, 255, 0.01);
         }
 
-        .card-header {
+        .post-header {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
         }
         .time-badge {
             font-size: 0.78rem;
-            font-weight: 500;
+            font-weight: 400;
             color: var(--text-muted);
-            background: rgba(0, 0, 0, 0.03);
-            padding: 4px 10px;
-            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             gap: 5px;
         }
         .time-badge::before {
-            content: "";
-            width: 6px;
-            height: 6px;
-            background-color: var(--accent-color);
-            border-radius: 50%;
+            content: "·";
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: var(--text-muted);
             display: inline-block;
         }
 
-        .content {
+        .post-content {
             font-size: 0.98rem;
-            line-height: 1.65;
+            line-height: 1.7;
             color: var(--text-main);
             white-space: pre-wrap;
             word-break: break-word;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             transition: color 0.3s ease;
         }
-        .content:last-child {
+        .post-content:last-child {
             margin-bottom: 0;
         }
 
-        .card-images {
-            border-radius: var(--radius-img);
+        /* ===== 图片布局 (极简无圆角) ===== */
+        .post-images {
+            margin-top: 8px;
+            border-radius: 0;
             overflow: hidden;
-            margin-top: 10px;
         }
 
         .layout-1 {
             width: 100%;
             max-height: 480px;
-            background: rgba(0, 0, 0, 0.02);
+            background: var(--bg);
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: var(--radius-img);
+            border-radius: 0;
         }
         .layout-1 .img-link {
             width: 100%;
@@ -231,44 +233,44 @@
             max-height: 480px;
             object-fit: cover;
             display: block;
-            border-radius: var(--radius-img);
-            transition: transform 0.3s ease, filter 0.4s ease;
+            border-radius: 0;
+            transition: filter 0.3s ease;
         }
         .layout-1 img:hover {
-            transform: scale(1.015);
+            filter: brightness(0.97);
         }
 
         .layout-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px;
+            gap: 4px;
         }
         .layout-2 .img-link {
             aspect-ratio: 1 / 1;
             overflow: hidden;
-            border-radius: calc(var(--radius-img) - 4px);
+            border-radius: 0;
         }
         .layout-2 img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
-            transition: transform 0.3s ease, filter 0.4s ease;
+            transition: filter 0.3s ease;
         }
         .layout-2 img:hover {
-            transform: scale(1.03);
+            filter: brightness(0.97);
         }
 
         .layout-3plus {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            gap: 4px;
         }
         .grid-item {
             position: relative;
             aspect-ratio: 1 / 1;
             overflow: hidden;
-            border-radius: calc(var(--radius-img) - 6px);
+            border-radius: 0;
             cursor: pointer;
         }
         .grid-item img {
@@ -276,40 +278,33 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            transition: transform 0.3s ease, filter 0.4s ease;
+            transition: filter 0.3s ease;
         }
         .grid-item:hover img {
-            transform: scale(1.04);
+            filter: brightness(0.95);
         }
         .more-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(0, 0, 0, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            backdrop-filter: blur(4px);
         }
 
-        /* 深色模式下所有图片亮度 70% */
-        body.dark .card-images img,
+        /* 深色模式图片亮度 */
+        body.dark .post-images img,
         body.dark .layout-1 img,
         body.dark .layout-2 img,
-        body.dark .grid-item img,
+        body.dark .grid-item img {
+            filter: brightness(0.7) !important;
+        }
         body.dark .hw-cover-img,
         body.dark .hw-pl-cover-img,
         body.dark .hw-pl-row-thumb img,
-        body.dark .hw-disc {
-            filter: brightness(0.7) !important;
-        }
-        body.dark .hw-cover-img,
-        body.dark .hw-pl-cover-img,
-        body.dark .hw-pl-row-thumb img {
-            filter: brightness(0.7) !important;
-        }
         body.dark .hw-disc {
             filter: brightness(0.7) !important;
         }
@@ -321,25 +316,26 @@
             color: var(--text-muted);
         }
         .loader button {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid var(--card-border);
-            padding: 10px 28px;
+            background: transparent;
+            border: 1px solid var(--border-light);
+            padding: 8px 24px;
             border-radius: 20px;
             font-size: 0.9rem;
             color: var(--text-main);
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
             transition: all 0.2s ease;
+            font-family: inherit;
         }
         .loader button:hover {
-            background: #ffffff;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-            transform: translateY(-1px);
+            background: var(--border-light);
+        }
+        body.dark .loader button:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
         .loader .no-more {
             color: var(--text-muted);
             font-size: 0.85rem;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         .empty {
             text-align: center;
@@ -347,7 +343,7 @@
             color: var(--text-muted);
         }
 
-        /* ========== 右上角固定按钮 ========== */
+        /* ========== 右上角固定按钮 — 透明背景 ========== */
         .top-actions {
             position: fixed;
             top: 16px;
@@ -355,55 +351,52 @@
             z-index: 1000;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .music-btn,
         .theme-toggle-btn {
             appearance: none;
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
+            background: transparent !important;
+            border: none;
             border-radius: 50%;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             color: var(--text-main);
-            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s;
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-            flex: 0 0 44px;
-            font-size: 1.4rem;
+            transition: background 0.2s ease, transform 0.2s ease;
+            flex: 0 0 40px;
+            font-size: 1.3rem;
             line-height: 1;
             padding: 0;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
         .music-btn:hover,
         .theme-toggle-btn:hover {
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.04) !important;
+            transform: scale(1.04);
+        }
+        body.dark .music-btn:hover,
+        body.dark .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.06) !important;
         }
         .music-btn:active,
         .theme-toggle-btn:active {
             transform: scale(0.92);
         }
-        body.dark .music-btn,
-        body.dark .theme-toggle-btn {
-            background: rgba(60, 66, 80, 0.6);
-            border-color: rgba(120, 130, 150, 0.3);
-            color: #e8edf5;
-        }
-        body.dark .music-btn:hover,
-        body.dark .theme-toggle-btn:hover {
-            background: rgba(80, 88, 108, 0.7);
-        }
 
         .music-btn svg {
-            width: 1.4em;
-            height: 1.4em;
+            width: 1.3em;
+            height: 1.3em;
             display: block;
+        }
+        .theme-toggle-btn .iconify {
+            width: 22px;
+            height: 22px;
         }
 
         /* 播放指示点 */
@@ -415,15 +408,12 @@
             position: absolute;
             top: 6px;
             right: 6px;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #4ade80;
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 0 2px var(--bg);
             animation: pulse-dot 1.2s ease-in-out infinite;
-        }
-        body.dark .music-btn.playing-dot::after {
-            box-shadow: 0 0 0 2px rgba(34, 34, 38, 0.9);
         }
         @keyframes pulse-dot {
             0%,
@@ -432,22 +422,17 @@
                 transform: scale(1);
             }
             50% {
-                opacity: 0.5;
-                transform: scale(0.8);
+                opacity: 0.4;
+                transform: scale(0.75);
             }
         }
 
-        .theme-toggle-btn .iconify {
-            width: 24px;
-            height: 24px;
-        }
-
-        /* ========== 侧滑播放器面板 ========== */
+        /* ========== 侧滑播放器抽屉 ========== */
         .drawer-overlay {
             position: fixed;
             inset: 0;
             z-index: 2000;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.25);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
@@ -465,26 +450,24 @@
             right: 0;
             height: 100%;
             width: 85%;
-            max-width: 420px;
+            max-width: 400px;
             z-index: 2100;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
+            background: var(--bg);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
             transform: translateX(100%);
             transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
             display: flex;
             flex-direction: column;
             padding: 16px 12px 20px;
-            border-left: 1px solid var(--card-border);
+            border-left: 1px solid var(--border-light);
             overflow: hidden;
         }
         .drawer.open {
             transform: translateX(0);
         }
         body.dark .drawer {
-            background: rgba(38, 42, 50, 0.95);
-            border-left-color: rgba(120, 130, 150, 0.2);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
+            border-left-color: var(--border-light);
         }
 
         .drawer-header {
@@ -494,18 +477,18 @@
             flex: 0 0 auto;
             margin-bottom: 12px;
             padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-light);
         }
         .drawer-title {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--text-main);
         }
         .drawer-close {
             appearance: none;
             background: transparent;
             border: none;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             line-height: 1;
             cursor: pointer;
             color: var(--text-muted);
@@ -520,18 +503,16 @@
             flex: 1 1 auto;
             min-height: 0;
             overflow-y: auto;
-            scrollbar-width: thin;
-            -ms-overflow-style: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         .drawer-body::-webkit-scrollbar {
-            width: 4px;
-        }
-        .drawer-body::-webkit-scrollbar-thumb {
-            background: var(--dot-normal);
-            border-radius: 4px;
+            display: none;
+            width: 0;
+            height: 0;
         }
 
-        /* 播放器在抽屉内的样式适配 */
+        /* ===== 播放器在抽屉内适配 (极简) ===== */
         .drawer .hw-playlist {
             width: 100% !important;
             max-width: none !important;
@@ -542,7 +523,7 @@
             border-radius: 0 !important;
             box-shadow: none !important;
             transform: none !important;
-            font-family: 'LXGW WenKai Screen', sans-serif;
+            font-family: var(--font-family);
             overflow: visible !important;
             height: 100%;
             display: flex;
@@ -556,112 +537,176 @@
             padding: 4px 0 6px;
         }
         .drawer .hw-pl-cover {
-            width: 72px;
-            height: 72px;
-            flex: 0 0 72px;
-            border-radius: 10px;
+            width: 64px;
+            height: 64px;
+            flex: 0 0 64px;
+            border-radius: 4px;
         }
         .drawer .hw-pl-title {
-            font-size: 1rem;
-            font-weight: 800;
+            font-size: 0.95rem;
+            font-weight: 700;
         }
         .drawer .hw-pl-artist {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
         .drawer .hw-pl-count {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
         }
         .drawer .hw-pl-controls {
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 6px;
         }
         .drawer .hw-play {
-            width: 48px;
-            height: 40px;
+            width: 44px;
+            height: 38px;
         }
         .drawer .hw-btn {
-            width: 36px;
-            height: 32px;
+            width: 34px;
+            height: 30px;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+            color: var(--text-main);
+        }
+        .drawer .hw-btn:hover {
+            background: rgba(0, 0, 0, 0.04) !important;
+        }
+        body.dark .drawer .hw-btn:hover {
+            background: rgba(255, 255, 255, 0.06) !important;
+        }
+        .drawer .hw-play {
+            background: var(--accent) !important;
+            color: #fff !important;
+            border-radius: 4px !important;
+        }
+        .drawer .hw-play:hover {
+            background: var(--accent-dark) !important;
         }
         .drawer .hw-pl-list {
-    flex: 1 1 auto;          /* 自动伸展填充剩余高度 */
-    min-height: 0;
-    max-height: none;        /* 移除固定高度限制 */
-    overflow-y: auto;        /* 列表内容过多时滚动 */
-    padding-top: 6px;
-    margin-top: 2px;
-    border-top: 1.5px dashed var(--border);
-}
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            padding-top: 6px;
+            margin-top: 4px;
+            border-top: 1px solid var(--border-light);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .drawer .hw-pl-list::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
         .drawer .hw-pl-row {
             padding: 5px 2px;
+            border-radius: 0;
+        }
+        .drawer .hw-pl-row:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+        body.dark .drawer .hw-pl-row:hover {
+            background: rgba(255, 255, 255, 0.02);
         }
         .drawer .hw-pl-row-thumb {
-            width: 30px;
-            height: 30px;
-            flex: 0 0 30px;
+            width: 28px;
+            height: 28px;
+            flex: 0 0 28px;
         }
         .drawer .hw-pl-row-title {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
         }
         .drawer .hw-pl-row-artist {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
         }
         .drawer .hw-pl-view-lyrics {
-            height: 140px;
-            min-height: 80px;
-            margin-bottom: 8px;
+            height: 120px;
+            min-height: 60px;
+            margin-bottom: 6px;
+            border: none !important;
+            background: var(--bg-player);
+            border-radius: 0 !important;
+            padding: 6px 4px;
         }
         .drawer .hw-lyrics-line {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             line-height: 1.6;
         }
         .drawer .hw-lyrics-line.active {
-            font-size: 0.92rem;
+            font-size: 0.9rem;
+            color: var(--accent);
         }
         .drawer .hw-progress-row {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .drawer .hw-time {
-            font-size: 0.75rem;
-            min-width: 34px;
+            font-size: 0.72rem;
+            min-width: 32px;
         }
         .drawer .hw-progress {
-            height: 5px;
+            height: 4px;
+            background: var(--dot-normal);
+            border: none !important;
+            border-radius: 2px;
         }
         .drawer .hw-progress::-webkit-slider-thumb {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
         }
         .drawer .hw-progress::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+        }
+        .drawer .hw-pl-shuffle,
+        .drawer .hw-pl-repeat,
+        .drawer .hw-pl-lyrics-toggle {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: var(--text-muted);
+        }
+        .drawer .hw-pl-shuffle.active,
+        .drawer .hw-pl-repeat.active,
+        .drawer .hw-pl-lyrics-toggle.active {
+            color: var(--accent);
+        }
+        .drawer .hw-repeat-badge {
+            background: var(--accent);
+            color: #fff;
+            border: none;
         }
 
         /* ========== 响应式 ========== */
         @media (max-width: 640px) {
             :root {
-                --profile-bg-height: 160px;
-                --avatar-size: 80px;
+                --profile-bg-height: 140px;
+                --avatar-size: 72px;
             }
             .main-wrapper {
                 padding: 0 12px;
-                padding-top: calc(var(--avatar-size) / 2 + 12px);
+                padding-top: calc(var(--avatar-size) / 2 + 16px);
             }
             .top-actions {
                 top: 12px;
                 right: 12px;
-                gap: 8px;
+                gap: 6px;
             }
             .music-btn,
             .theme-toggle-btn {
-                width: 38px;
-                height: 38px;
-                flex: 0 0 38px;
-                font-size: 1.2rem;
+                width: 36px;
+                height: 36px;
+                flex: 0 0 36px;
+                font-size: 1.1rem;
             }
             .music-btn svg {
-                width: 1.2em;
-                height: 1.2em;
+                width: 1.1em;
+                height: 1.1em;
             }
             .theme-toggle-btn .iconify {
                 width: 20px;
@@ -669,65 +714,63 @@
             }
             .drawer {
                 width: 88%;
-                max-width: none;
                 padding: 12px 10px 16px;
             }
             .drawer .hw-pl-cover {
-                width: 60px;
-                height: 60px;
-                flex: 0 0 60px;
+                width: 54px;
+                height: 54px;
+                flex: 0 0 54px;
             }
             .drawer .hw-pl-title {
-                font-size: 0.92rem;
+                font-size: 0.88rem;
             }
             .drawer .hw-play {
-                width: 42px;
-                height: 36px;
+                width: 40px;
+                height: 34px;
             }
             .drawer .hw-btn {
-                width: 32px;
-                height: 28px;
-            }
-            .drawer .hw-pl-list {
-               max-height: none;
+                width: 30px;
+                height: 26px;
             }
             .drawer .hw-pl-view-lyrics {
-                height: 120px;
-                min-height: 60px;
+                height: 100px;
+                min-height: 50px;
             }
             .drawer .hw-lyrics-line {
-                font-size: 0.76rem;
+                font-size: 0.74rem;
             }
             .drawer .hw-lyrics-line.active {
-                font-size: 0.86rem;
+                font-size: 0.84rem;
             }
-            .card {
-                padding: 16px;
-                border-radius: 16px;
+            .post-item {
+                padding: 14px 0;
+            }
+            .post-content {
+                font-size: 0.94rem;
             }
             .layout-1 {
-                max-height: 380px;
+                max-height: 340px;
             }
         }
 
         @media (max-width: 400px) {
             :root {
-                --profile-bg-height: 140px;
-                --avatar-size: 70px;
+                --profile-bg-height: 120px;
+                --avatar-size: 64px;
             }
             .main-wrapper {
-                padding-top: calc(var(--avatar-size) / 2 + 10px);
+                padding-top: calc(var(--avatar-size) / 2 + 12px);
             }
             .top-actions {
                 top: 10px;
                 right: 10px;
-                gap: 6px;
+                gap: 4px;
             }
             .music-btn,
             .theme-toggle-btn {
-                width: 34px;
-                height: 34px;
-                flex: 0 0 34px;
+                width: 32px;
+                height: 32px;
+                flex: 0 0 32px;
                 font-size: 1rem;
             }
             .music-btn svg {
@@ -743,83 +786,69 @@
                 padding: 10px 8px 14px;
             }
             .drawer .hw-pl-cover {
-                width: 50px;
-                height: 50px;
-                flex: 0 0 50px;
+                width: 46px;
+                height: 46px;
+                flex: 0 0 46px;
             }
             .drawer .hw-pl-title {
-                font-size: 0.82rem;
+                font-size: 0.8rem;
             }
             .drawer .hw-play {
-                width: 38px;
-                height: 32px;
+                width: 36px;
+                height: 30px;
             }
             .drawer .hw-btn {
-                width: 28px;
-                height: 24px;
-            }
-            .drawer .hw-pl-list {
-                max-height: none;
+                width: 26px;
+                height: 22px;
             }
             .drawer .hw-pl-view-lyrics {
-                height: 100px;
-                min-height: 50px;
+                height: 80px;
+                min-height: 40px;
             }
             .drawer .hw-lyrics-line {
                 font-size: 0.7rem;
             }
             .drawer .hw-lyrics-line.active {
-                font-size: 0.8rem;
+                font-size: 0.78rem;
             }
         }
     </style>
 
-    <!-- ========== hw-music-player.css 完整内容 ========== -->
+    <!-- ========== hw-music-player.css 精简版 ========== -->
     <style>
-        /* hw-music-player.css — 完整保留，仅微调变量适配 */
+        /* 极简版播放器样式 — 保留功能，去除装饰 */
         .hw-player {
             position: relative;
             width: min(100%, 360px);
             margin: 14px auto 6px;
-            padding: 16px 16px 14px;
+            padding: 14px 14px 12px;
             background: var(--paper);
-            border: 2px solid var(--border);
-            border-radius: var(--sketch-radius-1);
-            box-shadow: var(--p-shadow);
-            transform: rotate(-0.4deg) skewX(-0.6deg);
-            font-family: 'LXGW WenKai Screen', sans-serif;
+            border: 1px solid var(--border);
+            border-radius: 0;
+            box-shadow: none;
+            transform: none !important;
+            font-family: var(--font-family);
             overflow: hidden;
-            transition: transform .2s ease, box-shadow .2s ease
+            transition: none;
         }
         .hw-player:hover {
-            transform: rotate(0deg) skewX(0deg) translate(-2px, -2px);
-            box-shadow: 6px 6px 0px var(--border)
+            transform: none !important;
+            box-shadow: none !important;
         }
         .hw-note-corner {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 26px;
-            height: 26px;
-            color: var(--accent);
-            font-size: 20px;
-            line-height: 1;
-            transform: rotate(-12deg);
-            pointer-events: none;
-            opacity: .9;
-            z-index: 2
+            display: none;
         }
         .hw-player-head {
             display: flex;
             align-items: center;
-            gap: 14px;
-            margin-bottom: 12px
+            gap: 12px;
+            margin-bottom: 10px;
         }
         .hw-disc-wrap {
             position: relative;
-            width: 92px;
-            height: 92px;
-            flex: 0 0 92px
+            width: 80px;
+            height: 80px;
+            flex: 0 0 80px;
         }
         .hw-disc {
             width: 100%;
@@ -828,503 +857,470 @@
             background: radial-gradient(circle at 35% 30%, #cfd8e8 0%, #9aa6bd 30%, #4b5468 55%, #23262f 78%, #101116 100%);
             background-size: cover;
             background-position: center;
-            border: 3px solid var(--border);
-            box-shadow: 2px 2px 0 var(--border);
+            border: 2px solid var(--border);
+            box-shadow: none;
             position: relative;
             animation: hw-spin 3.2s linear infinite;
-            animation-play-state: paused
+            animation-play-state: paused;
         }
         .hw-disc-wrap.spinning .hw-disc {
-            animation-play-state: running
+            animation-play-state: running;
         }
         .hw-disc::before {
             content: '';
             position: absolute;
             inset: 0;
             border-radius: 50%;
-            background: repeating-radial-gradient(circle, rgba(255, 255, 255, 0.12) 0px, rgba(255, 255, 255, 0.12) 1px, transparent 1px, transparent 6px);
-            mix-blend-mode: overlay
+            background: repeating-radial-gradient(circle, rgba(255, 255, 255, 0.10) 0px, rgba(255, 255, 255, 0.10) 1px, transparent 1px, transparent 6px);
+            mix-blend-mode: overlay;
         }
         .hw-disc::after {
             content: '';
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 26px;
-            height: 26px;
-            margin: -13px 0 0 -13px;
+            width: 22px;
+            height: 22px;
+            margin: -11px 0 0 -11px;
             border-radius: 50%;
             background: var(--paper);
-            border: 2px solid var(--border)
+            border: 2px solid var(--border);
         }
         @keyframes hw-spin {
             from {
-                transform: rotate(0deg)
+                transform: rotate(0deg);
             }
             to {
-                transform: rotate(360deg)
+                transform: rotate(360deg);
             }
         }
         .hw-cover {
-            width: 92px;
-            height: 92px;
-            flex: 0 0 92px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            box-shadow: 3px 3px 0 var(--border);
+            width: 80px;
+            height: 80px;
+            flex: 0 0 80px;
+            border: 1px solid var(--border);
+            border-radius: 0;
+            box-shadow: none;
             overflow: hidden;
-            background: var(--bg);
-            transform: rotate(2deg)
+            background: var(--bg-player);
+            transform: none !important;
         }
         .hw-cover-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
-            filter: brightness(var(--img-brightness))
+            filter: brightness(var(--img-brightness));
         }
         .hw-meta {
             text-align: center;
-            margin: 4px 0 10px
+            margin: 2px 0 8px;
         }
         .hw-title {
-            font-size: 1.15rem;
-            font-weight: 900;
+            font-size: 1.05rem;
+            font-weight: 700;
             color: var(--text);
-            line-height: 1.3
+            line-height: 1.3;
         }
         .hw-artist {
-            font-size: .92rem;
-            color: var(--secondary-text);
-            margin-top: 2px
-        }
-        .hw-album {
-            font-size: .82rem;
+            font-size: 0.85rem;
             color: var(--secondary-text);
             margin-top: 1px;
-            font-style: italic
+        }
+        .hw-album {
+            font-size: 0.78rem;
+            color: var(--secondary-text);
+            margin-top: 1px;
+            font-style: italic;
         }
 
         .hw-view-lyrics {
             display: none;
             flex-direction: column;
-            height: 158px;
-            margin-bottom: 12px;
-            border: 2px dashed var(--border);
-            border-radius: 10px;
-            background: var(--bg);
-            padding: 8px 6px
+            height: 140px;
+            margin-bottom: 10px;
+            border: 1px dashed var(--border);
+            border-radius: 0;
+            background: var(--bg-player);
+            padding: 6px 4px;
         }
         .hw-player.lyrics-mode .hw-view-normal {
-            display: none
+            display: none;
         }
         .hw-player.lyrics-mode .hw-view-lyrics {
-            display: flex
+            display: flex;
         }
         .hw-lyrics-scroll-full {
             flex: 1;
             overflow-y: auto;
             padding: 4px 6px;
             scrollbar-width: none;
-            -ms-overflow-style: none
+            -ms-overflow-style: none;
         }
         .hw-lyrics-scroll-full::-webkit-scrollbar {
+            display: none;
             width: 0;
             height: 0;
-            display: none
         }
         .hw-lyrics-line {
             color: var(--secondary-text);
-            padding: 3px 4px;
+            padding: 2px 4px;
             text-align: center;
-            font-size: .86rem;
+            font-size: 0.82rem;
             line-height: 1.7;
-            transition: color .2s ease, font-weight .2s ease, font-size .2s ease
+            transition: color .2s ease, font-weight .2s ease, font-size .2s ease;
         }
         .hw-lyrics-line.active {
             color: var(--accent-dark);
-            font-weight: 900;
-            font-size: .98rem
+            font-weight: 700;
+            font-size: 0.92rem;
         }
         .hw-lyrics-empty {
             margin: auto;
             text-align: center;
             color: var(--secondary-text);
-            font-size: .85rem;
-            padding: 6px
+            font-size: 0.82rem;
+            padding: 6px;
         }
 
         .hw-progress-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px
+            gap: 6px;
+            margin-bottom: 8px;
         }
         .hw-time {
-            font-size: .78rem;
+            font-size: 0.74rem;
             color: var(--secondary-text);
-            font-weight: 700;
-            min-width: 38px
+            font-weight: 500;
+            min-width: 34px;
         }
         .hw-time.hw-dur {
-            text-align: right
+            text-align: right;
         }
         .hw-progress {
             flex: 1;
             -webkit-appearance: none;
             appearance: none;
-            height: 6px;
+            height: 4px;
             background: var(--dot-normal);
-            border-radius: 4px;
+            border-radius: 2px;
             outline: none;
             cursor: pointer;
-            border: 1px solid var(--border)
+            border: none !important;
         }
         .hw-progress::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: var(--accent);
-            border: 2px solid var(--border);
+            border: none;
             cursor: pointer;
-            box-shadow: 1px 1px 0 var(--border)
+            box-shadow: none;
         }
         .hw-progress::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: var(--accent);
-            border: 2px solid var(--border);
-            cursor: pointer
+            border: none;
+            cursor: pointer;
         }
 
         .hw-controls {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px
+            gap: 8px;
         }
         .hw-btn {
-            border: 2px solid var(--border);
-            background: var(--paper);
-            color: var(--text);
+            border: none !important;
+            background: transparent !important;
+            color: var(--text-main);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all .15s ease;
-            position: relative
+            transition: background 0.15s ease;
+            position: relative;
+            border-radius: 4px;
+            padding: 4px;
+        }
+        .hw-btn:hover {
+            background: rgba(0, 0, 0, 0.04) !important;
+        }
+        body.dark .hw-btn:hover {
+            background: rgba(255, 255, 255, 0.06) !important;
         }
         .hw-btn svg {
-            display: block
+            display: block;
         }
         .hw-play {
-            width: 52px;
-            height: 44px;
-            border-radius: var(--sketch-radius-btn);
-            background: var(--accent);
-            box-shadow: 3px 3px 0 var(--border);
-            transform: rotate(-1deg)
+            width: 46px;
+            height: 38px;
+            border-radius: 4px;
+            background: var(--accent) !important;
+            color: #fff !important;
+            box-shadow: none !important;
+            transform: none !important;
         }
         .hw-play:hover {
-            background: var(--accent-dark);
-            transform: rotate(0deg) translateY(-1px)
-        }
-        .hw-like,
-        .hw-repeat,
-        .hw-lyrics-toggle,
-        .hw-pl-shuffle,
-        .hw-pl-repeat,
-        .hw-pl-lyrics-toggle {
-            width: 38px;
-            height: 34px;
-            border-radius: var(--sketch-radius-btn);
-            box-shadow: 2px 2px 0 var(--border);
-            transform: rotate(2deg)
-        }
-        .hw-repeat,
-        .hw-pl-shuffle,
-        .hw-pl-repeat,
-        .hw-lyrics-toggle,
-        .hw-pl-lyrics-toggle {
-            transform: rotate(-2deg)
-        }
-        .hw-like {
-            color: #c0605f
+            background: var(--accent-dark) !important;
+            transform: none !important;
         }
         .hw-like.active {
-            background: #f6b8b6;
-            transform: rotate(0deg) scale(1.08)
+            color: #e0245e !important;
         }
         .hw-repeat.active,
-        .hw-pl-shuffle.active,
-        .hw-pl-repeat.active,
-        .hw-lyrics-toggle.active,
-        .hw-pl-lyrics-toggle.active {
-            background: var(--accent);
-            color: #fff;
-            transform: rotate(0deg) scale(1.05)
+        .hw-lyrics-toggle.active {
+            color: var(--accent) !important;
         }
         .hw-repeat-badge {
             position: absolute;
-            bottom: -3px;
-            right: -3px;
+            bottom: -2px;
+            right: -2px;
             width: 14px;
             height: 14px;
             border-radius: 50%;
             background: var(--accent-dark);
             color: #fff;
-            font-size: 9px;
-            font-weight: 900;
+            font-size: 8px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             border: 1.5px solid var(--paper);
-            line-height: 1
+            line-height: 1;
         }
         .hw-btn:active {
-            transform: scale(0.92)
-        }
-        body.dark .hw-disc {
-            filter: brightness(0.92)
-        }
-        body.dark .hw-player {
-            box-shadow: 4px 5px 0px rgba(255, 255, 255, 0.05)
-        }
-        body.dark .hw-like.active {
-            background: #8a4a49;
-            color: #ffd6d5
-        }
-        body.dark .hw-repeat.active,
-        body.dark .hw-pl-shuffle.active,
-        body.dark .hw-pl-repeat.active,
-        body.dark .hw-lyrics-toggle.active,
-        body.dark .hw-pl-lyrics-toggle.active {
-            background: var(--accent-dark)
-        }
-        @media (max-width:480px) {
-            .hw-player {
-                width: 100%;
-                padding: 12px 12px 10px
-            }
-            .hw-disc-wrap,
-            .hw-cover {
-                width: 72px;
-                height: 72px;
-                flex-basis: 72px
-            }
-            .hw-title {
-                font-size: 1rem
-            }
-            .hw-controls {
-                gap: 9px
-            }
-            .hw-play {
-                width: 46px;
-                height: 38px
-            }
-            .hw-view-lyrics {
-                height: 130px
-            }
+            transform: scale(0.92);
         }
 
+        /* 播放列表极简 */
         .hw-playlist {
             position: relative;
             width: min(100%, 400px);
             margin: 14px auto 6px;
-            padding: 16px 16px 12px;
+            padding: 14px 14px 10px;
             background: var(--paper);
-            border: 2px solid var(--border);
-            border-radius: var(--sketch-radius-1);
-            box-shadow: var(--p-shadow);
-            transform: rotate(0.3deg) skewX(0.4deg);
-            font-family: 'LXGW WenKai Screen', sans-serif;
-            overflow: hidden
+            border: 1px solid var(--border);
+            border-radius: 0;
+            box-shadow: none;
+            transform: none !important;
+            font-family: var(--font-family);
+            overflow: hidden;
         }
         .hw-playlist:hover {
-            transform: rotate(0deg) skewX(0deg) translate(-2px, -2px);
-            box-shadow: 6px 6px 0px var(--border)
+            transform: none !important;
+            box-shadow: none !important;
         }
         .hw-pl-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 10px
+            gap: 10px;
+            margin-bottom: 8px;
         }
         .hw-pl-cover {
-            width: 76px;
-            height: 76px;
-            flex: 0 0 76px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            box-shadow: 3px 3px 0 var(--border);
+            width: 68px;
+            height: 68px;
+            flex: 0 0 68px;
+            border: 1px solid var(--border);
+            border-radius: 0;
+            box-shadow: none;
             overflow: hidden;
-            background: var(--bg)
+            background: var(--bg-player);
         }
         .hw-pl-meta {
             flex: 1;
-            min-width: 0
+            min-width: 0;
         }
         .hw-pl-title {
-            font-size: 1.05rem;
-            font-weight: 900;
+            font-size: 0.95rem;
+            font-weight: 700;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis
+            text-overflow: ellipsis;
         }
         .hw-pl-artist {
-            font-size: .85rem;
+            font-size: 0.8rem;
             color: var(--secondary-text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-top: 2px
+            margin-top: 1px;
         }
         .hw-pl-count {
-            font-size: .72rem;
+            font-size: 0.7rem;
             color: var(--secondary-text);
-            margin-top: 3px
+            margin-top: 2px;
         }
         .hw-pl-view-lyrics {
             display: none;
             flex-direction: column;
-            height: 158px;
-            margin-bottom: 10px;
-            border: 2px dashed var(--border);
-            border-radius: 10px;
-            background: var(--bg);
-            padding: 8px 6px
+            height: 140px;
+            margin-bottom: 8px;
+            border: 1px dashed var(--border);
+            border-radius: 0;
+            background: var(--bg-player);
+            padding: 6px 4px;
         }
         .hw-playlist.lyrics-mode .hw-pl-view-normal {
-            display: none
+            display: none;
         }
         .hw-playlist.lyrics-mode .hw-pl-view-lyrics {
-            display: flex
+            display: flex;
         }
         .hw-pl-progress-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px
+            gap: 6px;
+            margin-bottom: 8px;
         }
         .hw-pl-controls {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px
+            gap: 8px;
+            margin-bottom: 8px;
         }
         .hw-pl-list {
-            max-height: 220px;
+            max-height: 200px;
             overflow-y: auto;
-            border-top: 1.5px dashed var(--border);
+            border-top: 1px solid var(--border-light);
             padding-top: 6px;
             scrollbar-width: none;
-            -ms-overflow-style: none
+            -ms-overflow-style: none;
         }
         .hw-pl-list::-webkit-scrollbar {
+            display: none;
             width: 0;
             height: 0;
-            display: none
         }
         .hw-pl-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 4px;
-            border-radius: 8px;
+            gap: 6px;
+            padding: 4px 2px;
+            border-radius: 0;
             cursor: pointer;
-            transition: background .15s ease
+            transition: background 0.15s ease;
         }
         .hw-pl-row:hover {
-            background: var(--bg)
+            background: rgba(0, 0, 0, 0.02);
+        }
+        body.dark .hw-pl-row:hover {
+            background: rgba(255, 255, 255, 0.02);
         }
         .hw-pl-row.playing {
-            background: var(--dot-normal)
+            background: rgba(29, 155, 240, 0.08);
         }
         .hw-pl-row-idx {
-            width: 18px;
+            width: 16px;
             text-align: center;
-            font-size: .72rem;
+            font-size: 0.68rem;
             color: var(--secondary-text);
-            flex: 0 0 18px
+            flex: 0 0 16px;
         }
         .hw-pl-row.playing .hw-pl-row-idx {
-            color: var(--accent-dark)
+            color: var(--accent);
         }
         .hw-pl-row-thumb {
-            width: 34px;
-            height: 34px;
-            flex: 0 0 34px;
-            border-radius: 5px;
-            border: 1.5px solid var(--border);
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+            border-radius: 0;
+            border: 1px solid var(--border);
             overflow: hidden;
-            background: var(--bg)
+            background: var(--bg-player);
         }
         .hw-pl-row-thumb img {
             width: 100%;
             height: 100%;
-            object-fit: cover
+            object-fit: cover;
         }
         .hw-pl-row-info {
             flex: 1;
-            min-width: 0
+            min-width: 0;
         }
         .hw-pl-row-title {
-            font-size: .85rem;
-            font-weight: 700;
+            font-size: 0.8rem;
+            font-weight: 600;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis
+            text-overflow: ellipsis;
         }
         .hw-pl-row-artist {
-            font-size: .72rem;
+            font-size: 0.68rem;
             color: var(--secondary-text);
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis
+            text-overflow: ellipsis;
         }
         .hw-pl-row-playicon {
-            flex: 0 0 16px;
+            flex: 0 0 14px;
             text-align: center;
-            color: var(--accent-dark);
-            opacity: 0
+            color: var(--accent);
+            opacity: 0;
         }
         .hw-pl-row.playing .hw-pl-row-playicon {
-            opacity: 1
+            opacity: 1;
         }
         .hw-pl-loading,
         .hw-pl-error {
             text-align: center;
-            padding: 18px 8px;
+            padding: 16px 8px;
             color: var(--secondary-text);
-            font-size: .85rem
-        }
-        @media (max-width:480px) {
-            .hw-playlist {
-                width: 100%;
-                padding: 12px 12px 10px
-            }
-            .hw-pl-cover {
-                width: 60px;
-                height: 60px;
-                flex-basis: 60px
-            }
-            .hw-pl-list {
-                max-height: 180px
-            }
-            .hw-pl-view-lyrics {
-                height: 130px
-            }
+            font-size: 0.82rem;
         }
 
-        /* ===== global music sheet (保留但未使用，避免干扰) ===== */
+        /* 全局音乐 sheet 隐藏 */
         .hw-music-sheet-backdrop,
         .hw-music-sheet {
             display: none !important;
+        }
+
+        @media (max-width: 480px) {
+            .hw-player {
+                width: 100%;
+                padding: 10px 10px 8px;
+            }
+            .hw-disc-wrap,
+            .hw-cover {
+                width: 64px;
+                height: 64px;
+                flex-basis: 64px;
+            }
+            .hw-title {
+                font-size: 0.95rem;
+            }
+            .hw-controls {
+                gap: 6px;
+            }
+            .hw-play {
+                width: 40px;
+                height: 34px;
+            }
+            .hw-view-lyrics {
+                height: 110px;
+            }
+            .hw-playlist {
+                width: 100%;
+                padding: 10px 10px 8px;
+            }
+            .hw-pl-cover {
+                width: 54px;
+                height: 54px;
+                flex-basis: 54px;
+            }
+            .hw-pl-list {
+                max-height: 160px;
+            }
+            .hw-pl-view-lyrics {
+                height: 110px;
+            }
         }
     </style>
 
@@ -1347,26 +1343,26 @@
             <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
 
             <div v-else class="feed">
-                <div v-for="(post, idx) in posts" :key="idx" class="card">
-                    <div class="card-header">
+                <div v-for="(post, idx) in posts" :key="idx" class="post-item">
+                    <div class="post-header">
                         <span class="time-badge">{{ formatTime(post.date) }}</span>
                     </div>
-                    <div class="content">{{ post.content }}</div>
+                    <div class="post-content">{{ post.content }}</div>
 
                     <!-- 图片布局 -->
-                    <div v-if="post.images && post.images.length === 1" class="card-images layout-1">
+                    <div v-if="post.images && post.images.length === 1" class="post-images layout-1">
                         <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
                             <img :src="post.images[0]" alt="图1" loading="lazy">
                         </a>
                     </div>
 
-                    <div v-else-if="post.images && post.images.length === 2" class="card-images layout-2">
+                    <div v-else-if="post.images && post.images.length === 2" class="post-images layout-2">
                         <a v-for="(img, i) in post.images" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="img-link">
                             <img :src="img" :alt="'图'+(i+1)" loading="lazy">
                         </a>
                     </div>
 
-                    <div v-else-if="post.images && post.images.length >= 3" class="card-images layout-3plus">
+                    <div v-else-if="post.images && post.images.length >= 3" class="post-images layout-3plus">
                         <a v-for="(img, i) in post.images.slice(0,9)" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="grid-item">
                             <img :src="img" :alt="'图'+(i+1)" loading="lazy">
                             <div v-if="i === 8 && post.images.length > 9" class="more-overlay">
@@ -1411,7 +1407,7 @@
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <div class="drawer" id="musicDrawer">
         <div class="drawer-header">
-            <span class="drawer-title">🎵 歌单播放器</span>
+            <span class="drawer-title">🎵 歌单</span>
             <button class="drawer-close" id="drawerCloseBtn" aria-label="关闭播放器">✕</button>
         </div>
         <div class="drawer-body">
@@ -1424,7 +1420,7 @@
     <!-- 脚本                                                          -->
     <!-- ============================================================ -->
 
-    <!-- hw-music-player.js 完整内容（已移除自动初始化） -->
+    <!-- hw-music-player.js 完整内容 -->
     <script>
         (function() {
             const NETEASE_SONG_INFO_API = (id) =>
@@ -1436,13 +1432,13 @@
             const LIKE_STORAGE_KEY = 'hwPlayerLikes';
 
             const ICONS = {
-                play: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.87l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>',
-                pause: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
-                heart: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
-                heartFilled: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
-                repeat: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3"/><path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3"/></svg>',
-                shuffle: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4l3 3l-3 3"/><path d="M18 20l3 -3l-3 -3"/><path d="M3 7h3a5 5 0 0 1 5 5a5 5 0 0 0 5 5h5"/><path d="M21 7h-5a4.978 4.978 0 0 0 -3 1"/><path d="M3 17h3a4.984 4.984 0 0 0 3 -1"/></svg>',
-                lyrics: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h13"/></svg>',
+                play: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.87l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>',
+                pause: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+                heart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
+                heartFilled: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
+                repeat: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3"/><path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3"/></svg>',
+                shuffle: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4l3 3l-3 3"/><path d="M18 20l3 -3l-3 -3"/><path d="M3 7h3a5 5 0 0 1 5 5a5 5 0 0 0 5 5h5"/><path d="M21 7h-5a4.978 4.978 0 0 0 -3 1"/><path d="M3 17h3a4.984 4.984 0 0 0 3 -1"/></svg>',
+                lyrics: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h13"/></svg>',
             };
 
             const metaCache = new Map();
@@ -2096,15 +2092,11 @@
                     mountOnePlaylist(el); });
             }
 
-            // 移除自动初始化，由外部手动调用 mountAll
             window.HWPlayer = {
                 parseShortcodes,
                 mountAll,
                 getState: () => ({ ...state }),
-                // 暴露一些内部方法供调试，但不需要
             };
-
-            // 不自动执行 initGlobalPlayer
         })();
     </script>
 
@@ -2231,10 +2223,9 @@
             function openDrawer() {
                 drawer.classList.add('open');
                 overlay.classList.add('open');
-                // 如果播放器尚未挂载，则挂载
                 const mount = document.getElementById('drawerPlayerMount');
                 if (mount && !mount.dataset.hwMounted && window.HWPlayer) {
-                    window.HWPlayer.mountAll(); // 会挂载所有 .hw-playlist-mount，包括这个
+                    window.HWPlayer.mountAll();
                 }
                 document.body.style.overflow = 'hidden';
             }
@@ -2266,14 +2257,13 @@
                     closeDrawer();
                 });
             }
-            // 按 ESC 关闭
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && drawer.classList.contains('open')) {
                     closeDrawer();
                 }
             });
 
-            // ----- 音乐按钮播放指示点（监听播放状态）-----
+            // ----- 音乐按钮播放指示点 -----
             function updateMusicDot() {
                 if (!musicBtn) return;
                 if (window.HWPlayer) {
@@ -2286,28 +2276,17 @@
                 }
             }
             document.addEventListener('hwplayer:update', updateMusicDot);
-            // 初始检测
             setTimeout(updateMusicDot, 500);
 
-            // 暴露 mount 触发回调，用于布局更新
             window.HWonMasonryNeeded = function() {
-                // 可触发 resize
                 window.dispatchEvent(new Event('resize'));
             };
 
-            // 页面加载完成后挂载播放器（如果尚未挂载）
             document.addEventListener('DOMContentLoaded', function() {
                 if (window.HWPlayer) {
-                    // 挂载所有 .hw-playlist-mount（包括 drawer 内的）
                     window.HWPlayer.mountAll();
                 }
-                // 确保 Fancybox 重新绑定（Vue 已做）
             });
-
-            // 当 drawer 打开时，若播放器未挂载，则挂载（已在 openDrawer 中处理）
-            // 但为了保险，我们也可以预加载，但最好在打开时加载。
-            // 另外，如果 drawer 内的播放器已经挂载，但列表可能未刷新，我们可以在打开时刷新 UI。
-            // 但 mountAll 已经做了，且播放器会自动更新。
 
         })();
     </script>
