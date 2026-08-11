@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-title" content="note" />
 <link rel="manifest" href="/site.webmanifest" />
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <title>time</title>
 
     <!-- Vue 3 -->
@@ -1388,6 +1389,66 @@
                 height: 110px;
             }
         }
+        
+        /* ========== Markdown 语义样式 ========== */
+.post-content {
+    /* 1. 将预格式化改为标准流式布局，以支持 HTML 标签排版 */
+    white-space: normal; 
+}
+
+/* 标题样式 */
+.post-content h1, 
+.post-content h2, 
+.post-content h3, 
+.post-content h4 {
+    margin: 1.5em 0 0.8em;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-main);
+}
+.post-content h1 { font-size: 1.4rem; }
+.post-content h2 { font-size: 1.3rem; }
+.post-content h3 { font-size: 1.2rem; }
+.post-content h4 { font-size: 1.1rem; }
+
+/* 列表样式 */
+.post-content ul, 
+.post-content ol {
+    margin: 0.8em 0;
+    padding-left: 20px;
+}
+.post-content li {
+    margin-bottom: 0.4em;
+}
+
+/* 引用样式 */
+.post-content blockquote {
+    margin: 1em 0;
+    padding: 2px 0 2px 12px;
+    border-left: 3px solid var(--accent-color);
+    color: var(--text-muted);
+    font-style: italic;
+    background: rgba(128, 128, 128, 0.05);
+}
+
+/* 行内代码样式 */
+.post-content code {
+    font-family: 'Courier New', Courier, monospace;
+    background: rgba(128, 128, 128, 0.15);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #d63384; /* 可以换成你喜欢的颜色 */
+}
+
+/* 代码块样式 (如果使用 markdown 渲染后的 pre) */
+.post-content pre {
+    background: rgba(128, 128, 128, 0.05);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 1em 0;
+}
     </style>
 
 </head>
@@ -1409,14 +1470,15 @@
         <div class="main-wrapper">
             <div id="app">
                 <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
-                <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 还没有公开手账</div>
+                <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 空空如也</div>
 
                 <div v-else class="feed">
                     <div v-for="(post, idx) in posts" :key="idx" class="post-item">
                         <div class="post-header">
                             <span class="time-badge">{{ formatTime(post.date) }}</span>
                         </div>
-                        <div class="post-content">{{ post.content }}</div>
+                        <!-- 使用 v-html 渲染 Markdown 转换后的 HTML -->
+<div class="post-content" v-html="renderMarkdown(post.content)"></div>
 
                         <!-- 图片布局 -->
                         <div v-if="post.images && post.images.length === 1" class="post-images layout-1">
@@ -2188,6 +2250,11 @@
                 };
             },
             methods: {
+            renderMarkdown(content) {
+        if (!content) return '';
+        // 使用 marked 转换 markdown
+        return marked.parse(content);
+    },
                 formatTime(timeStr) {
                     if (!timeStr) return '';
                     return timeStr.replace(/\//g, '-');
