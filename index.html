@@ -36,6 +36,7 @@
             --border-light: #eff3f4;
             --accent-color: #1d9bf0;
             --font-family: 'LXGW WenKai Screen', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-size-base: 16px;
 
             /* 播放器变量 */
             --paper: #ffffff;
@@ -52,7 +53,7 @@
             --img-brightness: 1;
 
             /* 头像 & 背景高度 (变大) */
-            --profile-bg-height: 220px;
+            --profile-bg-height: 350px;
             --avatar-size: 120px;
         }
 
@@ -120,36 +121,40 @@
         .profile-header {
             position: relative;
             width: 100%;
-            height: var(--profile-bg-height);
+            aspect-ratio: 16 / 9;
             overflow: visible;
             background: var(--bg);
         }
         .profile-bg {
-            position: absolute;
-            inset: 0;
-            background-image: url('https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1784331329665_42358.webp&n=-1');
-            background-size: cover;
-            background-position: center;
-            filter: brightness(0.95);
-        }
+    position: absolute;
+    inset: 0;
+    background-image:url('./bg.gif');
+    
+    /* 恢复使用 cover，让它充满容器 */
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat;
+    filter: brightness(0.95);
+}
         body.dark .profile-bg {
             filter: brightness(0.5);
         }
 
         .profile-avatar {
-            position: absolute;
-            left: 20px;
-            bottom: calc(-1 * var(--avatar-size) / 2);
-            width: var(--avatar-size);
-            height: var(--avatar-size);
-            border-radius: 50%;
-            border: 4px solid var(--bg);
-            background: var(--bg);
-            overflow: hidden;
-            z-index: 2;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            transition: border-color 0.3s;
-        }
+    position: absolute;
+    left: 50%; /* 确保在容器的 50% 处 */
+    transform: translateX(-50%); /* 向左偏移自身宽度的一半，实现完美居中 */
+    bottom: calc(-1 * var(--avatar-size) / 2);
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%; /* 关键：改回 50% 就是圆形 */
+    border: 4px solid var(--bg);
+    background: var(--bg);
+    overflow: hidden;
+    z-index: 2;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: border-color 0.3s;
+}
         body.dark .profile-avatar {
             border-color: #000000;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
@@ -723,7 +728,7 @@
         /* ========== 响应式 ========== */
         @media (max-width: 640px) {
             :root {
-                --profile-bg-height: 180px;
+                --profile-bg-height: 280px;
                 --avatar-size: 90px;
             }
             .main-wrapper {
@@ -797,7 +802,7 @@
 
         @media (max-width: 400px) {
             :root {
-                --profile-bg-height: 160px;
+                --profile-bg-height: 240px;
                 --avatar-size: 80px;
             }
             .main-wrapper {
@@ -1396,7 +1401,7 @@
         <header class="profile-header">
             <div class="profile-bg"></div>
             <div class="profile-avatar">
-                <img src="https://images.weserv.nl/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjacktom12%2Fblogpic3%2Fmain%2F1786337462109_28948.png&n=-1" alt="Avatar" />
+                <img src="./avatar.webp" alt="Avatar" />
             </div>
         </header>
 
