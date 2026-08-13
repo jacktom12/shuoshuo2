@@ -1844,6 +1844,126 @@ body.dark .modal-content {
     align-items: flex-end; /* 手机略偏下，更好点关闭 */
   }
 }
+
+/* 右上角悬浮菜单 */
+.fab-menu {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10050; /* 高于影视弹窗，低于音乐抽屉 */
+}
+
+.fab-trigger {
+  appearance: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light);
+  background: var(--bg);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s, background 0.15s, border-color 0.15s;
+  padding: 0;
+  font-size: 1.25rem;
+}
+.fab-trigger:hover {
+  transform: scale(1.04);
+  background: var(--border-light);
+}
+.fab-trigger.open {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+/* 播放中绿点（挂在菜单按钮上） */
+.fab-trigger.playing-dot {
+  position: relative;
+}
+.fab-trigger.playing-dot::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 2px var(--bg);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+.fab-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 148px;
+  padding: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.fab-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+.fab-item:hover {
+  background: var(--border-light);
+}
+.fab-ico {
+  width: 1.25em;
+  height: 1.25em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex: 0 0 auto;
+}
+.fab-item:hover .fab-ico {
+  color: var(--accent-color);
+}
+.fab-divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--border-light);
+}
+
+.fab-pop-enter-active,
+.fab-pop-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.fab-pop-enter-from,
+.fab-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+}
+
+@media (max-width: 640px) {
+  .fab-menu {
+    top: 12px;
+    right: 12px;
+  }
+  .fab-trigger {
+    width: 38px;
+    height: 38px;
+  }
+}
     </style>
   </head>
 
@@ -1859,28 +1979,83 @@ body.dark .modal-content {
       <div class="main-wrapper">
         <!-- ========== 整个 Vue 必须包在 #app 里 ========== -->
         <div id="app">
-          <div class="view-menu">
-            <span
-              class="menu-item"
-              :class="{ active: currentView === 'say' && !showModal }"
-              @click="switchView('say')"
-            >说说</span>
-            <span
-              class="menu-item"
-              :class="{ active: showModal && modalType === 'watched' }"
-              @click="switchView('watched')"
-            >看过</span>
-            <span
-              class="menu-item"
-              :class="{ active: showModal && modalType === 'watchlist' }"
-              @click="switchView('watchlist')"
-            >想看</span>
-          </div>
+           <div class="fab-menu" @click.stop>
+  <button
+    class="fab-trigger"
+    type="button"
+    :class="{ open: menuOpen, 'playing-dot': musicPlaying }"
+    aria-label="菜单"
+    @click="toggleMenu"
+  >
+    <!-- 你指定的菜单图标 -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24">
+      <path d="M0 0h24v24H0z" fill="none" />
+      <g fill="none" stroke="currentColor" stroke-linejoin="round">
+        <path stroke-linecap="round" stroke-width="2" d="M4 4.001h16v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+        <path stroke-width="3" d="M12.01 12v.01H12V12zm4.5 0v.01h-.01V12zm-9 0v.01H7.5V12z" />
+      </g>
+    </svg>
+  </button>
+
+  <transition name="fab-pop">
+    <div v-if="menuOpen" class="fab-dropdown">
+      <button type="button" class="fab-item" @click="onMenuMusic">
+        <span class="fab-ico">
+          <!-- 音乐：沿用原来音符 SVG，或 iconify -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24">
+            <path d="M0 0h24v24H0z" fill="none"/>
+            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2">
+              <circle cx="9" cy="18" r="3"/>
+              <path d="M12 18V3m0 0l6 1v4l-6-1z"/>
+            </g>
+          </svg>
+        </span>
+        <span>音乐</span>
+      </button>
+
+      <button type="button" class="fab-item" @click="onMenuWatched">
+        <span class="fab-ico iconify" data-icon="mdi:movie-open-check-outline"></span>
+        <span>看过</span>
+      </button>
+
+      <button type="button" class="fab-item" @click="onMenuWatchlist">
+        <span class="fab-ico iconify" data-icon="mdi:clock-plus-outline"></span>
+        <span>想看</span>
+      </button>
+
+      <div class="fab-divider"></div>
+
+      <button type="button" class="fab-item" @click="onMenuTheme">
+        <span class="fab-ico iconify" :data-icon="isDark ? 'carbon:moon' : 'carbon:sun'"></span>
+        <span>{{ isDark ? '深色' : '浅色' }}</span>
+      </button>
+    </div>
+  </transition>
+</div>
 
           <!-- 主区域只显示说说 -->
           <div>
-            <div v-if="loading && posts.length === 0" class="empty">⏳ 加载中…</div>
-            <div v-else-if="posts.length === 0 && !loading" class="empty">✨ 空空如也</div>
+            <div v-if="loading && posts.length === 0" class="empty"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<circle cx="18" cy="12" r="0" fill="currentColor">
+		<animate attributeName="r" begin=".67" calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0" />
+	</circle>
+	<circle cx="12" cy="12" r="0" fill="currentColor">
+		<animate attributeName="r" begin=".33" calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0" />
+	</circle>
+	<circle cx="6" cy="12" r="0" fill="currentColor">
+		<animate attributeName="r" begin="0" calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0" />
+	</circle>
+</svg>
+</div>
+            <div v-else-if="posts.length === 0 && !loading" class="empty"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" fill-rule="evenodd" clip-rule="evenodd">
+		<path fill="#020202" d="M5.625 20.325c0 .33-.37.27-.69.21c-.87-.17-1.29-.59-1.21-1.721c.09-1.281.82-2.232 1.85-1.501a.311.311 0 1 0 .42-.46c-2.15-2.132-4.492 1.88-2.801 3.862a2.92 2.92 0 0 0 2.001.68c.66-.06 1.17-.36 1.13-1.07a.35.35 0 0 0-.7 0m2.372.07v-2.312c-.21-1.63-.16-1.35-.17-1.39a.35.35 0 0 0-.61.19c0 .09-.34 2.511-.34 2.761c0 .44.08 1.351.49 1.541a3.9 3.9 0 0 0 1.63.15c.55-.12.651-.48.44-.69a4.7 4.7 0 0 0-1.44-.25m4.863-3.082c-2.061-2.632-3.482 1.25-2.352 3.082a1.55 1.55 0 0 0 2.242.55a2.89 2.89 0 0 0 .11-3.632m-.93 2.792c-.681-.09-.931-1.381-.821-2.092c.13-.91.44-1.39 1.12-.3s.1 2.442-.3 2.392m3.142-2.432a.53.53 0 0 1 .07-.45c.42-.54.951.15 1.271.05s.29-.79-.77-1a1.42 1.42 0 0 0-1.211 2.39c.51.611 1.54.951 1.45 1.412s-.55.7-.8.6c-.08 0-.45-.38-.64-.38a.34.34 0 0 0-.34.33c0 .33.38.59.67.75a1.61 1.61 0 0 0 2.092-1.06c.49-1.521-1.702-2.092-1.792-2.642m5.594-1.331l-1.57-.21a1.13 1.13 0 0 0-1.072.76a5.2 5.2 0 0 0-.14 2.182a10.5 10.5 0 0 0 0 1.811a.54.54 0 0 0 .49.46a4 4 0 0 0 .691-.16c.17-.05.65 0 .94-.09c.561-.1.661-.44.511-.7s-1.5-.05-1.631-.06l.1-1.131c.38 0 1.471-.19 1.471-.56s-1.17-.62-1.541-.55a5 5 0 0 1 0-.661c0-.21 0-.42.23-.46c1.611-.08 1.621 0 1.691-.26a.29.29 0 0 0-.17-.37m-.21-15.07c.41.1.76.67 1.11 1.29a16.3 16.3 0 0 1 1.161 2.802a6.46 6.46 0 0 1-.13 3.002c-.16.32-.47.46-1 .43q-.453-.015-.891-.13a2.11 2.11 0 0 1-1.701-2.762l3.212-.06a.34.34 0 0 0 0-.67l-3.142-.17C17.443.512 17.664 1.102 17.583.942c.965.03 1.925.14 2.872.33m-3.582 7.284a2.1 2.1 0 0 1-1.622-.14a2.19 2.19 0 0 1-1.16-2.471h4.002a2.34 2.34 0 0 1-1.22 2.611m-.08-7.615c0 .12.1.25.14.38c.12 1.27.438 2.512.94 3.683l-3.742-.13a13.3 13.3 0 0 0-.77-4.003c.18-.03 3.402-.02 3.432.07M12.12 8.447a2.56 2.56 0 0 1-2.432-.27c-.47-2.442-.41-1.871-.31-2.302c.8 0 3.332.06 3.772.07c.06.871.26 1.772-1.03 2.502M11.88.842c1.5 0 .48-.23 1.15 4.003c-1 0-2.071-.05-3.092-.05l1.3-2.592a4.6 4.6 0 0 0 .641-1.36m-4.143.79c.47-.62.46-.53.33-.75c3.372-.06 3.102-.06 3.002 0a22.4 22.4 0 0 0-2.442 3.893c-1.21 0-2.361 0-3.372.06c1.01-1.161 1.821-2.342 2.482-3.202M4.485 5.696l3.832.15c0 .33 0-.19.11 1.521c-.29.18-.29.851-.79 1.201a2.78 2.78 0 0 1-2.422.09c-1.02-.47-.9-2.271-.73-2.962m16.72 4.183c2.152.19 2.672-.93 2.732-3.072l-.17-1.641a16.7 16.7 0 0 0-1.631-3.572A2.78 2.78 0 0 0 20.675.342c-3.052-.72-14.52-.08-15.55-.07a.34.34 0 1 0 0 .67h2.291a30 30 0 0 0-3.602 4.003c-1.32-.01-2.241.06-2.481.06a.3.3 0 0 0 .1.59h2.111c.08 2.412.31 1-.26 2.812c-1 1.28-3.362-.89-2.362-3.002a34 34 0 0 1 2.932-4.343a.3.3 0 0 0-.45-.39c-.33.38-1 1.26-1.641 2.182C-.298 5.785.102 5.535.082 7.346a2.33 2.33 0 0 0 1.66 2.152l.731.11a1.74 1.74 0 0 0 1.571-.71c1 1.22 3.683 1.4 4.723-.09a3.67 3.67 0 0 0 3.893.61a4.8 4.8 0 0 0 1-.85a3.22 3.22 0 0 0 3.613 1c.498-.217.93-.562 1.25-1c.48.587 1.142 1 1.882 1.17z" />
+		<path fill="#0c6fff" d="M23.007 14.591a6.6 6.6 0 0 0-2.352-.5c.271-.954.445-1.933.52-2.922c0-.91-.93-1.09-1.1-.13q-.147 1.482-.07 2.972a117 117 0 0 0-17.081.09a9.9 9.9 0 0 0-.16-3.453c-.26-1.06-1.051-.77-1.051 0q.04.868.2 1.722c0 .09.33 1.74.35 1.82c-1.77.261-1.931.451-1.891 1.242c.06 1.41.47 6.194 1 7.504c.06.15.39.4 1.001.52c3.222.641 17.391.851 19.543-.13c.86-.39 1.16-2.5 1.3-3.452c.14-.95.551-4.683-.21-5.283m-1.431 7.245c-.08.23-.15.59-.23.5c-1.952.79-17.142.89-19.373.24c-.55-1.56-.98-7.014-1.07-7.334c.47-.62 7.744-.62 8.515-.62a110 110 0 0 1 11.907.61c1.231.18 1.001.16 1.001.74a21.3 21.3 0 0 1-.71 5.864z" />
+	</g>
+</svg>
+</div>
             <div v-else class="feed">
               <div v-for="(post, idx) in posts" :key="idx" class="post-item">
                 <div class="post-header">
@@ -2036,20 +2211,7 @@ body.dark .modal-content {
       </div>
     </div>
 
-    <div class="top-actions">
-      <button class="music-btn" id="musicToggleBtn" aria-label="音乐播放器" title="音乐播放器">
-        <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-          <path d="M0 0h24v24H0z" fill="none" />
-          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
-            <circle cx="9" cy="18" r="3" />
-            <path d="M12 18V3m0 0l6 1v4l-6-1z" />
-          </g>
-        </svg>
-      </button>
-      <button class="theme-toggle-btn" id="themeToggle" aria-label="切换深浅色模式" title="切换深浅色模式">
-        <span class="iconify" data-icon="carbon:sun" id="themeIcon"></span>
-      </button>
-    </div>
+     
 
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <div class="drawer" id="musicDrawer">
@@ -2954,272 +3116,373 @@ body.dark .modal-content {
     </script>
 
     <script>
-      const { createApp } = Vue;
+  const { createApp } = Vue;
 
-      const GENRES_MAP = [
-        { id: 28, name: '动作' }, { id: 12, name: '冒险' }, { id: 16, name: '动画' },
-        { id: 35, name: '喜剧' }, { id: 80, name: '犯罪' }, { id: 99, name: '纪录' },
-        { id: 18, name: '剧情' }, { id: 10751, name: '家庭' }, { id: 14, name: '奇幻' },
-        { id: 36, name: '历史' }, { id: 27, name: '恐怖' }, { id: 10402, name: '音乐' },
-        { id: 9648, name: '悬疑' }, { id: 10749, name: '爱情' }, { id: 878, name: '科幻' },
-        { id: 10770, name: '电视电影' }, { id: 53, name: '惊悚' }, { id: 10752, name: '战争' },
-        { id: 37, name: '西部' }, { id: 10759, name: '动作冒险' }, { id: 10762, name: '儿童' },
-        { id: 10763, name: '新闻' }, { id: 10764, name: '真人秀' }, { id: 10765, name: 'Sci-Fi & Fantasy' },
-        { id: 10766, name: '肥皂剧' }, { id: 10767, name: '脱口秀' }, { id: 10768, name: 'War & Politics' },
-      ];
+  const GENRES_MAP = [
+    { id: 28, name: '动作' }, { id: 12, name: '冒险' }, { id: 16, name: '动画' },
+    { id: 35, name: '喜剧' }, { id: 80, name: '犯罪' }, { id: 99, name: '纪录' },
+    { id: 18, name: '剧情' }, { id: 10751, name: '家庭' }, { id: 14, name: '奇幻' },
+    { id: 36, name: '历史' }, { id: 27, name: '恐怖' }, { id: 10402, name: '音乐' },
+    { id: 9648, name: '悬疑' }, { id: 10749, name: '爱情' }, { id: 878, name: '科幻' },
+    { id: 10770, name: '电视电影' }, { id: 53, name: '惊悚' }, { id: 10752, name: '战争' },
+    { id: 37, name: '西部' }, { id: 10759, name: '动作冒险' }, { id: 10762, name: '儿童' },
+    { id: 10763, name: '新闻' }, { id: 10764, name: '真人秀' }, { id: 10765, name: 'Sci-Fi & Fantasy' },
+    { id: 10766, name: '肥皂剧' }, { id: 10767, name: '脱口秀' }, { id: 10768, name: 'War & Politics' },
+  ];
 
-      const uniqueGenres = [];
-      const seen = new Set();
-      for (const g of GENRES_MAP) {
-        if (!seen.has(g.id)) {
-          seen.add(g.id);
-          uniqueGenres.push(g);
-        }
-      }
-      const GENRE_LOOKUP = Object.fromEntries(uniqueGenres.map(g => [g.id, g.name]));
-
-      createApp({
-        data() {
-          return {
-            currentView: 'say',
-            showModal: false,
-            modalType: '',
-            mediaTypeFilter: 'all',
-            selectedGenres: [],
-            apiBase: 'https://pub.199105.xyz/api/public-memos',
-            pageSize: 12,
-            views: {
-              say: {
-                items: [],
-                page: 1,
-                totalPages: 1,
-                loading: false,
-                hasMore: true,
-                scrollPos: 0,
-              },
-              watched: {
-                allItems: [],
-                page: 1,
-                loading: false,
-                scrollPos: 0,
-              },
-              watchlist: {
-                allItems: [],
-                page: 1,
-                loading: false,
-                scrollPos: 0,
-              }
-            }
-          };
-        },
-        computed: {
-          displayGenres() {
-            if (this.mediaTypeFilter === 'all') return uniqueGenres;
-            const movieIds = new Set([28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37]);
-            const tvIds = new Set([10759,16,35,80,99,18,10751,10762,9648,10763,10764,10765,10766,10767,10768,37]);
-            if (this.mediaTypeFilter === 'movie') return uniqueGenres.filter(g => movieIds.has(g.id));
-            if (this.mediaTypeFilter === 'tv') return uniqueGenres.filter(g => tvIds.has(g.id));
-            return uniqueGenres;
-          },
-          activeMediaKey() {
-            return this.modalType || 'watched';
-          },
-          currentMediaData() {
-            return this.views[this.activeMediaKey] || this.views.watched;
-          },
-          sayData() {
-            return this.views.say;
-          },
-          loading() {
-            if (this.showModal) return !!this.currentMediaData.loading;
-            return !!this.sayData.loading;
-          },
-          currentPage() {
-            if (this.showModal) return this.currentMediaData.page;
-            return this.sayData.page;
-          },
-          posts() {
-            return this.sayData.items;
-          },
-          hasMore() {
-            return this.sayData.page < this.sayData.totalPages;
-          },
-          filteredMedia() {
-            if (!this.showModal) return [];
-            const all = this.currentMediaData.allItems || [];
-            return all.filter(item => {
-              const matchType = this.mediaTypeFilter === 'all' || item.media_type === this.mediaTypeFilter;
-              const matchGenre = this.selectedGenres.length === 0 ||
-                this.selectedGenres.every(g => item.genre_ids && item.genre_ids.includes(g));
-              return matchType && matchGenre;
-            });
-          },
-          totalPages() {
-            if (!this.showModal) return this.sayData.totalPages || 1;
-            return Math.ceil(this.filteredMedia.length / this.pageSize) || 1;
-          },
-          mediaList() {
-            if (!this.showModal) return [];
-            const page = this.currentMediaData.page;
-            const start = (page - 1) * this.pageSize;
-            return this.filteredMedia.slice(start, start + this.pageSize);
-          }
-        },
-        methods: {
-          renderMarkdown(content) {
-            if (!content) return '';
-            return marked.parse(content);
-          },
-          formatTime(timeStr) {
-            if (!timeStr) return '';
-            return timeStr.replace(/\//g, '-');
-          },
-          getGenreName(id) {
-            return GENRE_LOOKUP[id] || id;
-          },
-
-          switchView(view) {
-            if (view === 'say') {
-              this.closeModal();
-              return;
-            }
-
-            // 打开弹窗，不改主列表（主列表始终是说说）
-            this.showModal = true;
-            this.modalType = view;
-            document.body.classList.add('modal-open');
-
-            this.mediaTypeFilter = 'all';
-            this.selectedGenres = [];
-
-            const target = this.views[view];
-            if (!target.allItems || target.allItems.length === 0) {
-              this.fetchMedia(view);
-            } else {
-              target.page = 1;
-            }
-          },
-
-          closeModal() {
-            this.showModal = false;
-            this.modalType = '';
-            this.currentView = 'say';
-            document.body.classList.remove('modal-open');
-            // 关键：清掉抽屉留下的行内样式（抽屉没开着时才恢复滚动）
-  const drawer = document.getElementById('musicDrawer');
-  if (!drawer || !drawer.classList.contains('open')) {
-    document.body.style.overflow = '';
+  const uniqueGenres = [];
+  const seen = new Set();
+  for (const g of GENRES_MAP) {
+    if (!seen.has(g.id)) {
+      seen.add(g.id);
+      uniqueGenres.push(g);
+    }
   }
+  const GENRE_LOOKUP = Object.fromEntries(uniqueGenres.map(g => [g.id, g.name]));
+
+  createApp({
+    data() {
+      return {
+        currentView: 'say',
+        showModal: false,
+        modalType: '',
+        mediaTypeFilter: 'all',
+        selectedGenres: [],
+        apiBase: 'https://pub.199105.xyz/api/public-memos',
+        pageSize: 12,
+
+        // 右上角菜单
+        menuOpen: false,
+        isDark: false,
+        musicPlaying: false,
+
+        views: {
+          say: {
+            items: [],
+            page: 1,
+            totalPages: 1,
+            loading: false,
+            hasMore: true,
+            scrollPos: 0,
           },
-
-          async fetchSayPosts(page) {
-            const viewData = this.views.say;
-            if (viewData.loading) return;
-            viewData.loading = true;
-
-            try {
-              const url = `${this.apiBase}?view=say&page=${page}&pageSize=${this.pageSize}`;
-              const res = await fetch(url);
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              const json = await res.json();
-              if (json.error) throw new Error(json.error);
-
-              if (page === 1) {
-                viewData.items = json.data || [];
-              } else {
-                viewData.items = viewData.items.concat(json.data || []);
-              }
-              viewData.page = json.page;
-              viewData.totalPages = json.totalPages || 1;
-              viewData.loading = false;
-
-              this.$nextTick(() => {
-                if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
-              });
-            } catch (e) {
-              console.error('加载说说失败', e);
-              viewData.loading = false;
-            }
+          watched: {
+            allItems: [],
+            page: 1,
+            loading: false,
+            scrollPos: 0,
           },
-
-          loadMore() {
-            if (this.sayData.loading) return;
-            if (this.sayData.page >= this.sayData.totalPages) return;
-            this.fetchSayPosts(this.sayData.page + 1);
-          },
-
-          async fetchMedia(view) {
-            const viewData = this.views[view];
-            if (!viewData || viewData.loading) return;
-            viewData.loading = true;
-
-            try {
-              const url = `${this.apiBase}?view=${view}`;
-              const res = await fetch(url);
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              const json = await res.json();
-              if (json.error) throw new Error(json.error);
-
-              viewData.allItems = json.data || [];
-              viewData.page = 1;
-              viewData.loading = false;
-            } catch (e) {
-              console.error('加载媒体失败', e);
-              viewData.loading = false;
-            }
-          },
-
-          setMediaType(type) {
-            if (this.mediaTypeFilter === type) return;
-            this.mediaTypeFilter = type;
-            this.selectedGenres = [];
-            if (this.showModal && this.currentMediaData) {
-              this.currentMediaData.page = 1;
-            }
-          },
-
-          toggleGenre(id) {
-            const idx = this.selectedGenres.indexOf(id);
-            if (idx > -1) this.selectedGenres.splice(idx, 1);
-            else this.selectedGenres.push(id);
-            if (this.showModal && this.currentMediaData) {
-              this.currentMediaData.page = 1;
-            }
-          },
-
-          goPage(page) {
-            if (!this.showModal) return;
-            if (page < 1 || page > this.totalPages) return;
-            this.currentMediaData.page = page;
-            const body = document.querySelector('.modal-body');
-            if (body) body.scrollTo({ top: 0, behavior: 'smooth' });
-          },
-
-          onKeydown(e) {
-            if (e.key === 'Escape' && this.showModal) this.closeModal();
-          }
-        },
-        mounted() {
-          this.fetchSayPosts(1);
-          window.addEventListener('keydown', this.onKeydown);
-        },
-        beforeUnmount() {
-          window.removeEventListener('keydown', this.onKeydown);
-          document.body.classList.remove('modal-open');
-        },
-        watch: {
-          posts() {
-            this.$nextTick(() => {
-              if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
-            });
+          watchlist: {
+            allItems: [],
+            page: 1,
+            loading: false,
+            scrollPos: 0,
           }
         }
-      }).mount('#app');
-    </script>
+      };
+    },
+
+    computed: {
+      displayGenres() {
+        if (this.mediaTypeFilter === 'all') return uniqueGenres;
+        const movieIds = new Set([28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37]);
+        const tvIds = new Set([10759,16,35,80,99,18,10751,10762,9648,10763,10764,10765,10766,10767,10768,37]);
+        if (this.mediaTypeFilter === 'movie') return uniqueGenres.filter(g => movieIds.has(g.id));
+        if (this.mediaTypeFilter === 'tv') return uniqueGenres.filter(g => tvIds.has(g.id));
+        return uniqueGenres;
+      },
+      activeMediaKey() {
+        return this.modalType || 'watched';
+      },
+      currentMediaData() {
+        return this.views[this.activeMediaKey] || this.views.watched;
+      },
+      sayData() {
+        return this.views.say;
+      },
+      loading() {
+        if (this.showModal) return !!this.currentMediaData.loading;
+        return !!this.sayData.loading;
+      },
+      currentPage() {
+        if (this.showModal) return this.currentMediaData.page;
+        return this.sayData.page;
+      },
+      posts() {
+        return this.sayData.items;
+      },
+      hasMore() {
+        return this.sayData.page < this.sayData.totalPages;
+      },
+      filteredMedia() {
+        if (!this.showModal) return [];
+        const all = this.currentMediaData.allItems || [];
+        return all.filter(item => {
+          const matchType = this.mediaTypeFilter === 'all' || item.media_type === this.mediaTypeFilter;
+          const matchGenre = this.selectedGenres.length === 0 ||
+            this.selectedGenres.every(g => item.genre_ids && item.genre_ids.includes(g));
+          return matchType && matchGenre;
+        });
+      },
+      totalPages() {
+        if (!this.showModal) return this.sayData.totalPages || 1;
+        return Math.ceil(this.filteredMedia.length / this.pageSize) || 1;
+      },
+      mediaList() {
+        if (!this.showModal) return [];
+        const page = this.currentMediaData.page;
+        const start = (page - 1) * this.pageSize;
+        return this.filteredMedia.slice(start, start + this.pageSize);
+      }
+    },
+
+    methods: {
+      renderMarkdown(content) {
+        if (!content) return '';
+        return marked.parse(content);
+      },
+      formatTime(timeStr) {
+        if (!timeStr) return '';
+        return timeStr.replace(/\//g, '-');
+      },
+      getGenreName(id) {
+        return GENRE_LOOKUP[id] || id;
+      },
+
+      /* ========== 右上角菜单 ========== */
+      toggleMenu() {
+        this.menuOpen = !this.menuOpen;
+        if (this.menuOpen) {
+          this.$nextTick(() => {
+            if (window.Iconify && this.$el) {
+              try { window.Iconify.scan(this.$el); } catch (e) {}
+            }
+          });
+        }
+      },
+      closeMenu() {
+        this.menuOpen = false;
+      },
+      syncChromeState() {
+        this.isDark = document.body.classList.contains('dark');
+        try {
+          if (window.HWPlayer && typeof window.HWPlayer.getState === 'function') {
+            this.musicPlaying = !!window.HWPlayer.getState().isPlaying;
+          }
+        } catch (e) {
+          this.musicPlaying = false;
+        }
+      },
+      onMenuMusic() {
+        this.closeMenu();
+        if (typeof window.__toggleMusicDrawer === 'function') {
+          window.__toggleMusicDrawer();
+        }
+      },
+      onMenuWatched() {
+        this.closeMenu();
+        this.switchView('watched');
+      },
+      onMenuWatchlist() {
+        this.closeMenu();
+        this.switchView('watchlist');
+      },
+      onMenuTheme() {
+        if (typeof window.__toggleTheme === 'function') {
+          window.__toggleTheme();
+        }
+        this.syncChromeState();
+        // 主题可连点，不强制关菜单；若想点完就关，取消下一行注释：
+        // this.closeMenu();
+      },
+
+      /* ========== 看过 / 想看 弹窗 ========== */
+      switchView(view) {
+        if (view === 'say') {
+          this.closeModal();
+          return;
+        }
+
+        this.closeMenu();
+        this.showModal = true;
+        this.modalType = view;
+        this.currentView = view;
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+
+        this.mediaTypeFilter = 'all';
+        this.selectedGenres = [];
+
+        const target = this.views[view];
+        if (!target.allItems || target.allItems.length === 0) {
+          this.fetchMedia(view);
+        } else {
+          target.page = 1;
+        }
+      },
+
+      closeModal() {
+        this.showModal = false;
+        this.modalType = '';
+        this.currentView = 'say';
+        document.body.classList.remove('modal-open');
+
+        const drawer = document.getElementById('musicDrawer');
+        if (!drawer || !drawer.classList.contains('open')) {
+          document.body.style.overflow = '';
+        }
+      },
+
+      /* ========== 说说 ========== */
+      async fetchSayPosts(page) {
+        const viewData = this.views.say;
+        if (viewData.loading) return;
+        viewData.loading = true;
+
+        try {
+          const url = `${this.apiBase}?view=say&page=${page}&pageSize=${this.pageSize}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (json.error) throw new Error(json.error);
+
+          if (page === 1) {
+            viewData.items = json.data || [];
+          } else {
+            viewData.items = viewData.items.concat(json.data || []);
+          }
+          viewData.page = json.page;
+          viewData.totalPages = json.totalPages || 1;
+          viewData.loading = false;
+
+          this.$nextTick(() => {
+            if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
+          });
+        } catch (e) {
+          console.error('加载说说失败', e);
+          viewData.loading = false;
+        }
+      },
+
+      loadMore() {
+        if (this.sayData.loading) return;
+        if (this.sayData.page >= this.sayData.totalPages) return;
+        this.fetchSayPosts(this.sayData.page + 1);
+      },
+
+      /* ========== 影视 ========== */
+      async fetchMedia(view) {
+        const viewData = this.views[view];
+        if (!viewData || viewData.loading) return;
+        viewData.loading = true;
+
+        try {
+          const url = `${this.apiBase}?view=${view}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (json.error) throw new Error(json.error);
+
+          viewData.allItems = json.data || [];
+          viewData.page = 1;
+          viewData.loading = false;
+        } catch (e) {
+          console.error('加载媒体失败', e);
+          viewData.loading = false;
+        }
+      },
+
+      setMediaType(type) {
+        if (this.mediaTypeFilter === type) return;
+        this.mediaTypeFilter = type;
+        this.selectedGenres = [];
+        if (this.showModal && this.currentMediaData) {
+          this.currentMediaData.page = 1;
+        }
+      },
+
+      toggleGenre(id) {
+        const idx = this.selectedGenres.indexOf(id);
+        if (idx > -1) this.selectedGenres.splice(idx, 1);
+        else this.selectedGenres.push(id);
+        if (this.showModal && this.currentMediaData) {
+          this.currentMediaData.page = 1;
+        }
+      },
+
+      goPage(page) {
+        if (!this.showModal) return;
+        if (page < 1 || page > this.totalPages) return;
+        this.currentMediaData.page = page;
+        const body = document.querySelector('.modal-body');
+        if (body) body.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+
+      onKeydown(e) {
+        if (e.key !== 'Escape') return;
+        // 先关菜单，再关弹窗
+        if (this.menuOpen) {
+          this.closeMenu();
+          return;
+        }
+        if (this.showModal) {
+          this.closeModal();
+        }
+      },
+
+      onDocClick(e) {
+        if (!this.menuOpen) return;
+        const fab = this.$el && this.$el.querySelector
+          ? this.$el.querySelector('.fab-menu')
+          : document.querySelector('.fab-menu');
+        if (fab && fab.contains(e.target)) return;
+        this.closeMenu();
+      }
+    },
+
+    mounted() {
+      this.fetchSayPosts(1);
+      this.syncChromeState();
+
+      window.addEventListener('keydown', this.onKeydown);
+      // 下一帧再绑，避免打开菜单的同一次 click 立刻被当成“外部点击”
+      this.$nextTick(() => {
+        document.addEventListener('click', this.onDocClick);
+      });
+
+      this._onHwUpdate = () => this.syncChromeState();
+      document.addEventListener('hwplayer:update', this._onHwUpdate);
+
+      this._themeObs = new MutationObserver(() => this.syncChromeState());
+      this._themeObs.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    },
+
+    beforeUnmount() {
+      window.removeEventListener('keydown', this.onKeydown);
+      document.removeEventListener('click', this.onDocClick);
+      if (this._onHwUpdate) {
+        document.removeEventListener('hwplayer:update', this._onHwUpdate);
+      }
+      if (this._themeObs) this._themeObs.disconnect();
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    },
+
+    watch: {
+      posts() {
+        this.$nextTick(() => {
+          if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
+        });
+      }
+    }
+  }).mount('#app');
+</script>
 
     <script>
       (function () {
-        const toggleBtn = document.getElementById("themeToggle");
+       
         const iconEl = document.getElementById("themeIcon");
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         let stored = localStorage.getItem("hwTheme");
@@ -3238,18 +3501,13 @@ body.dark .modal-content {
         }
         applyTheme(isDark);
 
-        if (toggleBtn) {
-          toggleBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-            applyTheme(!isDark);
-          });
-        }
+         
         window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
           const stored = localStorage.getItem("hwTheme");
           if (!stored) applyTheme(e.matches);
         });
 
-        const musicBtn = document.getElementById("musicToggleBtn");
+        
         const drawer = document.getElementById("musicDrawer");
         const overlay = document.getElementById("drawerOverlay");
         const closeBtn = document.getElementById("drawerCloseBtn");
@@ -3274,27 +3532,23 @@ body.dark .modal-content {
     document.body.style.overflow = "";
   }
 }
+window.__toggleTheme = function () {
+  applyTheme(!isDark);
+};
 
-        if (musicBtn) {
-          musicBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-            if (drawer.classList.contains("open")) closeDrawer();
-            else openDrawer();
-          });
-        }
+window.__toggleMusicDrawer = function () {
+  if (drawer.classList.contains("open")) closeDrawer();
+  else openDrawer();
+};
+         
         if (closeBtn) closeBtn.addEventListener("click", function (e) { e.preventDefault(); closeDrawer(); });
         if (overlay) overlay.addEventListener("click", function () { closeDrawer(); });
         document.addEventListener("keydown", function (e) {
           if (e.key === "Escape" && drawer.classList.contains("open")) closeDrawer();
         });
 
-        function updateMusicDot() {
-          if (!musicBtn || !window.HWPlayer) return;
-          const state = window.HWPlayer.getState();
-          musicBtn.classList.toggle("playing-dot", !!state.isPlaying);
-        }
-        document.addEventListener("hwplayer:update", updateMusicDot);
-        setTimeout(updateMusicDot, 500);
+        
+         
 
         window.HWonMasonryNeeded = function () {
           window.dispatchEvent(new Event("resize"));
