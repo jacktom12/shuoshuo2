@@ -2301,7 +2301,142 @@ body.dark .modal-body .media-poster img {
         let audioEl = null;
         let audioLoadedTrackId = null;
         let loadGeneration = 0;
+        // ===== Media Session（系统媒体条：歌名/歌手/封面）=====
+        function updateMediaSession(meta) {
+          if (!("mediaSession" in navigator)) return;
+          try {
+            if (!meta || !meta.title) {
+              navigator.mediaSession.metadata = null;
+              navigator.mediaSession.playbackState = "none";
+              return;
+            }
+            const art = meta.cover
+              ? [
+                  { src: meta.cover, sizes: "96x96", type: "image/jpeg" },
+                  { src: meta.cover, sizes: "256x256", type: "image/jpeg" },
+                  { src: meta.cover, sizes: "512x512", type: "image/jpeg" },
+                ]
+              : [];
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: meta.title || "未知歌曲",
+              artist: meta.artist || "未知歌手",
+              album: meta.album || "",
+              artwork: art,
+            });
+            navigator.mediaSession.playbackState = state.isPlaying
+              ? "playing"
+              : "paused";
+          } catch (e) {
+            /* ignore */
+          }
+        }
 
+        function updateMediaPosition() {
+          if (!("mediaSession" in navigator) || !audioEl) return;
+          try {
+            const dur = audioEl.duration;
+            if (!dur || !isFinite(dur) || dur <= 0) return;
+            let pos = audioEl.currentTime || 0;
+            if (pos < 0) pos = 0;
+            if (pos > dur) pos = dur;
+            navigator.mediaSession.setPositionState({
+              duration: dur,
+              playbackRate: audioEl.playbackRate || 1,
+              position: pos,
+            });
+          } catch (e) {
+            /* 部分浏览器不支持 setPositionState */
+          }
+        }
+
+        let _posThrottle = 0;
+        function bindMediaSessionHandlers() {
+          if (!("mediaSession" in navigator)) return;
+          if (navigator.mediaSession.__hwBound) return;
+          navigator.mediaSession.__hwBound = true;
+
+          const safe = (fn) => {
+            try {
+              fn();
+            } catch (e) {}
+          };
+
+          navigator.mediaSession.setActionHandler("play", () => {
+            safe(() => {
+              ensureAudioEl();
+              if (audioEl) audioEl.play().catch(() => {});
+            });
+          });
+          navigator.mediaSession.setActionHandler("pause", () => {
+            safe(() => {
+              if (audioEl) audioEl.pause();
+            });
+          });
+          navigator.mediaSession.setActionHandler("previoustrack", () => {
+            safe(() => {
+              if (!state.queue) return;
+              const pls = getPlaylistState(state.queue.listId);
+              let prev = pls.posInOrder - 1;
+              if (prev < 0) {
+                if (pls.repeatMode === "all") prev = pls.order.length - 1;
+                else return;
+              }
+              pls.posInOrder = prev;
+              playFromPlaylist(state.queue.listId, pls.order[prev]);
+            });
+          });
+          navigator.mediaSession.setActionHandler("nexttrack", () => {
+            safe(() => {
+              if (state.queue) advanceQueue();
+            });
+          });
+          try {
+            navigator.mediaSession.setActionHandler("seekto", (details) => {
+              if (!audioEl || details.seekTime == null) return;
+              audioEl.currentTime = details.seekTime;
+              updateMediaPosition();
+            });
+          } catch (e) {}
+          try {
+            navigator.mediaSession.setActionHandler("seekbackward", (details) => {
+              if (!audioEl) return;
+              const off = details.seekOffset || 10;
+              audioEl.currentTime = Math.max(0, audioEl.currentTime - off);
+              updateMediaPosition();
+            });
+            navigator.mediaSession.setActionHandler("seekforward", (details) => {
+              if (!audioEl) return;
+              const off = details.seekOffset || 10;
+              const dur = audioEl.duration || 0;
+              audioEl.currentTime = Math.min(dur, audioEl.currentTime + off);
+              updateMediaPosition();
+            });
+          } catch (e) {}
+        }
+
+        function resolveCurrentMeta() {
+          if (state.queue) {
+            const pls = getPlaylistState(state.queue.listId);
+            const t = pls.tracks[state.queue.index];
+            if (t) {
+              return {
+                trackId: t.trackId,
+                title: t.title,
+                artist: t.artist,
+                album: t.album || "",
+                cover: t.cover || "",
+              };
+            }
+          }
+          if (
+            state._currentMeta &&
+            state.activeId &&
+            state._currentMeta.trackId === state.activeId
+          ) {
+            return state._currentMeta;
+          }
+          return null;
+        }
         function isRepeatOn(trackId) {
           return !!repeatFlags.get(trackId);
         }
@@ -2319,10 +2454,16 @@ body.dark .modal-body .media-poster img {
           audioEl.style.display = "none";
           audioEl.preload = "none";
           document.body.appendChild(audioEl);
-          audioEl.addEventListener("timeupdate", () => {
+                    audioEl.addEventListener("timeupdate", () => {
             state.duration = (audioEl.duration || 0) * 1000;
             state.position = (audioEl.currentTime || 0) * 1000;
             broadcast();
+            // 进度同步节流，大约每秒一次
+            const now = Date.now();
+            if (now - _posThrottle > 1000) {
+              _posThrottle = now;
+              updateMediaPosition();
+            }
           });
           audioEl.addEventListener("play", () => {
             state.isPlaying = true;
@@ -2344,10 +2485,11 @@ body.dark .modal-body .media-poster img {
           return audioEl;
         }
 
-        function broadcast() {
+                function broadcast() {
           document.dispatchEvent(
             new CustomEvent("hwplayer:update", { detail: { ...state } })
           );
+          updateMediaSession(resolveCurrentMeta());
         }
 
         function saveCurrentPosition() {
@@ -2373,6 +2515,14 @@ body.dark .modal-body .media-poster img {
           state.position = resumeMs;
           state.isPlaying = false;
           state.queue = queueCtx || null;
+                    state._currentMeta = {
+            trackId: meta.trackId,
+            title: meta.title,
+            artist: meta.artist,
+            album: meta.album || "",
+            cover: meta.cover || "",
+          };
+          bindMediaSessionHandlers();
           broadcast();
           let loopFlag = false;
           if (queueCtx) {
