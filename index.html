@@ -2718,20 +2718,46 @@
 
       createApp({
         data() {
-          return {
-            currentView: 'say',
-            posts: [],
-            mediaList: [],
-            loading: false,
-            currentPage: 1,
-            totalPages: 1,
-            pageSize: 12,
-            mediaTypeFilter: 'all',
-            selectedGenres: [],
-            scrollPos: { say: 0, watched: 0, watchlist: 0 },
-            apiBase: 'https://pub.199105.xyz/api/public-memos',
-          };
-        },
+  return {
+    currentView: 'say',
+    // 每个视图独立存储
+    views: {
+      say: {
+        items: [],        // 存储 posts
+        page: 1,
+        totalPages: 1,
+        loading: false,
+        hasMore: true,
+        scrollPos: 0,
+      },
+      watched: {
+        items: [],        // 存储 mediaList
+        page: 1,
+        totalPages: 1,
+        loading: false,
+        hasMore: true,
+        scrollPos: 0,
+        typeFilter: 'all',
+        genres: [],
+      },
+      watchlist: {
+        items: [],
+        page: 1,
+        totalPages: 1,
+        loading: false,
+        hasMore: true,
+        scrollPos: 0,
+        typeFilter: 'all',
+        genres: [],
+      }
+    },
+    // 全局筛选条件（媒体视图共享）
+    mediaTypeFilter: 'all',
+    selectedGenres: [],
+    apiBase: 'https://pub.199105.xyz/api/public-memos',
+    pageSize: 12,
+  };
+},
         computed: {
           displayGenres() {
             if (this.mediaTypeFilter === 'all') return uniqueGenres;
@@ -2744,9 +2770,27 @@
             }
             return uniqueGenres;
           },
-          hasMore() {
-            return this.currentPage < this.totalPages;
-          }
+           currentViewData() {
+    return this.views[this.currentView];
+  },
+  hasMore() {
+    return this.currentViewData.page < this.currentViewData.totalPages;
+  },
+  posts() {
+    return this.currentView === 'say' ? this.currentViewData.items : [];
+  },
+  mediaList() {
+    return this.currentView !== 'say' ? this.currentViewData.items : [];
+  },
+  loading() {
+    return this.currentViewData.loading;
+  },
+  currentPage() {
+    return this.currentViewData.page;
+  },
+  totalPages() {
+    return this.currentViewData.totalPages;
+  }
         },
         methods: {
           renderMarkdown(content) {
@@ -2761,122 +2805,156 @@
             return GENRE_LOOKUP[id] || id;
           },
           // ---------- 视图切换 ----------
-          switchView(view) {
-            if (this.currentView === view) return;
-            this.saveScrollPosition();
-            this.currentView = view;
-            this.currentPage = 1;
-            this.totalPages = 1;
-            if (view === 'say') {
-              if (this.posts.length === 0) {
-                this.fetchSayPosts(1);
-              } else {
-                this.restoreScrollPosition();
-              }
-            } else {
-              this.fetchMedia(view, 1);
-            }
-          },
-          // ---------- 说说 ----------
-          async fetchSayPosts(page) {
-            this.loading = true;
-            try {
-              const url = `${this.apiBase}?view=say&page=${page}&pageSize=${this.pageSize}`;
-              const res = await fetch(url);
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              const json = await res.json();
-              if (json.error) throw new Error(json.error);
-              if (page === 1) {
-                this.posts = json.data || [];
-              } else {
-                this.posts = this.posts.concat(json.data || []);
-              }
-              this.currentPage = json.page;
-              this.totalPages = json.totalPages || 1;
-              this.loading = false;
-              this.$nextTick(() => {
-                if (page === 1) {   // 只有第一页时恢复滚动位置
-        this.restoreScrollPosition();
+           switchView(view) {
+  if (this.currentView === view) return;
+  // 保存当前视图滚动位置
+  this.currentViewData.scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+
+  this.currentView = view;
+  const target = this.currentViewData;
+
+  // 如果目标视图没有数据，则加载第一页
+  if (target.items.length === 0) {
+    if (view === 'say') {
+      this.fetchSayPosts(1, true);
+    } else {
+      this.fetchMedia(view, 1, true);
     }
-                if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
-              });
-            } catch (e) {
-              console.error('加载说说失败', e);
-              alert('加载说说失败，请刷新重试');
-              this.loading = false;
-            }
-          },
-          loadMore() {
-            if (this.loading || this.currentPage >= this.totalPages) return;
-            this.fetchSayPosts(this.currentPage + 1);
-          },
+  } else {
+    // 已有数据，直接恢复滚动位置
+    this.$nextTick(() => {
+      window.scrollTo({ top: target.scrollPos, behavior: 'auto' });
+    });
+  }
+},
+          // ---------- 说说 ----------
+          async fetchSayPosts(page, isSwitch = false) {
+  const viewData = this.views.say;
+  if (viewData.loading) return;
+  viewData.loading = true;
+
+  try {
+    const url = `${this.apiBase}?view=say&page=${page}&pageSize=${this.pageSize}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+
+    if (page === 1) {
+      viewData.items = json.data || [];
+    } else {
+      viewData.items = viewData.items.concat(json.data || []);
+    }
+    viewData.page = json.page;
+    viewData.totalPages = json.totalPages || 1;
+    viewData.loading = false;
+
+    this.$nextTick(() => {
+      // 只有切换视图且是第一页时才恢复滚动位置（保留上次的滚动位置）
+      if (isSwitch && page === 1) {
+        window.scrollTo({ top: viewData.scrollPos, behavior: 'auto' });
+      }
+      // 绑定灯箱
+      if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
+    });
+  } catch (e) {
+    console.error('加载说说失败', e);
+    alert('加载说说失败，请刷新重试');
+    viewData.loading = false;
+  }
+},
+           loadMore() {
+  if (this.loading || !this.hasMore) return;
+  const nextPage = this.currentViewData.page + 1;
+  if (this.currentView === 'say') {
+    this.fetchSayPosts(nextPage, false);
+  } else {
+    this.fetchMedia(this.currentView, nextPage, false);
+  }
+},
           // ---------- 媒体 ----------
-          async fetchMedia(view, page) {
-            this.loading = true;
-            try {
-              let url = `${this.apiBase}?view=${view}&page=${page}&pageSize=${this.pageSize}`;
-              if (this.mediaTypeFilter !== 'all') {
-                url += `&mediaType=${this.mediaTypeFilter}`;
-              }
-              if (this.selectedGenres.length > 0) {
-                url += `&genres=${this.selectedGenres.join(',')}`;
-              }
-              const res = await fetch(url);
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              const json = await res.json();
-              if (json.error) throw new Error(json.error);
-              this.mediaList = json.data || [];
-              this.currentPage = json.page;
-              this.totalPages = json.totalPages || 1;
-              this.loading = false;
-              this.$nextTick(() => {
-                this.restoreScrollPosition();
-              });
-            } catch (e) {
-              console.error('加载媒体失败', e);
-              alert('加载数据失败，请刷新重试');
-              this.loading = false;
-            }
-          },
+           async fetchMedia(view, page, isSwitch = false) {
+  const viewData = this.views[view];
+  if (viewData.loading) return;
+  viewData.loading = true;
+
+  try {
+    let url = `${this.apiBase}?view=${view}&page=${page}&pageSize=${this.pageSize}`;
+    if (this.mediaTypeFilter !== 'all') {
+      url += `&mediaType=${this.mediaTypeFilter}`;
+    }
+    if (this.selectedGenres.length > 0) {
+      url += `&genres=${this.selectedGenres.join(',')}`;
+    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+
+    if (page === 1) {
+      viewData.items = json.data || [];
+    } else {
+      viewData.items = viewData.items.concat(json.data || []);
+    }
+    viewData.page = json.page;
+    viewData.totalPages = json.totalPages || 1;
+    viewData.loading = false;
+
+    this.$nextTick(() => {
+      if (isSwitch && page === 1) {
+        window.scrollTo({ top: viewData.scrollPos, behavior: 'auto' });
+      }
+    });
+  } catch (e) {
+    console.error('加载媒体失败', e);
+    alert('加载数据失败，请刷新重试');
+    viewData.loading = false;
+  }
+},
           // ---------- 筛选操作 ----------
           setMediaType(type) {
-            if (this.mediaTypeFilter === type) return;
-            this.mediaTypeFilter = type;
-            this.selectedGenres = [];
-            this.currentPage = 1;
-            this.fetchMedia(this.currentView, 1);
-          },
-          toggleGenre(id) {
-            const idx = this.selectedGenres.indexOf(id);
-            if (idx > -1) {
-              this.selectedGenres.splice(idx, 1);
-            } else {
-              this.selectedGenres.push(id);
-            }
-            this.currentPage = 1;
-            this.fetchMedia(this.currentView, 1);
-          },
-          goPage(page) {
-            if (page < 1 || page > this.totalPages) return;
-            if (this.currentView === 'say') {
-              this.fetchSayPosts(page);
-            } else {
-              this.fetchMedia(this.currentView, page);
-            }
-          },
+  if (this.mediaTypeFilter === type) return;
+  this.mediaTypeFilter = type;
+  this.selectedGenres = [];
+  // 重置当前媒体视图的数据，重新加载
+  const viewData = this.currentViewData;
+  viewData.items = [];
+  viewData.page = 1;
+  viewData.totalPages = 1;
+  viewData.scrollPos = 0;
+  this.fetchMedia(this.currentView, 1, false);
+},
+toggleGenre(id) {
+  const idx = this.selectedGenres.indexOf(id);
+  if (idx > -1) this.selectedGenres.splice(idx, 1);
+  else this.selectedGenres.push(id);
+  // 重置并重新加载
+  const viewData = this.currentViewData;
+  viewData.items = [];
+  viewData.page = 1;
+  viewData.totalPages = 1;
+  viewData.scrollPos = 0;
+  this.fetchMedia(this.currentView, 1, false);
+},
+           goPage(page) {
+  if (page < 1 || page > this.totalPages) return;
+  if (this.currentView === 'say') {
+    this.fetchSayPosts(page, false);
+  } else {
+    this.fetchMedia(this.currentView, page, false);
+  }
+},
           // ---------- 滚动位置 ----------
           saveScrollPosition() {
-            const key = this.currentView;
-            this.scrollPos[key] = window.scrollY || document.documentElement.scrollTop || 0;
-          },
-          restoreScrollPosition() {
-            const key = this.currentView;
-            const pos = this.scrollPos[key] || 0;
-            window.scrollTo({ top: pos, behavior: 'auto' });
-          },
+  this.currentViewData.scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+},
+restoreScrollPosition() {
+  const pos = this.currentViewData.scrollPos || 0;
+  window.scrollTo({ top: pos, behavior: 'auto' });
+},
           // ---------- 初始化 ----------
           async init() {
-            await this.fetchSayPosts(1);
+            this.fetchSayPosts(1, false);
           }
         },
         mounted() {
