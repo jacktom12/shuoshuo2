@@ -3707,8 +3707,11 @@ body.dark .modal-body .media-poster img {
         if (!this.showModal) return;
         if (page < 1 || page > this.totalPages) return;
         this.currentMediaData.page = page;
-        const body = document.querySelector('.modal-body');
-        if (body) body.scrollTo({ top: 0, behavior: 'smooth' });
+         // 等列表 DOM 更新完再滚，避免被重渲染打断
+  this.$nextTick(() => {
+    const body = document.querySelector('.modal-body');
+    if (body) body.scrollTop = 0; // 立刻到顶，无动画
+  });
       },
 
       onKeydown(e) {
