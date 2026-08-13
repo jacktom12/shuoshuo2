@@ -553,7 +553,7 @@
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.75);
-        z-index: 9999;
+        z-index: 9000;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -655,7 +655,7 @@
         position: fixed;
         top: 16px;
         right: 16px;
-        z-index: 1000;
+        z-index: 10050;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -728,7 +728,7 @@
       .drawer-overlay {
         position: fixed;
         inset: 0;
-        z-index: 2000;
+        z-index: 10100;
         background: rgba(0, 0, 0, 0.25);
         opacity: 0;
         pointer-events: none;
@@ -747,7 +747,7 @@
         height: 100%;
         width: 85%;
         max-width: 400px;
-        z-index: 2100;
+         z-index: 10200;
         background: var(--bg);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
         transform: translateX(100%);
@@ -1657,6 +1657,193 @@
       body.modal-open {
         overflow: hidden;
       }
+      
+      /* ========== 全屏弹窗（简约优化） ========== */
+.media-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 72px 24px 24px; /* 右侧给音乐按钮留空 */
+  overflow-y: auto;
+}
+body.dark .media-modal {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 920px;          /* 略收窄，更干净 */
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+body.dark .modal-content {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-light);
+  flex: 0 0 auto;
+}
+
+.modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.modal-close {
+  font-size: 1.35rem;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.modal-close:hover {
+  color: var(--text-main);
+  background: var(--border-light);
+}
+
+.modal-body {
+  padding: 14px 18px 18px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  scrollbar-width: none;
+}
+.modal-body::-webkit-scrollbar {
+  display: none;
+}
+
+.modal-body .filter-bar {
+  margin-bottom: 14px;
+  gap: 10px;
+  padding: 0;
+  border: none;
+}
+
+/* 弹窗内：更密的网格 + 更小封面 */
+.modal-body .media-grid {
+  grid-template-columns: repeat(4, 1fr); /* 桌面 4 列 */
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.modal-body .media-card {
+  border-radius: 8px;
+}
+.modal-body .media-card:hover {
+  transform: translateY(-1px);
+}
+
+.modal-body .media-poster {
+  aspect-ratio: 2 / 3;
+  max-height: 180px; /* 限制封面高度，信息区露出来 */
+}
+
+.modal-body .media-info {
+  padding: 8px 10px 10px;
+  gap: 3px;
+}
+
+.modal-body .media-title-row {
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.35;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.modal-body .media-title-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-body .media-date {
+  font-size: 0.7rem;
+  margin-left: 2px;
+}
+
+.modal-body .media-sub-row {
+  font-size: 0.72rem;
+  gap: 6px;
+}
+
+.modal-body .media-genres {
+  font-size: 0.68rem;
+  gap: 3px;
+}
+.modal-body .media-genres span {
+  padding: 0 5px;
+  line-height: 1.5;
+}
+
+.modal-body .media-icon-btn {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  margin-top: 1px;
+  opacity: 0.75;
+}
+.modal-body .media-icon-btn:hover {
+  opacity: 1;
+}
+
+.modal-body .pagination {
+  padding: 14px 0 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+@media (max-width: 900px) {
+  .modal-body .media-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .media-modal {
+    padding: 16px 16px 16px 16px;
+  }
+}
+@media (max-width: 640px) {
+  .modal-body .media-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .modal-body .media-poster {
+    max-height: 160px;
+  }
+  .modal-content {
+    max-height: 92vh;
+    border-radius: 10px;
+  }
+  .media-modal {
+    padding: 10px;
+    align-items: flex-end; /* 手机略偏下，更好点关闭 */
+  }
+}
     </style>
   </head>
 
@@ -1778,12 +1965,30 @@
                         <img :src="item.poster_path" :alt="item.title" loading="lazy" />
                       </div>
                       <div class="media-info">
-                        <div class="media-title-row">
-                          {{ item.title }}
-                          <span v-if="item.release_date" class="media-date">({{ item.release_date }})</span>
-                        </div>
-                        <div class="media-sub-row">
-                          <span class="media-type-badge" :title="item.media_type === 'tv' ? '剧集' : '电影'">
+                         
+                         <div class="media-title-row">
+  <div class="media-title-text">
+    {{ item.title }}
+    <span v-if="item.release_date" class="media-date">({{ item.release_date }})</span>
+  </div>
+  <a
+    :href="item.douban_url"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="media-icon-btn"
+    title="在豆瓣搜索"
+    @click.stop
+  >
+    <!-- 原来的豆瓣 SVG 原样粘过来 -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24">
+      <path d="M0 0h24v24H0z" fill="none"/>
+      <path fill="currentColor" d="M16.314 19.138h4.065a.62.62 0 0 1 .621.62v.621a.62.62 0 0 1-.62.621H3.62a.62.62 0 0 1-.62-.62v-.621a.62.62 0 0 1 .62-.621h3.754l-.96-3.104h2.19a.62.62 0 0 1 .59.425l.892 2.679H13.6l1.225-4.035H5.172a.62.62 0 0 1-.62-.62V7.345a.62.62 0 0 1 .62-.62h13.656a.62.62 0 0 1 .62.62v7.138a.62.62 0 0 1-.62.62h-1.289zM3.931 3h16.138a.62.62 0 0 1 .62.62v.621a.62.62 0 0 1-.62.621H3.931a.62.62 0 0 1-.62-.62V3.62A.62.62 0 0 1 3.93 3m3.26 5.586a.155.155 0 0 0-.156.155v4.035c0 .086.07.155.156.155h9.62c.086 0 .155-.07.155-.155V8.74a.155.155 0 0 0-.155-.155z"/>
+    </svg>
+  </a>
+</div>
+
+<div class="media-sub-row">
+  <span class="media-type-badge" :title="item.media_type === 'tv' ? '剧集' : '电影'">
                             <svg v-if="item.media_type === 'tv'" xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 256 256">
                               <path d="M0 0h256v256H0z" fill="none"/>
                               <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16">
@@ -1798,19 +2003,21 @@
                               <path fill="currentColor" d="M20 3H4c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2m.001 6q-.002 0 0 0h-.466l-2.667-4H20zm-5.466 0l-2.667-4h2.596l2.667 4zm-2.404 0H9.535L6.869 5h2.596zM4 5h.465l2.667 4H4z"/>
                             </svg>
                           </span>
-                          <span v-if="item.vote_average && item.vote_average !== 'N/A'" class="media-rating">★ {{ item.vote_average }}</span>
-                        </div>
-                        <div class="media-genres">
-                          <span v-for="gid in item.genre_ids" :key="gid">{{ getGenreName(gid) }}</span>
-                        </div>
-                        <div class="media-actions">
-                          <a :href="item.douban_url" target="_blank" rel="noopener noreferrer" class="media-icon-btn" title="在豆瓣搜索">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
-                              <path d="M0 0h24v24H0z" fill="none"/>
-                              <path fill="currentColor" d="M16.314 19.138h4.065a.62.62 0 0 1 .621.62v.621a.62.62 0 0 1-.62.621H3.62a.62.62 0 0 1-.62-.62v-.621a.62.62 0 0 1 .62-.621h3.754l-.96-3.104h2.19a.62.62 0 0 1 .59.425l.892 2.679H13.6l1.225-4.035H5.172a.62.62 0 0 1-.62-.62V7.345a.62.62 0 0 1 .62-.62h13.656a.62.62 0 0 1 .62.62v7.138a.62.62 0 0 1-.62.62h-1.289zM3.931 3h16.138a.62.62 0 0 1 .62.62v.621a.62.62 0 0 1-.62.621H3.931a.62.62 0 0 1-.62-.62V3.62A.62.62 0 0 1 3.93 3m3.26 5.586a.155.155 0 0 0-.156.155v4.035c0 .086.07.155.156.155h9.62c.086 0 .155-.07.155-.155V8.74a.155.155 0 0 0-.155-.155z"/>
-                            </svg>
-                          </a>
-                        </div>
+                          <span v-if="item.vote_average && item.vote_average !== 'N/A'" class="media-rating"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12m6.5-9.37A10 10 0 0 1 12 2c1.231 0 2.41.223 3.5.63M7.518 5.433l.528 1.065c.072.148.264.29.426.317l.957.16c.612.104.756.551.315.993L9 8.718a.66.66 0 0 0-.156.547l.213.929c.168.735-.219 1.019-.864.635l-.897-.535a.64.64 0 0 0-.594 0l-.897.535c-.641.384-1.031.097-.863-.635l.213-.929a.66.66 0 0 0-.156-.547l-.744-.75c-.438-.442-.297-.89.315-.992l.957-.16a.65.65 0 0 0 .422-.318l.528-1.065c.288-.577.756-.577 1.041 0m10 0l.528 1.065c.072.148.264.29.426.317l.957.16c.612.104.756.551.315.993l-.744.75a.66.66 0 0 0-.156.547l.213.929c.168.735-.219 1.019-.864.635l-.897-.535a.64.64 0 0 0-.594 0l-.897.535c-.641.384-1.031.097-.863-.635l.213-.929a.66.66 0 0 0-.156-.547l-.744-.75c-.438-.442-.297-.89.315-.992l.957-.16a.65.65 0 0 0 .423-.318l.527-1.065c.288-.577.756-.577 1.041 0" />
+		<path d="M8 15a5 5 0 0 0 4 2a5 5 0 0 0 4-2" />
+	</g>
+</svg>
+ {{ item.vote_average }}</span>
+</div>
+<div class="media-genres">
+  <span v-for="gid in item.genre_ids" :key="gid">{{ getGenreName(gid) }}</span>
+</div>
+<!-- 删掉原来的整个 .media-actions 块 -->
+                         
+                         
                       </div>
                     </div>
                   </div>
@@ -2898,6 +3105,11 @@
             this.modalType = '';
             this.currentView = 'say';
             document.body.classList.remove('modal-open');
+            // 关键：清掉抽屉留下的行内样式（抽屉没开着时才恢复滚动）
+  const drawer = document.getElementById('musicDrawer');
+  if (!drawer || !drawer.classList.contains('open')) {
+    document.body.style.overflow = '';
+  }
           },
 
           async fetchSayPosts(page) {
@@ -3053,12 +3265,15 @@
         }
 
         function closeDrawer() {
-          drawer.classList.remove("open");
-          overlay.classList.remove("open");
-          if (!document.querySelector('.media-modal')) {
-            document.body.style.overflow = "";
-          }
-        }
+  drawer.classList.remove("open");
+  overlay.classList.remove("open");
+  // 弹窗还开着 → 继续锁滚动；都关了 → 恢复
+  if (document.body.classList.contains("modal-open")) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+}
 
         if (musicBtn) {
           musicBtn.addEventListener("click", function (e) {
