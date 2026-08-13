@@ -1889,25 +1889,29 @@ body.dark .modal-content {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid var(--border-light);
-  background: var(--bg);
+   border: none;                    /* 去掉底边框 */
+   background: transparent;         /* 透明底 */
   color: var(--text-main);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+   box-shadow: none; 
   transition: transform 0.15s, background 0.15s, border-color 0.15s;
   padding: 0;
   font-size: 1.25rem;
 }
 .fab-trigger:hover {
   transform: scale(1.04);
-  background: var(--border-light);
+  background: rgba(0, 0, 0, 0.04); /* 悬停时轻微反馈，仍接近透明 */
+}
+body.dark .fab-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 .fab-trigger.open {
-  border-color: var(--accent-color);
+ border-color: transparent;
   color: var(--accent-color);
+  background: transparent;         /* 打开时也不要实心底 */
 }
 
 /* 播放中绿点（挂在菜单按钮上） */
@@ -1923,10 +1927,12 @@ body.dark .modal-content {
   height: 8px;
   border-radius: 50%;
   background: #4ade80;
-  box-shadow: 0 0 0 2px var(--bg);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
-
+body.dark .fab-trigger.playing-dot::after {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
 .fab-dropdown {
   position: absolute;
   top: calc(100% + 8px);
