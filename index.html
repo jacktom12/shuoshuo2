@@ -2670,306 +2670,283 @@
         };
       })();
     </script>
+<script>
+  const { createApp, ref, computed } = Vue;
 
-    <!-- ===== Vue 应用 ===== -->
-    <script>
-      const { createApp } = Vue;
+  // ---- 硬编码类型映射（保持你的不变） ----
+  const GENRES_MAP = [
+    { id: 28, name: '动作' }, { id: 12, name: '冒险' }, { id: 16, name: '动画' },
+    { id: 35, name: '喜剧' }, { id: 80, name: '犯罪' }, { id: 99, name: '纪录' },
+    { id: 18, name: '剧情' }, { id: 10751, name: '家庭' }, { id: 14, name: '奇幻' },
+    { id: 36, name: '历史' }, { id: 27, name: '恐怖' }, { id: 10402, name: '音乐' },
+    { id: 9648, name: '悬疑' }, { id: 10749, name: '爱情' }, { id: 878, name: '科幻' },
+    { id: 10770, name: '电视电影' }, { id: 53, name: '惊悚' }, { id: 10752, name: '战争' },
+    { id: 37, name: '西部' }, { id: 10759, name: '动作冒险' }, { id: 10762, name: '儿童' },
+    { id: 10763, name: '新闻' }, { id: 10764, name: '真人秀' }, { id: 10765, name: 'Sci-Fi & Fantasy' },
+    { id: 10766, name: '肥皂剧' }, { id: 10767, name: '脱口秀' }, { id: 10768, name: 'War & Politics' },
+  ];
+  
+  const uniqueGenres = [];
+  const seen = new Set();
+  for (const g of GENRES_MAP) {
+    if (!seen.has(g.id)) {
+      seen.add(g.id);
+      uniqueGenres.push(g);
+    }
+  }
+  const GENRE_LOOKUP = Object.fromEntries(uniqueGenres.map(g => [g.id, g.name]));
 
-      // ---- 硬编码类型映射（合并 movie_genres 和 tv_genres） ----
-      const GENRES_MAP = [
-        { id: 28, name: '动作' },
-        { id: 12, name: '冒险' },
-        { id: 16, name: '动画' },
-        { id: 35, name: '喜剧' },
-        { id: 80, name: '犯罪' },
-        { id: 99, name: '纪录' },
-        { id: 18, name: '剧情' },
-        { id: 10751, name: '家庭' },
-        { id: 14, name: '奇幻' },
-        { id: 36, name: '历史' },
-        { id: 27, name: '恐怖' },
-        { id: 10402, name: '音乐' },
-        { id: 9648, name: '悬疑' },
-        { id: 10749, name: '爱情' },
-        { id: 878, name: '科幻' },
-        { id: 10770, name: '电视电影' },
-        { id: 53, name: '惊悚' },
-        { id: 10752, name: '战争' },
-        { id: 37, name: '西部' },
-        { id: 10759, name: '动作冒险' },
-        { id: 10762, name: '儿童' },
-        { id: 10763, name: '新闻' },
-        { id: 10764, name: '真人秀' },
-        { id: 10765, name: 'Sci-Fi & Fantasy' },
-        { id: 10766, name: '肥皂剧' },
-        { id: 10767, name: '脱口秀' },
-        { id: 10768, name: 'War & Politics' },
-      ];
-      // 去重（保留第一个出现的名称）
-      const uniqueGenres = [];
-      const seen = new Set();
-      for (const g of GENRES_MAP) {
-        if (!seen.has(g.id)) {
-          seen.add(g.id);
-          uniqueGenres.push(g);
-        }
-      }
-      const GENRE_LOOKUP = Object.fromEntries(uniqueGenres.map(g => [g.id, g.name]));
-
-      createApp({
-        data() {
-  return {
-    currentView: 'say',
-    // 每个视图独立存储
-    views: {
-      say: {
-        items: [],        // 存储 posts
-        page: 1,
-        totalPages: 1,
-        loading: false,
-        hasMore: true,
-        scrollPos: 0,
+  createApp({
+    data() {
+      return {
+        currentView: 'say',
+        // 每个视图独立存储
+        views: {
+          say: {
+            items: [],        // 说说依然用 items 存当前追加的数据
+            page: 1,
+            totalPages: 1,
+            loading: false,
+            hasMore: true,
+            scrollPos: 0,
+          },
+          watched: {
+            allItems: [],     // 【改动点】影视改为存：后端一次性返回的所有数据
+            page: 1,          // 记录前端当前页码
+            loading: false,
+            scrollPos: 0,
+          },
+          watchlist: {
+            allItems: [],     // 【改动点】同上
+            page: 1,
+            loading: false,
+            scrollPos: 0,
+          }
+        },
+        mediaTypeFilter: 'all', // 全局共享筛选
+        selectedGenres: [],
+        apiBase: 'https://pub.199105.xyz/api/public-memos',
+        pageSize: 12,
+      };
+    },
+    computed: {
+      displayGenres() {
+        if (this.mediaTypeFilter === 'all') return uniqueGenres;
+        const movieIds = new Set([28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37]);
+        const tvIds = new Set([10759,16,35,80,99,18,10751,10762,9648,10763,10764,10765,10766,10767,10768,37]);
+        if (this.mediaTypeFilter === 'movie') return uniqueGenres.filter(g => movieIds.has(g.id));
+        if (this.mediaTypeFilter === 'tv') return uniqueGenres.filter(g => tvIds.has(g.id));
+        return uniqueGenres;
       },
-      watched: {
-        items: [],        // 存储 mediaList
-        page: 1,
-        totalPages: 1,
-        loading: false,
-        hasMore: true,
-        scrollPos: 0,
-        typeFilter: 'all',
-        genres: [],
+      currentViewData() {
+        return this.views[this.currentView];
       },
-      watchlist: {
-        items: [],
-        page: 1,
-        totalPages: 1,
-        loading: false,
-        hasMore: true,
-        scrollPos: 0,
-        typeFilter: 'all',
-        genres: [],
+      loading() {
+        return this.currentViewData.loading;
+      },
+      currentPage() {
+        return this.currentViewData.page;
+      },
+      // 【改动点：说说专用】
+      posts() {
+        return this.currentView === 'say' ? this.currentViewData.items : [];
+      },
+      hasMore() {
+        // 说说依然保留无限加载判断，影视无需此项
+        if (this.currentView === 'say') return this.currentViewData.page < this.currentViewData.totalPages;
+        return false; 
+      },
+
+      // ==========================================
+      // 【核心改动点：影视内存筛选与分页引擎】
+      // ==========================================
+      
+      // 1. 根据标签和类型，从 allItems 过滤出符合条件的所有数据
+      filteredMedia() {
+        if (this.currentView === 'say') return [];
+        const all = this.currentViewData.allItems || [];
+        return all.filter(item => {
+          const matchType = this.mediaTypeFilter === 'all' || item.media_type === this.mediaTypeFilter;
+          const matchGenre = this.selectedGenres.length === 0 || 
+                             this.selectedGenres.every(g => item.genre_ids && item.genre_ids.includes(g));
+          return matchType && matchGenre;
+        });
+      },
+      
+      // 2. 根据 filteredMedia 动态计算总页数
+      totalPages() {
+        if (this.currentView === 'say') return this.currentViewData.totalPages;
+        return Math.ceil(this.filteredMedia.length / this.pageSize) || 1;
+      },
+      
+      // 3. 从 filteredMedia 中切出当前页的数据，绑定给 v-for="item in mediaList"
+      mediaList() {
+        if (this.currentView === 'say') return [];
+        const page = this.currentViewData.page;
+        const start = (page - 1) * this.pageSize;
+        return this.filteredMedia.slice(start, start + this.pageSize);
       }
     },
-    // 全局筛选条件（媒体视图共享）
-    mediaTypeFilter: 'all',
-    selectedGenres: [],
-    apiBase: 'https://pub.199105.xyz/api/public-memos',
-    pageSize: 12,
-  };
-},
-        computed: {
-          displayGenres() {
-            if (this.mediaTypeFilter === 'all') return uniqueGenres;
-            const movieIds = new Set([28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37]);
-            const tvIds = new Set([10759,16,35,80,99,18,10751,10762,9648,10763,10764,10765,10766,10767,10768,37]);
-            if (this.mediaTypeFilter === 'movie') {
-              return uniqueGenres.filter(g => movieIds.has(g.id));
-            } else if (this.mediaTypeFilter === 'tv') {
-              return uniqueGenres.filter(g => tvIds.has(g.id));
-            }
-            return uniqueGenres;
-          },
-           currentViewData() {
-    return this.views[this.currentView];
-  },
-  hasMore() {
-    return this.currentViewData.page < this.currentViewData.totalPages;
-  },
-  posts() {
-    return this.currentView === 'say' ? this.currentViewData.items : [];
-  },
-  mediaList() {
-    return this.currentView !== 'say' ? this.currentViewData.items : [];
-  },
-  loading() {
-    return this.currentViewData.loading;
-  },
-  currentPage() {
-    return this.currentViewData.page;
-  },
-  totalPages() {
-    return this.currentViewData.totalPages;
-  }
-        },
-        methods: {
-          renderMarkdown(content) {
-            if (!content) return '';
-            return marked.parse(content);
-          },
-          formatTime(timeStr) {
-            if (!timeStr) return '';
-            return timeStr.replace(/\//g, '-');
-          },
-          getGenreName(id) {
-            return GENRE_LOOKUP[id] || id;
-          },
-          // ---------- 视图切换 ----------
-           switchView(view) {
-  if (this.currentView === view) return;
-  // 保存当前视图滚动位置
-  this.currentViewData.scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+    methods: {
+      renderMarkdown(content) {
+        if (!content) return '';
+        return marked.parse(content);
+      },
+      formatTime(timeStr) {
+        if (!timeStr) return '';
+        return timeStr.replace(/\//g, '-');
+      },
+      getGenreName(id) {
+        return GENRE_LOOKUP[id] || id;
+      },
 
-  this.currentView = view;
-  const target = this.currentViewData;
+      // ---------- 视图切换 ----------
+      switchView(view) {
+        if (this.currentView === view) return;
+        
+        this.saveScrollPosition(); // 保存当前视图滚动位置
+        this.currentView = view;
+        const target = this.currentViewData;
 
-  // 如果目标视图没有数据，则加载第一页
-  if (target.items.length === 0) {
-    if (view === 'say') {
-      this.fetchSayPosts(1, true);
-    } else {
-      this.fetchMedia(view, 1, true);
-    }
-  } else {
-    // 已有数据，直接恢复滚动位置
-    this.$nextTick(() => {
-      window.scrollTo({ top: target.scrollPos, behavior: 'auto' });
-    });
-  }
-},
-          // ---------- 说说 ----------
-          async fetchSayPosts(page, isSwitch = false) {
-  const viewData = this.views.say;
-  if (viewData.loading) return;
-  viewData.loading = true;
-
-  try {
-    const url = `${this.apiBase}?view=say&page=${page}&pageSize=${this.pageSize}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (json.error) throw new Error(json.error);
-
-    if (page === 1) {
-      viewData.items = json.data || [];
-    } else {
-      viewData.items = viewData.items.concat(json.data || []);
-    }
-    viewData.page = json.page;
-    viewData.totalPages = json.totalPages || 1;
-    viewData.loading = false;
-
-    this.$nextTick(() => {
-      // 只有切换视图且是第一页时才恢复滚动位置（保留上次的滚动位置）
-      if (isSwitch && page === 1) {
-        window.scrollTo({ top: viewData.scrollPos, behavior: 'auto' });
-      }
-      // 绑定灯箱
-      if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
-    });
-  } catch (e) {
-    console.error('加载说说失败', e);
-    alert('加载说说失败，请刷新重试');
-    viewData.loading = false;
-  }
-},
-           loadMore() {
-  if (this.loading || !this.hasMore) return;
-  const nextPage = this.currentViewData.page + 1;
-  if (this.currentView === 'say') {
-    this.fetchSayPosts(nextPage, false);
-  } else {
-    this.fetchMedia(this.currentView, nextPage, false);
-  }
-},
-          // ---------- 媒体 ----------
-           async fetchMedia(view, page, isSwitch = false) {
-  const viewData = this.views[view];
-  if (viewData.loading) return;
-  viewData.loading = true;
-
-  try {
-    let url = `${this.apiBase}?view=${view}&page=${page}&pageSize=${this.pageSize}`;
-    if (this.mediaTypeFilter !== 'all') {
-      url += `&mediaType=${this.mediaTypeFilter}`;
-    }
-    if (this.selectedGenres.length > 0) {
-      url += `&genres=${this.selectedGenres.join(',')}`;
-    }
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (json.error) throw new Error(json.error);
-
-    if (page === 1) {
-      viewData.items = json.data || [];
-    } else {
-      viewData.items = viewData.items.concat(json.data || []);
-    }
-    viewData.page = json.page;
-    viewData.totalPages = json.totalPages || 1;
-    viewData.loading = false;
-
-    this.$nextTick(() => {
-      if (isSwitch && page === 1) {
-        window.scrollTo({ top: viewData.scrollPos, behavior: 'auto' });
-      }
-    });
-  } catch (e) {
-    console.error('加载媒体失败', e);
-    alert('加载数据失败，请刷新重试');
-    viewData.loading = false;
-  }
-},
-          // ---------- 筛选操作 ----------
-          setMediaType(type) {
-  if (this.mediaTypeFilter === type) return;
-  this.mediaTypeFilter = type;
-  this.selectedGenres = [];
-  // 重置当前媒体视图的数据，重新加载
-  const viewData = this.currentViewData;
-  viewData.items = [];
-  viewData.page = 1;
-  viewData.totalPages = 1;
-  viewData.scrollPos = 0;
-  this.fetchMedia(this.currentView, 1, false);
-},
-toggleGenre(id) {
-  const idx = this.selectedGenres.indexOf(id);
-  if (idx > -1) this.selectedGenres.splice(idx, 1);
-  else this.selectedGenres.push(id);
-  // 重置并重新加载
-  const viewData = this.currentViewData;
-  viewData.items = [];
-  viewData.page = 1;
-  viewData.totalPages = 1;
-  viewData.scrollPos = 0;
-  this.fetchMedia(this.currentView, 1, false);
-},
-           goPage(page) {
-  if (page < 1 || page > this.totalPages) return;
-  if (this.currentView === 'say') {
-    this.fetchSayPosts(page, false);
-  } else {
-    this.fetchMedia(this.currentView, page, false);
-  }
-},
-          // ---------- 滚动位置 ----------
-          saveScrollPosition() {
-  this.currentViewData.scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
-},
-restoreScrollPosition() {
-  const pos = this.currentViewData.scrollPos || 0;
-  window.scrollTo({ top: pos, behavior: 'auto' });
-},
-          // ---------- 初始化 ----------
-          async init() {
-            this.fetchSayPosts(1, false);
-          }
-        },
-        mounted() {
-          this.init();
-        },
-        watch: {
-          posts() {
-            this.$nextTick(() => {
-              if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
-            });
+        if (view === 'say') {
+          if (target.items.length === 0) this.fetchSayPosts(1, true);
+          else this.$nextTick(() => this.restoreScrollPosition());
+        } else {
+          // 【改动点】判断影视数据是否已经一次性加载完毕
+          if (!target.allItems || target.allItems.length === 0) {
+             this.fetchMedia(view, true);
+          } else {
+            this.$nextTick(() => this.restoreScrollPosition());
           }
         }
-      }).mount('#app');
-    </script>
+      },
 
+      // ---------- 说说 (完全保持原样，向后端请求分页) ----------
+      async fetchSayPosts(page, isSwitch = false) {
+        const viewData = this.views.say;
+        if (viewData.loading) return;
+        viewData.loading = true;
+
+        try {
+          const url = `${this.apiBase}?view=say&page=${page}&pageSize=${this.pageSize}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (json.error) throw new Error(json.error);
+
+          if (page === 1) {
+            viewData.items = json.data || [];
+          } else {
+            viewData.items = viewData.items.concat(json.data || []);
+          }
+          viewData.page = json.page;
+          viewData.totalPages = json.totalPages || 1;
+          viewData.loading = false;
+
+          this.$nextTick(() => {
+            if (isSwitch && page === 1) {
+              window.scrollTo({ top: viewData.scrollPos, behavior: 'auto' });
+            }
+            if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
+          });
+        } catch (e) {
+          console.error('加载说说失败', e);
+          viewData.loading = false;
+        }
+      },
+
+      loadMore() {
+        if (this.loading || !this.hasMore) return;
+        if (this.currentView === 'say') {
+          this.fetchSayPosts(this.currentViewData.page + 1, false);
+        }
+      },
+
+      // ---------- 媒体 (一次性请求所有数据) ----------
+      async fetchMedia(view, isSwitch = false) {
+        const viewData = this.views[view];
+        if (viewData.loading) return;
+        viewData.loading = true;
+
+        try {
+          // 【改动点】影视不需要传页码和筛选条件给后端了
+          const url = `${this.apiBase}?view=${view}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (json.error) throw new Error(json.error);
+
+          // 【改动点】一次性存入 allItems 
+          viewData.allItems = json.data || [];
+          viewData.page = 1; // 重置前端页码
+          viewData.loading = false;
+
+          this.$nextTick(() => {
+            if (isSwitch) {
+              window.scrollTo({ top: viewData.scrollPos, behavior: 'auto' });
+            }
+          });
+        } catch (e) {
+          console.error('加载媒体失败', e);
+          viewData.loading = false;
+        }
+      },
+
+      // ---------- 筛选操作 (纯前端响应，不需要发 fetch 请求了) ----------
+      setMediaType(type) {
+        if (this.mediaTypeFilter === type) return;
+        this.mediaTypeFilter = type;
+        this.selectedGenres = [];
+        // 【改动点】得益于 computed，只要修改筛选条件和页码，视图瞬间自动更新，不需要发请求！
+        this.currentViewData.page = 1; 
+      },
+      toggleGenre(id) {
+        const idx = this.selectedGenres.indexOf(id);
+        if (idx > -1) this.selectedGenres.splice(idx, 1);
+        else this.selectedGenres.push(id);
+        // 【改动点】同上，纯前端重置页码即可
+        this.currentViewData.page = 1;
+      },
+
+      // ---------- 翻页操作 ----------
+      goPage(page) {
+        if (page < 1 || page > this.totalPages) return;
+        
+        if (this.currentView === 'say') {
+          this.fetchSayPosts(page, false);
+        } else {
+          // 【改动点】影视的普通分页：仅改变数字，computed自动切片数据
+          this.currentViewData.page = page;
+          window.scrollTo({ top: 0, behavior: 'smooth' }); // 翻页后平滑滚动到顶部
+        }
+      },
+
+      // ---------- 滚动位置 ----------
+      saveScrollPosition() {
+        this.currentViewData.scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+      },
+      restoreScrollPosition() {
+        const pos = this.currentViewData.scrollPos || 0;
+        window.scrollTo({ top: pos, behavior: 'auto' });
+      },
+
+      async init() {
+        this.fetchSayPosts(1, false);
+      }
+    },
+    mounted() {
+      this.init();
+    },
+    watch: {
+      posts() {
+        this.$nextTick(() => {
+          if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
+        });
+      }
+    }
+  }).mount('#app');
+</script>
+     
     <!-- ===== 主题切换 & 播放器抽屉控制 ===== -->
     <script>
       (function () {
