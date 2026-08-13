@@ -561,7 +561,84 @@
         min-width: 60px;
         text-align: center;
       }
+/* ========== 全屏弹窗样式 ========== */
+.media-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
 
+@media (max-width: 640px) {
+  .media-modal {
+    padding: 10px;
+  }
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 1100px;
+  background: var(--bg);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-height: 95vh;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg);
+}
+
+.modal-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  font-size: 1.8rem;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.filter-bar {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg);
+}
+
+@media (max-width: 640px) {
+  .modal-header {
+    padding: 14px 18px;
+  }
+  .modal-content {
+    margin: 10px;
+    max-height: 90vh;
+  }
+}
       /* ========== 加载 & 空状态 ========== */
       .loader {
         text-align: center;
@@ -1591,6 +1668,100 @@
   </head>
 
   <body>
+  
+  <!-- ========== 全屏弹窗容器 ========== -->
+<div 
+  class="media-modal" 
+  v-if="showModal"
+  @click.self="closeModal"
+>
+  <div class="modal-content" @click.stop>
+    
+    <!-- 头部 -->
+    <div class="modal-header">
+      <span class="modal-title">
+        {{ modalType === 'watched' ? '看过' : '想看' }}
+      </span>
+      <button class="modal-close" @click="closeModal">✕</button>
+    </div>
+
+    <!-- 筛选栏（和原来完全一样） -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-group-label">类型：</span>
+        <button 
+          class="filter-btn type-btn" 
+          :class="{ active: mediaTypeFilter === 'all' }" 
+          @click="setMediaType('all')"
+        >全部</button>
+        <button 
+          class="filter-btn type-btn" 
+          :class="{ active: mediaTypeFilter === 'movie' }" 
+          @click="setMediaType('movie')"
+        >电影</button>
+        <button 
+          class="filter-btn type-btn" 
+          :class="{ active: mediaTypeFilter === 'tv' }" 
+          @click="setMediaType('tv')"
+        >电视剧</button>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-group-label">筛选：</span>
+        <button
+          v-for="g in displayGenres"
+          :key="g.id"
+          class="filter-btn"
+          :class="{ active: selectedGenres.includes(g.id) }"
+          @click="toggleGenre(g.id)"
+        >{{ g.name }}</button>
+      </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div v-if="loading && mediaList.length === 0" class="empty">⏳ 加载中…</div>
+    <div v-else-if="mediaList.length === 0 && !loading" class="empty">😶 没有符合条件的记录</div>
+    <div v-else class="media-grid">
+      <div 
+        v-for="item in mediaList" 
+        :key="item.title + item.date" 
+        class="media-card"
+      >
+        <!-- 内容和原来完全一样 -->
+        <div class="media-poster">
+          <img :src="item.poster_path" :alt="item.title" loading="lazy" />
+        </div>
+        <div class="media-info">
+          <div class="media-title-row">
+            {{ item.title }}
+            <span v-if="item.release_date" class="media-date">({{ item.release_date }})</span>
+          </div>
+          <div class="media-sub-row">
+            <span class="media-type-badge" :title="item.media_type === 'tv' ? '剧集' : '电影'">
+              <!-- SVG 图标和原来完全一样 -->
+            </span>
+            <span v-if="item.vote_average && item.vote_average !== 'N/A'" class="media-rating">★ {{ item.vote_average }}</span>
+          </div>
+          <div class="media-genres">
+            <span v-for="gid in item.genre_ids" :key="gid">{{ getGenreName(gid) }}</span>
+          </div>
+          <div class="media-actions">
+            <a :href="item.douban_url" target="_blank" rel="noopener noreferrer" class="media-icon-btn" title="在豆瓣搜索">
+              <!-- SVG 图标和原来完全一样 -->
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination">
+      <button @click="goPage(currentPage - 1)" :disabled="currentPage <= 1">上一页</button>
+      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+      <button @click="goPage(currentPage + 1)" :disabled="currentPage >= totalPages">下一页</button>
+    </div>
+  </div>
+</div>
     <!-- ========== .app 容器 ========== -->
     <div class="app">
       <!-- Profile 头部 -->
@@ -2699,6 +2870,8 @@
   createApp({
     data() {
       return {
+      showModal: false,
+modalType: '' ,  // 'watched' 或 'watchlist'
         currentView: 'say',
         // 每个视图独立存储
         views: {
@@ -2802,24 +2975,24 @@
 
       // ---------- 视图切换 ----------
       switchView(view) {
-        if (this.currentView === view) return;
-        
-        this.saveScrollPosition(); // 保存当前视图滚动位置
-        this.currentView = view;
-        const target = this.currentViewData;
+  this.saveScrollPosition();
+  this.currentView = view;
 
-        if (view === 'say') {
-          if (target.items.length === 0) this.fetchSayPosts(1, true);
-          else this.$nextTick(() => this.restoreScrollPosition());
-        } else {
-          // 【改动点】判断影视数据是否已经一次性加载完毕
-          if (!target.allItems || target.allItems.length === 0) {
-             this.fetchMedia(view, true);
-          } else {
-            this.$nextTick(() => this.restoreScrollPosition());
-          }
-        }
-      },
+  if (view === 'say') {
+    // 说说视图保持原样
+    this.$nextTick(() => this.restoreScrollPosition());
+  } else {
+    // 打开全屏弹窗
+    this.showModal = true;
+    this.modalType = view;
+    // 如果数据还没加载，立即加载
+    if (!this.views[view].allItems || this.views[view].allItems.length === 0) {
+      this.fetchMedia(view, true);
+    } else {
+      this.$nextTick(() => this.restoreScrollPosition());
+    }
+  }
+},
 
       // ---------- 说说 (完全保持原样，向后端请求分页) ----------
       async fetchSayPosts(page, isSwitch = false) {
@@ -2937,6 +3110,11 @@
     mounted() {
       this.init();
     },
+    closeModal() {
+  this.showModal = false;
+  this.modalType = '';
+  this.restoreScrollPosition(); // 回到原来位置
+},
     watch: {
       posts() {
         this.$nextTick(() => {
