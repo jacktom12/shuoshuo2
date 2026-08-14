@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes"
-    />
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -58,6 +63,123 @@
         --profile-bg-height: 350px;
         --avatar-size: 120px;
       }
+      
+      /* —— iOS 安全区 / 沉浸状态栏 —— */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+html {
+  height: 100%;
+  background: var(--bg);
+}
+
+body {
+  min-height: 100%;
+  min-height: 100dvh;
+  /* 底部别被 Home 条挡住；顶留给头图自己延伸 */
+  padding-bottom: calc(32px + var(--sab));
+  /* 禁止橡皮筋露出白边时更好看 */
+  background: var(--bg);
+}
+
+.app {
+  min-height: 100dvh;
+}
+
+/* 头图：顶到屏幕最上（含状态栏后方） */
+.profile-header {
+  position: relative;
+  width: 100%;
+  /* 原来只有 16/9；加上顶部安全区高度，视觉仍接近 16:9 */
+  aspect-ratio: auto;
+  height: calc(min(56vw, 350px) + var(--sat));
+  min-height: calc(200px + var(--sat));
+  margin-top: 0;
+  overflow: visible;
+  background: var(--bg);
+}
+
+.profile-bg {
+  position: absolute;
+  /* 关键：向上吃进状态栏区域 */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("./bg.gif");
+  background-size: cover;
+  background-position: center top; /* 顶部构图优先 */
+  background-repeat: no-repeat;
+  filter: brightness(0.95);
+}
+
+/* 可选：状态栏区域略压暗，时间/电量更清晰 */
+.profile-bg::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--sat) + 28px);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.35) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 你原来的底缘淡入保留，z-index 别盖住头像 */
+.profile-bg::after {
+  z-index: 1;
+}
+
+/* 右上角菜单：避开刘海 / 灵动岛 */
+.fab-menu {
+  top: calc(12px + var(--sat));
+  right: calc(12px + var(--sar));
+}
+
+@media (max-width: 640px) {
+  .fab-menu {
+    top: calc(10px + var(--sat));
+    right: calc(10px + var(--sar));
+  }
+}
+
+/* 旧的 top-actions 若还在用，一并加上 */
+.top-actions {
+  top: calc(12px + var(--sat));
+  right: calc(12px + var(--sar));
+}
+
+/* 音乐抽屉顶/底安全区 */
+.drawer {
+  padding-top: calc(16px + var(--sat));
+  padding-bottom: calc(20px + var(--sab));
+  padding-left: calc(12px + var(--sal));
+  padding-right: calc(12px + var(--sar));
+  height: 100%;
+  height: 100dvh;
+}
+
+/* 弹窗在全面屏上的高度 */
+@media (max-width: 640px) {
+  .media-modal {
+    padding-top: calc(12px + 38px + 10px + var(--sat));
+    padding-bottom: calc(10px + var(--sab));
+  }
+  .modal-content {
+    max-height: calc(
+      100dvh - 12px - 38px - 10px - 10px - var(--sat) - var(--sab)
+    );
+  }
+}
 
       body.dark {
         --bg: #000000;
@@ -103,7 +225,7 @@
           background 0.3s ease,
           color 0.3s ease;
         min-height: 100vh;
-        padding-bottom: 32px;
+        padding-bottom:var(--sab);
         position: relative;
       }
 
@@ -121,7 +243,7 @@
       .profile-header {
         position: relative;
         width: 100%;
-        aspect-ratio: 16 / 9;
+         
         overflow: visible;
         background: var(--bg);
       }
@@ -3789,13 +3911,22 @@ body.dark .modal-body .media-poster img {
         else isDark = prefersDark;
 
         function applyTheme(dark) {
-          document.body.classList.toggle("dark", dark);
-          if (iconEl) {
-            iconEl.setAttribute("data-icon", dark ? "carbon:moon" : "carbon:sun");
-          }
-          localStorage.setItem("hwTheme", dark ? "dark" : "light");
-          isDark = dark;
-        }
+  document.body.classList.toggle("dark", dark);
+  if (iconEl) {
+    iconEl.setAttribute("data-icon", dark ? "carbon:moon" : "carbon:sun");
+  }
+  localStorage.setItem("hwTheme", dark ? "dark" : "light");
+  isDark = dark;
+
+  // 同步浏览器/PWA 顶栏色（尽量贴近头图）
+  let meta = document.querySelector('meta[name="theme-color"]:not([media])');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "theme-color";
+    document.head.appendChild(meta);
+  }
+  meta.content = dark ? "#000000" : "#1a1a2e";
+}
         applyTheme(isDark);
 
          
