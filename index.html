@@ -80,9 +80,7 @@ html {
 body {
   min-height: 100%;
   min-height: 100dvh;
-  /* 底部别被 Home 条挡住；顶留给头图自己延伸 */
   padding-bottom: calc(32px + var(--sab));
-  /* 禁止橡皮筋露出白边时更好看 */
   background: var(--bg);
 }
 
@@ -90,11 +88,9 @@ body {
   min-height: 100dvh;
 }
 
-/* 头图：顶到屏幕最上（含状态栏后方） */
 .profile-header {
   position: relative;
   width: 100%;
-  /* 原来只有 16/9；加上顶部安全区高度，视觉仍接近 16:9 */
   aspect-ratio: auto;
   height: calc(min(56vw, 350px) + var(--sat));
   min-height: calc(200px + var(--sat));
@@ -105,19 +101,17 @@ body {
 
 .profile-bg {
   position: absolute;
-  /* 关键：向上吃进状态栏区域 */
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-image: url("./bg.gif");
   background-size: cover;
-  background-position: center top; /* 顶部构图优先 */
+  background-position: center top;
   background-repeat: no-repeat;
   filter: brightness(0.95);
 }
 
-/* 可选：状态栏区域略压暗，时间/电量更清晰 */
 .profile-bg::before {
   content: "";
   position: absolute;
@@ -134,25 +128,10 @@ body {
   z-index: 1;
 }
 
-/* 你原来的底缘淡入保留，z-index 别盖住头像 */
 .profile-bg::after {
   z-index: 1;
 }
 
-/* 右上角菜单：避开刘海 / 灵动岛 */
-.fab-menu {
-  top: calc(12px + var(--sat));
-  right: calc(12px + var(--sar));
-}
-
-@media (max-width: 640px) {
-  .fab-menu {
-    top: calc(10px + var(--sat));
-    right: calc(10px + var(--sar));
-  }
-}
-
-/* 旧的 top-actions 若还在用，一并加上 */
 .top-actions {
   top: calc(12px + var(--sat));
   right: calc(12px + var(--sar));
@@ -168,7 +147,6 @@ body {
   height: 100dvh;
 }
 
-/* 弹窗在全面屏上的高度 */
 @media (max-width: 640px) {
   .media-modal {
     padding-top: calc(12px + 38px + 10px + var(--sat));
@@ -225,7 +203,7 @@ body {
           background 0.3s ease,
           color 0.3s ease;
         min-height: 100vh;
-        padding-bottom:var(--sab);
+        padding-bottom: var(--sab);
         position: relative;
       }
 
@@ -243,7 +221,6 @@ body {
       .profile-header {
         position: relative;
         width: 100%;
-         
         overflow: visible;
         background: var(--bg);
       }
@@ -256,22 +233,21 @@ body {
         background-repeat: no-repeat;
         filter: brightness(0.95);
       }
-      /* 头图底缘淡入页面背景 */
-.profile-bg::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 42%;                 /* 渐变高度，可调 30%～55% */
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    var(--bg) 100%
-  );
-  pointer-events: none;
-  z-index: 1;
-}
+      .profile-bg::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 42%;
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          var(--bg) 100%
+        );
+        pointer-events: none;
+        z-index: 1;
+      }
       body.dark .profile-bg {
         filter: brightness(0.5);
       }
@@ -644,23 +620,19 @@ body {
         color: #fff;
         border-color: var(--accent-color);
       }
-      /* 暗色：选中态改成浅描边/浅底，不再大块亮蓝 */
-body.dark .filter-btn.active {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--text-main);
-  border-color: rgba(255, 255, 255, 0.35);
-}
-
-body.dark .filter-btn.active:hover {
-  background: rgba(255, 255, 255, 0.16);
-}
-
-/* 类型按钮（全部/电影/电视剧）一并生效；若只要「类型」不同可再拆 */
-body.dark .filter-btn.type-btn.active {
-  background: rgba(255, 255, 255, 0.14);
-  color: #e7e9ea;
-  border-color: rgba(255, 255, 255, 0.4);
-}
+      body.dark .filter-btn.active {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--text-main);
+        border-color: rgba(255, 255, 255, 0.35);
+      }
+      body.dark .filter-btn.active:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+      body.dark .filter-btn.type-btn.active {
+        background: rgba(255, 255, 255, 0.14);
+        color: #e7e9ea;
+        border-color: rgba(255, 255, 255, 0.4);
+      }
       .filter-btn.type-btn {
         border-radius: 4px;
       }
@@ -778,8 +750,6 @@ body.dark .filter-btn.type-btn.active {
         .modal-header {
           padding: 14px 18px;
         }
-        
-        
         .modal-body {
           padding: 12px 14px 16px;
         }
@@ -900,7 +870,7 @@ body.dark .filter-btn.type-btn.active {
         height: 100%;
         width: 85%;
         max-width: 400px;
-         z-index: 10200;
+        z-index: 10200;
         background: var(--bg);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
         transform: translateX(100%);
@@ -1822,7 +1792,7 @@ body.dark .filter-btn.type-btn.active {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 72px 24px 24px; /* 右侧给音乐按钮留空 */
+  padding: 24px 72px 24px 24px;
   overflow-y: auto;
 }
 body.dark .media-modal {
@@ -1831,7 +1801,7 @@ body.dark .media-modal {
 
 .modal-content {
   width: 100%;
-  max-width: 920px;          /* 略收窄，更干净 */
+  max-width: 920px;
   background: var(--bg);
   border-radius: 12px;
   border: 1px solid var(--border-light);
@@ -1900,7 +1870,7 @@ body.dark .modal-content {
 
 /* 弹窗内：更密的网格 + 更小封面 */
 .modal-body .media-grid {
-  grid-template-columns: repeat(4, 1fr); /* 桌面 4 列 */
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-top: 4px;
 }
@@ -1914,7 +1884,7 @@ body.dark .modal-content {
 
 .modal-body .media-poster {
   aspect-ratio: 2 / 3;
-  max-height: 180px; /* 限制封面高度，信息区露出来 */
+  max-height: 180px;
 }
 
 .modal-body .media-info {
@@ -1994,134 +1964,95 @@ body.dark .modal-content {
   }
   .media-modal {
     padding: 10px;
-    align-items: flex-end; /* 手机略偏下，更好点关闭 */
+    align-items: flex-end;
   }
 }
 
-/* 右上角悬浮菜单 */
-.fab-menu {
+/* ========== 置顶铺开菜单（与状态栏融合） ========== */
+.top-nav {
   position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 10050; /* 高于影视弹窗，低于音乐抽屉 */
+  top: 0;
+  left: 0;
+  right: 0;
+  max-width: 600px;
+  margin: 0 auto;
+  z-index: 10050;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0;
+  padding-top: var(--sat);
+  height: calc(48px + var(--sat));
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+body.dark .top-nav {
+  background: rgba(0, 0, 0, 0.55);
+  border-bottom-color: rgba(255,255,255,0.08);
 }
 
-.fab-trigger {
+.top-nav-item {
+  flex: 1 1 0;
+  min-width: 0;
   appearance: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-   border: none;                    /* 去掉底边框 */
-   background: transparent;         /* 透明底 */
+  border: none;
+  background: transparent;
   color: var(--text-main);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+  padding: 4px 2px;
   cursor: pointer;
-   box-shadow: none; 
-  transition: transform 0.15s, background 0.15s, border-color 0.15s;
-  padding: 0;
-  font-size: 1.25rem;
+  font-family: inherit;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.fab-trigger:hover {
-  transform: scale(1.04);
-  background: rgba(0, 0, 0, 0.04); /* 悬停时轻微反馈，仍接近透明 */
+.top-nav-item:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
-body.dark .fab-trigger:hover {
-  background: rgba(255, 255, 255, 0.08);
+.top-nav-item:active {
+  transform: scale(0.96);
 }
-.fab-trigger.open {
- border-color: transparent;
-  color: var(--accent-color);
-  background: transparent;         /* 打开时也不要实心底 */
+body.dark .top-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
-
-/* 播放中绿点（挂在菜单按钮上） */
-.fab-trigger.playing-dot {
+.top-nav-icon {
+  width: 1.35em;
+  height: 1.35em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  flex: 0 0 auto;
+}
+.top-nav-item .iconify {
+  width: 1.35em;
+  height: 1.35em;
+}
+.top-nav-item.playing-dot {
   position: relative;
 }
-.fab-trigger.playing-dot::after {
+.top-nav-item.playing-dot::after {
   content: "";
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 7px;
+  right: calc(50% - 14px);
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #4ade80;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
-body.dark .fab-trigger.playing-dot::after {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
-}
-.fab-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 148px;
-  padding: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-}
-
-.fab-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: none;
-  background: transparent;
-  color: var(--text-main);
-  font-family: inherit;
-  font-size: 0.9rem;
-  padding: 10px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  text-align: left;
-}
-.fab-item:hover {
-  background: var(--border-light);
-}
-.fab-ico {
-  width: 1.25em;
-  height: 1.25em;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  flex: 0 0 auto;
-}
-.fab-item:hover .fab-ico {
-  color: var(--accent-color);
-}
-.fab-divider {
-  height: 1px;
-  margin: 4px 8px;
-  background: var(--border-light);
-}
-
-.fab-pop-enter-active,
-.fab-pop-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-.fab-pop-enter-from,
-.fab-pop-leave-to {
-  opacity: 0;
-  transform: translateY(-6px) scale(0.98);
-}
-
-@media (max-width: 640px) {
-  .fab-menu {
-    top: 12px;
-    right: 12px;
-  }
-  .fab-trigger {
-    width: 38px;
-    height: 38px;
-  }
+body.dark .top-nav-item.playing-dot::after {
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
 }
 
 /* 暗色：影视封面与说说图片同款压暗 */
@@ -2134,11 +2065,10 @@ body.dark .modal-body .media-poster img {
 /* ========== 手机端：弹窗避开右上角菜单 ========== */
 @media (max-width: 640px) {
   .media-modal {
-    /* 不要垂直居中铺满，改贴下方，顶部留给 fab */
     align-items: flex-end;
     justify-content: center;
     padding: 0;
-    padding-top: calc(12px + 38px + 10px); /* top间距 + 菜单按钮高 + 空隙 */
+    padding-top: calc(12px + 38px + 10px);
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
@@ -2147,9 +2077,6 @@ body.dark .modal-body .media-poster img {
 
   .modal-content {
     width: 100%;
-    max-height: calc(
-      100vh - 12px - 38px - 10px - 10px - env(safe-area-inset-bottom, 0px)
-    );
     max-height: calc(
       100dvh - 12px - 38px - 10px - 10px - env(safe-area-inset-bottom, 0px)
     );
@@ -2165,7 +2092,6 @@ body.dark .modal-body .media-poster img {
     flex-shrink: 0;
   }
 
-  /* 标题完整显示，不被关闭按钮挤没 */
   .modal-title {
     font-size: 1.05rem;
     font-weight: 700;
@@ -2188,16 +2114,8 @@ body.dark .modal-body .media-poster img {
   .modal-body {
     padding: 12px 12px 16px;
   }
-
-  /* 菜单永远在弹窗遮罩之上，避免点 X 误触（双保险） */
-  .fab-menu {
-    top: 12px;
-    right: 12px;
-    z-index: 10050;
-  }
 }
 
-/* 更小屏再收一点 */
 @media (max-width: 400px) {
   .media-modal {
     padding-top: calc(10px + 36px + 8px);
@@ -2213,21 +2131,21 @@ body.dark .modal-body .media-poster img {
     font-size: 1rem;
   }
   .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
 
-.modal-title {
-  flex: 1;
-  min-width: 0;
-  line-height: 1.3;
-}
+  .modal-title {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.3;
+  }
 
-.modal-close {
-  flex-shrink: 0;
-}
+  .modal-close {
+    flex-shrink: 0;
+  }
 }
 
     </style>
@@ -2243,63 +2161,38 @@ body.dark .modal-body .media-poster img {
       </header>
 
       <div class="main-wrapper">
-        <!-- ========== 整个 Vue 必须包在 #app 里 ========== -->
         <div id="app">
-           <div class="fab-menu" @click.stop>
-  <button
-    class="fab-trigger"
-    type="button"
-    :class="{ open: menuOpen, 'playing-dot': musicPlaying }"
-    aria-label="菜单"
-    @click="toggleMenu"
-  >
-    <!-- 你指定的菜单图标 -->
-    <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24">
-      <path d="M0 0h24v24H0z" fill="none" />
-      <g fill="none" stroke="currentColor" stroke-linejoin="round">
-        <path stroke-linecap="round" stroke-width="2" d="M4 4.001h16v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
-        <path stroke-width="3" d="M12.01 12v.01H12V12zm4.5 0v.01h-.01V12zm-9 0v.01H7.5V12z" />
-      </g>
-    </svg>
-  </button>
+          <!-- 置顶铺开菜单 -->
+          <nav class="top-nav">
+            <button class="top-nav-item" :class="{ 'playing-dot': musicPlaying }" type="button" @click="onMenuMusic">
+              <span class="top-nav-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24">
+                  <path d="M0 0h24v24H0z" fill="none"/>
+                  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2">
+                    <circle cx="9" cy="18" r="3"/>
+                    <path d="M12 18V3m0 0l6 1v4l-6-1z"/>
+                  </g>
+                </svg>
+              </span>
+              <span class="top-nav-label">音乐</span>
+            </button>
 
-  <transition name="fab-pop">
-    <div v-if="menuOpen" class="fab-dropdown">
-      <button type="button" class="fab-item" @click="onMenuMusic">
-        <span class="fab-ico">
-          <!-- 音乐：沿用原来音符 SVG，或 iconify -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24">
-            <path d="M0 0h24v24H0z" fill="none"/>
-            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2">
-              <circle cx="9" cy="18" r="3"/>
-              <path d="M12 18V3m0 0l6 1v4l-6-1z"/>
-            </g>
-          </svg>
-        </span>
-        <span>音乐</span>
-      </button>
+            <button class="top-nav-item" type="button" @click="onMenuWatched">
+              <span class="top-nav-icon iconify" data-icon="mdi:movie-open-check-outline"></span>
+              <span class="top-nav-label">看过</span>
+            </button>
 
-      <button type="button" class="fab-item" @click="onMenuWatched">
-        <span class="fab-ico iconify" data-icon="mdi:movie-open-check-outline"></span>
-        <span>看过</span>
-      </button>
+            <button class="top-nav-item" type="button" @click="onMenuWatchlist">
+              <span class="top-nav-icon iconify" data-icon="mdi:clock-plus-outline"></span>
+              <span class="top-nav-label">想看</span>
+            </button>
 
-      <button type="button" class="fab-item" @click="onMenuWatchlist">
-        <span class="fab-ico iconify" data-icon="mdi:clock-plus-outline"></span>
-        <span>想看</span>
-      </button>
+            <button class="top-nav-item" type="button" @click="onMenuTheme">
+              <span class="top-nav-icon iconify" :data-icon="isDark ? 'carbon:moon' : 'carbon:sun'"></span>
+              <span class="top-nav-label">{{ isDark ? '深色' : '浅色' }}</span>
+            </button>
+          </nav>
 
-      <div class="fab-divider"></div>
-
-      <button type="button" class="fab-item" @click="onMenuTheme">
-        <span class="fab-ico iconify" :data-icon="isDark ? 'carbon:moon' : 'carbon:sun'"></span>
-        <span>{{ isDark ? '深色' : '浅色' }}</span>
-      </button>
-    </div>
-  </transition>
-</div>
-
-          <!-- 主区域只显示说说 -->
           <div>
             <div v-if="loading && posts.length === 0" class="empty"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
 	<path d="M0 0h24v24H0z" fill="none" />
@@ -2363,7 +2256,6 @@ body.dark .modal-body .media-poster img {
             </div>
           </div>
 
-          <!-- ========== 弹窗：必须在 #app 内部 ========== -->
           <div
             class="media-modal"
             v-if="showModal"
@@ -2385,6 +2277,18 @@ body.dark .modal-body .media-poster img {
                     <button class="filter-btn type-btn" :class="{ active: mediaTypeFilter === 'movie' }" @click="setMediaType('movie')">电影</button>
                     <button class="filter-btn type-btn" :class="{ active: mediaTypeFilter === 'tv' }" @click="setMediaType('tv')">电视剧</button>
                   </div>
+
+                  <div class="filter-group">
+                    <span class="filter-group-label">时间：</span>
+                    <button
+                      v-for="r in releaseRanges"
+                      :key="r.id"
+                      class="filter-btn"
+                      :class="{ active: selectedReleaseRanges.includes(r.id) }"
+                      @click="toggleReleaseRange(r.id)"
+                    >{{ r.name }}</button>
+                  </div>
+
                   <div class="filter-group">
                     <span class="filter-group-label">筛选：</span>
                     <button
@@ -2406,30 +2310,28 @@ body.dark .modal-body .media-poster img {
                         <img :src="item.poster_path" :alt="item.title" loading="lazy" />
                       </div>
                       <div class="media-info">
-                         
-                         <div class="media-title-row">
-  <div class="media-title-text">
-    {{ item.title }}
-    <span v-if="item.release_date" class="media-date">({{ item.release_date }})</span>
-  </div>
-  <a
-    :href="item.douban_url"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="media-icon-btn"
-    title="在豆瓣搜索"
-    @click.stop
-  >
-    <!-- 原来的豆瓣 SVG 原样粘过来 -->
-    <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24">
-      <path d="M0 0h24v24H0z" fill="none"/>
-      <path fill="currentColor" d="M16.314 19.138h4.065a.62.62 0 0 1 .621.62v.621a.62.62 0 0 1-.62.621H3.62a.62.62 0 0 1-.62-.62v-.621a.62.62 0 0 1 .62-.621h3.754l-.96-3.104h2.19a.62.62 0 0 1 .59.425l.892 2.679H13.6l1.225-4.035H5.172a.62.62 0 0 1-.62-.62V7.345a.62.62 0 0 1 .62-.62h13.656a.62.62 0 0 1 .62.62v7.138a.62.62 0 0 1-.62.62h-1.289zM3.931 3h16.138a.62.62 0 0 1 .62.62v.621a.62.62 0 0 1-.62.621H3.931a.62.62 0 0 1-.62-.62V3.62A.62.62 0 0 1 3.93 3m3.26 5.586a.155.155 0 0 0-.156.155v4.035c0 .086.07.155.156.155h9.62c.086 0 .155-.07.155-.155V8.74a.155.155 0 0 0-.155-.155z"/>
-    </svg>
-  </a>
-</div>
+                        <div class="media-title-row">
+                          <div class="media-title-text">
+                            {{ item.title }}
+                            <span v-if="item.release_date" class="media-date">({{ item.release_date }})</span>
+                          </div>
+                          <a
+                            :href="item.douban_url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="media-icon-btn"
+                            title="在豆瓣搜索"
+                            @click.stop
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24">
+                              <path d="M0 0h24v24H0z" fill="none"/>
+                              <path fill="currentColor" d="M16.314 19.138h4.065a.62.62 0 0 1 .621.62v.621a.62.62 0 0 1-.62.621H3.62a.62.62 0 0 1-.62-.62v-.621a.62.62 0 0 1 .62-.621h3.754l-.96-3.104h2.19a.62.62 0 0 1 .59.425l.892 2.679H13.6l1.225-4.035H5.172a.62.62 0 0 1-.62-.62V7.345a.62.62 0 0 1 .62-.62h13.656a.62.62 0 0 1 .62.62v7.138a.62.62 0 0 1-.62.62h-1.289zM3.931 3h16.138a.62.62 0 0 1 .62.62v.621a.62.62 0 0 1-.62.621H3.931a.62.62 0 0 1-.62-.62V3.62A.62.62 0 0 1 3.93 3m3.26 5.586a.155.155 0 0 0-.156.155v4.035c0 .086.07.155.156.155h9.62c.086 0 .155-.07.155-.155V8.74a.155.155 0 0 0-.155-.155z"/>
+                            </svg>
+                          </a>
+                        </div>
 
-<div class="media-sub-row">
-  <span class="media-type-badge" :title="item.media_type === 'tv' ? '剧集' : '电影'">
+                        <div class="media-sub-row">
+                          <span class="media-type-badge" :title="item.media_type === 'tv' ? '剧集' : '电影'">
                             <svg v-if="item.media_type === 'tv'" xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 256 256">
                               <path d="M0 0h256v256H0z" fill="none"/>
                               <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16">
@@ -2452,13 +2354,10 @@ body.dark .modal-body .media-poster img {
 	</g>
 </svg>
  {{ item.vote_average }}</span>
-</div>
-<div class="media-genres">
-  <span v-for="gid in item.genre_ids" :key="gid">{{ getGenreName(gid) }}</span>
-</div>
-<!-- 删掉原来的整个 .media-actions 块 -->
-                         
-                         
+                        </div>
+                        <div class="media-genres">
+                          <span v-for="gid in item.genre_ids" :key="gid">{{ getGenreName(gid) }}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2477,8 +2376,6 @@ body.dark .modal-body .media-poster img {
       </div>
     </div>
 
-     
-
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <div class="drawer" id="musicDrawer">
       <div class="drawer-header">
@@ -2490,9 +2387,8 @@ body.dark .modal-body .media-poster img {
       </div>
     </div>
 
-    <!-- hw-music-player 保持你原来的完整脚本，这里省略体积过大时可继续用你文件里已有的那段；
-         下面直接接 Vue。若你本地已有完整 hw-music-player.js 内嵌脚本，请把原完整播放器脚本保留在 Vue 之前。 -->
-     <script>
+    <!-- ========== TODO: 将你备份的 hw-music-player 完整播放器脚本粘贴到这里 ========== -->
+<script>
       (function () {
         const NETEASE_SONG_INFO_API = (id) =>
           `https://meting.zhheo.com/?server=netease&type=song&id=${id}`;
@@ -3530,7 +3426,6 @@ body.dark .modal-body .media-poster img {
         };
       })();
     </script>
-
     <script>
   const { createApp } = Vue;
 
@@ -3564,11 +3459,16 @@ body.dark .modal-body .media-poster img {
         modalType: '',
         mediaTypeFilter: 'all',
         selectedGenres: [],
+        selectedReleaseRanges: [],
+        releaseRanges: [
+          { id: '90s', name: '90年代' },
+          { id: '2000s', name: '2000-2010' },
+          { id: '2010s', name: '2010-2020' },
+          { id: '2020s', name: '2020之后' },
+        ],
         apiBase: 'https://pub.199105.xyz/api/public-memos',
         pageSize: 12,
 
-        // 右上角菜单
-        menuOpen: false,
         isDark: false,
         musicPlaying: false,
 
@@ -3636,7 +3536,8 @@ body.dark .modal-body .media-poster img {
           const matchType = this.mediaTypeFilter === 'all' || item.media_type === this.mediaTypeFilter;
           const matchGenre = this.selectedGenres.length === 0 ||
             this.selectedGenres.every(g => item.genre_ids && item.genre_ids.includes(g));
-          return matchType && matchGenre;
+          const matchRelease = this.matchesRelease(item);
+          return matchType && matchGenre && matchRelease;
         });
       },
       totalPages() {
@@ -3663,20 +3564,38 @@ body.dark .modal-body .media-poster img {
       getGenreName(id) {
         return GENRE_LOOKUP[id] || id;
       },
+      matchesRelease(item) {
+        if (!this.selectedReleaseRanges.length) return true;
+        const raw = String(item.release_date || '');
+        const year = parseInt(raw.slice(0, 4), 10);
+        if (!year || isNaN(year)) return false;
+        return this.selectedReleaseRanges.some(id => {
+          switch(id) {
+            case '90s': return year >= 1990 && year < 2000;
+            case '2000s': return year >= 2000 && year < 2010;
+            case '2010s': return year >= 2010 && year < 2020;
+            case '2020s': return year >= 2020;
+            default: return false;
+          }
+        });
+      },
 
-      /* ========== 右上角菜单 ========== */
-      toggleMenu() {
-        this.menuOpen = !this.menuOpen;
-        if (this.menuOpen) {
-          this.$nextTick(() => {
-            if (window.Iconify && this.$el) {
-              try { window.Iconify.scan(this.$el); } catch (e) {}
-            }
-          });
+      onMenuMusic() {
+        if (typeof window.__toggleMusicDrawer === 'function') {
+          window.__toggleMusicDrawer();
         }
       },
-      closeMenu() {
-        this.menuOpen = false;
+      onMenuWatched() {
+        this.switchView('watched');
+      },
+      onMenuWatchlist() {
+        this.switchView('watchlist');
+      },
+      onMenuTheme() {
+        if (typeof window.__toggleTheme === 'function') {
+          window.__toggleTheme();
+        }
+        this.syncChromeState();
       },
       syncChromeState() {
         this.isDark = document.body.classList.contains('dark');
@@ -3688,37 +3607,13 @@ body.dark .modal-body .media-poster img {
           this.musicPlaying = false;
         }
       },
-      onMenuMusic() {
-        this.closeMenu();
-        if (typeof window.__toggleMusicDrawer === 'function') {
-          window.__toggleMusicDrawer();
-        }
-      },
-      onMenuWatched() {
-        this.closeMenu();
-        this.switchView('watched');
-      },
-      onMenuWatchlist() {
-        this.closeMenu();
-        this.switchView('watchlist');
-      },
-      onMenuTheme() {
-        if (typeof window.__toggleTheme === 'function') {
-          window.__toggleTheme();
-        }
-        this.syncChromeState();
-        // 主题可连点，不强制关菜单；若想点完就关，取消下一行注释：
-        // this.closeMenu();
-      },
 
-      /* ========== 看过 / 想看 弹窗 ========== */
       switchView(view) {
         if (view === 'say') {
           this.closeModal();
           return;
         }
 
-        this.closeMenu();
         this.showModal = true;
         this.modalType = view;
         this.currentView = view;
@@ -3727,6 +3622,7 @@ body.dark .modal-body .media-poster img {
 
         this.mediaTypeFilter = 'all';
         this.selectedGenres = [];
+        this.selectedReleaseRanges = [];
 
         const target = this.views[view];
         if (!target.allItems || target.allItems.length === 0) {
@@ -3748,7 +3644,6 @@ body.dark .modal-body .media-poster img {
         }
       },
 
-      /* ========== 说说 ========== */
       async fetchSayPosts(page) {
         const viewData = this.views.say;
         if (viewData.loading) return;
@@ -3785,7 +3680,6 @@ body.dark .modal-body .media-poster img {
         this.fetchSayPosts(this.sayData.page + 1);
       },
 
-      /* ========== 影视 ========== */
       async fetchMedia(view) {
         const viewData = this.views[view];
         if (!viewData || viewData.loading) return;
@@ -3825,36 +3719,30 @@ body.dark .modal-body .media-poster img {
         }
       },
 
+      toggleReleaseRange(id) {
+        const idx = this.selectedReleaseRanges.indexOf(id);
+        if (idx > -1) this.selectedReleaseRanges.splice(idx, 1);
+        else this.selectedReleaseRanges.push(id);
+        if (this.showModal && this.currentMediaData) {
+          this.currentMediaData.page = 1;
+        }
+      },
+
       goPage(page) {
         if (!this.showModal) return;
         if (page < 1 || page > this.totalPages) return;
         this.currentMediaData.page = page;
-         // 等列表 DOM 更新完再滚，避免被重渲染打断
-  this.$nextTick(() => {
-    const body = document.querySelector('.modal-body');
-    if (body) body.scrollTop = 0; // 立刻到顶，无动画
-  });
+        this.$nextTick(() => {
+          const body = document.querySelector('.modal-body');
+          if (body) body.scrollTop = 0;
+        });
       },
 
       onKeydown(e) {
         if (e.key !== 'Escape') return;
-        // 先关菜单，再关弹窗
-        if (this.menuOpen) {
-          this.closeMenu();
-          return;
-        }
         if (this.showModal) {
           this.closeModal();
         }
-      },
-
-      onDocClick(e) {
-        if (!this.menuOpen) return;
-        const fab = this.$el && this.$el.querySelector
-          ? this.$el.querySelector('.fab-menu')
-          : document.querySelector('.fab-menu');
-        if (fab && fab.contains(e.target)) return;
-        this.closeMenu();
       }
     },
 
@@ -3863,10 +3751,6 @@ body.dark .modal-body .media-poster img {
       this.syncChromeState();
 
       window.addEventListener('keydown', this.onKeydown);
-      // 下一帧再绑，避免打开菜单的同一次 click 立刻被当成“外部点击”
-      this.$nextTick(() => {
-        document.addEventListener('click', this.onDocClick);
-      });
 
       this._onHwUpdate = () => this.syncChromeState();
       document.addEventListener('hwplayer:update', this._onHwUpdate);
@@ -3876,11 +3760,16 @@ body.dark .modal-body .media-poster img {
         attributes: true,
         attributeFilter: ['class']
       });
+
+      this.$nextTick(() => {
+        if (window.Iconify && this.$el) {
+          try { window.Iconify.scan(this.$el); } catch (e) {}
+        }
+      });
     },
 
     beforeUnmount() {
       window.removeEventListener('keydown', this.onKeydown);
-      document.removeEventListener('click', this.onDocClick);
       if (this._onHwUpdate) {
         document.removeEventListener('hwplayer:update', this._onHwUpdate);
       }
@@ -3901,7 +3790,6 @@ body.dark .modal-body .media-poster img {
 
     <script>
       (function () {
-       
         const iconEl = document.getElementById("themeIcon");
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         let stored = localStorage.getItem("hwTheme");
@@ -3911,31 +3799,28 @@ body.dark .modal-body .media-poster img {
         else isDark = prefersDark;
 
         function applyTheme(dark) {
-  document.body.classList.toggle("dark", dark);
-  if (iconEl) {
-    iconEl.setAttribute("data-icon", dark ? "carbon:moon" : "carbon:sun");
-  }
-  localStorage.setItem("hwTheme", dark ? "dark" : "light");
-  isDark = dark;
+          document.body.classList.toggle("dark", dark);
+          if (iconEl) {
+            iconEl.setAttribute("data-icon", dark ? "carbon:moon" : "carbon:sun");
+          }
+          localStorage.setItem("hwTheme", dark ? "dark" : "light");
+          isDark = dark;
 
-  // 同步浏览器/PWA 顶栏色（尽量贴近头图）
-  let meta = document.querySelector('meta[name="theme-color"]:not([media])');
-  if (!meta) {
-    meta = document.createElement("meta");
-    meta.name = "theme-color";
-    document.head.appendChild(meta);
-  }
-  meta.content = dark ? "#000000" : "#1a1a2e";
-}
+          let meta = document.querySelector('meta[name="theme-color"]:not([media])');
+          if (!meta) {
+            meta = document.createElement("meta");
+            meta.name = "theme-color";
+            document.head.appendChild(meta);
+          }
+          meta.content = dark ? "#000000" : "#1a1a2e";
+        }
         applyTheme(isDark);
 
-         
         window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
           const stored = localStorage.getItem("hwTheme");
           if (!stored) applyTheme(e.matches);
         });
 
-        
         const drawer = document.getElementById("musicDrawer");
         const overlay = document.getElementById("drawerOverlay");
         const closeBtn = document.getElementById("drawerCloseBtn");
@@ -3951,32 +3836,29 @@ body.dark .modal-body .media-poster img {
         }
 
         function closeDrawer() {
-  drawer.classList.remove("open");
-  overlay.classList.remove("open");
-  // 弹窗还开着 → 继续锁滚动；都关了 → 恢复
-  if (document.body.classList.contains("modal-open")) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "";
-  }
-}
-window.__toggleTheme = function () {
-  applyTheme(!isDark);
-};
+          drawer.classList.remove("open");
+          overlay.classList.remove("open");
+          if (document.body.classList.contains("modal-open")) {
+            document.body.style.overflow = "hidden";
+          } else {
+            document.body.style.overflow = "";
+          }
+        }
 
-window.__toggleMusicDrawer = function () {
-  if (drawer.classList.contains("open")) closeDrawer();
-  else openDrawer();
-};
-         
+        window.__toggleTheme = function () {
+          applyTheme(!isDark);
+        };
+
+        window.__toggleMusicDrawer = function () {
+          if (drawer.classList.contains("open")) closeDrawer();
+          else openDrawer();
+        };
+
         if (closeBtn) closeBtn.addEventListener("click", function (e) { e.preventDefault(); closeDrawer(); });
         if (overlay) overlay.addEventListener("click", function () { closeDrawer(); });
         document.addEventListener("keydown", function (e) {
           if (e.key === "Escape" && drawer.classList.contains("open")) closeDrawer();
         });
-
-        
-         
 
         window.HWonMasonryNeeded = function () {
           window.dispatchEvent(new Event("resize"));
