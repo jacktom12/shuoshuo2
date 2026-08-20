@@ -2040,8 +2040,8 @@ body {
                       v-for="(ph, i) in photoItems"
                       :key="ph.src + '-' + i"
                       :href="ph.src"
-                      data-fancybox="photos-gallery"
                       class="photo-item"
+                      @click.prevent="openPhoto(i)"
                     >
                       <img :src="ph.src" :alt="'图片' + (i + 1)" loading="lazy" />
                     </a>
@@ -3419,15 +3419,27 @@ body {
           });
           this.photoItems = items;
           this.photosLoaded = true;
-
-          this.$nextTick(() => {
-            if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
-          });
         } catch (e) {
           console.error('加载图片失败', e);
         } finally {
           this.photosLoading = false;
         }
+      },
+
+      openPhoto(index) {
+        const ph = this.photoItems[index];
+        if (!ph) return;
+
+        // 媒体图片墙使用独立的 Fancybox 实例，与主页说说的图库完全隔离
+        if (typeof Fancybox === 'undefined') {
+          window.open(ph.src, '_blank');
+          return;
+        }
+
+        Fancybox.show(
+          this.photoItems.map((p) => ({ src: p.src, type: 'image', thumb: p.src })),
+          { startIndex: index }
+        );
       },
       onMenuTheme() {
         if (typeof window.__toggleTheme === 'function') {
