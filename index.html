@@ -868,6 +868,41 @@ body {
         border-top: 1px solid var(--border-light);
       }
 
+      /* ========== 媒体（说说图片墙） ========== */
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        margin-top: 4px;
+      }
+      .photo-item {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        border-radius: 0;
+        display: block;
+        cursor: pointer;
+        background: var(--border-light);
+      }
+      .photo-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: filter 0.3s ease;
+      }
+      .photo-item:hover img {
+        filter: brightness(0.95);
+      }
+      body.dark .photo-item img {
+        filter: brightness(0.7) !important;
+      }
+      @media (max-width: 640px) {
+        .photo-grid {
+          gap: 3px;
+        }
+      }
+
       @media (max-width: 900px) {
         .modal-body .media-grid {
           grid-template-columns: repeat(3, 1fr);
@@ -1909,6 +1944,11 @@ body {
               <span class="top-nav-label">想看</span>
             </button>
 
+            <button class="top-nav-item" type="button" @click="onMenuPhotos">
+              <span class="top-nav-icon iconify" data-icon="catppuccin:folder-images"></span>
+              <span class="top-nav-label">媒体</span>
+            </button>
+
             <button class="top-nav-item" type="button" @click="onMenuTheme">
               <span class="top-nav-icon iconify" :data-icon="isDark ? 'carbon:moon' : 'carbon:sun'"></span>
               <span class="top-nav-label">{{ isDark ? '深色' : '浅色' }}</span>
@@ -1986,12 +2026,28 @@ body {
             <div class="modal-content" @click.stop>
               <div class="modal-header">
                 <span class="modal-title">
-                  {{ modalType === 'watched' ? '看过' : '想看' }}
+                  {{ modalType === 'watched' ? '看过' : modalType === 'watchlist' ? '想看' : '媒体' }}
                 </span>
                 <button class="modal-close" type="button" @click="closeModal" aria-label="关闭">✕</button>
               </div>
 
               <div class="modal-body">
+                <template v-if="modalType === 'photos'">
+                  <div v-if="photosLoading && photoItems.length === 0" class="empty">⏳ 加载中…</div>
+                  <div v-else-if="photoItems.length === 0 && !photosLoading" class="empty">😶 还没有图片</div>
+                  <div v-else class="photo-grid">
+                    <a
+                      v-for="(ph, i) in photoItems"
+                      :key="ph.src + '-' + i"
+                      :href="ph.src"
+                      data-fancybox="photos-gallery"
+                      class="photo-item"
+                    >
+                      <img :src="ph.src" :alt="'图片' + (i + 1)" loading="lazy" />
+                    </a>
+                  </div>
+                </template>
+                <template v-else>
                 <div class="filter-bar">
                   <div class="filter-group">
                     <span class="filter-group-label">类型：</span>
@@ -2090,6 +2146,7 @@ body {
                     <button @click="goPage(currentPage + 1)" :disabled="currentPage >= totalPages">下一页</button>
                   </div>
                 </div>
+                </template>
               </div>
             </div>
           </div>
@@ -3191,6 +3248,10 @@ body {
         apiBase: 'https://pub.199105.xyz/api/public-memos',
         pageSize: 12,
 
+        photoItems: [],
+        photosLoading: false,
+        photosLoaded: false,
+
         isDark: false,
         musicPlaying: false,
 
@@ -3312,6 +3373,61 @@ body {
       },
       onMenuWatchlist() {
         this.switchView('watchlist');
+      },
+      onMenuPhotos() {
+        this.showModal = true;
+        this.modalType = 'photos';
+        this.currentView = 'photos';
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        this.fetchAllPhotos();
+      },
+
+      async fetchAllPhotos() {
+        if (this.photosLoaded || this.photosLoading) return;
+        this.photosLoading = true;
+
+        try {
+          const firstRes = await fetch(`${this.apiBase}?view=say&page=1&pageSize=${this.pageSize}`);
+          if (!firstRes.ok) throw new Error(`HTTP ${firstRes.status}`);
+          const firstJson = await firstRes.json();
+          if (firstJson.error) throw new Error(firstJson.error);
+
+          let allPosts = firstJson.data || [];
+          const totalPages = firstJson.totalPages || 1;
+
+          if (totalPages > 1) {
+            const tasks = [];
+            for (let p = 2; p <= totalPages; p++) {
+              tasks.push(
+                fetch(`${this.apiBase}?view=say&page=${p}&pageSize=${this.pageSize}`)
+                  .then((r) => r.json())
+                  .catch(() => null)
+              );
+            }
+            const rest = await Promise.all(tasks);
+            rest.forEach((j) => {
+              if (j && Array.isArray(j.data)) allPosts = allPosts.concat(j.data);
+            });
+          }
+
+          const items = [];
+          allPosts.forEach((post) => {
+            (post.images || []).forEach((src) => {
+              if (src) items.push({ src, date: post.date });
+            });
+          });
+          this.photoItems = items;
+          this.photosLoaded = true;
+
+          this.$nextTick(() => {
+            if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
+          });
+        } catch (e) {
+          console.error('加载图片失败', e);
+        } finally {
+          this.photosLoading = false;
+        }
       },
       onMenuTheme() {
         if (typeof window.__toggleTheme === 'function') {
