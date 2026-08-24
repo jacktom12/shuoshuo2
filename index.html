@@ -3478,694 +3478,712 @@ body {
         };
       })();
     </script>
-    <script>
+     <script>
   const { createApp } = Vue;
 
-const GENRES_MAP = [
-  { id: 28, name: '动作' }, { id: 12, name: '冒险' }, { id: 16, name: '动画' },
-  { id: 35, name: '喜剧' }, { id: 80, name: '犯罪' }, { id: 99, name: '纪录' },
-  { id: 18, name: '剧情' }, { id: 10751, name: '家庭' }, { id: 14, name: '奇幻' },
-  { id: 36, name: '历史' }, { id: 27, name: '恐怖' }, { id: 10402, name: '音乐' },
-  { id: 9648, name: '悬疑' }, { id: 10749, name: '爱情' }, { id: 878, name: '科幻' },
-  { id: 10770, name: '电视电影' }, { id: 53, name: '惊悚' }, { id: 10752, name: '战争' },
-  { id: 37, name: '西部' }, { id: 10759, name: '动作冒险' }, { id: 10762, name: '儿童' },
-  { id: 10763, name: '新闻' }, { id: 10764, name: '真人秀' }, { id: 10765, name: 'Sci-Fi & Fantasy' },
-  { id: 10766, name: '肥皂剧' }, { id: 10767, name: '脱口秀' }, { id: 10768, name: 'War & Politics' },
-];
+  // TMDB 类型映射（如与你原文件中文名不一致，以你原文件的 GENRES_MAP 为准）
+  const GENRES_MAP = [
+    { id: 28, name: '动作' }, { id: 12, name: '冒险' }, { id: 16, name: '动画' },
+    { id: 35, name: '喜剧' }, { id: 80, name: '犯罪' }, { id: 99, name: '纪录' },
+    { id: 18, name: '剧情' }, { id: 10751, name: '家庭' }, { id: 14, name: '奇幻' },
+    { id: 36, name: '历史' }, { id: 27, name: '恐怖' }, { id: 10402, name: '音乐' },
+    { id: 9648, name: '悬疑' }, { id: 10749, name: '爱情' }, { id: 878, name: '科幻' },
+    { id: 10770, name: '电视电影' }, { id: 53, name: '惊悚' }, { id: 10752, name: '战争' },
+    { id: 37, name: '西部' }, { id: 10759, name: '动作冒险' }, { id: 10762, name: '儿童' },
+    { id: 10763, name: '新闻' }, { id: 10764, name: '真人秀' }, { id: 10765, name: 'Sci-Fi & Fantasy' },
+    { id: 10766, name: '肥皂剧' }, { id: 10767, name: '脱口秀' }, { id: 10768, name: 'War & Politics' },
+  ];
 
-const uniqueGenres = [];
-const seen = new Set();
-for (const g of GENRES_MAP) {
-  if (!seen.has(g.id)) {
-    seen.add(g.id);
-    uniqueGenres.push(g);
+  const uniqueGenres = [];
+  const seen = new Set();
+  for (const g of GENRES_MAP) {
+    if (!seen.has(g.id)) {
+      seen.add(g.id);
+      uniqueGenres.push(g);
+    }
   }
-}
-const GENRE_LOOKUP = Object.fromEntries(uniqueGenres.map(g => [g.id, g.name]));
+  const GENRE_LOOKUP = Object.fromEntries(uniqueGenres.map(g => [g.id, g.name]));
 
-createApp({
-  data() {
-    return {
-      // ===== 说说相关（全量加载 + 前端过滤） =====
-      allSayPosts: [],       // 存储所有说说数据
-      sayPostsLoaded: false, // 是否已加载完成
-      sayPage: 1,            // 当前页码
-      sayPageSize: 12,       // 每页条数
-
-      // ===== 媒体相关（看过 / 想看） =====
-      views: {
-        say: { scrollPos: 0 }, // 保留滚动位置占位
-        watched: {
-          allItems: [],
-          page: 1,
-          loading: false,
-          scrollPos: 0,
+  createApp({
+    data() {
+      return {
+        allSayPosts: [],
+        sayPostsLoaded: false,
+        sayPage: 1,
+        sayPageSize: 12,
+        views: {
+          say: { scrollPos: 0, page: 1 },
+          watched: { allItems: [], page: 1, loading: false, scrollPos: 0 },
+          watchlist: { allItems: [], page: 1, loading: false, scrollPos: 0 },
         },
-        watchlist: {
-          allItems: [],
-          page: 1,
-          loading: false,
-          scrollPos: 0,
-        },
-      },
 
-      // ===== UI 状态 =====
-      showModal: false,
-      modalType: '',
-      mediaTypeFilter: 'all',
-      selectedGenres: [],
-      selectedReleaseRanges: [],
-      releaseRanges: [
-        { id: '90s', name: '90年代' },
-        { id: '2000s', name: '2000-2010' },
-        { id: '2010s', name: '2010-2020' },
-        { id: '2020s', name: '2020之后' },
-      ],
-      apiBase: 'https://pub.199105.xyz/api/public-memos',
-      pageSize: 12,
+        // UI
+        showModal: false,
+        modalType: '',
+        mediaTypeFilter: 'all',
+        selectedGenres: [],
+        selectedReleaseRanges: [],
+        releaseRanges: [
+          { id: '90s', name: '90年代' },
+          { id: '2000s', name: '2000-2010' },
+          { id: '2010s', name: '2010-2020' },
+          { id: '2020s', name: '2020后' },
+        ],
+        apiBase: 'https://pub.199105.xyz/api/public-memos',
+        pageSize: 12,
+        photoItems: [],
+        photosLoading: false,
+        photosLoaded: false,
+        isDesktop: false,
+        tags: [],
+        tagsLoaded: false,
+        selectedTags: [],
+        preFilterPage: 1,
+        preFilterScrollY: 0,
+        tagDrawerOpen: false,
+        isDark: false,
+        musicPlaying: false,
 
-      photoItems: [],
-      photosLoading: false,
-      photosLoaded: false,
-
-      isDesktop: false,
-
-      tags: [],
-      tagsLoaded: false,
-      selectedTags: [],
-      preFilterPage: 1,        // 记住应用筛选前的页码
-    preFilterScrollY: 0,     // 记住应用筛选前的滚动位置
-      tagDrawerOpen: false,
-
-      isDark: false,
-      musicPlaying: false,
-    };
-  },
-
-  computed: {
-    // —— 说说数据：标签过滤 ——
-    filteredSayPosts() {
-      if (!this.selectedTags.length) return this.allSayPosts;
-      return this.allSayPosts.filter(post => {
-        return this.selectedTags.every(tagId => (post.tags || []).includes(tagId));
-      });
+        // ★ 新增：滚动位置保存相关
+        drawerScrollY: 0,        // 打开标签抽屉前的滚动位置
+        filterDirtyInDrawer: false, // 抽屉内是否改动过筛选（决定关闭抽屉时的滚动策略）
+        _restoreTimers: [],      // 待执行的滚动补偿定时器
+      };
     },
-    // —— 说说数据：分页 ——
-    sayDisplayItems() {
-       const end = this.sayPage * this.sayPageSize;
-  return this.filteredSayPosts.slice(0, end);
-    },
-    sayTotalPages() {
-      return Math.ceil(this.filteredSayPosts.length / this.sayPageSize) || 1;
-    },
-    sayHasMore() {
-      return this.sayPage < this.sayTotalPages;
-    },
-
-    // —— 模板兼容（保持原有属性名） ——
-    posts() {
-      return this.sayDisplayItems;
-    },
-    loading() {
-      return !this.sayPostsLoaded;
-    },
-    hasMore() {
-      return this.sayHasMore;
-    },
-    totalPages() {
-      return this.sayTotalPages;
-    },
-
-    // —— 媒体相关 ——
-    displayGenres() {
-      if (this.mediaTypeFilter === 'all') return uniqueGenres;
-      const movieIds = new Set([28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37]);
-      const tvIds = new Set([10759,16,35,80,99,18,10751,10762,9648,10763,10764,10765,10766,10767,10768,37]);
-      if (this.mediaTypeFilter === 'movie') return uniqueGenres.filter(g => movieIds.has(g.id));
-      if (this.mediaTypeFilter === 'tv') return uniqueGenres.filter(g => tvIds.has(g.id));
-      return uniqueGenres;
-    },
-    activeMediaKey() {
-      return this.modalType || 'watched';
-    },
-    currentMediaData() {
-      return this.views[this.activeMediaKey] || this.views.watched;
-    },
-    // 媒体数据（经过类型/流派/年代过滤）
-    filteredMedia() {
-      if (!this.showModal) return [];
-      const all = this.currentMediaData.allItems || [];
-      return all.filter(item => {
-        const matchType = this.mediaTypeFilter === 'all' || item.media_type === this.mediaTypeFilter;
-        const matchGenre = this.selectedGenres.length === 0 ||
-          this.selectedGenres.every(g => item.genre_ids && item.genre_ids.includes(g));
-        const matchRelease = this.matchesRelease(item);
-        return matchType && matchGenre && matchRelease;
-      });
-    },
-    mediaTotalPages() {
-      if (!this.showModal) return 1;
-      return Math.ceil(this.filteredMedia.length / this.pageSize) || 1;
-    },
-    mediaList() {
-      if (!this.showModal) return [];
-      const page = this.currentMediaData.page;
-      const start = (page - 1) * this.pageSize;
-      return this.filteredMedia.slice(start, start + this.pageSize);
-    },
-    currentPage() {
-      if (this.showModal) return this.currentMediaData.page;
-      return this.sayPage;
-    },
-
-    tagMap() {
-      const m = {};
-      this.tags.forEach((t) => { m[t.id] = t; });
-      return m;
-    },
-    showTagsBar() {
-      if (!this.tags.length) return false;
-      if (this.isDesktop && this.showModal) return false;
-      return this.isDesktop || this.selectedTags.length > 0;
-    },
-  },
-
-  methods: {
-    // —— 说说全量加载 ——
-    async loadAllSayPosts() {
-      if (this.sayPostsLoaded) return;
-      let allData = [];
-      let page = 1;
-      let totalPages = 1;
-
-      try {
-        const firstRes = await fetch(`${this.apiBase}?view=say&page=1&pageSize=${this.pageSize}`);
-        const firstJson = await firstRes.json();
-        if (firstJson.error) throw new Error(firstJson.error);
-        allData = firstJson.data || [];
-        totalPages = firstJson.totalPages || 1;
-
-        // 并行请求剩余页
-        const tasks = [];
-        for (let p = 2; p <= totalPages; p++) {
-          tasks.push(
-            fetch(`${this.apiBase}?view=say&page=${p}&pageSize=${this.pageSize}`)
-              .then(r => r.json())
-              .catch(() => null)
-          );
-        }
-        const rest = await Promise.all(tasks);
-        rest.forEach(json => {
-          if (json && Array.isArray(json.data)) {
-            allData = allData.concat(json.data);
-          }
+    computed: {
+      filteredSayPosts() {
+        if (!this.selectedTags.length) return this.allSayPosts;
+        return this.allSayPosts.filter(post => {
+          return this.selectedTags.every(tagId => (post.tags || []).includes(tagId));
         });
-
-        this.allSayPosts = allData;
-        this.sayPostsLoaded = true;
-        this.sayPage = 1;
-      } catch (e) {
-        console.error('加载说说失败', e);
-        this.sayPostsLoaded = true; // 避免无限重试
-      }
+      },
+      sayDisplayItems() {
+        const end = this.sayPage * this.sayPageSize;
+        return this.filteredSayPosts.slice(0, end);
+      },
+      sayTotalPages() {
+        return Math.ceil(this.filteredSayPosts.length / this.sayPageSize) || 1;
+      },
+      sayHasMore() {
+        return this.sayPage < this.sayTotalPages;
+      },
+      posts() {
+        return this.sayDisplayItems;
+      },
+      // ★ 修复：弹窗打开时使用弹窗自身的 loading，否则弹窗加载动画永远不显示
+      loading() {
+        if (this.showModal && this.modalType !== 'photos') return this.currentMediaData.loading;
+        return !this.sayPostsLoaded;
+      },
+      hasMore() {
+        return this.sayHasMore;
+      },
+      // ★ 修复：弹窗打开时翻页器应显示媒体列表的总页数，而不是说说的总页数
+      totalPages() {
+        if (this.showModal) return this.mediaTotalPages;
+        return this.sayTotalPages;
+      },
+      displayGenres() {
+        if (this.mediaTypeFilter === 'all') return uniqueGenres;
+        const movieIds = new Set([28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402, 9648, 10749, 878, 10770, 53, 10752, 37]);
+        const tvIds = new Set([10759, 16, 35, 80, 99, 18, 10751, 10762, 9648, 10763, 10764, 10765, 10766, 10767, 10768, 37]);
+        if (this.mediaTypeFilter === 'movie') return uniqueGenres.filter(g => movieIds.has(g.id));
+        if (this.mediaTypeFilter === 'tv') return uniqueGenres.filter(g => tvIds.has(g.id));
+        return uniqueGenres;
+      },
+      activeMediaKey() {
+        return this.modalType === 'watched' ? 'watched' : 'watchlist';
+      },
+      currentMediaData() {
+        return this.views[this.activeMediaKey] || this.views.watched;
+      },
+      filteredMedia() {
+        if (!this.showModal) return [];
+        const all = this.currentMediaData.allItems;
+        return all.filter(item => {
+          const matchType = this.mediaTypeFilter === 'all' || item.media_type === this.mediaTypeFilter;
+          const matchGenre = this.selectedGenres.length === 0 || this.selectedGenres.every(g => item.genre_ids && item.genre_ids.includes(g));
+          const matchRelease = this.matchesRelease(item);
+          return matchType && matchGenre && matchRelease;
+        });
+      },
+      mediaTotalPages() {
+        if (!this.showModal) return 1;
+        return Math.ceil(this.filteredMedia.length / this.pageSize) || 1;
+      },
+      mediaList() {
+        if (!this.showModal) return [];
+        const page = this.currentMediaData.page;
+        const start = (page - 1) * this.pageSize;
+        return this.filteredMedia.slice(start, start + this.pageSize);
+      },
+      currentPage() {
+        if (this.showModal) return this.currentMediaData.page;
+        return this.sayPage;
+      },
+      tagMap() {
+        const m = {};
+        this.tags.forEach(t => { m[t.id] = t; });
+        return m;
+      },
+      showTagsBar() {
+        if (!this.tags.length) return false;
+        if (this.isDesktop && this.showModal) return false;
+        return this.isDesktop || this.selectedTags.length > 0;
+      },
     },
-
-     
-
-     toggleTag(id) {
-  const wasEmpty = this.selectedTags.length === 0;
-  const idx = this.selectedTags.indexOf(id);
-
-  // 1. 如果之前没有任何标签选中，现在要添加第一个标签 → 保存当前位置
-  if (wasEmpty && idx === -1) {
-    this.preFilterPage = this.sayPage;
-    this.preFilterScrollY = window.scrollY || document.documentElement.scrollTop;
-  }
-
-  // 2. 执行添加或移除
-  if (idx > -1) {
-    this.selectedTags.splice(idx, 1);
-  } else {
-    this.selectedTags.push(id);
-  }
-
-  // 3. 判断结果
-  if (this.selectedTags.length === 0) {
-    // ✅ 没有任何标签了 → 回到筛选前的位置
-    this.sayPage = this.preFilterPage;
-    this.$nextTick(() => {
-      window.scrollTo({
-        top: this.preFilterScrollY,
-        behavior: 'auto'   // 或 'instant'，避免突兀动画
-      });
-    });
-  } else {
-    // 有筛选条件 → 重置到第一页（符合常规筛选逻辑）
-    this.sayPage = 1;
-  }
-},
-
- clearTags() {
-  if (this.selectedTags.length === 0) return;
-
-  // 直接使用点击标签前保存的值，不要重新赋值！
-  const targetPage = this.preFilterPage || 1;
-  const targetScroll = this.preFilterScrollY || 0;
-
-  this.selectedTags = [];
-  this.sayPage = targetPage;
-
-  this.$nextTick(() => {
-    window.scrollTo({
-      top: targetScroll,
-      behavior: 'auto'
-    });
-  });
-},
-
-    // —— 分页加载（前端） ——
-    loadMore() {
-      if (this.sayHasMore) {
-        this.sayPage++;
-      }
-    },
-
-    // —— 其他方法（保持不变或微调） ——
-    renderMarkdown(content) {
-      if (!content) return '';
-      return marked.parse(content);
-    },
-    formatTime(timeStr) {
-      if (!timeStr) return '';
-      return timeStr.replace(/\//g, '-');
-    },
-    getGenreName(id) {
-      return GENRE_LOOKUP[id] || id;
-    },
-    matchesRelease(item) {
-      if (!this.selectedReleaseRanges.length) return true;
-      const raw = String(item.release_date || '');
-      const year = parseInt(raw.slice(0, 4), 10);
-      if (!year || isNaN(year)) return false;
-      return this.selectedReleaseRanges.some(id => {
-        switch(id) {
-          case '90s': return year >= 1990 && year < 2000;
-          case '2000s': return year >= 2000 && year < 2010;
-          case '2010s': return year >= 2010 && year < 2020;
-          case '2020s': return year >= 2020;
-          default: return false;
+    methods: {
+      // ===================== ★ 滚动位置工具（新增） =====================
+      getScrollY() {
+        return window.scrollY || document.documentElement.scrollTop || 0;
+      },
+      scrollToY(y) {
+        const top = Math.max(0, y || 0);
+        try {
+          window.scrollTo({ top, left: 0, behavior: 'instant' });
+        } catch (e) {
+          window.scrollTo(0, top);
         }
-      });
-    },
+        document.documentElement.scrollTop = top;
+        document.body.scrollTop = top;
+      },
+      // 在 DOM 更新后恢复滚动，并用多次延迟补偿对抗图片懒加载造成的布局抖动
+      scheduleScrollRestore(y) {
+        this._restoreTimers.forEach(t => clearTimeout(t));
+        this._restoreTimers = [];
+        this.$nextTick(() => {
+          this.scrollToY(y);
+          [60, 180, 350].forEach(delay => {
+            this._restoreTimers.push(setTimeout(() => this.scrollToY(y), delay));
+          });
+        });
+      },
+      cancelPendingRestore() {
+        this._restoreTimers.forEach(t => clearTimeout(t));
+        this._restoreTimers = [];
+      },
+      // 保存主页（说说流）浏览状态：已加载页数 + 滚动位置
+      saveHomeState() {
+        this.cancelPendingRestore();
+        this.views.say.scrollPos = this.getScrollY();
+        this.views.say.page = this.sayPage;
+      },
+      // 恢复主页浏览状态（关闭弹窗后调用）
+      restoreHomeState() {
+        const targetPage = this.views.say.page || 1;
+        if (this.sayPage < targetPage) this.sayPage = targetPage;
+        this.scheduleScrollRestore(this.views.say.scrollPos || 0);
+      },
+      // 恢复进入标签筛选前的浏览状态
+      restorePreFilterState() {
+        const targetPage = Math.min(Math.max(1, this.preFilterPage || 1), this.sayTotalPages);
+        const targetScroll = this.preFilterScrollY || 0;
+        this.sayPage = targetPage;
+        this.scheduleScrollRestore(targetScroll);
+      },
+      // =================================================================
 
-    // —— 菜单切换 ——
-    onMenuMusic() {
-      if (typeof window.__toggleMusicDrawer === 'function') {
-        window.__toggleMusicDrawer();
-      }
-    },
-    onMenuWatched() {
-      this.switchView('watched');
-    },
-    onMenuWatchlist() {
-      this.switchView('watchlist');
-    },
-    onMenuPhotos() {
-      if (this.showModal && this.modalType === 'photos') {
-        this.closeModal();
-        return;
-      }
-      this.showModal = true;
-      this.modalType = 'photos';
-      if (!this.isDesktop) {
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-      this.fetchAllPhotos();
-    },
-    onMenuTags() {
-      this.tagDrawerOpen = true;
-      document.body.style.overflow = 'hidden';
-      this.fetchTags();
-    },
-    onMenuTheme() {
-      if (typeof window.__toggleTheme === 'function') {
-        window.__toggleTheme();
-      }
-      this.syncChromeState();
-    },
-
-    // —— 媒体数据加载 ——
-    async fetchMedia(view) {
-      const viewData = this.views[view];
-      if (!viewData || viewData.loading) return;
-      viewData.loading = true;
-
-      try {
-        const url = `${this.apiBase}?view=${view}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        if (json.error) throw new Error(json.error);
-
-        viewData.allItems = json.data || [];
-        viewData.page = 1;
-        viewData.loading = false;
-      } catch (e) {
-        console.error('加载媒体失败', e);
-        viewData.loading = false;
-      }
-    },
-
-    switchView(view) {
-      if (view === 'say') {
-        this.closeModal();
-        return;
-      }
-      if (this.showModal && this.modalType === view) {
-        this.closeModal();
-        return;
-      }
-      this.showModal = true;
-      this.modalType = view;
-      if (!this.isDesktop) {
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      }
-      this.mediaTypeFilter = 'all';
-      this.selectedGenres = [];
-      this.selectedReleaseRanges = [];
-
-      const target = this.views[view];
-      if (!target.allItems || target.allItems.length === 0) {
-        this.fetchMedia(view);
-      } else {
-        target.page = 1;
-      }
-    },
-
-    closeModal() {
-      this.showModal = false;
-      this.modalType = '';
-      document.body.classList.remove('modal-open');
-      const drawer = document.getElementById('musicDrawer');
-      const musicOpen = drawer && drawer.classList.contains('open');
-      if (!musicOpen && !this.tagDrawerOpen && !this.isDesktop) {
-        document.body.style.overflow = '';
-      }
-    },
-
-    onModalBackdrop() {
-      if (!this.isDesktop) this.closeModal();
-    },
-
-    setMediaType(type) {
-      if (this.mediaTypeFilter === type) return;
-      this.mediaTypeFilter = type;
-      this.selectedGenres = [];
-      if (this.showModal && this.currentMediaData) {
-        this.currentMediaData.page = 1;
-      }
-    },
-
-    toggleGenre(id) {
-      const idx = this.selectedGenres.indexOf(id);
-      if (idx > -1) this.selectedGenres.splice(idx, 1);
-      else this.selectedGenres.push(id);
-      if (this.showModal && this.currentMediaData) {
-        this.currentMediaData.page = 1;
-      }
-    },
-
-    toggleReleaseRange(id) {
-      const idx = this.selectedReleaseRanges.indexOf(id);
-      if (idx > -1) this.selectedReleaseRanges.splice(idx, 1);
-      else this.selectedReleaseRanges.push(id);
-      if (this.showModal && this.currentMediaData) {
-        this.currentMediaData.page = 1;
-      }
-    },
-
-    goPage(page) {
-      if (!this.showModal) return;
-      if (page < 1 || page > this.mediaTotalPages) return;
-      this.currentMediaData.page = page;
-      this.$nextTick(() => {
-        if (this.isDesktop) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          const body = document.querySelector('.modal-body');
-          if (body) body.scrollTop = 0;
-        }
-      });
-    },
-
-    // —— 图片墙 ——
-    async fetchAllPhotos() {
-      if (this.photosLoaded || this.photosLoading) return;
-      this.photosLoading = true;
-
-      try {
-        const firstRes = await fetch(`${this.apiBase}?view=say&page=1&pageSize=${this.pageSize}`);
-        if (!firstRes.ok) throw new Error(`HTTP ${firstRes.status}`);
-        const firstJson = await firstRes.json();
-        if (firstJson.error) throw new Error(firstJson.error);
-
-        let allPosts = firstJson.data || [];
-        const totalPages = firstJson.totalPages || 1;
-
-        if (totalPages > 1) {
+      async loadAllSayPosts() {
+        if (this.sayPostsLoaded) return;
+        let allData = [];
+        try {
+          const firstRes = await fetch(`${this.apiBase}?view=say&page=1&pageSize=${this.pageSize}`);
+          const firstJson = await firstRes.json();
+          if (firstJson.error) throw new Error(firstJson.error);
+          allData = firstJson.data || [];
+          const totalPages = firstJson.totalPages || 1;
           const tasks = [];
           for (let p = 2; p <= totalPages; p++) {
             tasks.push(
               fetch(`${this.apiBase}?view=say&page=${p}&pageSize=${this.pageSize}`)
-                .then((r) => r.json())
+                .then(r => r.json())
                 .catch(() => null)
             );
           }
           const rest = await Promise.all(tasks);
-          rest.forEach((j) => {
-            if (j && Array.isArray(j.data)) allPosts = allPosts.concat(j.data);
+          rest.forEach(json => {
+            if (json && Array.isArray(json.data)) {
+              allData = allData.concat(json.data);
+            }
           });
+          this.allSayPosts = allData;
+          this.sayPostsLoaded = true;
+          this.sayPage = 1;
+        } catch (e) {
+          console.error('加载说说失败:', e);
+          this.sayPostsLoaded = true;
+        }
+      },
+      async fetchSayPosts() {
+        await this.loadAllSayPosts();
+      },
+
+      // ★ 标签筛选：进入筛选保存位置，退出筛选恢复位置
+      toggleTag(id) {
+        const wasEmpty = this.selectedTags.length === 0;
+        const idx = this.selectedTags.indexOf(id);
+
+        // 1. 从「无筛选」进入「筛选」前，记录主页浏览状态
+        //    （抽屉内连续改动筛选时不覆盖最初保存的状态）
+        if (wasEmpty && idx === -1 && !(this.tagDrawerOpen && this.filterDirtyInDrawer)) {
+          this.preFilterPage = this.sayPage;
+          this.preFilterScrollY = this.getScrollY();
         }
 
-        const items = [];
-        allPosts.forEach((post) => {
-          (post.images || []).forEach((src) => {
-            if (src) items.push({ src, date: post.date });
-          });
-        });
-        this.photoItems = items;
-        this.photosLoaded = true;
-      } catch (e) {
-        console.error('加载图片失败', e);
-      } finally {
-        this.photosLoading = false;
-      }
-    },
+        // 2. 切换选中状态
+        if (idx > -1) this.selectedTags.splice(idx, 1);
+        else this.selectedTags.push(id);
 
-    openPhoto(index) {
-      const ph = this.photoItems[index];
-      if (!ph) return;
-      if (typeof Fancybox === 'undefined') {
-        window.open(ph.src, '_blank');
-        return;
-      }
-      Fancybox.show(
-        this.photoItems.map((p) => ({ src: p.src, type: 'image', thumb: p.src })),
-        { startIndex: index }
-      );
-    },
+        // 3. 抽屉打开时，滚动统一由 closeTagDrawer 处理
+        if (this.tagDrawerOpen) {
+          this.filterDirtyInDrawer = true;
+          if (this.selectedTags.length > 0) this.sayPage = 1;
+          return;
+        }
 
-    // —— 标签数据 ——
-    async fetchTags() {
-      if (this.tagsLoaded) return;
-      try {
-        const res = await fetch(`${this.apiBase}?view=tags`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        if (json.error) throw new Error(json.error);
-        this.tags = json.data || [];
-        this.tagsLoaded = true;
-        this.$nextTick(() => {
-          if (window.Iconify && this.$el) {
-            try { window.Iconify.scan(this.$el); } catch (e) {}
+        if (this.selectedTags.length === 0) {
+          // 退出筛选：恢复筛选前的页码与滚动位置
+          this.restorePreFilterState();
+        } else {
+          // 进入/变更筛选：从第 1 页展示筛选结果
+          this.sayPage = 1;
+          if (wasEmpty) this.scheduleScrollRestore(0);
+        }
+      },
+      clearTags() {
+        if (this.selectedTags.length === 0) return;
+        this.selectedTags = [];
+        if (this.tagDrawerOpen) {
+          this.filterDirtyInDrawer = true;
+          return;
+        }
+        this.restorePreFilterState();
+      },
+
+      loadMore() {
+        if (this.sayHasMore) this.sayPage++;
+      },
+      renderMarkdown(content) {
+        if (!content) return '';
+        return marked.parse(content);
+      },
+      formatTime(timeStr) {
+        if (!timeStr) return '';
+        return timeStr.replace(/\//g, '-');
+      },
+      getGenreName(id) {
+        return GENRE_LOOKUP[id] || id;
+      },
+      matchesRelease(item) {
+        if (!this.selectedReleaseRanges.length) return true;
+        const raw = String(item.release_date || '');
+        const year = parseInt(raw.slice(0, 4), 10);
+        if (!year || isNaN(year)) return false;
+        return this.selectedReleaseRanges.some(id => {
+          switch (id) {
+            case '90s': return year >= 1990 && year < 2000;
+            case '2000s': return year >= 2000 && year < 2010;
+            case '2010s': return year >= 2010 && year < 2020;
+            case '2020s': return year >= 2020;
+            default: return false;
           }
         });
-      } catch (e) {
-        console.error('加载标签失败', e);
-      }
-    },
+      },
 
-    closeTagDrawer() {
-      this.tagDrawerOpen = false;
-      const musicDrawer = document.getElementById('musicDrawer');
-      const musicOpen = musicDrawer && musicDrawer.classList.contains('open');
-      if (!this.showModal && !musicOpen) {
-        document.body.style.overflow = '';
-      }
-    },
-
-    syncChromeState() {
-      this.isDark = document.body.classList.contains('dark');
-      try {
-        if (window.HWPlayer && typeof window.HWPlayer.getState === 'function') {
-          this.musicPlaying = !!window.HWPlayer.getState().isPlaying;
+      onMenuMusic() {
+        if (typeof window.toggleMusicDrawer === 'function') window.toggleMusicDrawer();
+      },
+      onMenuWatched() {
+        this.switchView('watched');
+      },
+      onMenuWatchlist() {
+        this.switchView('watchlist');
+      },
+      // ★ 相册弹窗：打开前保存主页位置
+      onMenuPhotos() {
+        if (this.showModal && this.modalType === 'photos') {
+          this.closeModal();
+          return;
         }
-      } catch (e) {
-        this.musicPlaying = false;
-      }
+        if (!this.showModal) this.saveHomeState();
+        this.showModal = true;
+        this.modalType = 'photos';
+        if (!this.isDesktop) {
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+        }
+        this.fetchAllPhotos();
+      },
+      // ★ 标签抽屉：打开前保存滚动位置
+      onMenuTags() {
+        this.drawerScrollY = this.getScrollY();
+        this.filterDirtyInDrawer = false;
+        this.tagDrawerOpen = true;
+        document.body.style.overflow = 'hidden';
+        this.fetchTags();
+      },
+      onMenuTheme() {
+        if (typeof window.toggleTheme === 'function') window.toggleTheme();
+        this.syncChromeState();
+      },
+
+      async fetchMedia(view) {
+        const viewData = this.views[view];
+        if (!viewData || viewData.loading) return;
+        viewData.loading = true;
+        try {
+          const url = `${this.apiBase}?view=${view}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (json.error) throw new Error(json.error);
+          viewData.allItems = json.data || [];
+          viewData.page = 1;
+          viewData.loading = false;
+        } catch (e) {
+          console.error('加载失败:', e);
+          viewData.loading = false;
+        }
+      },
+
+      // ★ 打开弹窗前保存主页浏览状态
+      switchView(view) {
+        if (view === 'say') {
+          this.closeModal();
+          return;
+        }
+        if (this.showModal && this.modalType === view) {
+          this.closeModal();
+          return;
+        }
+        if (!this.showModal) this.saveHomeState();
+        this.showModal = true;
+        this.modalType = view;
+        if (!this.isDesktop) {
+          document.body.classList.add('modal-open');
+          document.body.style.overflow = 'hidden';
+        }
+        this.mediaTypeFilter = 'all';
+        this.selectedGenres = [];
+        this.selectedReleaseRanges = [];
+        const target = this.views[view];
+        if (!target.allItems || target.allItems.length === 0) {
+          this.fetchMedia(view);
+        } else {
+          target.page = 1;
+        }
+      },
+
+      // ★ 关闭弹窗后恢复主页页码与滚动位置
+      closeModal() {
+        if (!this.showModal) return;
+        this.showModal = false;
+        this.modalType = '';
+        document.body.classList.remove('modal-open');
+        const drawer = document.getElementById('musicDrawer');
+        const musicOpen = drawer && drawer.classList.contains('open');
+        if (!musicOpen && !this.tagDrawerOpen && !this.isDesktop) {
+          document.body.style.overflow = '';
+        }
+        this.restoreHomeState();
+      },
+      onModalBackdrop() {
+        if (!this.isDesktop) this.closeModal();
+      },
+
+      setMediaType(type) {
+        if (this.mediaTypeFilter === type) return;
+        this.mediaTypeFilter = type;
+        this.selectedGenres = [];
+        if (this.showModal && this.currentMediaData) {
+          this.currentMediaData.page = 1;
+        }
+      },
+      toggleGenre(id) {
+        const idx = this.selectedGenres.indexOf(id);
+        if (idx > -1) this.selectedGenres.splice(idx, 1);
+        else this.selectedGenres.push(id);
+        if (this.showModal && this.currentMediaData) {
+          this.currentMediaData.page = 1;
+        }
+      },
+      toggleReleaseRange(id) {
+        const idx = this.selectedReleaseRanges.indexOf(id);
+        if (idx > -1) this.selectedReleaseRanges.splice(idx, 1);
+        else this.selectedReleaseRanges.push(id);
+        if (this.showModal && this.currentMediaData) {
+          this.currentMediaData.page = 1;
+        }
+      },
+      goPage(page) {
+        if (!this.showModal) return;
+        if (page < 1 || page > this.mediaTotalPages) return;
+        this.currentMediaData.page = page;
+        this.$nextTick(() => {
+          if (this.isDesktop) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            const body = document.querySelector('.modal-body');
+            if (body) body.scrollTop = 0;
+          }
+        });
+      },
+
+      async fetchAllPhotos() {
+        if (this.photosLoaded || this.photosLoading) return;
+        this.photosLoading = true;
+        try {
+          const firstRes = await fetch(`${this.apiBase}?view=say&page=1&pageSize=${this.pageSize}`);
+          if (!firstRes.ok) throw new Error(`HTTP ${firstRes.status}`);
+          const firstJson = await firstRes.json();
+          if (firstJson.error) throw new Error(firstJson.error);
+          let allPosts = firstJson.data || [];
+          const totalPages = firstJson.totalPages || 1;
+          if (totalPages > 1) {
+            const tasks = [];
+            for (let p = 2; p <= totalPages; p++) {
+              tasks.push(
+                fetch(`${this.apiBase}?view=say&page=${p}&pageSize=${this.pageSize}`)
+                  .then(r => r.json())
+                  .catch(() => null)
+              );
+            }
+            const rest = await Promise.all(tasks);
+            rest.forEach(j => {
+              if (j && Array.isArray(j.data)) allPosts = allPosts.concat(j.data);
+            });
+          }
+          const items = [];
+          allPosts.forEach(post => {
+            (post.images || []).forEach(src => {
+              if (src) items.push({ src, date: post.date });
+            });
+          });
+          this.photoItems = items;
+          this.photosLoaded = true;
+        } catch (e) {
+          console.error('加载相册失败:', e);
+        } finally {
+          this.photosLoading = false;
+        }
+      },
+      openPhoto(index) {
+        const ph = this.photoItems[index];
+        if (!ph) return;
+        if (typeof Fancybox === 'undefined') {
+          window.open(ph.src, '_blank');
+          return;
+        }
+        Fancybox.show(
+          this.photoItems.map(p => ({ src: p.src, type: 'image', thumb: p.src })),
+          { startIndex: index }
+        );
+      },
+
+      async fetchTags() {
+        if (this.tagsLoaded) return;
+        try {
+          const res = await fetch(`${this.apiBase}?view=tags`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const json = await res.json();
+          if (json.error) throw new Error(json.error);
+          this.tags = json.data || [];
+          this.tagsLoaded = true;
+          this.$nextTick(() => {
+            if (window.Iconify && this.$el) {
+              try { window.Iconify.scan(this.$el); } catch (e) {}
+            }
+          });
+        } catch (e) {
+          console.error('加载标签失败:', e);
+        }
+      },
+      // ★ 关闭标签抽屉：按筛选状态恢复正确的滚动位置
+      closeTagDrawer() {
+        this.tagDrawerOpen = false;
+        const musicDrawer = document.getElementById('musicDrawer');
+        const musicOpen = musicDrawer && musicDrawer.classList.contains('open');
+        if (!this.showModal && !musicOpen) {
+          document.body.style.overflow = '';
+        }
+        if (this.selectedTags.length > 0) {
+          if (this.filterDirtyInDrawer) {
+            // 筛选条件有变化：回到筛选结果顶部
+            this.scheduleScrollRestore(0);
+          } else {
+            // 只是打开看了看：回到打开抽屉前的位置
+            this.scheduleScrollRestore(this.drawerScrollY);
+          }
+        } else if (this.filterDirtyInDrawer) {
+          // 在抽屉里清空了筛选：恢复进入筛选前的页码与位置
+          this.restorePreFilterState();
+        } else {
+          // 未做任何筛选改动：回到打开抽屉前的位置
+          this.scheduleScrollRestore(this.drawerScrollY);
+        }
+        this.filterDirtyInDrawer = false;
+      },
+
+      syncChromeState() {
+        this.isDark = document.body.classList.contains('dark');
+        try {
+          if (window.HWPlayer && typeof window.HWPlayer.getState === 'function') {
+            this.musicPlaying = !!window.HWPlayer.getState().isPlaying;
+          }
+        } catch (e) {
+          this.musicPlaying = false;
+        }
+      },
+      onKeydown(e) {
+        if (e.key !== 'Escape') return;
+        if (this.tagDrawerOpen) {
+          this.closeTagDrawer();
+          return;
+        }
+        if (this.showModal) this.closeModal();
+      },
     },
-
-    onKeydown(e) {
-      if (e.key !== 'Escape') return;
-      if (this.tagDrawerOpen) {
-        this.closeTagDrawer();
-        return;
-      }
-      if (this.showModal) {
-        this.closeModal();
-      }
-    },
-
-    // 兼容旧调用（保留，但内部走全量加载）
-    async fetchSayPosts() {
-      await this.loadAllSayPosts();
-    },
-  },
-
-  mounted() {
-    this._mq = window.matchMedia('(min-width: 1024px)');
-    this._onMq = (e) => { this.isDesktop = e.matches; };
-    this.isDesktop = this._mq.matches;
-    this._mq.addEventListener('change', this._onMq);
-
-    // 全量加载说说（替代原有的分页加载）
-    this.loadAllSayPosts();
-    this.fetchTags();
-    this.syncChromeState();
-
-    window.addEventListener('keydown', this.onKeydown);
-
-    this._onHwUpdate = () => this.syncChromeState();
-    document.addEventListener('hwplayer:update', this._onHwUpdate);
-
-    this._themeObs = new MutationObserver(() => this.syncChromeState());
-    this._themeObs.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    this.$nextTick(() => {
-      if (window.Iconify && this.$el) {
-        try { window.Iconify.scan(this.$el); } catch (e) {}
-      }
-    });
-  },
-
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.onKeydown);
-    if (this._mq && this._onMq) {
-      this._mq.removeEventListener('change', this._onMq);
-    }
-    if (this._onHwUpdate) {
-      document.removeEventListener('hwplayer:update', this._onHwUpdate);
-    }
-    if (this._themeObs) this._themeObs.disconnect();
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-  },
-
-  watch: {
-    posts() {
+    mounted() {
+      this.mq = window.matchMedia('(min-width: 1024px)');
+      this.onMq = (e) => { this.isDesktop = e.matches; };
+      this.isDesktop = this.mq.matches;
+      this.mq.addEventListener('change', this.onMq);
+      this.loadAllSayPosts();
+      this.fetchTags();
+      this.syncChromeState();
+      window.addEventListener('keydown', this.onKeydown);
+      this.onHwUpdate = () => this.syncChromeState();
+      document.addEventListener('hwplayerupdate', this.onHwUpdate);
+      this.themeObs = new MutationObserver(() => this.syncChromeState());
+      this.themeObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      // ★ 用户主动滚动时，取消尚未执行完的位置补偿，避免拉扯
+      this.onUserScroll = () => this.cancelPendingRestore();
+      window.addEventListener('wheel', this.onUserScroll, { passive: true });
+      window.addEventListener('touchmove', this.onUserScroll, { passive: true });
       this.$nextTick(() => {
-        if (typeof Fancybox !== 'undefined') Fancybox.bind('[data-fancybox]', {});
+        if (window.Iconify && this.$el) {
+          try { window.Iconify.scan(this.$el); } catch (e) {}
+        }
       });
-    }
-  }
-}).mount('#app');
+    },
+    beforeUnmount() {
+      window.removeEventListener('keydown', this.onKeydown);
+      if (this.mq && this.onMq) this.mq.removeEventListener('change', this.onMq);
+      if (this.onHwUpdate) document.removeEventListener('hwplayerupdate', this.onHwUpdate);
+      if (this.onUserScroll) {
+        window.removeEventListener('wheel', this.onUserScroll);
+        window.removeEventListener('touchmove', this.onUserScroll);
+      }
+      if (this.themeObs) this.themeObs.disconnect();
+      this.cancelPendingRestore();
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    },
+    watch: {
+      posts() {
+        this.$nextTick(() => {
+          if (typeof Fancybox !== 'undefined') {
+            Fancybox.bind('[data-fancybox]');
+          }
+        });
+      },
+    },
+  }).mount('#app');
 </script>
 
     <script>
-      (function () {
-        const iconEl = document.getElementById("themeIcon");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        let stored = localStorage.getItem("hwTheme");
-        let isDark = false;
-        if (stored === "dark") isDark = true;
-        else if (stored === "light") isDark = false;
-        else isDark = prefersDark;
+  (function () {
+    const iconEl = document.getElementById('themeIcon');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let stored = localStorage.getItem('hwTheme');
+    let isDark = false;
+    if (stored === 'dark') isDark = true;
+    else if (stored === 'light') isDark = false;
+    else isDark = prefersDark;
 
-        function applyTheme(dark) {
-          document.body.classList.toggle("dark", dark);
-          if (iconEl) {
-            iconEl.setAttribute("data-icon", dark ? "carbon:moon" : "carbon:sun");
-          }
-          localStorage.setItem("hwTheme", dark ? "dark" : "light");
-          isDark = dark;
+    function applyTheme(dark) {
+      document.body.classList.toggle('dark', dark);
+      if (iconEl) iconEl.setAttribute('data-icon', dark ? 'carbon:moon' : 'carbon:sun');
+      localStorage.setItem('hwTheme', dark ? 'dark' : 'light');
+      isDark = dark;
+      let meta = document.querySelector('meta[name="theme-color"]:not([media])');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        document.head.appendChild(meta);
+      }
+      meta.content = dark ? '#121212' : '#ffffff';
+    }
+    applyTheme(isDark);
 
-          let meta = document.querySelector('meta[name="theme-color"]:not([media])');
-          if (!meta) {
-            meta = document.createElement("meta");
-            meta.name = "theme-color";
-            document.head.appendChild(meta);
-          }
-          meta.content = dark ? "#121212" : "#ffffff";
-        }
-        applyTheme(isDark);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      const stored = localStorage.getItem('hwTheme');
+      if (!stored) applyTheme(e.matches);
+    });
 
-        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-          const stored = localStorage.getItem("hwTheme");
-          if (!stored) applyTheme(e.matches);
-        });
+    const drawer = document.getElementById('musicDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    const closeBtn = document.getElementById('drawerCloseBtn');
+    let drawerSavedScrollY = 0; // ★ 新增：记录抽屉打开前的页面滚动位置
 
-        const drawer = document.getElementById("musicDrawer");
-        const overlay = document.getElementById("drawerOverlay");
-        const closeBtn = document.getElementById("drawerCloseBtn");
+    function openDrawer() {
+      drawerSavedScrollY = window.scrollY || document.documentElement.scrollTop || 0; // ★
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+      const mount = document.getElementById('drawerPlayerMount');
+      if (mount && !mount.dataset.hwMounted) {
+        if (window.HWPlayer) window.HWPlayer.mountAll();
+      }
+      document.body.style.overflow = 'hidden';
+    }
 
-        function openDrawer() {
-          drawer.classList.add("open");
-          overlay.classList.add("open");
-          const mount = document.getElementById("drawerPlayerMount");
-          if (mount && !mount.dataset.hwMounted && window.HWPlayer) {
-            window.HWPlayer.mountAll();
-          }
-          document.body.style.overflow = "hidden";
-        }
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      overlay.classList.remove('open');
+      if (document.body.classList.contains('modal-open')) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+      // ★ 恢复打开抽屉前的页面滚动位置（修复 body overflow:hidden 导致的滚动跳顶）
+      const y = drawerSavedScrollY;
+      requestAnimationFrame(() => {
+        try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); }
+        catch (e) { window.scrollTo(0, y); }
+        setTimeout(() => {
+          try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); }
+          catch (e) { window.scrollTo(0, y); }
+        }, 80);
+      });
+    }
 
-        function closeDrawer() {
-          drawer.classList.remove("open");
-          overlay.classList.remove("open");
-          if (document.body.classList.contains("modal-open")) {
-            document.body.style.overflow = "hidden";
-          } else {
-            document.body.style.overflow = "";
-          }
-        }
+    window.toggleTheme = function () {
+      applyTheme(!isDark);
+    };
+    window.toggleMusicDrawer = function () {
+      if (drawer.classList.contains('open')) closeDrawer();
+      else openDrawer();
+    };
 
-        window.__toggleTheme = function () {
-          applyTheme(!isDark);
-        };
+    if (closeBtn) closeBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeDrawer();
+    });
+    if (overlay) overlay.addEventListener('click', function () {
+      closeDrawer();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+    });
 
-        window.__toggleMusicDrawer = function () {
-          if (drawer.classList.contains("open")) closeDrawer();
-          else openDrawer();
-        };
+    window.HWonMasonryNeeded = function () {
+      window.dispatchEvent(new Event('resize'));
+    };
 
-        if (closeBtn) closeBtn.addEventListener("click", function (e) { e.preventDefault(); closeDrawer(); });
-        if (overlay) overlay.addEventListener("click", function () { closeDrawer(); });
-        document.addEventListener("keydown", function (e) {
-          if (e.key === "Escape" && drawer.classList.contains("open")) closeDrawer();
-        });
-
-        window.HWonMasonryNeeded = function () {
-          window.dispatchEvent(new Event("resize"));
-        };
-
-        document.addEventListener("DOMContentLoaded", function () {
-          if (window.HWPlayer) window.HWPlayer.mountAll();
-        });
-      })();
-    </script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.HWPlayer) window.HWPlayer.mountAll();
+    });
+  })();
+</script>
   </body>
 </html>
