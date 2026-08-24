@@ -3725,21 +3725,19 @@ createApp({
   }
 },
 
-clearTags() {
+ clearTags() {
   if (this.selectedTags.length === 0) return;
 
-  // 保存当前状态（以防万一之前没存）
-  this.preFilterPage = this.sayPage;
-  this.preFilterScrollY = window.scrollY || document.documentElement.scrollTop;
+  // 直接使用点击标签前保存的值，不要重新赋值！
+  const targetPage = this.preFilterPage || 1;
+  const targetScroll = this.preFilterScrollY || 0;
 
-  // 清空标签
   this.selectedTags = [];
+  this.sayPage = targetPage;
 
-  // 恢复位置
-  this.sayPage = this.preFilterPage;
   this.$nextTick(() => {
     window.scrollTo({
-      top: this.preFilterScrollY,
+      top: targetScroll,
       behavior: 'auto'
     });
   });
