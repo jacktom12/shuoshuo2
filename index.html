@@ -3570,8 +3570,8 @@ createApp({
     },
     // —— 说说数据：分页 ——
     sayDisplayItems() {
-      const start = (this.sayPage - 1) * this.sayPageSize;
-      return this.filteredSayPosts.slice(start, start + this.sayPageSize);
+       const end = this.sayPage * this.sayPageSize;
+  return this.filteredSayPosts.slice(0, end);
     },
     sayTotalPages() {
       return Math.ceil(this.filteredSayPosts.length / this.sayPageSize) || 1;
