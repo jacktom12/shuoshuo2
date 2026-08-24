@@ -3553,6 +3553,8 @@ createApp({
       tags: [],
       tagsLoaded: false,
       selectedTags: [],
+      preFilterPage: 1,        // 记住应用筛选前的页码
+    preFilterScrollY: 0,     // 记住应用筛选前的滚动位置
       tagDrawerOpen: false,
 
       isDark: false,
@@ -3688,24 +3690,60 @@ createApp({
       }
     },
 
-    // —— 标签筛选（纯前端） ——
-    applyTagFilter() {
-      this.sayPage = 1; // 重置到第一页
-      // 不再请求后台
-    },
+     
 
-    toggleTag(id) {
-      const idx = this.selectedTags.indexOf(id);
-      if (idx > -1) this.selectedTags.splice(idx, 1);
-      else this.selectedTags.push(id);
-      this.applyTagFilter();
-    },
+     toggleTag(id) {
+  const wasEmpty = this.selectedTags.length === 0;
+  const idx = this.selectedTags.indexOf(id);
 
-    clearTags() {
-      if (!this.selectedTags.length) return;
-      this.selectedTags = [];
-      this.applyTagFilter();
-    },
+  // 1. 如果之前没有任何标签选中，现在要添加第一个标签 → 保存当前位置
+  if (wasEmpty && idx === -1) {
+    this.preFilterPage = this.sayPage;
+    this.preFilterScrollY = window.scrollY || document.documentElement.scrollTop;
+  }
+
+  // 2. 执行添加或移除
+  if (idx > -1) {
+    this.selectedTags.splice(idx, 1);
+  } else {
+    this.selectedTags.push(id);
+  }
+
+  // 3. 判断结果
+  if (this.selectedTags.length === 0) {
+    // ✅ 没有任何标签了 → 回到筛选前的位置
+    this.sayPage = this.preFilterPage;
+    this.$nextTick(() => {
+      window.scrollTo({
+        top: this.preFilterScrollY,
+        behavior: 'auto'   // 或 'instant'，避免突兀动画
+      });
+    });
+  } else {
+    // 有筛选条件 → 重置到第一页（符合常规筛选逻辑）
+    this.sayPage = 1;
+  }
+},
+
+clearTags() {
+  if (this.selectedTags.length === 0) return;
+
+  // 保存当前状态（以防万一之前没存）
+  this.preFilterPage = this.sayPage;
+  this.preFilterScrollY = window.scrollY || document.documentElement.scrollTop;
+
+  // 清空标签
+  this.selectedTags = [];
+
+  // 恢复位置
+  this.sayPage = this.preFilterPage;
+  this.$nextTick(() => {
+    window.scrollTo({
+      top: this.preFilterScrollY,
+      behavior: 'auto'
+    });
+  });
+},
 
     // —— 分页加载（前端） ——
     loadMore() {
