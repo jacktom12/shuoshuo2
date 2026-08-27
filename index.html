@@ -21,14 +21,19 @@
 <meta name="description" content="个人说说与影视记录" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4/dist/infinitegrid.min.js"></script>
 
      <style>
-  :root { color-scheme: light; }
+  :root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
   [data-theme="dark"], [data-theme="sunset"] { color-scheme: dark; }
-  html { scroll-behavior: smooth; }
-  body { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
+  body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
   .top-glow {
     background: linear-gradient(90deg,
@@ -40,14 +45,13 @@
     .memo-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -14px rgb(0 0 0 / .18); }
   }
 
-  /* ============ 图片墙（所有说说的图片，瀑布流） ============ */
-  .photo-grid { columns: 3; column-gap: 8px; }
-  @media (max-width: 640px) { .photo-grid { columns: 2; } }
+  /* ============ 图片墙（InfiniteGrid 真瀑布流） ============ */
   .photo-item {
-    position: relative; border-radius: 12px; overflow: hidden;
-    margin-bottom: 8px; break-inside: avoid; display: block;
+    border-radius: 12px; overflow: hidden;
+    min-height: 120px;
     cursor: zoom-in; background: rgb(128 128 128 / .12);
   }
+  .photo-item a { display: block; width: 100%; height: 100%; }
   .photo-item img { width: 100%; height: auto; display: block; transition: transform .35s ease; }
   @media (hover: hover) { .photo-item:hover img { transform: scale(1.03); } }
 
@@ -87,41 +91,6 @@
   @media (hover: hover) { .strip-item img:hover { filter: brightness(1.06); } }
   .strip-count { position: absolute; top: 8px; right: 8px; z-index: 2; pointer-events: none; }
 
-  /* ============ 灯箱：轨道滑动 + 挤压式切换 ============ */
-  #lightbox { backdrop-filter: blur(10px); }
-  #lbWrap {
-    position: absolute; inset: 0;
-    overflow: hidden;
-    touch-action: pan-y;
-    cursor: grab;
-  }
-  #lbWrap.dragging { cursor: grabbing; }
-  #lbTrack { display: flex; height: 100%; will-change: transform; }
-  .lb-slide {
-    width: 100%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem;
-  }
-  .lb-slide img {
-    max-width: 94vw; max-height: 86vh;
-    object-fit: contain;
-    border-radius: .75rem;
-    box-shadow: 0 25px 60px -15px rgb(0 0 0 / .6);
-    user-select: none;
-    -webkit-user-drag: none;
-    pointer-events: none;
-  }
-  .lb-exit img { animation: lbOut .42s cubic-bezier(.22,.61,.36,1) both; }
-  .lb-enter img { animation: lbIn .42s cubic-bezier(.22,.61,.36,1) both; }
-  @keyframes lbOut {
-    from { transform: scale(1); opacity: 1; }
-    to   { transform: scale(.86); opacity: .35; }
-  }
-  @keyframes lbIn {
-    from { transform: scale(1.06); opacity: .55; }
-    to   { transform: scale(1); opacity: 1; }
-  }
-
   /* 骨架屏 */
   .shimmer {
     background: linear-gradient(90deg,
@@ -144,6 +113,39 @@
 
   .memo-text { word-break: break-word; overflow-wrap: anywhere; }
   .memo-text a { color: oklch(60% .18 250); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ============ Markdown 渲染样式 ============ */
+  .memo-text h1, .memo-text h2, .memo-text h3, .memo-text h4, .memo-text h5, .memo-text h6 {
+    font-weight: 700; line-height: 1.4; margin: 0.9em 0 0.45em;
+  }
+  .memo-text h1 { font-size: 1.45em; }
+  .memo-text h2 { font-size: 1.32em; }
+  .memo-text h3 { font-size: 1.18em; }
+  .memo-text h4, .memo-text h5, .memo-text h6 { font-size: 1.05em; }
+  .memo-text p { margin: 0.5em 0; }
+  .memo-text ul, .memo-text ol { margin: 0.5em 0; padding-left: 1.4em; }
+  .memo-text ul { list-style: disc; }
+  .memo-text ol { list-style: decimal; }
+  .memo-text li { margin: 0.2em 0; }
+  .memo-text blockquote {
+    margin: 0.6em 0; padding: 0.25em 0.9em;
+    border-left: 3px solid oklch(60% .18 250 / .6);
+    color: color-mix(in oklch, currentColor 70%, transparent);
+  }
+  .memo-text code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    background: rgb(128 128 128 / .15); padding: 0.1em 0.4em; border-radius: 6px; font-size: .88em;
+  }
+  .memo-text pre {
+    margin: 0.7em 0; padding: 0.85em 1em; border-radius: 10px;
+    background: rgb(128 128 128 / .12); overflow-x: auto;
+  }
+  .memo-text pre code { background: transparent; padding: 0; border-radius: 0; font-size: .86em; line-height: 1.6; }
+  .memo-text table { border-collapse: collapse; margin: 0.7em 0; width: 100%; font-size: .95em; }
+  .memo-text th, .memo-text td { border: 1px solid rgb(128 128 128 / .35); padding: 0.4em 0.7em; text-align: left; }
+  .memo-text th { background: rgb(128 128 128 / .12); font-weight: 600; }
+  .memo-text hr { border: none; border-top: 1px solid rgb(128 128 128 / .35); margin: 1em 0; }
+  .memo-text img { max-width: 100%; border-radius: 10px; }
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: rgb(128 128 128 / .3); border-radius: 8px; }
@@ -385,17 +387,6 @@
   <span class="iconify text-xl" data-icon="mdi:arrow-up"></span>
 </button>
 
-<!-- ======================= 灯箱（轨道滑动式） ======================= -->
-<div id="lightbox" class="fixed inset-0 z-50 hidden bg-black/85">
-  <div id="lbWrap">
-    <div id="lbTrack"></div>
-  </div>
-  <button class="btn btn-circle btn-sm absolute top-4 right-4 z-10 bg-white/10 border-none text-white hover:bg-white/25" onclick="closeLightbox()" aria-label="关闭"><span class="iconify text-lg" data-icon="mdi:close"></span></button>
-  <button id="lbPrev" class="btn btn-circle btn-sm absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 border-none text-white hover:bg-white/25" aria-label="上一张"><span class="iconify text-2xl" data-icon="mdi:chevron-left"></span></button>
-  <button id="lbNext" class="btn btn-circle btn-sm absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 border-none text-white hover:bg-white/25" aria-label="下一张"><span class="iconify text-2xl" data-icon="mdi:chevron-right"></span></button>
-  <p id="lbCounter" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-xs z-10"></p>
-</div>
-
 <!-- ======================= 音乐抽屉（右侧滑出） ======================= -->
 <div id="musicDrawerOverlay" class="music-drawer-overlay"></div>
 <aside id="musicDrawer" class="music-drawer" role="dialog" aria-label="音乐播放器">
@@ -589,10 +580,19 @@ function parseContent(raw) {
     return '\n';
   });
 
-  let html = escapeHtml(text)
-    .replace(/(https?:\/\/[^\s&lt;&gt;"']+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
-    .replace(/\n{2,}/g, '<br><br>')
-    .replace(/\n/g, '<br>');
+  let html;
+  if (window.marked && typeof marked.parse === 'function') {
+    try {
+      html = marked.parse(text, { gfm: true, breaks: true, extendedAutolinks: true });
+    } catch {
+      html = escapeHtml(text).replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+    }
+  } else {
+    html = escapeHtml(text)
+      .replace(/(https?:\/\/[^\s&lt;&gt;"']+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
 
   return { html, images };
 }
@@ -660,179 +660,51 @@ async function fetchData({ view, page = 1, tags = [] }) {
 }
 
 /* ============================================================
-   灯箱：轨道滑动 + 挤压式切换
+   图片灯箱：Fancybox（委托打开，兼容动态渲染内容）
 ============================================================ */
-const lbWrap  = $('#lbWrap');
-const lbTrack = $('#lbTrack');
-let lbImages = [], lbIndex = 0, lbJustSwiped = false;
-const LB_TRANSITION = 'transform .42s cubic-bezier(.22,.61,.36,1)';
-
-const lbW = () => lbWrap.clientWidth;
-
-function setTrack(animate) {
-  lbTrack.style.transition = animate ? LB_TRANSITION : 'none';
-  lbTrack.style.transform = `translateX(${-lbIndex * lbW()}px)`;
-  updateLbUI();
-}
-
-function updateLbUI() {
-  const total = lbImages.length;
-  $('#lbCounter').textContent = total > 1 ? `${lbIndex + 1} / ${total}` : '';
-  $('#lbPrev').style.display = $('#lbNext').style.display = total > 1 ? '' : 'none';
-  [lbIndex - 1, lbIndex + 1].forEach(i => {
-    if (i >= 0 && i < total) { const im = new Image(); im.src = lbImages[i]; }
-  });
-}
-
-function lbGo(index, animate = true) {
-  const prev = lbIndex;
-  lbIndex = Math.max(0, Math.min(index, lbImages.length - 1));
-  setTrack(animate);
-  if (animate && prev !== lbIndex) {
-    const slides = lbTrack.children;
-    const outEl = slides[prev], inEl = slides[lbIndex];
-    if (outEl) { outEl.classList.remove('lb-exit'); void outEl.offsetWidth; outEl.classList.add('lb-exit'); }
-    if (inEl)  { inEl.classList.remove('lb-enter'); void inEl.offsetWidth; inEl.classList.add('lb-enter'); }
-    setTimeout(() => {
-      outEl && outEl.classList.remove('lb-exit');
-      inEl && inEl.classList.remove('lb-enter');
-    }, 460);
-  }
-}
-
-function openLightbox(images, index) {
-  lbImages = images;
-  lbIndex = index;
-  lbTrack.innerHTML = images.map(u =>
-    `<div class="lb-slide"><img src="${escapeHtml(u)}" draggable="false" alt="" /></div>`
-  ).join('');
-  $('#lightbox').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-  requestAnimationFrame(() => setTrack(false));
-}
-
-function closeLightbox() {
-  $('#lightbox').classList.add('hidden');
-  lbTrack.innerHTML = '';
-  document.body.style.overflow = '';
-}
-
-$('#lbPrev').onclick = e => { e.stopPropagation(); lbGo(lbIndex - 1); };
-$('#lbNext').onclick = e => { e.stopPropagation(); lbGo(lbIndex + 1); };
-
-lbWrap.addEventListener('click', e => {
-  if (lbJustSwiped) { lbJustSwiped = false; return; }
-  if (e.target === lbWrap || e.target.classList.contains('lb-slide')) closeLightbox();
-});
-
-/* 灯箱拖拽：无锁自愈状态机 */
-(function initLbDrag() {
-  let dragging = false;
-  let startX = 0, baseOffset = 0, curOffset = 0, moved = 0;
-  let samples = [];
-
-  const visualOffset = () => {
-    try {
-      const m = new DOMMatrixReadOnly(getComputedStyle(lbTrack).transform);
-      return Number.isFinite(m.m41) ? m.m41 : 0;
-    } catch { return -lbIndex * lbW(); }
-  };
-
-  lbWrap.addEventListener('pointerdown', e => {
-    if (e.target.closest('button')) return;
-    if (!lbImages.length) return;
-    dragging = true;
-    moved = 0;
-    startX = e.clientX;
-    baseOffset = curOffset = visualOffset();
-    lbTrack.style.transition = 'none';
-    lbTrack.style.transform = `translateX(${baseOffset}px)`;
-    samples = [{ x: e.clientX, t: performance.now() }];
-    lbWrap.classList.add('dragging');
+function initFancybox() {
+  if (!window.Fancybox) return;
+  document.addEventListener('click', e => {
+    const trigger = e.target.closest('[data-fancybox]');
+    if (!trigger) return;
     e.preventDefault();
+    const group = trigger.getAttribute('data-fancybox') || 'gallery';
+    const items = [...document.querySelectorAll(`[data-fancybox="${group}"]`)]
+      .map(a => ({
+        src: a.getAttribute('href') || a.getAttribute('data-src') || '',
+        caption: a.getAttribute('data-caption') || '',
+      }))
+      .filter(it => it.src);
+    const target = trigger.getAttribute('href') || trigger.getAttribute('data-src') || '';
+    const startIndex = Math.max(0, items.findIndex(it => it.src === target));
+    Fancybox.show(items, { startIndex });
   });
-
-  addEventListener('pointermove', e => {
-    if (!dragging) return;
-    const dx = e.clientX - startX;
-    moved = Math.max(moved, Math.abs(dx));
-    const min = -(lbImages.length - 1) * lbW(), max = 0;
-    curOffset = baseOffset + dx;
-    if (curOffset > max) curOffset = max + (curOffset - max) / 3;
-    if (curOffset < min) curOffset = min + (curOffset - min) / 3;
-    lbTrack.style.transform = `translateX(${curOffset}px)`;
-    samples.push({ x: e.clientX, t: performance.now() });
-    if (samples.length > 6) samples.shift();
-    if (lbImages.length > 1) {
-      const near = Math.max(0, Math.min(Math.round(-curOffset / lbW()), lbImages.length - 1));
-      $('#lbCounter').textContent = `${near + 1} / ${lbImages.length}`;
-    }
-  });
-
-  const endDrag = () => {
-    if (!dragging) return;
-    dragging = false;
-    lbWrap.classList.remove('dragging');
-
-    let v = 0;
-    if (samples.length >= 2) {
-      const a = samples[0], b = samples[samples.length - 1];
-      const dt = b.t - a.t;
-      if (dt > 0) v = (b.x - a.x) / dt;
-    }
-
-    const frac = -curOffset / lbW();
-    let target;
-    if (Math.abs(v) > 0.3) {
-      target = v < 0 ? Math.ceil(frac - 0.15) : Math.floor(frac + 0.15);
-    } else {
-      target = Math.round(frac);
-    }
-    target = Math.max(0, Math.min(target, lbImages.length - 1));
-
-    if (moved > 8) {
-      lbJustSwiped = true;
-      setTimeout(() => { lbJustSwiped = false; }, 400);
-    }
-    lbGo(target, true);
-  };
-  addEventListener('pointerup', endDrag);
-  addEventListener('pointercancel', endDrag);
-
-  addEventListener('resize', () => {
-    if (!$('#lightbox').classList.contains('hidden')) setTrack(false);
-  });
-})();
-
-document.addEventListener('keydown', e => {
-  if ($('#lightbox').classList.contains('hidden')) return;
-  if (e.key === 'Escape') closeLightbox();
-  if (e.key === 'ArrowLeft') lbGo(lbIndex - 1);
-  if (e.key === 'ArrowRight') lbGo(lbIndex + 1);
-});
+}
 
 /* ============================================================
    Threads 风格横向图片条
 ============================================================ */
-function renderImages(images) {
+function renderImages(images, group) {
   if (!images.length) return '';
-  const urls = images.map(i => i.url);
-  const urlsJson = JSON.stringify(urls).replace(/"/g, '&quot;');
+  const g = group || 'gallery';
 
   if (images.length === 1) {
     const img = images[0];
     return `
-    <div class="mt-3 rounded-xl overflow-hidden bg-base-300/50">
+    <a class="mt-3 block rounded-xl overflow-hidden bg-base-300/50"
+       href="${escapeHtml(img.url)}" data-fancybox="${escapeHtml(g)}"
+       data-caption="${escapeHtml(img.alt || '')}">
       <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
-           class="w-full max-h-[26rem] object-cover cursor-zoom-in"
-           onclick="openLightbox(${urlsJson}, 0)" />
-    </div>`;
+           class="w-full h-auto cursor-zoom-in" />
+    </a>`;
   }
 
   const items = images.map((img, i) => `
     <div class="strip-item rounded-xl overflow-hidden bg-base-300/50 w-[72%] sm:w-[58%] h-52 sm:h-64">
-      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
-           onclick="openLightbox(${urlsJson}, ${i})" />
+      <a href="${escapeHtml(img.url)}" data-fancybox="${escapeHtml(g)}"
+         data-caption="${escapeHtml(img.alt || '')}" class="block w-full h-full">
+        <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy" />
+      </a>
     </div>`).join('');
 
   return `
@@ -966,8 +838,8 @@ function memoCard(m, idx) {
   return `
   <article class="memo-card fade-up card bg-base-100 shadow-sm border border-base-300/50 overflow-hidden" style="animation-delay:${Math.min(idx * 40, 400)}ms">
     <div class="card-body p-4 sm:p-5 gap-3">
-      <div class="memo-text text-[15px] leading-relaxed">${html}</div>
-      ${renderImages(images)}
+      <div class="memo-text text-[17px] leading-relaxed">${html}</div>
+      ${renderImages(images, m.id)}
       <div class="flex items-center justify-between flex-wrap gap-2 pt-1">
         <time class="text-xs opacity-50 flex items-center gap-1" title="${escapeHtml(fmtDate(m.rawDate))}">
           <span class="iconify text-sm" data-icon="mdi:clock-outline"></span>
@@ -1164,16 +1036,22 @@ const contentEl = $('#content');
 
 /* ---------- 标签栏 ---------- */
 let cachedTags = [];
+let tagsPromise = null;
 
-async function loadTags() {
-  if (state.tagsLoaded) return;
-  try {
-    const res = await fetchData({ view: 'tags' });
-    (res.data || []).forEach(t => tagNameMap.set(t.id, t.name));
-    state.tagsLoaded = true;
-    cachedTags = res.data || [];
-    renderTagChips(cachedTags);
-  } catch {}
+function loadTags() {
+  if (state.tagsLoaded) return Promise.resolve();
+  if (tagsPromise) return tagsPromise;
+  tagsPromise = (async () => {
+    try {
+      const res = await fetchData({ view: 'tags' });
+      (res.data || []).forEach(t => tagNameMap.set(t.id, t.name));
+      cachedTags = res.data || [];
+      renderTagChips(cachedTags);
+    } catch {} finally {
+      state.tagsLoaded = true;
+    }
+  })();
+  return tagsPromise;
 }
 
 function renderTagChips(tags) {
@@ -1221,7 +1099,10 @@ async function loadSayPage(page, { replace = false } = {}) {
   if (!replace) $('#loadingMore').classList.remove('hidden');
 
   try {
+    // 并行：确保标签名加载 + 拉取说说数据，渲染前等待标签名就绪（避免卡片标签显示 id）
+    const tagsReady = loadTags();
     const res = await fetchData({ view: 'say', page, tags: [...state.selectedTags] });
+    await tagsReady;
     state.sayPage = res.page;
     state.sayTotalPages = res.totalPages;
     state.sayTotal = res.total;
@@ -1293,15 +1174,56 @@ async function loadPhotos() {
 function renderPhotos() {
   const photos = state.photosCache || [];
   if (!photos.length) { contentEl.innerHTML = emptyState('说说里还没有图片。'); return; }
-  const urls = photos.map(p => p.url);
-  const urlsJson = JSON.stringify(urls).replace(/"/g, '&quot;');
   contentEl.innerHTML = `
     <p class="text-xs opacity-50 px-1">共 ${photos.length} 张图片 · 来自所有说说</p>
-    <div class="photo-grid">${photos.map((p, i) => `
-      <div class="photo-item" title="${escapeHtml(fmtDate(p.date))}" onclick="openLightbox(${urlsJson}, ${i})">
-        <img src="${escapeHtml(p.url)}" loading="lazy" alt="" />
+    <div id="photoGrid" style="width:100%">${photos.map(p => `
+      <div class="photo-item">
+        <a href="${escapeHtml(p.url)}" data-fancybox="photos" data-caption="${escapeHtml(fmtDate(p.date))}">
+          <img src="${escapeHtml(p.url)}" loading="lazy" alt="" />
+        </a>
       </div>`).join('')}
     </div>`;
+
+  initPhotoGrid();
+}
+
+let photoGridInstance = null;
+function initPhotoGrid() {
+  const container = $('#photoGrid');
+  if (!container || !window.InfiniteGrid || !InfiniteGrid.MasonryInfiniteGrid) return;
+
+  if (photoGridInstance) {
+    try { photoGridInstance.destroy(); } catch {}
+    photoGridInstance = null;
+  }
+
+  const grid = new InfiniteGrid.MasonryInfiniteGrid(container, {
+    gap: 10,
+    column: window.innerWidth < 640 ? 2 : 3,
+    useRecycle: false,
+    useResizeObserver: true,
+    observeChildren: true,
+  });
+  photoGridInstance = grid;
+
+  // 图片加载完成后重新布局（高度变化后修正瀑布流）
+  const relayout = () => { try { grid.renderItems(); } catch {} };
+  container.querySelectorAll('img').forEach(img => {
+    if (img.complete && img.naturalWidth) return;
+    img.addEventListener('load', relayout);
+    img.addEventListener('error', relayout);
+  });
+
+  grid.renderItems();
+
+  // 响应式列数
+  const onResize = () => {
+    const c = window.innerWidth < 640 ? 2 : 3;
+    grid.setOptions({ column: c });
+    try { grid.renderItems(); } catch {}
+  };
+  window.addEventListener('resize', onResize);
+  grid._photoResizeHandler = onResize;
 }
 
 /* ---------- 影视 ---------- */
@@ -1500,6 +1422,7 @@ addEventListener('scroll', () => {
 toTop.onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
 
 /* ---------- 启动 ---------- */
+initFancybox();
 switchView('say');
 </script>
 
