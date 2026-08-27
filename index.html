@@ -1001,17 +1001,31 @@ function availableGenres(view) {
 
 function mediaFilterBarHtml(view) {
   const f = state.mediaFilter;
-  const chip = on => 'btn btn-xs rounded-full transition-all ' + (on ? 'btn-primary' : 'btn-ghost bg-base-100 border border-base-300');
+  // checkbox 按钮组（daisyUI btn 风格）：label 包裹 hidden checkbox，选中态用 btn-primary 高亮
+  const chipLabel = on => 'btn btn-xs rounded-full cursor-pointer transition-all ' + (on ? 'btn-primary' : 'btn-ghost bg-base-100 border border-base-300');
 
   const typeRow = [['all','全部'],['movie','电影'],['tv','剧集']]
-    .map(([v, n]) => `<button class="${chip(f.type === v)} mf-type" data-v="${v}">${n}</button>`).join('');
+    .map(([v, n]) => `
+      <label class="${chipLabel(f.type === v)}">
+        <input type="radio" class="hidden mf-type" name="mf-type" data-v="${v}"${f.type === v ? ' checked' : ''} />
+        <span>${n}</span>
+      </label>`).join('');
 
   const rangeRow = RELEASE_RANGES
-    .map(r => `<button class="${chip(f.ranges.has(r.id))} mf-range" data-v="${r.id}">${r.name}</button>`).join('');
+    .map(r => `
+      <label class="${chipLabel(f.ranges.has(r.id))}">
+        <input type="checkbox" class="hidden mf-range" data-v="${r.id}"${f.ranges.has(r.id) ? ' checked' : ''} />
+        <span>${r.name}</span>
+      </label>`).join('');
 
   const genres = availableGenres(view);
   const genreRow = genres.length
-    ? genres.map(g => `<button class="${chip(f.genres.has(g.id))} mf-genre" data-v="${g.id}">${g.name}<span class="badge badge-xs ${f.genres.has(g.id) ? 'badge-neutral' : 'badge-ghost'} ml-0.5">${g.count}</span></button>`).join('')
+    ? genres.map(g => `
+      <label class="${chipLabel(f.genres.has(g.id))}">
+        <input type="checkbox" class="hidden mf-genre" data-v="${g.id}"${f.genres.has(g.id) ? ' checked' : ''} />
+        <span>${g.name}</span>
+        <span class="badge badge-xs ${f.genres.has(g.id) ? 'badge-neutral' : 'badge-ghost'} ml-1">${g.count}</span>
+      </label>`).join('')
     : '<span class="text-xs opacity-40 py-1">该类型下暂无题材数据</span>';
 
   return `
@@ -1026,31 +1040,31 @@ function mediaFilterBarHtml(view) {
       <span class="text-xs opacity-50 w-7 shrink-0 pt-1.5">题材</span>
       <div class="flex flex-wrap gap-2 flex-1 min-w-0">${genreRow}</div>
     </div>
-    ${mediaFiltersActive() ? '<div><button class="btn btn-xs btn-ghost rounded-full mf-clear"><span class="iconify" data-icon="mdi:filter-off-outline"></span>清空筛选</button></div>' : ''}
+    ${mediaFiltersActive() ? '<div><button class="btn btn-square btn-sm mf-clear" aria-label="清空筛选"><span class="iconify" data-icon="mdi:close"></span></button></div>' : ''}
   </div>`;
 }
 
 function bindMediaFilterEvents(view) {
-  contentEl.querySelectorAll('.mf-type').forEach(b => b.onclick = () => {
-    const v = b.dataset.v;
+  contentEl.querySelectorAll('.mf-type').forEach(cb => cb.addEventListener('change', () => {
+    const v = cb.dataset.v;
     if (state.mediaFilter.type === v) return;
     state.mediaFilter.type = v;
     state.mediaFilter.genres.clear();   // 切类型时清空题材（参考站逻辑）
     state.mediaPage[view] = 1;
     renderMediaPage(view);
-  });
-  contentEl.querySelectorAll('.mf-range').forEach(b => b.onclick = () => {
-    const v = b.dataset.v;
-    state.mediaFilter.ranges.has(v) ? state.mediaFilter.ranges.delete(v) : state.mediaFilter.ranges.add(v);
+  }));
+  contentEl.querySelectorAll('.mf-range').forEach(cb => cb.addEventListener('change', () => {
+    const v = cb.dataset.v;
+    cb.checked ? state.mediaFilter.ranges.add(v) : state.mediaFilter.ranges.delete(v);
     state.mediaPage[view] = 1;
     renderMediaPage(view);
-  });
-  contentEl.querySelectorAll('.mf-genre').forEach(b => b.onclick = () => {
-    const v = Number(b.dataset.v);
-    state.mediaFilter.genres.has(v) ? state.mediaFilter.genres.delete(v) : state.mediaFilter.genres.add(v);
+  }));
+  contentEl.querySelectorAll('.mf-genre').forEach(cb => cb.addEventListener('change', () => {
+    const v = Number(cb.dataset.v);
+    cb.checked ? state.mediaFilter.genres.add(v) : state.mediaFilter.genres.delete(v);
     state.mediaPage[view] = 1;
     renderMediaPage(view);
-  });
+  }));
   const clear = contentEl.querySelector('.mf-clear');
   if (clear) clear.onclick = () => { resetMediaFilter(); state.mediaPage[view] = 1; renderMediaPage(view); };
 }
