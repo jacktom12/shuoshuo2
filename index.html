@@ -17,2429 +17,1512 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="note" />
     <link rel="manifest" href="/site.webmanifest" />
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <title>time</title>
-
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-
-    <link
-      rel="stylesheet"
-      href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css"
-    />
-
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-
-    <style>
-      :root {
-        --bg: #ffffff;
-        --text-main: #0f1419;
-        --text-muted: #536471;
-        --border-light: #eff3f4;
-        --accent-color: #1d9bf0;
-        --font-family:
-          "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI",
-          Roboto, sans-serif;
-        --font-size-base: 16px;
-
-        --paper: #ffffff;
-        --border: rgba(0, 0, 0, 0.08);
-        --p-shadow: none;
-        --sketch-radius-1: 0px;
-        --sketch-radius-btn: 0px;
-        --text: #0f1419;
-        --secondary-text: #536471;
-        --accent: #1d9bf0;
-        --accent-dark: #1a8cd8;
-        --bg-player: #ffffff;
-        --dot-normal: #cfd9de;
-        --img-brightness: 1;
-
-        --profile-bg-height: 350px;
-        --avatar-size: 120px;
-      }
-      
-      /* —— iOS 安全区 / 沉浸状态栏 —— */
-:root {
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-  --sal: env(safe-area-inset-left, 0px);
-  --sar: env(safe-area-inset-right, 0px);
-}
-
-html {
-  height: 100%;
-  background: var(--bg);
-}
-
-body {
-  min-height: 100%;
-  min-height: 100dvh;
-  padding-bottom: calc(32px + var(--sab));
-  background: var(--bg);
-}
-
-.app {
-  min-height: 100dvh;
-}
-
-.profile-header {
-  position: relative;
-  width: 100%;
-  aspect-ratio: auto;
-  height: calc(min(56vw, 350px) + var(--sat));
-  min-height: calc(200px + var(--sat));
-  margin-top: 0;
-  overflow: visible;
-  background: var(--bg);
-}
-
-.profile-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url("./bg.gif");
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-  filter: brightness(0.95);
-}
-
-.profile-bg::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: calc(var(--sat) + 28px);
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.35) 0%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-.profile-bg::after {
-  z-index: 1;
-}
-
-/* 音乐抽屉顶/底安全区 */
-.drawer {
-  padding-top: calc(16px + var(--sat));
-  padding-bottom: calc(20px + var(--sab));
-  padding-left: calc(12px + var(--sal));
-  padding-right: calc(12px + var(--sar));
-  height: 100%;
-  height: 100dvh;
-}
-
-      body.dark {
-        --bg: #121212;
-        --text-main: #e7e9ea;
-        --text-muted: #71767b;
-        --border-light: #2f3336;
-        --accent-color: #1d9bf0;
-
-         --paper: #121212;
-        --border: rgba(255, 255, 255, 0.08);
-        --text: #e7e9ea;
-        --secondary-text: #71767b;
-        --accent: #1d9bf0;
-        --accent-dark: #1a8cd8;
-        --bg-player: #121212;
-        --dot-normal: #333639;
-        --img-brightness: 0.7;
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      html::-webkit-scrollbar,
-      body::-webkit-scrollbar {
-        display: none;
-        width: 0;
-        height: 0;
-      }
-
-      body {
-        font-family: var(--font-family);
-        background: var(--bg);
-        color: var(--text-main);
-        transition:
-          background 0.3s ease,
-          color 0.3s ease;
-        min-height: 100vh;
-        padding-bottom: var(--sab);
-        position: relative;
-      }
-
-      .app {
-        max-width: 600px;
-        margin: 0 auto;
-        border-left: 1px solid var(--border-light);
-        border-right: 1px solid var(--border-light);
-        min-height: 100vh;
-        transition: border-color 0.3s ease;
-        position: relative;
-        z-index: 1;
-      }
-
-      .profile-header {
-        position: relative;
-        width: 100%;
-        overflow: visible;
-        background: var(--bg);
-      }
-      .profile-bg {
-        position: absolute;
-        inset: 0;
-        background-image: url("./bg.gif");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        filter: brightness(0.95);
-      }
-      .profile-bg::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 42%;
-        background: linear-gradient(
-          to bottom,
-          transparent 0%,
-          var(--bg) 100%
-        );
-        pointer-events: none;
-        z-index: 1;
-      }
-      body.dark .profile-bg {
-        filter: brightness(0.5);
-      }
-
-      .profile-avatar {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: calc(-1 * var(--avatar-size) / 2);
-        width: var(--avatar-size);
-        height: var(--avatar-size);
-        border-radius: 50%;
-        border: 4px solid var(--bg);
-        background: var(--bg);
-        overflow: hidden;
-        z-index: 2;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-        transition: border-color 0.3s;
-      }
-      body.dark .profile-avatar {
-        border-color: #000000;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-      }
-      .profile-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-
-      .main-wrapper {
-        width: 100%;
-        padding: 0 16px;
-        padding-top: calc(var(--avatar-size) / 2 + 20px);
-      }
-
-      .feed {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .post-item {
-        padding: 16px 0;
-        border-bottom: 1px solid var(--border-light);
-        transition: background 0.15s ease;
-      }
-      .post-item:last-child {
-        border-bottom: none;
-      }
-      .post-item:hover {
-        background: rgba(0, 0, 0, 0.01);
-      }
-      body.dark .post-item:hover {
-        background: rgba(255, 255, 255, 0.01);
-      }
-
-      .post-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 6px;
-      }
-      .time-badge {
-        font-size: 0.78rem;
-        font-weight: 400;
-        color: var(--text-muted);
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .time-badge::before {
-        content: "·";
-        font-size: 1.2rem;
-        font-weight: 300;
-        color: var(--text-muted);
-        display: inline-block;
-      }
-
-      .post-content {
-        font-size: 0.98rem;
-        line-height: 1.7;
-        color: var(--text-main);
-        white-space: pre-wrap;
-        word-break: break-word;
-        margin-bottom: 10px;
-        transition: color 0.3s ease;
-      }
-      .post-content:last-child {
-        margin-bottom: 0;
-      }
-
-      .post-images {
-        margin-top: 8px;
-        border-radius: 0;
-        overflow: hidden;
-      }
-      .layout-1 {
-        width: 100%;
-        max-height: 480px;
-        background: var(--bg);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 0;
-      }
-      .layout-1 .img-link {
-        width: 100%;
-        display: block;
-      }
-      .layout-1 img {
-        width: 100%;
-        max-height: 480px;
-        object-fit: cover;
-        display: block;
-        border-radius: 0;
-        transition: filter 0.3s ease;
-      }
-      .layout-1 img:hover {
-        filter: brightness(0.97);
-      }
-      .layout-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 4px;
-      }
-      .layout-2 .img-link {
-        aspect-ratio: 1 / 1;
-        overflow: hidden;
-        border-radius: 0;
-      }
-      .layout-2 img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: filter 0.3s ease;
-      }
-      .layout-2 img:hover {
-        filter: brightness(0.97);
-      }
-      .layout-3plus {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 4px;
-      }
-      .grid-item {
-        position: relative;
-        aspect-ratio: 1 / 1;
-        overflow: hidden;
-        border-radius: 0;
-        cursor: pointer;
-      }
-      .grid-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: filter 0.3s ease;
-      }
-      .grid-item:hover img {
-        filter: brightness(0.95);
-      }
-      .more-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ffffff;
-        font-size: 1.2rem;
-        font-weight: 600;
-      }
-
-      body.dark .post-images img,
-      body.dark .layout-1 img,
-      body.dark .layout-2 img,
-      body.dark .grid-item img {
-        filter: brightness(0.7) !important;
-      }
-      body.dark .hw-cover-img,
-      body.dark .hw-pl-cover-img,
-      body.dark .hw-pl-row-thumb img,
-      body.dark .hw-disc {
-        filter: brightness(0.7) !important;
-      }
-
-      .media-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-        margin-top: 8px;
-      }
-      @media (max-width: 480px) {
-        .media-grid {
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-      }
-      @media (max-width: 380px) {
-        .media-grid {
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-        }
-      }
-
-      .media-card {
-        background: var(--bg);
-        border: 1px solid var(--border-light);
-        border-radius: 8px;
-        overflow: hidden;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        display: flex;
-        flex-direction: column;
-      }
-      .media-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-      }
-      body.dark .media-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      }
-
-      .media-poster {
-        width: 100%;
-        aspect-ratio: 2 / 3;
-        background: var(--border-light);
-        overflow: hidden;
-        position: relative;
-      }
-      .media-poster img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-
-      .media-info {
-        padding: 10px 12px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        flex: 1;
-      }
-      .media-title-row {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--text-main);
-        line-height: 1.3;
-        display: flex;
-        align-items: baseline;
-        flex-wrap: wrap;
-      }
-      .media-date {
-        font-size: 0.75rem;
-        font-weight: 400;
-        color: var(--text-muted);
-        margin-left: 4px;
-      }
-      .media-sub-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-      }
-      .media-rating {
-        color: #f59e0b;
-        font-weight: 600;
-        font-size: 0.8rem;
-      }
-      .media-genres {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 4px;
-      }
-      .media-genres span {
-        background: var(--border-light);
-        padding: 0 6px;
-        border-radius: 4px;
-        line-height: 1.6;
-      }
-      .media-icon-btn {
-        color: var(--text-muted);
-        display: inline-flex;
-        align-items: center;
-        text-decoration: none;
-        transition: color 0.2s;
-        font-size: 1.1rem;
-      }
-      .media-icon-btn:hover {
-        color: var(--accent-color);
-      }
-      .media-type-badge {
-        color: var(--text-muted);
-        display: inline-flex;
-        align-items: center;
-        font-size: 1.1rem;
-      }
-
-      .filter-bar {
-        margin-bottom: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .filter-group {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-      }
-      .filter-group-label {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin-right: 4px;
-        font-weight: 500;
-      }
-      .filter-btn {
-        background: transparent;
-        border: 1px solid var(--border-light);
-        border-radius: 20px;
-        padding: 4px 14px;
-        font-size: 0.78rem;
-        color: var(--text-main);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-family: inherit;
-        background: var(--bg);
-        line-height: 1.6;
-      }
-      .filter-btn:hover {
-        background: var(--border-light);
-      }
-      .filter-btn.active {
-        background: var(--accent-color);
-        color: #fff;
-        border-color: var(--accent-color);
-      }
-      body.dark .filter-btn.active {
-        background: rgba(255, 255, 255, 0.12);
-        color: var(--text-main);
-        border-color: rgba(255, 255, 255, 0.35);
-      }
-      body.dark .filter-btn.active:hover {
-        background: rgba(255, 255, 255, 0.16);
-      }
-      body.dark .filter-btn.type-btn.active {
-        background: rgba(255, 255, 255, 0.14);
-        color: #e7e9ea;
-        border-color: rgba(255, 255, 255, 0.4);
-      }
-      .filter-btn.type-btn {
-        border-radius: 4px;
-      }
-
-      .pagination {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        padding: 20px 0 8px;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        border-top: 1px solid var(--border-light);
-        margin-top: 12px;
-      }
-      .pagination button {
-        background: transparent;
-        border: 1px solid var(--border-light);
-        padding: 4px 14px;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        color: var(--text-main);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-family: inherit;
-      }
-      .pagination button:hover:not(:disabled) {
-        background: var(--border-light);
-      }
-      .pagination button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .pagination .page-info {
-        min-width: 60px;
-        text-align: center;
-      }
-
-      /* ========== 置顶铺开菜单 ========== */
-      .top-nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        max-width: 600px;
-        margin: 0 auto;
-        z-index: 10050;
-        display: flex;
-        align-items: stretch;
-        justify-content: space-around;
-        gap: 0;
-        padding-top: var(--sat);
-        height: calc(48px + var(--sat));
-        background: var(--bg);
-        border-bottom: 0.5px solid var(--border-light);
-        box-shadow: none;
-        transition: background 0.3s ease, border-color 0.3s ease;
-      }
-      body.dark .top-nav {
-        background: var(--bg);
-        border-bottom-color: var(--border-light);
-      }
-
-      .top-nav-item {
-        flex: 1 1 0;
-        min-width: 0;
-        appearance: none;
-        border: none;
-        background: transparent;
-        color: var(--text-main);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        padding: 4px 2px;
-        cursor: pointer;
-        font-family: inherit;
-        font-size: 0.68rem;
-        line-height: 1.2;
-        transition: background 0.15s ease, color 0.15s ease;
-      }
-      .top-nav-item:hover {
-        background: rgba(0, 0, 0, 0.04);
-      }
-      .top-nav-item:active {
-        transform: scale(0.96);
-      }
-      body.dark .top-nav-item:hover {
-        background: rgba(255, 255, 255, 0.06);
-      }
-      .top-nav-icon {
-        width: 1.35em;
-        height: 1.35em;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: currentColor;
-        flex: 0 0 auto;
-      }
-      .top-nav-item .iconify {
-        width: 1.35em;
-        height: 1.35em;
-      }
-      .top-nav-item.playing-dot {
-        position: relative;
-      }
-      .top-nav-item.playing-dot::after {
-        content: "";
-        position: absolute;
-        top: 7px;
-        right: calc(50% - 14px);
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #4ade80;
-        box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
-        animation: pulse-dot 1.2s ease-in-out infinite;
-      }
-      body.dark .top-nav-item.playing-dot::after {
-        box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
-      }
-      @keyframes pulse-dot {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(0.75); }
-      }
-
-      /* ========== 全屏影视弹窗（覆盖置顶菜单） ========== */
-      .media-modal {
-        position: fixed;
-        inset: 0;
-        background: var(--bg);
-        z-index: 11000;
-        display: flex;
-        align-items: stretch;
-        justify-content: center;
-        padding: 0;
-        overflow: hidden;
-      }
-
-      .modal-content {
-        width: 100%;
-        max-width: 100%;
-        background: var(--bg);
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
-        height: 100dvh;
-        max-height: 100dvh;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: calc(12px + var(--sat)) 18px 12px 18px;
-        border-bottom: 1px solid var(--border-light);
-        background: var(--bg);
-        flex: 0 0 auto;
-      }
-
-      .modal-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        color: var(--text-main);
-      }
-
-      .modal-close {
-        font-size: 1.35rem;
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: transparent;
-        color: var(--text-muted);
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: inherit;
-        transition: background 0.15s, color 0.15s;
-      }
-      .modal-close:hover {
-        color: var(--text-main);
-        background: var(--border-light);
-      }
-
-      .modal-body {
-        padding: 14px 18px 18px;
-        overflow-y: auto;
-        flex: 1 1 auto;
-        min-height: 0;
-        scrollbar-width: none;
-      }
-      .modal-body::-webkit-scrollbar {
-        display: none;
-      }
-
-      .modal-body .filter-bar {
-        margin-bottom: 14px;
-        gap: 10px;
-        padding: 0;
-        border: none;
-      }
-
-      /* 弹窗内：更密的网格 + 更小封面 */
-      .modal-body .media-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-top: 4px;
-      }
-
-      .modal-body .media-card {
-        border-radius: 8px;
-      }
-      .modal-body .media-card:hover {
-        transform: translateY(-1px);
-      }
-
-      .modal-body .media-poster {
-        aspect-ratio: 2 / 3;
-         
-      }
-
-      .modal-body .media-info {
-        padding: 8px 10px 10px;
-        gap: 3px;
-      }
-
-      .modal-body .media-title-row {
-        font-size: 0.82rem;
-        font-weight: 650;
-        line-height: 1.35;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 6px;
-      }
-
-      .modal-body .media-title-text {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .modal-body .media-date {
-        font-size: 0.7rem;
-        margin-left: 2px;
-      }
-
-      .modal-body .media-sub-row {
-        font-size: 0.72rem;
-        gap: 6px;
-      }
-
-      .modal-body .media-genres {
-        font-size: 0.68rem;
-        gap: 3px;
-      }
-      .modal-body .media-genres span {
-        padding: 0 5px;
-        line-height: 1.5;
-      }
-
-      .modal-body .media-icon-btn {
-        flex: 0 0 auto;
-        font-size: 1rem;
-        margin-top: 1px;
-        opacity: 0.75;
-      }
-      .modal-body .media-icon-btn:hover {
-        opacity: 1;
-      }
-
-      .modal-body .pagination {
-        padding: 14px 0 0;
-        margin-top: 10px;
-        border-top: 1px solid var(--border-light);
-      }
-
-      /* ========== 媒体（说说图片墙） ========== */
-      .photo-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
-        margin-top: 4px;
-      }
-      .photo-item {
-        position: relative;
-        aspect-ratio: 1 / 1;
-        overflow: hidden;
-        border-radius: 0;
-        display: block;
-        cursor: pointer;
-        background: var(--border-light);
-      }
-      .photo-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: filter 0.3s ease;
-      }
-      .photo-item:hover img {
-        filter: brightness(0.95);
-      }
-      body.dark .photo-item img {
-        filter: brightness(0.7) !important;
-      }
-      @media (max-width: 640px) {
-        .photo-grid {
-          gap: 3px;
-        }
-      }
-
-      @media (max-width: 900px) {
-        .modal-body .media-grid {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-      @media (max-width: 640px) {
-        .modal-body .media-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 10px;
-        }
-        
-        .modal-header {
-          padding: calc(12px + var(--sat)) 14px 12px 14px;
-        }
-        .modal-body {
-          padding: 12px 12px 16px;
-        }
-      }
-
-      .loader {
-        text-align: center;
-        padding: 24px 0;
-        color: var(--text-muted);
-      }
-      .loader .no-more {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-      }
-      .empty {
-        text-align: center;
-        padding: 80px 0;
-        color: var(--text-muted);
-      }
-
-      .drawer-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 10100;
-        background: rgba(0, 0, 0, 0.25);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-        backdrop-filter: blur(2px);
-        -webkit-backdrop-filter: blur(2px);
-      }
-      .drawer-overlay.open {
-        opacity: 1;
-        pointer-events: auto;
-      }
-      .drawer {
-        position: fixed;
-        top: 0;
-        right: 0;
-        height: 100%;
-        width: 85%;
-        max-width: 400px;
-        z-index: 10200;
-        background: var(--bg);
-        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
-        transform: translateX(100%);
-        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-        display: flex;
-        flex-direction: column;
-        padding: 16px 12px 20px;
-        border-left: 1px solid var(--border-light);
-        overflow: hidden;
-      }
-      .drawer.open {
-        transform: translateX(0);
-      }
-      body.dark .drawer {
-        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
-        border-left-color: var(--border-light);
-      }
-      .drawer-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex: 0 0 auto;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--border-light);
-      }
-      .drawer-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-main);
-      }
-      .drawer-close {
-        appearance: none;
-        background: transparent;
-        border: none;
-        font-size: 1.5rem;
-        line-height: 1;
-        cursor: pointer;
-        color: var(--text-muted);
-        padding: 0 4px;
-        transition: color 0.2s;
-      }
-      .drawer-close:hover {
-        color: var(--text-main);
-      }
-      .drawer-body {
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      .drawer .hw-playlist-mount {
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      .drawer .hw-playlist {
-        flex: 1 1 auto;
-        min-height: 0;
-        width: 100% !important;
-        max-width: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        transform: none !important;
-        font-family: var(--font-family);
-        overflow: visible !important;
-        display: flex !important;
-        flex-direction: column !important;
-        height: 100% !important;
-      }
-      .drawer .hw-playlist:hover {
-        transform: none !important;
-        box-shadow: none !important;
-      }
-      .drawer .hw-pl-header {
-        padding: 4px 0 6px;
-        flex: 0 0 auto;
-      }
-      .drawer .hw-pl-cover {
-        width: 64px;
-        height: 64px;
-        flex: 0 0 64px;
-        border-radius: 4px;
-      }
-      .drawer .hw-pl-title {
-        font-size: 0.95rem;
-        font-weight: 700;
-      }
-      .drawer .hw-pl-artist {
-        font-size: 0.82rem;
-      }
-      .drawer .hw-pl-count {
-        font-size: 0.72rem;
-      }
-      .drawer .hw-pl-controls {
-        gap: 8px;
-        margin-bottom: 6px;
-        flex: 0 0 auto;
-      }
-      .drawer .hw-play {
-        width: 44px;
-        height: 38px;
-      }
-      .drawer .hw-btn {
-        width: 34px;
-        height: 30px;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        transform: none !important;
-        color: var(--text-main);
-      }
-      .drawer .hw-btn:hover {
-        background: rgba(0, 0, 0, 0.04) !important;
-      }
-      body.dark .drawer .hw-btn:hover {
-        background: rgba(255, 255, 255, 0.06) !important;
-      }
-      .drawer .hw-play {
-        background: var(--accent) !important;
-        color: #fff !important;
-        border-radius: 4px !important;
-      }
-      .drawer .hw-play:hover {
-        background: var(--accent-dark) !important;
-      }
-      .drawer .hw-pl-progress-row {
-        flex: 0 0 auto;
-        margin-bottom: 6px;
-      }
-      .drawer .hw-pl-view-lyrics {
-        flex: 0 0 auto;
-        height: 100px;
-        min-height: 50px;
-        margin-bottom: 6px;
-        border: none !important;
-        background: var(--bg-player);
-        border-radius: 0 !important;
-        padding: 6px 4px;
-        border-top: 1px solid var(--border-light) !important;
-        border-bottom: 1px solid var(--border-light) !important;
-      }
-      .drawer .hw-lyrics-line {
-        font-size: 0.8rem;
-        line-height: 1.6;
-      }
-      .drawer .hw-lyrics-line.active {
-        font-size: 0.9rem;
-        color: var(--accent);
-      }
-      .drawer .hw-pl-list {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
-        padding-top: 6px;
-        margin-top: 4px;
-        border-top: 1px solid var(--border-light);
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        max-height: none !important;
-      }
-      .drawer .hw-pl-list::-webkit-scrollbar {
-        display: none;
-        width: 0;
-        height: 0;
-      }
-      .drawer .hw-pl-row {
-        padding: 5px 2px;
-        border-radius: 0;
-      }
-      .drawer .hw-pl-row:hover {
-        background: rgba(0, 0, 0, 0.02);
-      }
-      body.dark .drawer .hw-pl-row:hover {
-        background: rgba(255, 255, 255, 0.02);
-      }
-      .drawer .hw-pl-row-thumb {
-        width: 28px;
-        height: 28px;
-        flex: 0 0 28px;
-      }
-      .drawer .hw-pl-row-title {
-        font-size: 0.8rem;
-      }
-      .drawer .hw-pl-row-artist {
-        font-size: 0.68rem;
-      }
-      .drawer .hw-time {
-        font-size: 0.72rem;
-        min-width: 32px;
-      }
-      .drawer .hw-progress {
-        height: 4px;
-        background: var(--dot-normal);
-        border: none !important;
-        border-radius: 2px;
-      }
-      .drawer .hw-progress::-webkit-slider-thumb {
-        width: 12px;
-        height: 12px;
-        background: var(--accent);
-        border: none;
-        border-radius: 50%;
-      }
-      .drawer .hw-progress::-moz-range-thumb {
-        width: 12px;
-        height: 12px;
-        background: var(--accent);
-        border: none;
-        border-radius: 50%;
-      }
-      .drawer .hw-pl-shuffle,
-      .drawer .hw-pl-repeat,
-      .drawer .hw-pl-lyrics-toggle {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        color: var(--text-muted);
-      }
-      .drawer .hw-pl-shuffle.active,
-      .drawer .hw-pl-repeat.active,
-      .drawer .hw-pl-lyrics-toggle.active {
-        color: var(--accent);
-      }
-      .drawer .hw-repeat-badge {
-        background: var(--accent);
-        color: #fff;
-        border: none;
-      }
-
-      @media (max-width: 640px) {
-        :root {
-          --profile-bg-height: 280px;
-          --avatar-size: 90px;
-        }
-        .main-wrapper {
-          padding: 0 12px;
-          padding-top: calc(var(--avatar-size) / 2 + 16px);
-        }
-        .drawer {
-          width: 88%;
-          padding: 12px 10px 16px;
-        }
-        .drawer .hw-pl-cover {
-          width: 54px;
-          height: 54px;
-          flex: 0 0 54px;
-        }
-        .drawer .hw-pl-title {
-          font-size: 0.88rem;
-        }
-        .drawer .hw-play {
-          width: 40px;
-          height: 34px;
-        }
-        .drawer .hw-btn {
-          width: 30px;
-          height: 26px;
-        }
-        .drawer .hw-pl-view-lyrics {
-          height: 80px;
-          min-height: 40px;
-        }
-        .drawer .hw-lyrics-line {
-          font-size: 0.74rem;
-        }
-        .drawer .hw-lyrics-line.active {
-          font-size: 0.84rem;
-        }
-        .post-item {
-          padding: 14px 0;
-        }
-        .post-content {
-          font-size: 0.94rem;
-        }
-        .layout-1 {
-          max-height: 340px;
-        }
-        .app {
-          border-left: none;
-          border-right: none;
-        }
-        .media-grid {
-          gap: 12px;
-        }
-        .modal-body .media-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 10px;
-        }
-        
-      }
-
-      @media (max-width: 400px) {
-        :root {
-          --profile-bg-height: 240px;
-          --avatar-size: 80px;
-        }
-        .main-wrapper {
-          padding-top: calc(var(--avatar-size) / 2 + 12px);
-        }
-        .drawer {
-          width: 92%;
-          padding: 10px 8px 14px;
-        }
-        .drawer .hw-pl-cover {
-          width: 46px;
-          height: 46px;
-          flex: 0 0 46px;
-        }
-        .drawer .hw-pl-title {
-          font-size: 0.8rem;
-        }
-        .drawer .hw-play {
-          width: 36px;
-          height: 30px;
-        }
-        .drawer .hw-btn {
-          width: 26px;
-          height: 22px;
-        }
-        .drawer .hw-pl-view-lyrics {
-          height: 60px;
-          min-height: 30px;
-        }
-        .drawer .hw-lyrics-line {
-          font-size: 0.7rem;
-        }
-        .drawer .hw-lyrics-line.active {
-          font-size: 0.78rem;
-        }
-        .app {
-          border-left: none;
-          border-right: none;
-        }
-        .media-grid {
-          gap: 8px;
-        }
-      }
-
-      @media (min-width: 641px) {
-        .app {
-          border-left: 1px solid var(--border-light);
-          border-right: 1px solid var(--border-light);
-        }
-      }
-      @media (max-width: 640px) {
-        .app {
-          border-left: none !important;
-          border-right: none !important;
-        }
-      }
-
-      .post-content {
-        white-space: normal;
-      }
-      .post-content h1,
-      .post-content h2,
-      .post-content h3,
-      .post-content h4 {
-        margin: 1.5em 0 0.8em;
-        font-weight: 700;
-        line-height: 1.4;
-        color: var(--text-main);
-      }
-      .post-content h1 { font-size: 1.4rem; }
-      .post-content h2 { font-size: 1.3rem; }
-      .post-content h3 { font-size: 1.2rem; }
-      .post-content h4 { font-size: 1.1rem; }
-      .post-content ul,
-      .post-content ol {
-        margin: 0.8em 0;
-        padding-left: 20px;
-      }
-      .post-content li {
-        margin-bottom: 0.4em;
-      }
-      .post-content blockquote {
-        margin: 1em 0;
-        padding: 2px 0 2px 12px;
-        border-left: 3px solid var(--accent-color);
-        color: var(--text-muted);
-        font-style: italic;
-        background: rgba(128, 128, 128, 0.05);
-      }
-      .post-content code {
-        font-family: "Courier New", Courier, monospace;
-        background: rgba(128, 128, 128, 0.15);
-        padding: 2px 5px;
-        border-radius: 4px;
-        font-size: 0.9em;
-        color: #d63384;
-      }
-      .post-content pre {
-        background: rgba(128, 128, 128, 0.05);
-        padding: 10px;
-        border-radius: 6px;
-        overflow-x: auto;
-        margin: 1em 0;
-      }
-
-      .hw-player {
-        position: relative;
-        width: min(100%, 360px);
-        margin: 14px auto 6px;
-        padding: 14px 14px 12px;
-        background: var(--paper);
-        border: 1px solid var(--border);
-        border-radius: 0;
-        box-shadow: none;
-        transform: none !important;
-        font-family: var(--font-family);
-        overflow: hidden;
-        transition: none;
-      }
-      .hw-player:hover {
-        transform: none !important;
-        box-shadow: none !important;
-      }
-      .hw-note-corner { display: none; }
-      .hw-player-head {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 10px;
-      }
-      .hw-disc-wrap {
-        position: relative;
-        width: 80px;
-        height: 80px;
-        flex: 0 0 80px;
-      }
-      .hw-disc {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #cfd8e8 0%, #9aa6bd 30%, #4b5468 55%, #23262f 78%, #101116 100%);
-        background-size: cover;
-        background-position: center;
-        border: 2px solid var(--border);
-        box-shadow: none;
-        position: relative;
-        animation: hw-spin 3.2s linear infinite;
-        animation-play-state: paused;
-      }
-      .hw-disc-wrap.spinning .hw-disc { animation-play-state: running; }
-      .hw-disc::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        background: repeating-radial-gradient(circle, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 1px, transparent 1px, transparent 6px);
-        mix-blend-mode: overlay;
-      }
-      .hw-disc::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 22px;
-        height: 22px;
-        margin: -11px 0 0 -11px;
-        border-radius: 50%;
-        background: var(--paper);
-        border: 2px solid var(--border);
-      }
-      @keyframes hw-spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      .hw-cover {
-        width: 80px;
-        height: 80px;
-        flex: 0 0 80px;
-        border: 1px solid var(--border);
-        border-radius: 0;
-        box-shadow: none;
-        overflow: hidden;
-        background: var(--bg-player);
-        transform: none !important;
-      }
-      .hw-cover-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        filter: brightness(var(--img-brightness));
-      }
-      .hw-meta {
-        text-align: center;
-        margin: 2px 0 8px;
-      }
-      .hw-title {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: var(--text);
-        line-height: 1.3;
-      }
-      .hw-artist {
-        font-size: 0.85rem;
-        color: var(--secondary-text);
-        margin-top: 1px;
-      }
-      .hw-album {
-        font-size: 0.78rem;
-        color: var(--secondary-text);
-        margin-top: 1px;
-        font-style: italic;
-      }
-      .hw-view-lyrics {
-        display: none;
-        flex-direction: column;
-        height: 140px;
-        margin-bottom: 10px;
-        border: 1px dashed var(--border);
-        border-radius: 0;
-        background: var(--bg-player);
-        padding: 6px 4px;
-      }
-      .hw-player.lyrics-mode .hw-view-normal { display: none; }
-      .hw-player.lyrics-mode .hw-view-lyrics { display: flex; }
-      .hw-lyrics-scroll-full {
-        flex: 1;
-        overflow-y: auto;
-        padding: 4px 6px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      .hw-lyrics-scroll-full::-webkit-scrollbar { display: none; width: 0; height: 0; }
-      .hw-lyrics-line {
-        color: var(--secondary-text);
-        padding: 2px 4px;
-        text-align: center;
-        font-size: 0.82rem;
-        line-height: 1.7;
-        transition: color 0.2s ease, font-weight 0.2s ease, font-size 0.2s ease;
-      }
-      .hw-lyrics-line.active {
-        color: var(--accent-dark);
-        font-weight: 700;
-        font-size: 0.92rem;
-      }
-      .hw-lyrics-empty {
-        margin: auto;
-        text-align: center;
-        color: var(--secondary-text);
-        font-size: 0.82rem;
-        padding: 6px;
-      }
-      .hw-progress-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
-      }
-      .hw-time {
-        font-size: 0.74rem;
-        color: var(--secondary-text);
-        font-weight: 500;
-        min-width: 34px;
-      }
-      .hw-time.hw-dur { text-align: right; }
-      .hw-progress {
-        flex: 1;
-        -webkit-appearance: none;
-        appearance: none;
-        height: 4px;
-        background: var(--dot-normal);
-        border-radius: 2px;
-        outline: none;
-        cursor: pointer;
-        border: none !important;
-      }
-      .hw-progress::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--accent);
-        border: none;
-        cursor: pointer;
-        box-shadow: none;
-      }
-      .hw-progress::-moz-range-thumb {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--accent);
-        border: none;
-        cursor: pointer;
-      }
-      .hw-controls {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-      .hw-btn {
-        border: none !important;
-        background: transparent !important;
-        color: var(--text-main);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s ease;
-        position: relative;
-        border-radius: 4px;
-        padding: 4px;
-      }
-      .hw-btn:hover {
-        background: rgba(0, 0, 0, 0.04) !important;
-      }
-      body.dark .hw-btn:hover {
-        background: rgba(255, 255, 255, 0.06) !important;
-      }
-      .hw-btn svg { display: block; }
-      .hw-play {
-        width: 46px;
-        height: 38px;
-        border-radius: 4px;
-        background: var(--accent) !important;
-        color: #fff !important;
-        box-shadow: none !important;
-        transform: none !important;
-      }
-      .hw-play:hover {
-        background: var(--accent-dark) !important;
-        transform: none !important;
-      }
-      .hw-like.active { color: #e0245e !important; }
-      .hw-repeat.active,
-      .hw-lyrics-toggle.active { color: var(--accent) !important; }
-      .hw-repeat-badge {
-        position: absolute;
-        bottom: -2px;
-        right: -2px;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--accent-dark);
-        color: #fff;
-        font-size: 8px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1.5px solid var(--paper);
-        line-height: 1;
-      }
-      .hw-btn:active { transform: scale(0.92); }
-
-      .hw-playlist {
-        position: relative;
-        width: min(100%, 400px);
-        margin: 14px auto 6px;
-        padding: 14px 14px 10px;
-        background: var(--paper);
-        border: 1px solid var(--border);
-        border-radius: 0;
-        box-shadow: none;
-        transform: none !important;
-        font-family: var(--font-family);
-        overflow: hidden;
-      }
-      .hw-playlist:hover {
-        transform: none !important;
-        box-shadow: none !important;
-      }
-      .hw-pl-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 8px;
-      }
-      .hw-pl-cover {
-        width: 68px;
-        height: 68px;
-        flex: 0 0 68px;
-        border: 1px solid var(--border);
-        border-radius: 0;
-        box-shadow: none;
-        overflow: hidden;
-        background: var(--bg-player);
-      }
-      .hw-pl-meta {
-        flex: 1;
-        min-width: 0;
-      }
-      .hw-pl-title {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .hw-pl-artist {
-        font-size: 0.8rem;
-        color: var(--secondary-text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-top: 1px;
-      }
-      .hw-pl-count {
-        font-size: 0.7rem;
-        color: var(--secondary-text);
-        margin-top: 2px;
-      }
-      .hw-pl-view-lyrics {
-        display: none;
-        flex-direction: column;
-        height: 140px;
-        margin-bottom: 8px;
-        border: 1px dashed var(--border);
-        border-radius: 0;
-        background: var(--bg-player);
-        padding: 6px 4px;
-      }
-      .hw-playlist.lyrics-mode .hw-pl-view-normal { display: none; }
-      .hw-playlist.lyrics-mode .hw-pl-view-lyrics { display: flex; }
-      .hw-pl-progress-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
-      }
-      .hw-pl-controls {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-      .hw-pl-list {
-        max-height: 200px;
-        overflow-y: auto;
-        border-top: 1px solid var(--border-light);
-        padding-top: 6px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      .hw-pl-list::-webkit-scrollbar { display: none; width: 0; height: 0; }
-      .hw-pl-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 2px;
-        border-radius: 0;
-        cursor: pointer;
-        transition: background 0.15s ease;
-      }
-      .hw-pl-row:hover {
-        background: rgba(0, 0, 0, 0.02);
-      }
-      body.dark .hw-pl-row:hover {
-        background: rgba(255, 255, 255, 0.02);
-      }
-      .hw-pl-row.playing {
-        background: rgba(29, 155, 240, 0.08);
-      }
-      .hw-pl-row-idx {
-        width: 16px;
-        text-align: center;
-        font-size: 0.68rem;
-        color: var(--secondary-text);
-        flex: 0 0 16px;
-      }
-      .hw-pl-row.playing .hw-pl-row-idx {
-        color: var(--accent);
-      }
-      .hw-pl-row-thumb {
-        width: 30px;
-        height: 30px;
-        flex: 0 0 30px;
-        border-radius: 0;
-        border: 1px solid var(--border);
-        overflow: hidden;
-        background: var(--bg-player);
-      }
-      .hw-pl-row-thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .hw-pl-row-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .hw-pl-row-title {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .hw-pl-row-artist {
-        font-size: 0.68rem;
-        color: var(--secondary-text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .hw-pl-row-playicon {
-        flex: 0 0 14px;
-        text-align: center;
-        color: var(--accent);
-        opacity: 0;
-      }
-      .hw-pl-row.playing .hw-pl-row-playicon {
-        opacity: 1;
-      }
-      .hw-pl-loading,
-      .hw-pl-error {
-        text-align: center;
-        padding: 16px 8px;
-        color: var(--secondary-text);
-        font-size: 0.82rem;
-      }
-      .hw-music-sheet-backdrop,
-      .hw-music-sheet {
-        display: none !important;
-      }
-      @media (max-width: 480px) {
-        .hw-player { width: 100%; padding: 10px 10px 8px; }
-        .hw-disc-wrap, .hw-cover { width: 64px; height: 64px; flex-basis: 64px; }
-        .hw-title { font-size: 0.95rem; }
-        .hw-controls { gap: 6px; }
-        .hw-play { width: 40px; height: 34px; }
-        .hw-view-lyrics { height: 110px; }
-        .hw-playlist { width: 100%; padding: 10px 10px 8px; }
-        .hw-pl-cover { width: 54px; height: 54px; flex-basis: 54px; }
-        .hw-pl-list { max-height: 160px; }
-        .hw-pl-view-lyrics { height: 110px; }
-      }
-      .load-more-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: transparent;
-        border: 1px solid var(--border-light);
-        border-radius: 20px;
-        padding: 6px 18px;
-        font-size: 0.9rem;
-        color: var(--text-main);
-        cursor: pointer;
-        transition: background 0.2s;
-        font-family: inherit;
-      }
-      .load-more-btn:hover {
-        background: var(--border-light);
-      }
-      body.modal-open {
-        overflow: hidden;
-      }
-
-      /* 暗色：影视封面与说说图片同款压暗 */
-      body.dark .media-poster img,
-      body.dark .modal-body .media-poster img {
-        filter: brightness(0.7) !important;
-        transition: filter 0.3s ease;
-      }
-      
-      /* —— PC 端：看过/想看 一行6列，海报缩小 —— */
-@media (min-width: 1024px) {
-  .modal-body .media-grid {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 6px;
-    margin-top: 4px;
+     <title>小记 · 说说与光影</title>
+<meta name="description" content="个人说说与影视记录" />
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+     <style>
+  :root { color-scheme: light; }
+  [data-theme="dark"], [data-theme="sunset"] { color-scheme: dark; }
+  html { scroll-behavior: smooth; }
+  body { -webkit-tap-highlight-color: transparent; }
+
+  .top-glow {
+    background: linear-gradient(90deg,
+      oklch(65% .2 250) 0%, oklch(70% .18 330) 50%, oklch(72% .15 180) 100%);
   }
 
-  .modal-body .media-card {
-    border-radius: 4px;
-    border-width: 0.5px;
-  }
-  .modal-body .photo-grid {
-  grid-template-columns: repeat(6, 1fr);
-}
-
-  .modal-body .media-poster {
-    aspect-ratio: 2 / 3;
+  .memo-card { transition: transform .25s ease, box-shadow .25s ease; }
+  @media (hover: hover) {
+    .memo-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -14px rgb(0 0 0 / .18); }
   }
 
-  .modal-body .media-info {
-    padding: 4px 6px 6px;
-    gap: 1px;
+  /* ============ 图片墙（所有说说的图片，瀑布流） ============ */
+  .photo-grid { columns: 3; column-gap: 8px; }
+  @media (max-width: 640px) { .photo-grid { columns: 2; } }
+  .photo-item {
+    position: relative; border-radius: 12px; overflow: hidden;
+    margin-bottom: 8px; break-inside: avoid; display: block;
+    cursor: zoom-in; background: rgb(128 128 128 / .12);
   }
+  .photo-item img { width: 100%; height: auto; display: block; transition: transform .35s ease; }
+  @media (hover: hover) { .photo-item:hover img { transform: scale(1.03); } }
 
-  .modal-body .media-title-row {
-    font-size: 0.68rem;
-    font-weight: 600;
-    line-height: 1.3;
+  /* ============ Threads 风格横向图片条 ============ */
+  .strip-wrap { position: relative; }
+  .carousel-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
   }
+  .carousel-strip::-webkit-scrollbar { display: none; }
+  .carousel-strip.dragging { cursor: grabbing; }
+  .carousel-strip.dragging img { pointer-events: none; }
+  .strip-item {
+    flex-shrink: 0;
+    transition: transform .32s cubic-bezier(.34, 1.56, .64, 1);
+    transform-origin: center center;
+    will-change: transform;
+  }
+  .strip-item.pressed {
+    transform: scale(.94);
+    transition: transform .12s ease-out;
+  }
+  .strip-end { flex-shrink: 0; }
+  .strip-item img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    cursor: inherit;
+  }
+  @media (hover: hover) { .strip-item img:hover { filter: brightness(1.06); } }
+  .strip-count { position: absolute; top: 8px; right: 8px; z-index: 2; pointer-events: none; }
 
-  .modal-body .media-title-text {
-    min-width: 0;
+  /* ============ 灯箱：轨道滑动 + 挤压式切换 ============ */
+  #lightbox { backdrop-filter: blur(10px); }
+  #lbWrap {
+    position: absolute; inset: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    touch-action: pan-y;
+    cursor: grab;
+  }
+  #lbWrap.dragging { cursor: grabbing; }
+  #lbTrack { display: flex; height: 100%; will-change: transform; }
+  .lb-slide {
+    width: 100%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .lb-slide img {
+    max-width: 94vw; max-height: 86vh;
+    object-fit: contain;
+    border-radius: .75rem;
+    box-shadow: 0 25px 60px -15px rgb(0 0 0 / .6);
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+  }
+  .lb-exit img { animation: lbOut .42s cubic-bezier(.22,.61,.36,1) both; }
+  .lb-enter img { animation: lbIn .42s cubic-bezier(.22,.61,.36,1) both; }
+  @keyframes lbOut {
+    from { transform: scale(1); opacity: 1; }
+    to   { transform: scale(.86); opacity: .35; }
+  }
+  @keyframes lbIn {
+    from { transform: scale(1.06); opacity: .55; }
+    to   { transform: scale(1); opacity: 1; }
   }
 
-  .modal-body .media-date {
-    font-size: 0.58rem;
-    margin-left: 2px;
+  /* 骨架屏 */
+  .shimmer {
+    background: linear-gradient(90deg,
+      rgb(128 128 128 / .10) 25%, rgb(128 128 128 / .22) 37%, rgb(128 128 128 / .10) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+  }
+  @keyframes shimmer { 0% { background-position: 100% 0 } 100% { background-position: -100% 0 } }
+
+  /* 海报卡片 */
+  .poster-card { transition: transform .25s ease, box-shadow .25s ease; }
+  @media (hover: hover) {
+    .poster-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -16px rgb(0 0 0 / .35); }
+    .poster-card:hover .poster-overlay { opacity: 1; }
+  }
+  .poster-overlay { opacity: 0; transition: opacity .25s ease; }
+
+  .fade-up { animation: fadeUp .45s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+
+  .memo-text { word-break: break-word; overflow-wrap: anywhere; }
+  .memo-text a { color: oklch(60% .18 250); text-decoration: underline; text-underline-offset: 3px; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgb(128 128 128 / .3); border-radius: 8px; }
+
+  /* ============ 音乐抽屉（右侧滑出播放器） ============ */
+  .music-drawer-overlay {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgb(0 0 0 / .35);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  .music-drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .music-drawer {
+    --paper: var(--color-base-100);
+    --bg: var(--color-base-100);
+    --border: var(--color-base-300);
+    --border-light: var(--color-base-300);
+    --text: var(--color-base-content);
+    --text-main: var(--color-base-content);
+    --secondary-text: color-mix(in oklch, var(--color-base-content) 55%, transparent);
+    --text-muted: var(--secondary-text);
+    --accent: var(--color-primary);
+    --accent-color: var(--color-primary);
+    --accent-dark: color-mix(in oklch, var(--color-primary) 82%, black);
+    --bg-player: var(--color-base-200);
+    --dot-normal: var(--color-base-300);
+    --img-brightness: 1;
+
+    position: fixed; top: 0; right: 0;
+    height: 100%; height: 100dvh;
+    width: 85%; max-width: 400px; z-index: 70;
+    background: var(--bg); color: var(--text);
+    border-left: 1px solid var(--border-light);
+    box-shadow: -4px 0 24px rgb(0 0 0 / .12);
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+    display: flex; flex-direction: column;
+    padding: calc(16px + env(safe-area-inset-top, 0px)) 12px calc(20px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+  .music-drawer.open { transform: translateX(0); }
+  html:is([data-theme="dark"], [data-theme="sunset"]) .music-drawer {
+    --img-brightness: .7;
+    box-shadow: -4px 0 24px rgb(0 0 0 / .5);
   }
 
-  .modal-body .media-sub-row {
-    font-size: 0.58rem;
-    gap: 4px;
+  .music-drawer .drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex: 0 0 auto; margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
   }
-
-  .modal-body .media-rating {
-    font-size: 0.58rem;
+  .music-drawer .drawer-title { font-size: 1rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .music-drawer .drawer-close {
+    appearance: none; background: transparent; border: none;
+    font-size: 1.4rem; line-height: 1; cursor: pointer;
+    color: var(--text-muted); padding: 0 4px; transition: color .2s;
+    display: inline-flex; align-items: center;
   }
+  .music-drawer .drawer-close:hover { color: var(--text); }
+  .music-drawer .drawer-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .music-drawer .hw-playlist-mount { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 
-  .modal-body .media-genres {
-    font-size: 0.52rem;
-    gap: 2px;
+  /* —— 播放器组件（迁移自参考站 HWPlayer） —— */
+  .music-drawer .hw-playlist {
+    position: relative; width: 100%; height: 100%;
+    margin: 0; padding: 0;
+    background: transparent; border: none; box-shadow: none;
+    overflow: visible; display: flex; flex-direction: column;
   }
-
-  .modal-body .media-genres span {
-    padding: 0 4px;
-    line-height: 1.4;
-    border-radius: 2px;
-  }
-
-  .modal-body .media-icon-btn {
-    font-size: 0.75rem;
+  .music-drawer .hw-pl-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 4px 0 6px; flex: 0 0 auto; }
+  .music-drawer .hw-pl-cover { width: 64px; height: 64px; flex: 0 0 64px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg-player); }
+  .music-drawer .hw-pl-meta { flex: 1; min-width: 0; }
+  .music-drawer .hw-pl-title { font-size: .95rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .music-drawer .hw-pl-artist { font-size: .82rem; color: var(--secondary-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .music-drawer .hw-pl-count { font-size: .72rem; color: var(--secondary-text); margin-top: 2px; }
+  .music-drawer .hw-pl-view-lyrics {
+    display: none; flex-direction: column;
+    height: 100px; min-height: 50px; margin-bottom: 6px;
+    background: var(--bg-player); padding: 6px 4px;
+    border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);
     flex: 0 0 auto;
-    opacity: 0.7;
+  }
+  .music-drawer .hw-playlist.lyrics-mode .hw-pl-view-normal { display: none; }
+  .music-drawer .hw-playlist.lyrics-mode .hw-pl-view-lyrics { display: flex; }
+  .music-drawer .hw-lyrics-scroll-full { flex: 1; overflow-y: auto; padding: 4px 6px; scrollbar-width: none; -ms-overflow-style: none; }
+  .music-drawer .hw-lyrics-scroll-full::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  .music-drawer .hw-lyrics-line { color: var(--secondary-text); padding: 2px 4px; text-align: center; font-size: .8rem; line-height: 1.6; transition: color .2s, font-size .2s; }
+  .music-drawer .hw-lyrics-line.active { color: var(--accent); font-weight: 700; font-size: .9rem; }
+  .music-drawer .hw-lyrics-empty { margin: auto; text-align: center; color: var(--secondary-text); font-size: .82rem; padding: 6px; }
+  .music-drawer .hw-pl-progress-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex: 0 0 auto; }
+  .music-drawer .hw-time { font-size: .72rem; color: var(--secondary-text); font-weight: 500; min-width: 32px; }
+  .music-drawer .hw-time.hw-pl-dur { text-align: right; }
+  .music-drawer .hw-progress {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 4px; background: var(--dot-normal); border: none; border-radius: 2px;
+    outline: none; cursor: pointer;
+  }
+  .music-drawer .hw-progress::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
+  .music-drawer .hw-progress::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
+  .music-drawer .hw-pl-controls { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
+  .music-drawer .hw-btn {
+    border: none; background: transparent; color: var(--text);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .15s ease; position: relative;
+    border-radius: 6px; padding: 4px;
+    width: 34px; height: 30px;
+  }
+  .music-drawer .hw-btn:hover { background: rgb(128 128 128 / .12); }
+  .music-drawer .hw-btn:active { transform: scale(.92); }
+  .music-drawer .hw-btn svg { display: block; }
+  .music-drawer .hw-play { width: 34px; height: 30px; border-radius: 6px; background: var(--accent); color: var(--color-primary-content, #fff); }
+  .music-drawer .hw-play:hover { background: var(--accent-dark); }
+  .music-drawer .hw-pl-shuffle, .music-drawer .hw-pl-repeat, .music-drawer .hw-pl-lyrics-toggle { color: var(--text-muted); }
+  .music-drawer .hw-pl-shuffle.active, .music-drawer .hw-pl-repeat.active, .music-drawer .hw-pl-lyrics-toggle.active { color: var(--accent); }
+  .music-drawer .hw-repeat-badge {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent); color: var(--color-primary-content, #fff);
+    font-size: 8px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .music-drawer .hw-pl-list {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    padding-top: 6px; margin-top: 4px;
+    border-top: 1px solid var(--border-light);
+    scrollbar-width: none; -ms-overflow-style: none; max-height: none;
+  }
+  .music-drawer .hw-pl-list::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  .music-drawer .hw-pl-row { display: flex; align-items: center; gap: 6px; padding: 5px 2px; border-radius: 6px; cursor: pointer; transition: background .15s ease; }
+  .music-drawer .hw-pl-row:hover { background: rgb(128 128 128 / .08); }
+  .music-drawer .hw-pl-row.playing { background: color-mix(in oklch, var(--accent) 12%, transparent); }
+  .music-drawer .hw-pl-row-idx { width: 16px; text-align: center; font-size: .68rem; color: var(--secondary-text); flex: 0 0 16px; }
+  .music-drawer .hw-pl-row.playing .hw-pl-row-idx { color: var(--accent); }
+  .music-drawer .hw-pl-row-thumb { width: 28px; height: 28px; flex: 0 0 28px; border-radius: 4px; border: 1px solid var(--border); overflow: hidden; background: var(--bg-player); }
+  .music-drawer .hw-pl-row-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .music-drawer .hw-pl-row-info { flex: 1; min-width: 0; }
+  .music-drawer .hw-pl-row-title { font-size: .8rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .music-drawer .hw-pl-row-artist { font-size: .68rem; color: var(--secondary-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .music-drawer .hw-pl-row-playicon { flex: 0 0 14px; text-align: center; color: var(--accent); opacity: 0; }
+  .music-drawer .hw-pl-row.playing .hw-pl-row-playicon { opacity: 1; }
+  .music-drawer .hw-pl-loading, .music-drawer .hw-pl-error { text-align: center; padding: 16px 8px; color: var(--secondary-text); font-size: .82rem; margin: auto; }
+  .music-drawer .hw-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(var(--img-brightness)); }
+
+  @media (max-width: 640px) {
+    .music-drawer { width: 88%; }
+  }
+  @media (max-width: 400px) {
+    .music-drawer { width: 92%; }
+  }
+</style>
+</head>
+<body class="min-h-screen bg-base-200/60 text-base-content">
+
+<div class="top-glow h-1 w-full"></div>
+
+<!-- ======================= 头部 ======================= -->
+<header class="sticky top-0 z-30 backdrop-blur-xl bg-base-100/75 border-b border-base-300/60">
+  <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary via-secondary to-accent grid place-items-center text-primary-content text-sm font-bold shadow-md shrink-0">记</div>
+      <div class="min-w-0">
+        <h1 class="font-bold leading-none text-[15px] truncate">小记</h1>
+        <p class="text-[11px] opacity-50 leading-tight mt-0.5">说说 · 光影 · 日常</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <div id="sourceBadge" class="badge badge-sm badge-ghost gap-1.5 hidden sm:inline-flex mr-1">
+        <span id="sourceDot" class="w-1.5 h-1.5 rounded-full bg-warning inline-block"></span>
+        <span id="sourceText">连接中…</span>
+      </div>
+
+      <button id="musicBtn" class="btn btn-ghost btn-sm btn-circle relative" aria-label="音乐">
+        <span class="iconify text-xl" data-icon="mdi:music-note-outline"></span>
+        <span id="musicDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-success animate-pulse"></span>
+      </button>
+
+      <div class="dropdown dropdown-end">
+        <button tabindex="0" class="btn btn-ghost btn-sm btn-circle" aria-label="选择主题配色">
+          <span class="iconify text-xl" data-icon="mdi:palette-outline"></span>
+        </button>
+        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-2xl z-50 w-40 p-2 shadow-xl border border-base-300 mt-2">
+          <li class="menu-title text-xs opacity-50">主题配色</li>
+          <li>
+            <a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-xl">
+              <span>默认</span><span class="pick-check text-primary">✓</span>
+            </a>
+          </li>
+          <li>
+            <a data-theme-pick="cupcake" class="theme-pick-item flex items-center justify-between rounded-xl">
+              <span>奶油粉彩</span><span class="pick-check text-primary hidden">✓</span>
+            </a>
+          </li>
+          <li>
+            <a data-theme-pick="sunset" class="theme-pick-item flex items-center justify-between rounded-xl">
+              <span>日落暖橘</span><span class="pick-check text-primary hidden">✓</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <button id="themeBtn" class="btn btn-ghost btn-sm btn-circle" aria-label="切换明暗">
+        <span id="iconSun" class="iconify text-xl" data-icon="mdi:white-balance-sunny"></span>
+        <span id="iconMoon" class="iconify text-xl hidden" data-icon="mdi:moon-waning-crescent"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-2xl mx-auto px-3 sm:px-4 pb-24">
+
+  <div class="pt-5 pb-2">
+    <div role="tablist" class="tabs tabs-boxed bg-base-100 shadow-sm w-full grid grid-cols-4 rounded-2xl p-1">
+      <button role="tab" data-view="say" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:chat-processing-outline"></span>说说</button>
+      <button role="tab" data-view="photos" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:image-multiple-outline"></span>图片</button>
+      <button role="tab" data-view="watched" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:movie-open-check-outline"></span>看过</button>
+      <button role="tab" data-view="watchlist" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:star-outline"></span>想看</button>
+    </div>
+  </div>
+
+  <div id="mockBanner" class="hidden mt-2 alert alert-warning alert-soft text-xs py-2 rounded-xl">
+    <span class="iconify text-base shrink-0" data-icon="mdi:information-outline"></span>
+    <span>本地预览模式 · 使用 Mock 数据，部署到 <code class="font-mono">note.199105.xyz</code> 后自动切换生产数据。可用 <code class="font-mono">?mode=api</code> / <code class="font-mono">?mode=mock</code> 强制指定。</span>
+  </div>
+
+  <div id="tagBar" class="mt-3">
+    <div id="tagChips" class="flex flex-wrap gap-2"></div>
+    <div id="tagFilterHint" class="hidden mt-2 flex items-center gap-2 text-xs opacity-70">
+      <span>已选标签（交集筛选）</span>
+      <button id="clearTagsBtn" class="btn btn-xs btn-ghost rounded-full"><span class="iconify" data-icon="mdi:close"></span>清空</button>
+    </div>
+  </div>
+
+  <div id="content" class="mt-4 flex flex-col gap-4"></div>
+
+  <div id="sentinel" class="py-6 text-center">
+    <span id="loadingMore" class="loading loading-dots loading-md opacity-60 hidden"></span>
+    <p id="endHint" class="text-xs opacity-40 hidden">— 到底啦 —</p>
+  </div>
+
+  <div id="mediaPager" class="hidden mt-6 flex justify-center">
+    <div class="join shadow-sm" id="pagerBtns"></div>
+  </div>
+
+</main>
+
+<button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
+  <span class="iconify text-xl" data-icon="mdi:arrow-up"></span>
+</button>
+
+<!-- ======================= 灯箱（轨道滑动式） ======================= -->
+<div id="lightbox" class="fixed inset-0 z-50 hidden bg-black/85">
+  <div id="lbWrap">
+    <div id="lbTrack"></div>
+  </div>
+  <button class="btn btn-circle btn-sm absolute top-4 right-4 z-10 bg-white/10 border-none text-white hover:bg-white/25" onclick="closeLightbox()" aria-label="关闭"><span class="iconify text-lg" data-icon="mdi:close"></span></button>
+  <button id="lbPrev" class="btn btn-circle btn-sm absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 border-none text-white hover:bg-white/25" aria-label="上一张"><span class="iconify text-2xl" data-icon="mdi:chevron-left"></span></button>
+  <button id="lbNext" class="btn btn-circle btn-sm absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-10 bg-white/10 border-none text-white hover:bg-white/25" aria-label="下一张"><span class="iconify text-2xl" data-icon="mdi:chevron-right"></span></button>
+  <p id="lbCounter" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-xs z-10"></p>
+</div>
+
+<!-- ======================= 音乐抽屉（右侧滑出） ======================= -->
+<div id="musicDrawerOverlay" class="music-drawer-overlay"></div>
+<aside id="musicDrawer" class="music-drawer" role="dialog" aria-label="音乐播放器">
+  <div class="drawer-header">
+    <span class="drawer-title">
+      <span class="iconify text-lg" data-icon="mdi:playlist-music-outline"></span>
+      歌单
+    </span>
+    <button class="drawer-close" id="musicDrawerClose" aria-label="关闭播放器">
+      <span class="iconify" data-icon="mdi:close"></span>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div class="hw-playlist-mount" id="musicDrawerMount" data-hw-list-id="9127652363"></div>
+  </div>
+</aside>
+
+<script>
+/* ============================================================
+   配置 & 环境检测
+============================================================ */
+const PROD_HOST = 'note.199105.xyz';
+const API_BASE  = '/api/public-memos';
+const PAGE_SIZE = 12;
+
+const qs = new URLSearchParams(location.search);
+const forcedMode = qs.get('mode');
+const hostIsProd = location.hostname === PROD_HOST || location.hostname === 'www.' + PROD_HOST;
+const USE_MOCK = forcedMode ? forcedMode === 'mock' : !hostIsProd;
+
+/* ============================================================
+   TMDB 题材映射（电影/剧集各自的题材集合，用于类型联动）
+============================================================ */
+const GENRE_MAP = {
+  28:'动作', 12:'冒险', 16:'动画', 35:'喜剧', 80:'犯罪', 99:'纪录片', 18:'剧情',
+  10751:'家庭', 14:'奇幻', 36:'历史', 27:'恐怖', 10402:'音乐', 9648:'悬疑',
+  10749:'爱情', 878:'科幻', 10770:'电视电影', 53:'惊悚', 10752:'战争', 37:'西部',
+  10759:'动作冒险', 10762:'儿童', 10763:'新闻', 10764:'真人秀', 10765:'科幻奇幻',
+  10766:'肥皂剧', 10767:'脱口秀', 10768:'战争政治',
+};
+const MOVIE_GENRES = new Set([28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37]);
+const TV_GENRES    = new Set([10759,16,35,80,99,18,10751,10762,9648,10763,10764,10765,10766,10767,10768,37]);
+
+/* 上映年代区间（多选 OR） */
+const RELEASE_RANGES = [
+  { id: '90s',  name: '90年代', test: y => y >= 1990 && y < 2000 },
+  { id: '00s',  name: '00年代', test: y => y >= 2000 && y < 2010 },
+  { id: '10s',  name: '10年代', test: y => y >= 2010 && y < 2020 },
+  { id: '20s',  name: '20年代', test: y => y >= 2020 },
+];
+
+/* ============================================================
+   Mock 数据
+============================================================ */
+const MOCK_TAGS = {
+  tag_daily:  '日常',
+  tag_dev:    '折腾',
+  tag_photo:  '随手拍',
+  tag_food:   '吃喝',
+  tag_read:   '读书',
+  tag_music:  '音乐',
+};
+
+function mockImg(seed, w = 800, h = 600) { return `https://picsum.photos/seed/${seed}/${w}/${h}`; }
+
+const MOCK_MEMOS = (() => {
+  const now = Date.now();
+  const day = 864e5;
+  const items = [
+    { d: 0.1, tags: ['tag_daily','tag_photo'], c: `傍晚在江边散步，风很大，云烧起来了。\n\n![晚霞](${mockImg('sunset1')})\n![](${mockImg('sunset2')})` },
+    { d: 0.5, tags: ['tag_dev'], c: '把说说页的 Worker 又重构了一遍，标签筛选改成 SINTER 反索引取交集，速度快了不少。\n代码这东西，就是越写越顺手，也越写越觉得以前写的是💩。' },
+    { d: 1,   tags: ['tag_photo'], c: `周末扫街收获。\n\n![](${mockImg('street1')})\n![](${mockImg('street2')})\n![](${mockImg('street3')})` },
+    { d: 1.4, tags: ['tag_food'], c: `楼下的热干面加蛋酒，武汉人的一天从这开始。\n\n![热干面](${mockImg('noodle')})` },
+    { d: 2,   tags: ['tag_read'], c: '读完《东京八平米》。\n\n原来一个人需要的空间可以这么小，而生活可以这么大。作者说：你的小不是问题，外面的世界足够大。\n\n推荐给所有在大城市里觉得逼仄的人。' },
+    { d: 3,   tags: ['tag_dev','tag_daily'], c: 'Cloudflare Pages + Workers + Upstash Redis 这套组合真的太适合个人项目了：\n\n- 全部免费额度内\n- 全球访问都不慢\n- 不用维护服务器\n\n我的整个小站生态现在都跑在这上面。' },
+    { d: 4,   tags: ['tag_music'], c: '循环了一整晚《成都》的钢琴版。\n有些旋律就是适合下雨天，适合什么都不做。' },
+    { d: 5,   tags: ['tag_photo','tag_daily'], c: `小区的猫又胖了。\n\n![](${mockImg('cat1', 800, 800)})` },
+    { d: 6,   tags: ['tag_dev'], c: `给 Kindle 刷了 KOReader，折腾了一晚上排版和字体。\n方正屏显雅宋 + 合适的行距，阅读体验直接上了一个台阶。\n\n![](${mockImg('kindle')})\n![](${mockImg('koreader')})` },
+    { d: 8,   tags: ['tag_daily'], c: '今天什么都没干，但休息得很好。\n这不算浪费时间，这叫充电。' },
+    { d: 9,   tags: ['tag_food','tag_photo'], c: `自己在家做了一顿像模像样的饭。\n\n![](${mockImg('food1')})\n![](${mockImg('food2')})\n![](${mockImg('food3')})\n![](${mockImg('food4')})` },
+    { d: 11,  tags: ['tag_read'], c: '《夜晚的潜水艇》里那句：「我一度拥有过才华，但这才华太过强盛，我没办法用它来成就现实中任何一种事业。」\n\n深夜读到，愣了很久。' },
+    { d: 13,  tags: ['tag_dev'], c: 'docker compose up -d 之后看到一排 green 的 done，是运维人最简单的快乐。' },
+    { d: 15,  tags: ['tag_music','tag_photo'], c: `新整理的歌单封面。\n\n![](${mockImg('playlist', 800, 800)})` },
+    { d: 17,  tags: ['tag_daily'], c: '立秋了，武汉的夏天却还在负隅顽抗。\n空调外机嗡嗡响，像这个夏天不肯退场的背景音乐。' },
+    { d: 19,  tags: ['tag_dev','tag_photo'], c: `新桌搭完成度 80%。\n\n![](${mockImg('desk1')})\n![](${mockImg('desk2')})` },
+    { d: 22,  tags: ['tag_read'], c: '开始读《局外人》。开头第一句就把人钉住了：「今天，妈妈死了。也许是昨天，我不知道。」' },
+    { d: 25,  tags: ['tag_food'], c: '深夜一碗加了午餐肉和溏心蛋的泡面，是对抗世界的最后堡垒。' },
+    { d: 28,  tags: ['tag_daily','tag_photo'], c: `雨后的街道，积水里是颠倒的城市。\n\n![](${mockImg('rain1')})\n![](${mockImg('rain2')})\n![](${mockImg('rain3')})\n![](${mockImg('rain4')})\n![](${mockImg('rain5')})` },
+    { d: 31,  tags: ['tag_music'], c: '万青的《杀死那个石家庄人》，每次听到「如此生活三十年，直到大厦崩塌」还是会起鸡皮疙瘩。' },
+    { d: 34,  tags: ['tag_dev'], c: '把 RSS 订阅重新理了一遍，砍掉了 40 多个不再更新的源。\n信息断舍离和房间断舍离一样爽。' },
+    { d: 38,  tags: ['tag_daily'], c: '外婆打电话来，说了四十分钟，核心思想是让我按时吃饭。\n好的，按时吃饭。' },
+    { d: 42,  tags: ['tag_photo'], c: `凌晨五点的日出。值得早起一次。\n\n![日出](${mockImg('sunrise', 1200, 800)})` },
+    { d: 46,  tags: ['tag_read','tag_daily'], c: '书读到一半，突然不想读完，好像读完就要和书里的世界告别。\n你们会有这种感觉吗？' },
+    { d: 50,  tags: ['tag_dev'], c: 'Tailwind + daisyUI 写页面是真的快，组件语义化，主题一行切换。\n这个说说页就是用它重写的。' },
+  ];
+  return items.map((it, i) => {
+    const ts = new Date(now - it.d * day);
+    const pad = n => String(n).padStart(2, '0');
+    const rawDate = `${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())} ${pad(ts.getHours())}:${pad(ts.getMinutes())}:00`;
+    return { id: 'mock_memo_' + i, type: 'memo', rawDate, date: rawDate.split(' ')[0], content: it.c, tags: it.tags };
+  });
+})();
+
+const MOCK_MEDIA = (() => {
+  // [标题, 原名, 类型, 上映日期, 评分, 几天前加入, 题材id数组]
+  const watched = [
+    ['流浪地球2','The Wandering Earth II','movie','2023-01-22',7.9,580,[878,12,18]],
+    ['长安三万里','Chang An','movie','2023-07-08',8.2,540,[16,36,18]],
+    ['漫长的季节','The Long Season','tv','2023-04-22',9.4,520,[18,9648,80]],
+    ['奥本海默','Oppenheimer','movie','2023-07-21',8.8,480,[18,36,53]],
+    ['蜘蛛侠：纵横宇宙','Spider-Man: Across the Spider-Verse','movie','2023-06-02',8.6,450,[16,28,12,878]],
+    ['繁花','Blossoms Shanghai','tv','2023-12-27',8.1,430,[18]],
+    ['沙丘2','Dune: Part Two','movie','2024-03-08',8.2,400,[878,12]],
+    ['周处除三害','The Pig, the Snake, and the Pigeon','movie','2023-10-06',8.1,380,[28,80,53]],
+    ['我的阿勒泰','To the Wonder','tv','2024-05-07',8.9,350,[18]],
+    ['头脑特工队2','Inside Out 2','movie','2024-06-14',8.4,300,[16,35,10751]],
+    ['庆余年 第二季','Joy of Life 2','tv','2024-05-16',7.2,280,[18,10759]],
+    ['你想活出怎样的人生','The Boy and the Heron','movie','2023-07-14',7.5,250,[16,14,18]],
+    ['年会不能停！','Johnny Keep Walking!','movie','2023-12-29',8.1,220,[35,18]],
+    ['哥斯拉-1.0','Godzilla Minus One','movie','2023-11-03',7.8,190,[878,28,27]],
+    ['异形：夺命舰','Alien: Romulus','movie','2024-08-16',7.4,160,[878,27,53]],
+    ['边水往事','Escape from the Trilateral Slopes','tv','2024-08-16',7.9,120,[80,18,9648]],
+    ['抓娃娃','Successor','movie','2024-07-16',7.1,90,[35,18]],
+    ['热辣滚烫','YOLO','movie','2024-02-10',6.8,60,[35,18]],
+    ['飞驰人生2','Pegasus 2','movie','2024-02-10',7.6,40,[35,28,18]],
+    ['死侍与金刚狼','Deadpool & Wolverine','movie','2024-07-26',7.0,20,[28,35,878]],
+  ];
+  const watchlist = [
+    ['哪吒之魔童闹海','Ne Zha 2','movie','2025-01-29',8.4,10,[16,28,14]],
+    ['破·地狱','The Last Dance','movie','2024-11-09',8.4,9,[18]],
+    ['因果报应','Maharaja','movie','2024-06-14',8.6,8,[53,80,18]],
+    ['蓦然回首','Look Back','movie','2024-06-28',8.2,7,[16,18]],
+    ['九龙城寨之围城','Twilight of the Warriors: Walled In','movie','2024-05-01',7.3,6,[28,80]],
+    ['姥姥的外孙','How to Make Millions Before Grandma Dies','movie','2024-04-04',8.8,5,[18,35]],
+    ['机器人之梦','Robot Dreams','movie','2023-05-20',9.0,4,[16,18]],
+    ['怪物','Monster','movie','2023-06-02',8.6,3,[18,9648]],
+    ['完美的日子','Perfect Days','movie','2023-05-25',8.5,2,[18]],
+    ['坠落的审判','Anatomy of a Fall','movie','2023-05-21',8.7,1,[18,53,9648]],
+  ];
+  const mk = ([title, orig, mt, rd, va, daysAgo, gids], status, i) => {
+    const ts = Math.floor((Date.now() - daysAgo * 864e5) / 1000);
+    const d = new Date(ts * 1000).toISOString().replace('T',' ').substring(0,19);
+    return {
+      type: 'media', status, media_type: mt, rawDate: d, date: d.split(' ')[0],
+      title, original_title: orig,
+      poster_path: `https://picsum.photos/seed/${status}${i}/400/600`,
+      release_date: rd, vote_average: va.toFixed(1),
+      douban_url: `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(title)}`,
+      genre_ids: gids || [],
+    };
+  };
+  return {
+    watched: watched.map((m, i) => mk(m, 'watched', i)),
+    watchlist: watchlist.map((m, i) => mk(m, 'watchlist', i)),
+  };
+})();
+
+/* ============================================================
+   工具函数
+============================================================ */
+const $ = sel => document.querySelector(sel);
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function relativeTime(rawDate) {
+  const t = new Date(String(rawDate).replace(' ', 'T')).getTime();
+  if (!Number.isFinite(t)) return rawDate || '';
+  const diff = Date.now() - t;
+  const m = 6e4, h = 36e5, d = 864e5;
+  if (diff < m) return '刚刚';
+  if (diff < h) return Math.floor(diff / m) + ' 分钟前';
+  if (diff < d) return Math.floor(diff / h) + ' 小时前';
+  if (diff < 7 * d) return Math.floor(diff / d) + ' 天前';
+  return String(rawDate).split(' ')[0];
+}
+
+function fmtDate(rawDate) {
+  const s = String(rawDate || '');
+  return s.length >= 16 ? s.slice(0, 16) : s;
+}
+
+function parseContent(raw) {
+  const content = String(raw || '');
+  const images = [];
+  const imgRe = /!\[([^\]]*)\]\(\s*(https?:[^)\s]+?)\s*\)|(https?:\/\/[^\s<>"']+?\.(?:png|jpe?g|gif|webp|avif|bmp)(?:\?[^\s<>"']*)?)|<img[^>]+?src=["']([^"']+)["'][^>]*>/gi;
+  const text = content.replace(imgRe, (m, alt, mdUrl, bareUrl, htmlUrl) => {
+    const url = mdUrl || bareUrl || htmlUrl;
+    if (url) images.push({ url, alt: alt || '' });
+    return '\n';
+  });
+
+  let html = escapeHtml(text)
+    .replace(/(https?:\/\/[^\s&lt;&gt;"']+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+    .replace(/\n{2,}/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+
+  return { html, images };
+}
+
+const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
+function animateValue(from, to, duration, onUpdate, onDone) {
+  const start = performance.now();
+  let raf;
+  function frame(now) {
+    const p = Math.min((now - start) / duration, 1);
+    onUpdate(from + (to - from) * easeOutQuart(p));
+    if (p < 1) raf = requestAnimationFrame(frame);
+    else onDone && onDone();
+  }
+  raf = requestAnimationFrame(frame);
+  return () => cancelAnimationFrame(raf);
+}
+
+/* ============================================================
+   数据层
+============================================================ */
+async function fetchApi(params) {
+  const res = await fetch(API_BASE + '?' + params.toString(), { headers: { 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error(`请求失败 (${res.status})`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function fetchData({ view, page = 1, tags = [] }) {
+  if (!USE_MOCK) {
+    const params = new URLSearchParams({ view });
+    if (view === 'say') {
+      params.set('page', page);
+      if (tags.length) params.set('tags', tags.join(','));
+    }
+    return fetchApi(params);
   }
 
-  .modal-body .media-icon-btn:hover {
-    opacity: 1;
+  await sleep(300 + Math.random() * 400);
+
+  if (view === 'tags') {
+    const countMap = new Map();
+    MOCK_MEMOS.forEach(m => (m.tags || []).forEach(t => countMap.set(t, (countMap.get(t) || 0) + 1)));
+    const tagsArr = [...countMap.entries()]
+      .filter(([id]) => MOCK_TAGS[id])
+      .map(([id, count]) => ({ id, name: MOCK_TAGS[id], count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh-CN'));
+    return { data: tagsArr, total: tagsArr.length };
   }
 
-  .modal-body .media-type-badge {
-    font-size: 0.75rem;
+  if (view === 'say') {
+    let list = MOCK_MEMOS;
+    if (tags.length) list = list.filter(m => tags.every(t => (m.tags || []).includes(t)));
+    const total = list.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+    const p = Math.min(Math.max(1, page), totalPages);
+    return { data: list.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE), total, page: p, totalPages };
+  }
+
+  const list = MOCK_MEDIA[view] || [];
+  return { data: list, total: list.length, page: 1, totalPages: 1 };
+}
+
+/* ============================================================
+   灯箱：轨道滑动 + 挤压式切换
+============================================================ */
+const lbWrap  = $('#lbWrap');
+const lbTrack = $('#lbTrack');
+let lbImages = [], lbIndex = 0, lbJustSwiped = false;
+const LB_TRANSITION = 'transform .42s cubic-bezier(.22,.61,.36,1)';
+
+const lbW = () => lbWrap.clientWidth;
+
+function setTrack(animate) {
+  lbTrack.style.transition = animate ? LB_TRANSITION : 'none';
+  lbTrack.style.transform = `translateX(${-lbIndex * lbW()}px)`;
+  updateLbUI();
+}
+
+function updateLbUI() {
+  const total = lbImages.length;
+  $('#lbCounter').textContent = total > 1 ? `${lbIndex + 1} / ${total}` : '';
+  $('#lbPrev').style.display = $('#lbNext').style.display = total > 1 ? '' : 'none';
+  [lbIndex - 1, lbIndex + 1].forEach(i => {
+    if (i >= 0 && i < total) { const im = new Image(); im.src = lbImages[i]; }
+  });
+}
+
+function lbGo(index, animate = true) {
+  const prev = lbIndex;
+  lbIndex = Math.max(0, Math.min(index, lbImages.length - 1));
+  setTrack(animate);
+  if (animate && prev !== lbIndex) {
+    const slides = lbTrack.children;
+    const outEl = slides[prev], inEl = slides[lbIndex];
+    if (outEl) { outEl.classList.remove('lb-exit'); void outEl.offsetWidth; outEl.classList.add('lb-exit'); }
+    if (inEl)  { inEl.classList.remove('lb-enter'); void inEl.offsetWidth; inEl.classList.add('lb-enter'); }
+    setTimeout(() => {
+      outEl && outEl.classList.remove('lb-exit');
+      inEl && inEl.classList.remove('lb-enter');
+    }, 460);
   }
 }
 
-      /* ========== 标签 ========== */
-      .post-header {
-        flex-wrap: wrap;
-        row-gap: 4px;
+function openLightbox(images, index) {
+  lbImages = images;
+  lbIndex = index;
+  lbTrack.innerHTML = images.map(u =>
+    `<div class="lb-slide"><img src="${escapeHtml(u)}" draggable="false" alt="" /></div>`
+  ).join('');
+  $('#lightbox').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(() => setTrack(false));
+}
+
+function closeLightbox() {
+  $('#lightbox').classList.add('hidden');
+  lbTrack.innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+$('#lbPrev').onclick = e => { e.stopPropagation(); lbGo(lbIndex - 1); };
+$('#lbNext').onclick = e => { e.stopPropagation(); lbGo(lbIndex + 1); };
+
+lbWrap.addEventListener('click', e => {
+  if (lbJustSwiped) { lbJustSwiped = false; return; }
+  if (e.target === lbWrap || e.target.classList.contains('lb-slide')) closeLightbox();
+});
+
+/* 灯箱拖拽：无锁自愈状态机 */
+(function initLbDrag() {
+  let dragging = false;
+  let startX = 0, baseOffset = 0, curOffset = 0, moved = 0;
+  let samples = [];
+
+  const visualOffset = () => {
+    try {
+      const m = new DOMMatrixReadOnly(getComputedStyle(lbTrack).transform);
+      return Number.isFinite(m.m41) ? m.m41 : 0;
+    } catch { return -lbIndex * lbW(); }
+  };
+
+  lbWrap.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    if (!lbImages.length) return;
+    dragging = true;
+    moved = 0;
+    startX = e.clientX;
+    baseOffset = curOffset = visualOffset();
+    lbTrack.style.transition = 'none';
+    lbTrack.style.transform = `translateX(${baseOffset}px)`;
+    samples = [{ x: e.clientX, t: performance.now() }];
+    lbWrap.classList.add('dragging');
+    e.preventDefault();
+  });
+
+  addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    moved = Math.max(moved, Math.abs(dx));
+    const min = -(lbImages.length - 1) * lbW(), max = 0;
+    curOffset = baseOffset + dx;
+    if (curOffset > max) curOffset = max + (curOffset - max) / 3;
+    if (curOffset < min) curOffset = min + (curOffset - min) / 3;
+    lbTrack.style.transform = `translateX(${curOffset}px)`;
+    samples.push({ x: e.clientX, t: performance.now() });
+    if (samples.length > 6) samples.shift();
+    if (lbImages.length > 1) {
+      const near = Math.max(0, Math.min(Math.round(-curOffset / lbW()), lbImages.length - 1));
+      $('#lbCounter').textContent = `${near + 1} / ${lbImages.length}`;
+    }
+  });
+
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    lbWrap.classList.remove('dragging');
+
+    let v = 0;
+    if (samples.length >= 2) {
+      const a = samples[0], b = samples[samples.length - 1];
+      const dt = b.t - a.t;
+      if (dt > 0) v = (b.x - a.x) / dt;
+    }
+
+    const frac = -curOffset / lbW();
+    let target;
+    if (Math.abs(v) > 0.3) {
+      target = v < 0 ? Math.ceil(frac - 0.15) : Math.floor(frac + 0.15);
+    } else {
+      target = Math.round(frac);
+    }
+    target = Math.max(0, Math.min(target, lbImages.length - 1));
+
+    if (moved > 8) {
+      lbJustSwiped = true;
+      setTimeout(() => { lbJustSwiped = false; }, 400);
+    }
+    lbGo(target, true);
+  };
+  addEventListener('pointerup', endDrag);
+  addEventListener('pointercancel', endDrag);
+
+  addEventListener('resize', () => {
+    if (!$('#lightbox').classList.contains('hidden')) setTrack(false);
+  });
+})();
+
+document.addEventListener('keydown', e => {
+  if ($('#lightbox').classList.contains('hidden')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') lbGo(lbIndex - 1);
+  if (e.key === 'ArrowRight') lbGo(lbIndex + 1);
+});
+
+/* ============================================================
+   Threads 风格横向图片条
+============================================================ */
+function renderImages(images) {
+  if (!images.length) return '';
+  const urls = images.map(i => i.url);
+  const urlsJson = JSON.stringify(urls).replace(/"/g, '&quot;');
+
+  if (images.length === 1) {
+    const img = images[0];
+    return `
+    <div class="mt-3 rounded-xl overflow-hidden bg-base-300/50">
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
+           class="w-full max-h-[26rem] object-cover cursor-zoom-in"
+           onclick="openLightbox(${urlsJson}, 0)" />
+    </div>`;
+  }
+
+  const items = images.map((img, i) => `
+    <div class="strip-item rounded-xl overflow-hidden bg-base-300/50 w-[72%] sm:w-[58%] h-52 sm:h-64">
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
+           onclick="openLightbox(${urlsJson}, ${i})" />
+    </div>`).join('');
+
+  return `
+  <div class="strip-wrap mt-3">
+    <div class="carousel-strip">
+      ${items}
+      <div class="strip-end w-1"></div>
+    </div>
+    <span class="strip-count badge badge-sm bg-black/55 text-white border-none backdrop-blur-sm">1 / ${images.length}</span>
+  </div>`;
+}
+
+function initCarousels(root) {
+  root.querySelectorAll('.carousel-strip').forEach(strip => {
+    if (strip.dataset.carouselInit) return;
+    strip.dataset.carouselInit = '1';
+
+    const wrap = strip.closest('.strip-wrap');
+    const badge = wrap && wrap.querySelector('.strip-count');
+    const maxScroll = () => Math.max(0, strip.scrollWidth - strip.clientWidth);
+    const itemW = () => {
+      const first = strip.querySelector('.strip-item');
+      return first ? first.getBoundingClientRect().width + 8 : strip.clientWidth * 0.72;
+    };
+
+    if (badge) {
+      const update = () => {
+        const total = strip.querySelectorAll('.strip-item').length;
+        const i = strip.scrollLeft >= maxScroll() - 2
+          ? total - 1
+          : Math.round(strip.scrollLeft / itemW());
+        badge.textContent = `${Math.min(Math.max(i + 1, 1), total)} / ${total}`;
+      };
+      strip.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+    }
+
+    let down = false, startX = 0, startL = 0, moved = 0;
+    let samples = [];
+    let cancelGlide = null;
+    let pressedItem = null;
+
+    const releasePress = () => {
+      if (pressedItem) {
+        pressedItem.classList.remove('pressed');
+        pressedItem = null;
       }
-      .post-tag {
-        font-size: 0.72rem;
-        color: var(--text-muted);
-        background: var(--border-light);
-        padding: 0 8px;
-        line-height: 1.8;
-        border-radius: 4px;
-        margin-left: 6px;
-        cursor: default;
-        user-select: none;
-        transition: background 0.3s ease;
+    };
+
+    const glideTo = target => {
+      const to = Math.max(0, Math.min(target, maxScroll()));
+      const from = strip.scrollLeft;
+      const dist = Math.abs(to - from);
+      if (dist < 1) return;
+      if (cancelGlide) cancelGlide();
+      const duration = Math.min(200 + dist * 0.55, 550);
+      cancelGlide = animateValue(from, to, duration, v => { strip.scrollLeft = v; }, () => {
+        cancelGlide = null;
+      });
+    };
+
+    strip.addEventListener('pointerdown', e => {
+      pressedItem = e.target.closest('.strip-item');
+      if (pressedItem) pressedItem.classList.add('pressed');
+
+      if (e.pointerType === 'touch') return;
+      if (cancelGlide) { cancelGlide(); cancelGlide = null; }
+      down = true; moved = 0;
+      startX = e.clientX; startL = strip.scrollLeft;
+      samples = [{ x: e.clientX, t: performance.now() }];
+    });
+    strip.addEventListener('pointermove', e => {
+      if (!down) return;
+      const dx = e.clientX - startX;
+      moved = Math.max(moved, Math.abs(dx));
+      if (moved > 4) {
+        strip.classList.add('dragging');
+        try { strip.setPointerCapture(e.pointerId); } catch {}
       }
-
-      .tags-bar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 2px;
-        border-bottom: 1px solid var(--border-light);
+      strip.scrollLeft = startL - dx;
+      samples.push({ x: e.clientX, t: performance.now() });
+      if (samples.length > 6) samples.shift();
+    });
+    const up = () => {
+      releasePress();
+      if (!down) return;
+      down = false;
+      strip.classList.remove('dragging');
+      if (moved > 8) strip.dataset.justDragged = '1';
+      let v = 0;
+      if (samples.length >= 2) {
+        const a = samples[0], b = samples[samples.length - 1];
+        const dt = b.t - a.t;
+        if (dt > 0) v = (b.x - a.x) / dt;
       }
-      .tags-bar-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-weight: 500;
-        margin-right: 4px;
+      glideTo(strip.scrollLeft - v * 220);
+    };
+    strip.addEventListener('pointerup', up);
+    strip.addEventListener('pointercancel', up);
+    strip.addEventListener('pointerleave', up);
+    strip.addEventListener('click', e => {
+      if (strip.dataset.justDragged) {
+        delete strip.dataset.justDragged;
+        e.preventDefault();
+        e.stopPropagation();
       }
-      .tags-bar-label .iconify {
-        width: 1.1em;
-        height: 1.1em;
-      }
-      .tag-count {
-        margin-left: 5px;
-        font-size: 0.7rem;
-        opacity: 0.65;
-      }
-      .filter-btn.active .tag-count {
-        opacity: 0.9;
-      }
-      .tag-clear-btn {
-        color: var(--text-muted);
-        border-style: dashed;
-      }
-      .tag-clear-btn:hover {
-        color: var(--text-main);
-      }
+    }, true);
+  });
+}
 
-      /* 标签抽屉（移动端右侧滑出） */
-      .tag-overlay {
-        z-index: 10150;
-      }
-      .tag-drawer {
-        z-index: 10250;
-      }
-      .tag-drawer-body {
-        overflow-y: auto;
-        scrollbar-width: none;
-      }
-      .tag-drawer-body::-webkit-scrollbar {
-        display: none;
-      }
-      .tag-drawer-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 6px 2px;
-      }
-      .tag-drawer-actions {
-        margin-top: 18px;
-        padding-top: 12px;
-        border-top: 1px solid var(--border-light);
-      }
+/* ============================================================
+   渲染：说说
+============================================================ */
+let tagNameMap = new Map();
 
-      @media (max-width: 1023px) {
-        .tags-bar {
-          margin-top: calc(var(--avatar-size) / 2 + 10px);
-          padding: 10px 12px;
-        }
-        .main-wrapper.has-tags-bar {
-          padding-top: 14px;
-        }
-      }
+function tagChipHtml(id, { active = false, count = null } = {}) {
+  const name = tagNameMap.get(id) || id.replace(/^tag_/, '');
+  const base = 'btn btn-xs rounded-full transition-all tag-chip';
+  const cls = active ? base + ' btn-primary' : base + ' btn-ghost bg-base-100 border border-base-300';
+  const badge = count != null ? `<span class="badge badge-xs ${active ? 'badge-neutral' : 'badge-ghost'} ml-0.5">${count}</span>` : '';
+  return `<button class="${cls}" data-tag="${escapeHtml(id)}"># ${escapeHtml(name)}${badge}</button>`;
+}
 
-      /* 侧栏菜单当前项高亮 */
-      .top-nav-item.nav-active {
-        color: var(--accent-color);
-      }
-
-      /* ========== PC 双栏布局（左 3 右 7） ========== */
-      @media (min-width: 1024px) {
-        .app {
-          max-width: 1200px;
-        }
-        .app-shell {
-          display: flex;
-          align-items: stretch;
-        }
-        .side-col {
-          flex: 0 0 30%;
-          width: 30%;
-          min-width: 260px;
-          border-right: 1px solid var(--border-light);
-          position: sticky;
-          top: 0;
-          align-self: flex-start;
-          height: 100vh;
-          overflow-y: auto;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        .side-col::-webkit-scrollbar {
-          display: none;
-          width: 0;
-          height: 0;
-        }
-        .profile-header {
-          height: 200px;
-          min-height: 200px;
-        }
-        .top-nav {
-          position: static;
-          max-width: none;
-          height: auto;
-          margin: 0;
-          padding-top: calc(var(--avatar-size) / 2 + 18px);
-          padding-bottom: 28px;
-          flex-direction: column;
-          align-items: stretch;
-          justify-content: flex-start;
-          gap: 2px;
-          background: transparent;
-          border-bottom: none;
-        }
-        .top-nav-item {
-          flex: 0 0 auto;
-          flex-direction: row;
-          justify-content: flex-start;
-          align-items: center;
-          gap: 14px;
-          padding: 12px 28px;
-          font-size: 0.92rem;
-        }
-        .top-nav-icon,
-        .top-nav-item .iconify {
-          width: 1.5em;
-          height: 1.5em;
-        }
-        .top-nav-item .top-nav-icon svg {
-          width: 1.3em;
-          height: 1.3em;
-        }
-        .top-nav-item.playing-dot::after {
-          top: 12px;
-          right: auto;
-          left: 46px;
-        }
-        .nav-tags-btn {
-          display: none;
-        }
-        .main-col {
-          flex: 1 1 auto;
-          min-width: 0;
-        }
-        .main-wrapper {
-          padding: 0 28px;
-          padding-top: 0;
-        }
-        .tags-bar {
-          position: sticky;
-          top: 0;
-          z-index: 90;
-          background: var(--bg);
-          padding: 12px 28px;
-        }
-        /* 看过/想看/媒体：内嵌右栏（非全屏） */
-        .media-modal.inline {
-          position: static;
-          inset: auto;
-          z-index: auto;
-          overflow: visible;
-          background: transparent;
-        }
-        .media-modal.inline .modal-content {
-          height: auto;
-          max-height: none;
-          overflow: visible;
-        }
-        .media-modal.inline .modal-header {
-          padding: 16px 0 12px;
-          position: sticky;
-          top: 0;
-          z-index: 80;
-          background: var(--bg);
-        }
-        .media-modal.inline .modal-body {
-          overflow: visible;
-          padding: 6px 0 24px;
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="app" id="app">
-      <div class="app-shell">
-        <aside class="side-col">
-      <header class="profile-header">
-        <div class="profile-bg"></div>
-        <div class="profile-avatar">
-          <img src="./avatar.webp" alt="Avatar" />
-        </div>
-      </header>
-
-          <!-- 置顶/侧栏菜单 -->
-          <nav class="top-nav">
-            <button class="top-nav-item" :class="{ 'playing-dot': musicPlaying }" type="button" @click="onMenuMusic">
-              <span class="top-nav-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24">
-                  <path d="M0 0h24v24H0z" fill="none"/>
-                  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2">
-                    <circle cx="9" cy="18" r="3"/>
-                    <path d="M12 18V3m0 0l6 1v4l-6-1z"/>
-                  </g>
-                </svg>
-              </span>
-              <span class="top-nav-label">音乐</span>
-            </button>
-
-            <button class="top-nav-item" type="button" :class="{ 'nav-active': showModal && modalType === 'watched' }" @click="onMenuWatched">
-              <span class="top-nav-icon iconify" data-icon="mdi:movie-open-check-outline"></span>
-              <span class="top-nav-label">看过</span>
-            </button>
-
-            <button class="top-nav-item" type="button" :class="{ 'nav-active': showModal && modalType === 'watchlist' }" @click="onMenuWatchlist">
-              <span class="top-nav-icon iconify" data-icon="mdi:clock-plus-outline"></span>
-              <span class="top-nav-label">想看</span>
-            </button>
-
-            <button class="top-nav-item" type="button" :class="{ 'nav-active': showModal && modalType === 'photos' }" @click="onMenuPhotos">
-              <span class="top-nav-icon iconify" data-icon="catppuccin:folder-images"></span>
-              <span class="top-nav-label">媒体</span>
-            </button>
-
-            <button class="top-nav-item nav-tags-btn" type="button" :class="{ 'nav-active': selectedTags.length > 0 }" @click="onMenuTags">
-              <span class="top-nav-icon iconify" data-icon="mdi:tag-multiple-outline"></span>
-              <span class="top-nav-label">标签</span>
-            </button>
-
-            <button class="top-nav-item" type="button" @click="onMenuTheme">
-              <span class="top-nav-icon iconify" :data-icon="isDark ? 'carbon:moon' : 'carbon:sun'"></span>
-              <span class="top-nav-label">{{ isDark ? '深色' : '浅色' }}</span>
-            </button>
-          </nav>
-        </aside>
-
-        <main class="main-col">
-          <!-- 标签栏：PC 常驻右栏顶部；移动端仅在有选中筛选时显示 -->
-          <div class="tags-bar" v-if="showTagsBar">
-            <span class="tags-bar-label">
-              <span class="iconify" data-icon="mdi:tag-multiple-outline"></span>
-              标签
-            </span>
-            <button
-              v-for="t in tags"
-              :key="t.id"
-              class="filter-btn tag-btn"
-              :class="{ active: selectedTags.includes(t.id) }"
-              @click="toggleTag(t.id)"
-            >{{ t.name }}<span v-if="t.count" class="tag-count">{{ t.count }}</span></button>
-            <button
-              v-if="selectedTags.length"
-              class="filter-btn tag-clear-btn"
-              @click="clearTags"
-            >清除</button>
-          </div>
-
-      <div class="main-wrapper" :class="{ 'has-tags-bar': showTagsBar && !isDesktop }">
-          <div class="feed-wrap" v-show="!isDesktop || !showModal">
-            <div v-if="loading && posts.length === 0" class="empty"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-	<path d="M0 0h24v24H0z" fill="none" />
-	<circle cx="18" cy="12" r="0" fill="currentColor">
-		<animate attributeName="r" begin=".67" calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0" />
-	</circle>
-	<circle cx="12" cy="12" r="0" fill="currentColor">
-		<animate attributeName="r" begin=".33" calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0" />
-	</circle>
-	<circle cx="6" cy="12" r="0" fill="currentColor">
-		<animate attributeName="r" begin="0" calcMode="spline" dur="1.5s" keySplines="0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8;0.2 0.2 0.4 0.8" repeatCount="indefinite" values="0;2;0;0" />
-	</circle>
-</svg>
-</div>
-            <div v-else-if="posts.length === 0 && !loading" class="empty"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-	<path d="M0 0h24v24H0z" fill="none" />
-	<g fill="none" fill-rule="evenodd" clip-rule="evenodd">
-		<path fill="#020202" d="M5.625 20.325c0 .33-.37.27-.69.21c-.87-.17-1.29-.59-1.21-1.721c.09-1.281.82-2.232 1.85-1.501a.311.311 0 1 0 .42-.46c-2.15-2.132-4.492 1.88-2.801 3.862a2.92 2.92 0 0 0 2.001.68c.66-.06 1.17-.36 1.13-1.07a.35.35 0 0 0-.7 0m2.372.07v-2.312c-.21-1.63-.16-1.35-.17-1.39a.35.35 0 0 0-.61.19c0 .09-.34 2.511-.34 2.761c0 .44.08 1.351.49 1.541a3.9 3.9 0 0 0 1.63.15c.55-.12.651-.48.44-.69a4.7 4.7 0 0 0-1.44-.25m4.863-3.082c-2.061-2.632-3.482 1.25-2.352 3.082a1.55 1.55 0 0 0 2.242.55a2.89 2.89 0 0 0 .11-3.632m-.93 2.792c-.681-.09-.931-1.381-.821-2.092c.13-.91.44-1.39 1.12-.3s.1 2.442-.3 2.392m3.142-2.432a.53.53 0 0 1 .07-.45c.42-.54.951.15 1.271.05s.29-.79-.77-1a1.42 1.42 0 0 0-1.211 2.39c.51.611 1.54.951 1.45 1.412s-.55.7-.8.6c-.08 0-.45-.38-.64-.38a.34.34 0 0 0-.34.33c0 .33.38.59.67.75a1.61 1.61 0 0 0 2.092-1.06c.49-1.521-1.702-2.092-1.792-2.642m5.594-1.331l-1.57-.21a1.13 1.13 0 0 0-1.072.76a5.2 5.2 0 0 0-.14 2.182a10.5 10.5 0 0 0 0 1.811a.54.54 0 0 0 .49.46a4 4 0 0 0 .691-.16c.17-.05.65 0 .94-.09c.561-.1.661-.44.511-.7s-1.5-.05-1.631-.06l.1-1.131c.38 0 1.471-.19 1.471-.56s-1.17-.62-1.541-.55a5 5 0 0 1 0-.661c0-.21 0-.42.23-.46c1.611-.08 1.621 0 1.691-.26a.29.29 0 0 0-.17-.37m-.21-15.07c.41.1.76.67 1.11 1.29a16.3 16.3 0 0 1 1.161 2.802a6.46 6.46 0 0 1-.13 3.002c-.16.32-.47.46-1 .43q-.453-.015-.891-.13a2.11 2.11 0 0 1-1.701-2.762l3.212-.06a.34.34 0 0 0 0-.67l-3.142-.17C17.443.512 17.664 1.102 17.583.942c.965.03 1.925.14 2.872.33m-3.582 7.284a2.1 2.1 0 0 1-1.622-.14a2.19 2.19 0 0 1-1.16-2.471h4.002a2.34 2.34 0 0 1-1.22 2.611m-.08-7.615c0 .12.1.25.14.38c.12 1.27.438 2.512.94 3.683l-3.742-.13a13.3 13.3 0 0 0-.77-4.003c.18-.03 3.402-.02 3.432.07M12.12 8.447a2.56 2.56 0 0 1-2.432-.27c-.47-2.442-.41-1.871-.31-2.302c.8 0 3.332.06 3.772.07c.06.871.26 1.772-1.03 2.502M11.88.842c1.5 0 .48-.23 1.15 4.003c-1 0-2.071-.05-3.092-.05l1.3-2.592a4.6 4.6 0 0 0 .641-1.36m-4.143.79c.47-.62.46-.53.33-.75c3.372-.06 3.102-.06 3.002 0a22.4 22.4 0 0 0-2.442 3.893c-1.21 0-2.361 0-3.372.06c1.01-1.161 1.821-2.342 2.482-3.202M4.485 5.696l3.832.15c0 .33 0-.19.11 1.521c-.29.18-.29.851-.79 1.201a2.78 2.78 0 0 1-2.422.09c-1.02-.47-.9-2.271-.73-2.962m16.72 4.183c2.152.19 2.672-.93 2.732-3.072l-.17-1.641a16.7 16.7 0 0 0-1.631-3.572A2.78 2.78 0 0 0 20.675.342c-3.052-.72-14.52-.08-15.55-.07a.34.34 0 1 0 0 .67h2.291a30 30 0 0 0-3.602 4.003c-1.32-.01-2.241.06-2.481.06a.3.3 0 0 0 .1.59h2.111c.08 2.412.31 1-.26 2.812c-1 1.28-3.362-.89-2.362-3.002a34 34 0 0 1 2.932-4.343a.3.3 0 0 0-.45-.39c-.33.38-1 1.26-1.641 2.182C-.298 5.785.102 5.535.082 7.346a2.33 2.33 0 0 0 1.66 2.152l.731.11a1.74 1.74 0 0 0 1.571-.71c1 1.22 3.683 1.4 4.723-.09a3.67 3.67 0 0 0 3.893.61a4.8 4.8 0 0 0 1-.85a3.22 3.22 0 0 0 3.613 1c.498-.217.93-.562 1.25-1c.48.587 1.142 1 1.882 1.17z" />
-		<path fill="#0c6fff" d="M23.007 14.591a6.6 6.6 0 0 0-2.352-.5c.271-.954.445-1.933.52-2.922c0-.91-.93-1.09-1.1-.13q-.147 1.482-.07 2.972a117 117 0 0 0-17.081.09a9.9 9.9 0 0 0-.16-3.453c-.26-1.06-1.051-.77-1.051 0q.04.868.2 1.722c0 .09.33 1.74.35 1.82c-1.77.261-1.931.451-1.891 1.242c.06 1.41.47 6.194 1 7.504c.06.15.39.4 1.001.52c3.222.641 17.391.851 19.543-.13c.86-.39 1.16-2.5 1.3-3.452c.14-.95.551-4.683-.21-5.283m-1.431 7.245c-.08.23-.15.59-.23.5c-1.952.79-17.142.89-19.373.24c-.55-1.56-.98-7.014-1.07-7.334c.47-.62 7.744-.62 8.515-.62a110 110 0 0 1 11.907.61c1.231.18 1.001.16 1.001.74a21.3 21.3 0 0 1-.71 5.864z" />
-	</g>
-</svg>
-</div>
-            <div v-else class="feed">
-              <div v-for="(post, idx) in posts" :key="post.id || idx" class="post-item">
-                <div class="post-header">
-                  <span class="time-badge">{{ formatTime(post.date) }}</span>
-                  <template v-for="tid in (post.tags || [])" :key="tid">
-                    <span v-if="tagMap[tid]" class="post-tag">{{ tagMap[tid].name }}</span>
-                  </template>
-                </div>
-                <div
-                  class="post-content"
-                  v-html="renderMarkdown(post.content)"
-                ></div>
-                <div v-if="post.images && post.images.length === 1" class="post-images layout-1">
-                  <a :href="post.images[0]" :data-fancybox="'gallery-' + idx" class="img-link">
-                    <img :src="post.images[0]" alt="图1" loading="lazy" />
-                  </a>
-                </div>
-                <div v-else-if="post.images && post.images.length === 2" class="post-images layout-2">
-                  <a v-for="(img, i) in post.images" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="img-link">
-                    <img :src="img" :alt="'图'+(i+1)" loading="lazy" />
-                  </a>
-                </div>
-                <div v-else-if="post.images && post.images.length >= 3" class="post-images layout-3plus">
-                  <a v-for="(img, i) in post.images.slice(0,9)" :key="i" :href="img" :data-fancybox="'gallery-' + idx" class="grid-item">
-                    <img :src="img" :alt="'图'+(i+1)" loading="lazy" />
-                    <div v-if="i === 8 && post.images.length > 9" class="more-overlay">+{{ post.images.length - 9 }}</div>
-                  </a>
-                  <a v-for="(img, i) in post.images.slice(9)" :key="'more-'+i" :href="img" :data-fancybox="'gallery-' + idx" style="display: none"></a>
-                </div>
-              </div>
-              <div class="loader" v-if="!loading && hasMore">
-                <button class="load-more-btn" @click="loadMore">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em" viewBox="0 0 24 24">
-                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m8 10.5l4 4l4-4M5.4 3h13.2A2.4 2.4 0 0 1 21 5.4v13.2a2.4 2.4 0 0 1-2.4 2.4H5.4A2.4 2.4 0 0 1 3 18.6V5.4A2.4 2.4 0 0 1 5.4 3" />
-                  </svg>
-                </button>
-              </div>
-              <div class="loader" v-if="loading"><span>加载中…</span></div>
-              <div class="loader" v-if="!loading && !hasMore && posts.length > 0">
-                <span class="no-more">— 已全部加载 —</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="media-modal"
-            :class="{ inline: isDesktop }"
-            v-if="showModal"
-            @click.self="onModalBackdrop"
-          >
-            <div class="modal-content" @click.stop>
-              <div class="modal-header">
-                <span class="modal-title">
-                  {{ modalType === 'watched' ? '看过' : modalType === 'watchlist' ? '想看' : '媒体' }}
-                </span>
-                <button class="modal-close" type="button" @click="closeModal" aria-label="关闭">✕</button>
-              </div>
-
-              <div class="modal-body">
-                <template v-if="modalType === 'photos'">
-                  <div v-if="photosLoading && photoItems.length === 0" class="empty">⏳ 加载中…</div>
-                  <div v-else-if="photoItems.length === 0 && !photosLoading" class="empty">😶 还没有图片</div>
-                  <div v-else class="photo-grid">
-                    <a
-                      v-for="(ph, i) in photoItems"
-                      :key="ph.src + '-' + i"
-                      :href="ph.src"
-                      class="photo-item"
-                      @click.prevent="openPhoto(i)"
-                    >
-                      <img :src="ph.src" :alt="'图片' + (i + 1)" loading="lazy" />
-                    </a>
-                  </div>
-                </template>
-                <template v-else>
-                <div class="filter-bar">
-                  <div class="filter-group">
-                    <span class="filter-group-label">类型：</span>
-                    <button class="filter-btn type-btn" :class="{ active: mediaTypeFilter === 'all' }" @click="setMediaType('all')">全部</button>
-                    <button class="filter-btn type-btn" :class="{ active: mediaTypeFilter === 'movie' }" @click="setMediaType('movie')">电影</button>
-                    <button class="filter-btn type-btn" :class="{ active: mediaTypeFilter === 'tv' }" @click="setMediaType('tv')">电视剧</button>
-                  </div>
-
-                  <div class="filter-group">
-                    <span class="filter-group-label">时间：</span>
-                    <button
-                      v-for="r in releaseRanges"
-                      :key="r.id"
-                      class="filter-btn"
-                      :class="{ active: selectedReleaseRanges.includes(r.id) }"
-                      @click="toggleReleaseRange(r.id)"
-                    >{{ r.name }}</button>
-                  </div>
-
-                  <div class="filter-group">
-                    <span class="filter-group-label">筛选：</span>
-                    <button
-                      v-for="g in displayGenres"
-                      :key="g.id"
-                      class="filter-btn"
-                      :class="{ active: selectedGenres.includes(g.id) }"
-                      @click="toggleGenre(g.id)"
-                    >{{ g.name }}</button>
-                  </div>
-                </div>
-
-                <div v-if="loading && mediaList.length === 0" class="empty">⏳ 加载中…</div>
-                <div v-else-if="mediaList.length === 0 && !loading" class="empty">😶 没有符合条件的记录</div>
-                <div v-else>
-                  <div class="media-grid">
-                    <div v-for="item in mediaList" :key="item.title + item.date" class="media-card">
-                      <div class="media-poster">
-                        <img :src="item.poster_path" :alt="item.title" loading="lazy" />
-                      </div>
-                      <div class="media-info">
-                        <div class="media-title-row">
-                          <div class="media-title-text">
-                            {{ item.title }}
-                            <span v-if="item.release_date" class="media-date">({{ item.release_date }})</span>
-                          </div>
-                          <a
-                            :href="item.douban_url"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="media-icon-btn"
-                            title="在豆瓣搜索"
-                            @click.stop
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24">
-                              <path d="M0 0h24v24H0z" fill="none"/>
-                              <path fill="currentColor" d="M16.314 19.138h4.065a.62.62 0 0 1 .621.62v.621a.62.62 0 0 1-.62.621H3.62a.62.62 0 0 1-.62-.62v-.621a.62.62 0 0 1 .62-.621h3.754l-.96-3.104h2.19a.62.62 0 0 1 .59.425l.892 2.679H13.6l1.225-4.035H5.172a.62.62 0 0 1-.62-.62V7.345a.62.62 0 0 1 .62-.62h13.656a.62.62 0 0 1 .62.62v7.138a.62.62 0 0 1-.62.62h-1.289zM3.931 3h16.138a.62.62 0 0 1 .62.62v.621a.62.62 0 0 1-.62.621H3.931a.62.62 0 0 1-.62-.62V3.62A.62.62 0 0 1 3.93 3m3.26 5.586a.155.155 0 0 0-.156.155v4.035c0 .086.07.155.156.155h9.62c.086 0 .155-.07.155-.155V8.74a.155.155 0 0 0-.155-.155z"/>
-                            </svg>
-                          </a>
-                        </div>
-
-                        <div class="media-sub-row">
-                          <span class="media-type-badge" :title="item.media_type === 'tv' ? '剧集' : '电影'">
-                            <svg v-if="item.media_type === 'tv'" xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 256 256">
-                              <path d="M0 0h256v256H0z" fill="none"/>
-                              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16">
-                                <path d="M 191.99999,208 H 64 C 46.272,208 32,193.728 32,176 V 96 C 32,78.272 46.272,64 64,64 h 128 c 17.728,0 32,14.272 32,32 v 80 c 0,17.728 -14.272,32 -32,32"/>
-                                <path d="m 96,240 h 64"/>
-                                <path d="M 128,64 176,16"/>
-                                <path d="M 128,64 80,16"/>
-                              </g>
-                            </svg>
-                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24">
-                              <path d="M0 0h24v24H0z" fill="none"/>
-                              <path fill="currentColor" d="M20 3H4c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2m.001 6q-.002 0 0 0h-.466l-2.667-4H20zm-5.466 0l-2.667-4h2.596l2.667 4zm-2.404 0H9.535L6.869 5h2.596zM4 5h.465l2.667 4H4z"/>
-                            </svg>
-                          </span>
-                          <span v-if="item.vote_average && item.vote_average !== 'N/A'" class="media-rating"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
-	<path d="M0 0h24v24H0z" fill="none" />
-	<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
-		<path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12m6.5-9.37A10 10 0 0 1 12 2c1.231 0 2.41.223 3.5.63M7.518 5.433l.528 1.065c.072.148.264.29.426.317l.957.16c.612.104.756.551.315.993L9 8.718a.66.66 0 0 0-.156.547l.213.929c.168.735-.219 1.019-.864.635l-.897-.535a.64.64 0 0 0-.594 0l-.897.535c-.641.384-1.031.097-.863-.635l.213-.929a.66.66 0 0 0-.156-.547l-.744-.75c-.438-.442-.297-.89.315-.992l.957-.16a.65.65 0 0 0 .422-.318l.528-1.065c.288-.577.756-.577 1.041 0m10 0l.528 1.065c.072.148.264.29.426.317l.957.16c.612.104.756.551.315.993l-.744.75a.66.66 0 0 0-.156.547l.213.929c.168.735-.219 1.019-.864.635l-.897-.535a.64.64 0 0 0-.594 0l-.897.535c-.641.384-1.031.097-.863-.635l.213-.929a.66.66 0 0 0-.156-.547l-.744-.75c-.438-.442-.297-.89.315-.992l.957-.16a.65.65 0 0 0 .423-.318l.527-1.065c.288-.577.756-.577 1.041 0" />
-		<path d="M8 15a5 5 0 0 0 4 2a5 5 0 0 0 4-2" />
-	</g>
-</svg>
- {{ item.vote_average }}</span>
-                        </div>
-                        <div class="media-genres">
-                          <span v-for="gid in item.genre_ids" :key="gid">{{ getGenreName(gid) }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="pagination">
-                    <button @click="goPage(currentPage - 1)" :disabled="currentPage <= 1">上一页</button>
-                    <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-                    <button @click="goPage(currentPage + 1)" :disabled="currentPage >= totalPages">下一页</button>
-                  </div>
-                </div>
-                </template>
-              </div>
-            </div>
-          </div>
-      </div>
-      <!-- /.main-wrapper -->
-        </main>
-      </div>
-      <!-- /.app-shell -->
-
-      <!-- 标签抽屉（移动端右侧滑出，支持多选 AND 筛选） -->
-      <div class="drawer-overlay tag-overlay" :class="{ open: tagDrawerOpen }" @click="closeTagDrawer()"></div>
-      <div class="drawer tag-drawer" :class="{ open: tagDrawerOpen }" role="dialog" aria-label="标签筛选">
-        <div class="drawer-header">
-          <span class="drawer-title">标签</span>
-          <button class="drawer-close" type="button" @click="closeTagDrawer()" aria-label="关闭">✕</button>
-        </div>
-        <div class="drawer-body tag-drawer-body">
-          <div v-if="!tagsLoaded" class="empty">⏳ 加载中…</div>
-          <div v-else-if="tags.length === 0" class="empty">😶 还没有标签</div>
-          <template v-else>
-            <div class="tag-drawer-tags">
-              <button
-                v-for="t in tags"
-                :key="t.id"
-                class="filter-btn tag-btn"
-                :class="{ active: selectedTags.includes(t.id) }"
-                @click="toggleTag(t.id)"
-              >{{ t.name }}<span v-if="t.count" class="tag-count">{{ t.count }}</span></button>
-            </div>
-            <div class="tag-drawer-actions" v-if="selectedTags.length">
-              <button class="filter-btn tag-clear-btn" type="button" @click="clearTags">清除全部筛选（{{ selectedTags.length }}）</button>
-            </div>
-          </template>
-        </div>
+function memoCard(m, idx) {
+  const { html, images } = parseContent(m.content);
+  const tags = (m.tags || []).map(t =>
+    `<span class="badge badge-sm badge-ghost badge-outline cursor-pointer hover:badge-primary transition-colors memo-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(tagNameMap.get(t) || t.replace(/^tag_/, ''))}</span>`
+  ).join(' ');
+  return `
+  <article class="memo-card fade-up card bg-base-100 shadow-sm border border-base-300/50 overflow-hidden" style="animation-delay:${Math.min(idx * 40, 400)}ms">
+    <div class="card-body p-4 sm:p-5 gap-3">
+      <div class="memo-text text-[15px] leading-relaxed">${html}</div>
+      ${renderImages(images)}
+      <div class="flex items-center justify-between flex-wrap gap-2 pt-1">
+        <time class="text-xs opacity-50 flex items-center gap-1" title="${escapeHtml(fmtDate(m.rawDate))}">
+          <span class="iconify text-sm" data-icon="mdi:clock-outline"></span>
+          ${relativeTime(m.rawDate)}
+        </time>
+        ${tags ? `<div class="flex flex-wrap gap-1.5">${tags}</div>` : ''}
       </div>
     </div>
-    <!-- /.app -->
+  </article>`;
+}
 
-    <div class="drawer-overlay" id="drawerOverlay"></div>
-    <div class="drawer" id="musicDrawer">
-      <div class="drawer-header">
-        <span class="drawer-title">🎵 歌单</span>
-        <button class="drawer-close" id="drawerCloseBtn" aria-label="关闭播放器">✕</button>
-      </div>
-      <div class="drawer-body">
-        <div class="hw-playlist-mount" id="drawerPlayerMount" data-hw-list-id="9127652363"></div>
+function skeletonCards(n = 3) {
+  return Array.from({ length: n }, () => `
+    <div class="card bg-base-100 border border-base-300/50"><div class="card-body p-5 gap-3">
+      <div class="shimmer h-4 rounded w-3/4"></div>
+      <div class="shimmer h-4 rounded w-full"></div>
+      <div class="shimmer h-4 rounded w-1/2"></div>
+      <div class="shimmer h-52 rounded-xl w-full"></div>
+      <div class="shimmer h-3 rounded w-24"></div>
+    </div></div>`).join('');
+}
+
+function emptyState(text) {
+  return `<div class="text-center py-16 opacity-60 fade-up">
+    <span class="iconify text-4xl block mb-3 mx-auto" data-icon="mdi:leaf"></span><p class="text-sm">${text}</p></div>`;
+}
+
+function errorState(msg, retryFn) {
+  const box = document.createElement('div');
+  box.className = 'fade-up alert alert-error alert-soft rounded-2xl';
+  box.innerHTML = `<span class="text-sm">加载失败：${escapeHtml(msg)}</span>`;
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-sm btn-outline ml-auto'; btn.textContent = '重试';
+  btn.onclick = retryFn;
+  box.appendChild(btn);
+  return box;
+}
+
+/* ============================================================
+   渲染：影视
+============================================================ */
+function mediaCard(m, idx) {
+  const typeBadge = m.media_type === 'tv'
+    ? '<span class="badge badge-xs badge-secondary">剧集</span>'
+    : '<span class="badge badge-xs badge-accent">电影</span>';
+  return `
+  <div class="poster-card fade-up card bg-base-100 shadow-sm border border-base-300/50 overflow-hidden" style="animation-delay:${Math.min(idx * 30, 300)}ms">
+    <figure class="relative aspect-[2/3] bg-base-300">
+      <img src="${escapeHtml(m.poster_path)}" alt="${escapeHtml(m.title)}" loading="lazy" class="w-full h-full object-cover" />
+      <a href="${escapeHtml(m.douban_url)}" target="_blank" rel="noopener"
+         class="poster-overlay absolute inset-0 bg-black/55 grid place-items-center">
+        <span class="btn btn-sm btn-success text-white">豆瓣搜索</span>
+      </a>
+      <span class="absolute top-1.5 right-1.5 badge badge-sm bg-black/60 text-white border-none gap-0.5"><span class="iconify text-xs" data-icon="mdi:star"></span>${escapeHtml(m.vote_average)}</span>
+    </figure>
+    <div class="p-2.5">
+      <h3 class="font-semibold text-[13px] leading-snug line-clamp-1" title="${escapeHtml(m.title)}">${escapeHtml(m.title)}</h3>
+      <p class="text-[11px] opacity-50 line-clamp-1 mt-0.5" title="${escapeHtml(m.original_title)}">${escapeHtml(m.original_title || '—')}</p>
+      <div class="flex items-center justify-between mt-1.5">
+        ${typeBadge}
+        <span class="text-[10px] opacity-40">${escapeHtml(m.date)}</span>
       </div>
     </div>
+  </div>`;
+}
 
-    <!-- ========== TODO: 将你备份的 hw-music-player 完整播放器脚本粘贴到这里 ========== -->
+/* ============================================================
+   影视筛选（迁移自参考站：类型单选 / 年代多选 OR / 题材多选 AND）
+   全程操作前端缓存，不重新请求 API
+============================================================ */
+function mediaFiltersActive() {
+  const f = state.mediaFilter;
+  return f.type !== 'all' || f.ranges.size > 0 || f.genres.size > 0;
+}
+
+function resetMediaFilter() {
+  state.mediaFilter = { type: 'all', ranges: new Set(), genres: new Set() };
+}
+
+function getFilteredMedia(view) {
+  const list = state.mediaCache[view] || [];
+  const f = state.mediaFilter;
+  return list.filter(m => {
+    if (f.type !== 'all' && m.media_type !== f.type) return false;
+    if (f.ranges.size) {
+      const y = parseInt(String(m.release_date || '').slice(0, 4), 10);
+      if (!Number.isFinite(y)) return false;
+      let hit = false;
+      f.ranges.forEach(id => {
+        const r = RELEASE_RANGES.find(r => r.id === id);
+        if (r && r.test(y)) hit = true;
+      });
+      if (!hit) return false;
+    }
+    if (f.genres.size) {
+      const gids = Array.isArray(m.genre_ids) ? m.genre_ids : [];
+      for (const g of f.genres) if (!gids.includes(g)) return false;
+    }
+    return true;
+  });
+}
+
+/* 可选题材：从当前视图缓存中统计，且与类型联动（电影→电影题材，剧集→剧集题材） */
+function availableGenres(view) {
+  const f = state.mediaFilter;
+  const list = state.mediaCache[view] || [];
+  const pool = f.type === 'all' ? list : list.filter(m => m.media_type === f.type);
+  const typeSet = f.type === 'movie' ? MOVIE_GENRES : f.type === 'tv' ? TV_GENRES : null;
+  const count = new Map();
+  pool.forEach(m => (Array.isArray(m.genre_ids) ? m.genre_ids : []).forEach(g => {
+    if (!GENRE_MAP[g]) return;
+    if (typeSet && !typeSet.has(g)) return;
+    count.set(g, (count.get(g) || 0) + 1);
+  }));
+  return [...count.entries()]
+    .map(([id, c]) => ({ id, name: GENRE_MAP[id], count: c }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh-CN'));
+}
+
+function mediaFilterBarHtml(view) {
+  const f = state.mediaFilter;
+  const chip = on => 'btn btn-xs rounded-full transition-all ' + (on ? 'btn-primary' : 'btn-ghost bg-base-100 border border-base-300');
+
+  const typeRow = [['all','全部'],['movie','电影'],['tv','剧集']]
+    .map(([v, n]) => `<button class="${chip(f.type === v)} mf-type" data-v="${v}">${n}</button>`).join('');
+
+  const rangeRow = RELEASE_RANGES
+    .map(r => `<button class="${chip(f.ranges.has(r.id))} mf-range" data-v="${r.id}">${r.name}</button>`).join('');
+
+  const genres = availableGenres(view);
+  const genreRow = genres.length
+    ? genres.map(g => `<button class="${chip(f.genres.has(g.id))} mf-genre" data-v="${g.id}">${g.name}<span class="badge badge-xs ${f.genres.has(g.id) ? 'badge-neutral' : 'badge-ghost'} ml-0.5">${g.count}</span></button>`).join('')
+    : '<span class="text-xs opacity-40 py-1">该类型下暂无题材数据</span>';
+
+  return `
+  <div class="flex flex-col gap-2.5 px-1 fade-up">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs opacity-50 w-7 shrink-0">类型</span>${typeRow}
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs opacity-50 w-7 shrink-0">年代</span>${rangeRow}
+    </div>
+    <div class="flex flex-wrap items-start gap-2">
+      <span class="text-xs opacity-50 w-7 shrink-0 pt-1.5">题材</span>
+      <div class="flex flex-wrap gap-2 flex-1 min-w-0">${genreRow}</div>
+    </div>
+    ${mediaFiltersActive() ? '<div><button class="btn btn-xs btn-ghost rounded-full mf-clear"><span class="iconify" data-icon="mdi:filter-off-outline"></span>清空筛选</button></div>' : ''}
+  </div>`;
+}
+
+function bindMediaFilterEvents(view) {
+  contentEl.querySelectorAll('.mf-type').forEach(b => b.onclick = () => {
+    const v = b.dataset.v;
+    if (state.mediaFilter.type === v) return;
+    state.mediaFilter.type = v;
+    state.mediaFilter.genres.clear();   // 切类型时清空题材（参考站逻辑）
+    state.mediaPage[view] = 1;
+    renderMediaPage(view);
+  });
+  contentEl.querySelectorAll('.mf-range').forEach(b => b.onclick = () => {
+    const v = b.dataset.v;
+    state.mediaFilter.ranges.has(v) ? state.mediaFilter.ranges.delete(v) : state.mediaFilter.ranges.add(v);
+    state.mediaPage[view] = 1;
+    renderMediaPage(view);
+  });
+  contentEl.querySelectorAll('.mf-genre').forEach(b => b.onclick = () => {
+    const v = Number(b.dataset.v);
+    state.mediaFilter.genres.has(v) ? state.mediaFilter.genres.delete(v) : state.mediaFilter.genres.add(v);
+    state.mediaPage[view] = 1;
+    renderMediaPage(view);
+  });
+  const clear = contentEl.querySelector('.mf-clear');
+  if (clear) clear.onclick = () => { resetMediaFilter(); state.mediaPage[view] = 1; renderMediaPage(view); };
+}
+
+/* ============================================================
+   应用状态 & 控制器
+============================================================ */
+const state = {
+  view: 'say',
+  sayPage: 1,
+  sayTotalPages: 1,
+  sayTotal: 0,
+  selectedTags: new Set(),
+  tagsLoaded: false,
+  mediaCache: { watched: null, watchlist: null },
+  photosCache: null,
+  mediaPage: { watched: 1, watchlist: 1 },
+  mediaFilter: { type: 'all', ranges: new Set(), genres: new Set() },
+  loading: false,
+};
+
+const contentEl = $('#content');
+
+function updateSourceBadge() {
+  const dot = $('#sourceDot'), txt = $('#sourceText'), badge = $('#sourceBadge');
+  badge.classList.remove('hidden');
+  if (USE_MOCK) {
+    dot.className = 'w-1.5 h-1.5 rounded-full bg-warning inline-block';
+    txt.textContent = 'Mock 数据';
+    $('#mockBanner').classList.remove('hidden');
+  } else {
+    dot.className = 'w-1.5 h-1.5 rounded-full bg-success inline-block';
+    txt.textContent = '生产数据';
+    $('#mockBanner').classList.add('hidden');
+  }
+}
+
+/* ---------- 标签栏 ---------- */
+let cachedTags = [];
+
+async function loadTags() {
+  if (state.tagsLoaded) return;
+  try {
+    const res = await fetchData({ view: 'tags' });
+    (res.data || []).forEach(t => tagNameMap.set(t.id, t.name));
+    state.tagsLoaded = true;
+    cachedTags = res.data || [];
+    renderTagChips(cachedTags);
+  } catch {}
+}
+
+function renderTagChips(tags) {
+  const bar = $('#tagChips');
+  if (!tags.length && !state.selectedTags.size) { bar.innerHTML = ''; return; }
+  const extra = [...state.selectedTags].filter(id => !tags.some(t => t.id === id)).map(id => ({ id, count: null }));
+  bar.innerHTML = [...tags, ...extra].map(t =>
+    tagChipHtml(t.id, { active: state.selectedTags.has(t.id), count: t.count })
+  ).join('');
+  bar.querySelectorAll('.tag-chip').forEach(btn => { btn.onclick = () => toggleTag(btn.dataset.tag); });
+  $('#tagFilterHint').classList.toggle('hidden', state.selectedTags.size === 0);
+}
+
+function toggleTag(id) {
+  state.selectedTags.has(id) ? state.selectedTags.delete(id) : state.selectedTags.add(id);
+  document.querySelectorAll('#tagChips .tag-chip').forEach(b => {
+    const on = state.selectedTags.has(b.dataset.tag);
+    b.className = on
+      ? 'btn btn-xs rounded-full transition-all tag-chip btn-primary'
+      : 'btn btn-xs rounded-full transition-all tag-chip btn-ghost bg-base-100 border border-base-300';
+  });
+  $('#tagFilterHint').classList.toggle('hidden', state.selectedTags.size === 0);
+  resetSay();
+}
+
+$('#clearTagsBtn').onclick = () => { state.selectedTags.clear(); renderTagChips(cachedTags); resetSay(); };
+
+/* ---------- 说说：加载与无限滚动 ---------- */
+function bindCardInteractions() {
+  contentEl.querySelectorAll('.memo-tag').forEach(el => { el.onclick = () => toggleTag(el.dataset.tag); });
+  initCarousels(contentEl);
+}
+
+function resetSay() {
+  state.sayPage = 1;
+  state.sayTotalPages = 1;
+  contentEl.innerHTML = skeletonCards(3);
+  $('#endHint').classList.add('hidden');
+  loadSayPage(1, { replace: true });
+}
+
+async function loadSayPage(page, { replace = false } = {}) {
+  if (state.loading) return;
+  state.loading = true;
+  if (!replace) $('#loadingMore').classList.remove('hidden');
+
+  try {
+    const res = await fetchData({ view: 'say', page, tags: [...state.selectedTags] });
+    state.sayPage = res.page;
+    state.sayTotalPages = res.totalPages;
+    state.sayTotal = res.total;
+
+    const html = (res.data || []).map((m, i) => memoCard(m, i)).join('');
+    if (replace) {
+      contentEl.innerHTML = res.data && res.data.length ? html
+        : emptyState(state.selectedTags.size ? '这些标签的交集下暂时没有说说，试试少选几个？' : '还没有说说，去写第一条吧。');
+    } else {
+      contentEl.insertAdjacentHTML('beforeend', html);
+    }
+
+    bindCardInteractions();
+
+    const done = state.sayPage >= state.sayTotalPages;
+    $('#endHint').classList.toggle('hidden', !done || state.sayTotal === 0);
+    if (done) $('#endHint').textContent = state.selectedTags.size ? `— 筛选共 ${state.sayTotal} 条，到底啦 —` : `— 共 ${state.sayTotal} 条，到底啦 —`;
+  } catch (err) {
+    const box = errorState(err.message, () => { box.remove(); loadSayPage(page, { replace }); });
+    if (replace) { contentEl.innerHTML = ''; contentEl.appendChild(box); }
+    else contentEl.appendChild(box);
+  } finally {
+    state.loading = false;
+    $('#loadingMore').classList.add('hidden');
+  }
+}
+
+const observer = new IntersectionObserver(entries => {
+  if (!entries[0].isIntersecting) return;
+  if (state.view === 'say' && state.sayPage < state.sayTotalPages && !state.loading) {
+    loadSayPage(state.sayPage + 1);
+  }
+}, { rootMargin: '400px' });
+observer.observe($('#sentinel'));
+
+/* ---------- 图片墙：聚合所有说说的图片 ---------- */
+async function loadPhotos() {
+  contentEl.innerHTML = skeletonCards(2);
+  try {
+    if (!state.photosCache) {
+      // 拉取全部说说分页，提取其中的图片（与普通说说同一图片来源）
+      const first = await fetchData({ view: 'say', page: 1, tags: [] });
+      const all = [...(first.data || [])];
+      const totalPages = first.totalPages || 1;
+      if (totalPages > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: totalPages - 1 }, (_, i) =>
+            fetchData({ view: 'say', page: i + 2, tags: [] }))
+        );
+        rest.forEach(r => all.push(...(r.data || [])));
+      }
+      const photos = [];
+      all.forEach(m => {
+        parseContent(m.content).images.forEach(img =>
+          photos.push({ url: img.url, date: m.rawDate }));
+      });
+      state.photosCache = photos;
+    }
+    renderPhotos();
+  } catch (err) {
+    contentEl.innerHTML = '';
+    contentEl.appendChild(errorState(err.message, () => { state.photosCache = null; loadPhotos(); }));
+  }
+}
+
+function renderPhotos() {
+  const photos = state.photosCache || [];
+  if (!photos.length) { contentEl.innerHTML = emptyState('说说里还没有图片。'); return; }
+  const urls = photos.map(p => p.url);
+  const urlsJson = JSON.stringify(urls).replace(/"/g, '&quot;');
+  contentEl.innerHTML = `
+    <p class="text-xs opacity-50 px-1">共 ${photos.length} 张图片 · 来自所有说说</p>
+    <div class="photo-grid">${photos.map((p, i) => `
+      <div class="photo-item" title="${escapeHtml(fmtDate(p.date))}" onclick="openLightbox(${urlsJson}, ${i})">
+        <img src="${escapeHtml(p.url)}" loading="lazy" alt="" />
+      </div>`).join('')}
+    </div>`;
+}
+
+/* ---------- 影视 ---------- */
+async function loadMedia(view) {
+  contentEl.innerHTML = skeletonCards(2);
+  $('#mediaPager').classList.add('hidden');
+  $('#endHint').classList.add('hidden');
+  try {
+    if (!state.mediaCache[view]) {
+      const res = await fetchData({ view });   // 每个视图只拉一次，之后筛选翻页全在前端
+      state.mediaCache[view] = res.data || [];
+    }
+    state.mediaPage[view] = 1;
+    renderMediaPage(view);
+  } catch (err) {
+    contentEl.innerHTML = '';
+    contentEl.appendChild(errorState(err.message, () => { state.mediaCache[view] = null; loadMedia(view); }));
+  }
+}
+
+function renderMediaPage(view) {
+  const all = state.mediaCache[view] || [];
+  const list = getFilteredMedia(view);
+  const filterBar = mediaFilterBarHtml(view);
+
+  if (!all.length) {
+    contentEl.innerHTML = emptyState(view === 'watched' ? '还没有看过的记录。' : '想看清单是空的。');
+    $('#mediaPager').classList.add('hidden');
+    return;
+  }
+
+  if (!list.length) {
+    contentEl.innerHTML = filterBar + emptyState('这个筛选条件下没有片子，放宽一点试试？');
+    bindMediaFilterEvents(view);
+    $('#mediaPager').classList.add('hidden');
+    return;
+  }
+
+  const pages = Math.ceil(list.length / PAGE_SIZE);
+  const p = Math.min(state.mediaPage[view], pages);
+  state.mediaPage[view] = p;
+  const slice = list.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE);
+
+  const countText = mediaFiltersActive()
+    ? `筛出 ${list.length} / ${all.length} 部 · 第 ${p}/${pages} 页`
+    : `共 ${all.length} 部${view === 'watched' ? '看过' : '想看'} · 第 ${p}/${pages} 页`;
+
+  contentEl.innerHTML = `
+    ${filterBar}
+    <p class="text-xs opacity-50 px-1">${countText}</p>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>`;
+  bindMediaFilterEvents(view);
+
+  if (pages > 1) {
+    const btns = [];
+    btns.push(`<button class="join-item btn btn-sm ${p === 1 ? 'btn-disabled' : ''}" data-p="${p - 1}">«</button>`);
+    const win = [];
+    for (let i = 1; i <= pages; i++) {
+      if (i === 1 || i === pages || Math.abs(i - p) <= 2) win.push(i);
+    }
+    let prev = 0;
+    win.forEach(i => {
+      if (i - prev > 1) btns.push('<button class="join-item btn btn-sm btn-disabled">…</button>');
+      btns.push(`<button class="join-item btn btn-sm ${i === p ? 'btn-active' : ''}" data-p="${i}">${i}</button>`);
+      prev = i;
+    });
+    btns.push(`<button class="join-item btn btn-sm ${p === pages ? 'btn-disabled' : ''}" data-p="${p + 1}">»</button>`);
+    const pager = $('#pagerBtns');
+    pager.innerHTML = btns.join('');
+    pager.querySelectorAll('button[data-p]').forEach(b => {
+      b.onclick = () => {
+        if (b.classList.contains('btn-disabled')) return;
+        state.mediaPage[view] = Number(b.dataset.p);
+        renderMediaPage(view);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+    });
+    $('#mediaPager').classList.remove('hidden');
+  } else {
+    $('#mediaPager').classList.add('hidden');
+  }
+}
+
+/* ---------- 视图切换 ---------- */
+function switchView(view) {
+  // 在 看过/想看 之间切换时重置筛选（参考站逻辑）
+  if (view !== state.view && (view === 'watched' || view === 'watchlist')) {
+    resetMediaFilter();
+  }
+  state.view = view;
+  document.querySelectorAll('.tab-btn').forEach(t => {
+    t.classList.toggle('tab-active', t.dataset.view === view);
+    t.classList.toggle('bg-base-300', t.dataset.view === view);
+  });
+  $('#tagBar').classList.toggle('hidden', view !== 'say');
+  $('#mediaPager').classList.add('hidden');
+  $('#endHint').classList.add('hidden');
+
+  if (view === 'say') {
+    loadTags();
+    resetSay();
+  } else if (view === 'photos') {
+    loadPhotos();
+  } else {
+    loadMedia(view);
+  }
+}
+
+document.querySelectorAll('.tab-btn').forEach(t => {
+  t.onclick = () => { if (state.view !== t.dataset.view) switchView(t.dataset.view); };
+});
+
+/* ============================================================
+   主题系统
+============================================================ */
+const DARK_THEMES = new Set(['dark', 'sunset']);
+let themePick = 'auto';
+
+function isDarkTheme(t) { return DARK_THEMES.has(t); }
+
+function updateThemeIcons(theme) {
+  const dark = isDarkTheme(theme);
+  $('#iconSun').classList.toggle('hidden', dark);
+  $('#iconMoon').classList.toggle('hidden', !dark);
+}
+
+function updatePickChecks() {
+  document.querySelectorAll('.theme-pick-item').forEach(item => {
+    const active = item.dataset.themePick === themePick;
+    item.classList.toggle('bg-base-200', active);
+    const check = item.querySelector('.pick-check');
+    if (check) check.classList.toggle('hidden', !active);
+  });
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  updateThemeIcons(theme);
+  try { localStorage.setItem('memo-theme', theme); } catch {}
+}
+
+function applyPick(pick) {
+  themePick = pick;
+  try { localStorage.setItem('memo-theme-pick', pick); } catch {}
+  updatePickChecks();
+  if (pick === 'auto') {
+    let t = 'light';
+    try { t = localStorage.getItem('memo-theme'); } catch {}
+    if (!t || (t !== 'light' && t !== 'dark')) {
+      t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    applyTheme(t === 'light' || t === 'dark' ? t : 'light');
+  } else {
+    applyTheme(pick);
+  }
+}
+
+document.querySelectorAll('.theme-pick-item').forEach(item => {
+  item.addEventListener('click', () => {
+    applyPick(item.dataset.themePick);
+    document.activeElement && document.activeElement.blur();
+  });
+});
+
+$('#themeBtn').onclick = () => {
+  if (themePick !== 'auto') {
+    applyPick('auto');
+    const cur = document.documentElement.dataset.theme;
+    applyTheme(isDarkTheme(cur) ? 'light' : 'dark');
+    return;
+  }
+  applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+};
+
+(function initTheme() {
+  let pick = 'auto';
+  try { pick = localStorage.getItem('memo-theme-pick') || 'auto'; } catch {}
+  if (!['auto', 'cupcake', 'sunset'].includes(pick)) pick = 'auto';
+  applyPick(pick);
+})();
+
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  if (themePick !== 'auto') return;
+  let saved = null;
+  try { saved = localStorage.getItem('memo-theme'); } catch {}
+  if (saved !== 'light' && saved !== 'dark') applyTheme(e.matches ? 'dark' : 'light');
+});
+
+/* ---------- 回到顶部 ---------- */
+const toTop = $('#toTop');
+addEventListener('scroll', () => {
+  const show = scrollY > 500;
+  toTop.style.opacity = show ? '1' : '0';
+  toTop.style.pointerEvents = show ? 'auto' : 'none';
+}, { passive: true });
+toTop.onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+
+/* ---------- 启动 ---------- */
+updateSourceBadge();
+switchView('say');
+</script>
+
+<!-- ========== 音乐播放器（迁移自参考站 HWPlayer） ========== -->
 <script>
       (function () {
         const NETEASE_SONG_INFO_API = (id) =>
@@ -2451,13 +1534,13 @@ body {
         const LIKE_STORAGE_KEY = "hwPlayerLikes";
 
         const ICONS = {
-          play: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.87l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>',
-          pause: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
-          heart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
-          heartFilled: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>',
-          repeat: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3"/><path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3"/></svg>',
-          shuffle: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4l3 3l-3 3"/><path d="M18 20l3 -3l-3 -3"/><path d="M3 7h3a5 5 0 0 1 5 5a5 5 0 0 0 5 5h5"/><path d="M21 7h-5a4.978 4.978 0 0 0 -3 1"/><path d="M3 17h3a4.984 4.984 0 0 0 3 -1"/></svg>',
-          lyrics: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h13"/></svg>',
+          play: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>',
+          pause: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>',
+          heart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.1,18.55L12,18.65L11.89,18.55C7.14,14.24 4,11.39 4,8.5C4,6.5 5.5,5 7.5,5C9.04,5 10.54,6 11.07,7.36H12.93C13.46,6 14.96,5 16.5,5C18.5,5 20,6.5 20,8.5C20,11.39 16.86,14.24 12.1,18.55M16.5,3C14.76,3 13.09,3.81 12,5.08C10.91,3.81 9.24,3 7.5,3C4.42,3 2,5.41 2,8.5C2,12.27 5.4,15.36 10.55,20.03L12,21.35L13.45,20.03C18.6,15.36 22,12.27 22,8.5C22,5.41 19.58,3 16.5,3Z"/></svg>',
+          heartFilled: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/></svg>',
+          repeat: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17,17H7V14L3,18L7,22V19H19V13H17M7,7H17V10L21,6L17,2V5H5V11H7V7Z"/></svg>',
+          shuffle: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M14.83,13.41L13.42,14.82L16.55,17.95L14.5,20H20V14.5L17.96,16.54L14.83,13.41M14.5,4L16.54,6.04L4,18.59L5.41,20L17.96,7.46L20,9.5V4M10.59,9.17L5.41,4L4,5.41L9.17,10.58L10.59,9.17Z"/></svg>',
+          lyrics: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15,6H3V8H15V6M15,10H3V12H15V10M3,16H11V14H3V16M17,6V14.18C16.69,14.07 16.35,14 16,14A3,3 0 0,0 13,17A3,3 0 0,0 16,20A3,3 0 0,0 19,17V8H22V6H17Z"/></svg>',
         };
 
         const metaCache = new Map();
@@ -3477,713 +2560,44 @@ body {
           getState: () => ({ ...state }),
         };
       })();
-    </script>
-     <script>
-  const { createApp } = Vue;
-
-  // TMDB 类型映射（如与你原文件中文名不一致，以你原文件的 GENRES_MAP 为准）
-  const GENRES_MAP = [
-    { id: 28, name: '动作' }, { id: 12, name: '冒险' }, { id: 16, name: '动画' },
-    { id: 35, name: '喜剧' }, { id: 80, name: '犯罪' }, { id: 99, name: '纪录' },
-    { id: 18, name: '剧情' }, { id: 10751, name: '家庭' }, { id: 14, name: '奇幻' },
-    { id: 36, name: '历史' }, { id: 27, name: '恐怖' }, { id: 10402, name: '音乐' },
-    { id: 9648, name: '悬疑' }, { id: 10749, name: '爱情' }, { id: 878, name: '科幻' },
-    { id: 10770, name: '电视电影' }, { id: 53, name: '惊悚' }, { id: 10752, name: '战争' },
-    { id: 37, name: '西部' }, { id: 10759, name: '动作冒险' }, { id: 10762, name: '儿童' },
-    { id: 10763, name: '新闻' }, { id: 10764, name: '真人秀' }, { id: 10765, name: 'Sci-Fi & Fantasy' },
-    { id: 10766, name: '肥皂剧' }, { id: 10767, name: '脱口秀' }, { id: 10768, name: 'War & Politics' },
-  ];
-
-  const uniqueGenres = [];
-  const seen = new Set();
-  for (const g of GENRES_MAP) {
-    if (!seen.has(g.id)) {
-      seen.add(g.id);
-      uniqueGenres.push(g);
-    }
-  }
-  const GENRE_LOOKUP = Object.fromEntries(uniqueGenres.map(g => [g.id, g.name]));
-
-  createApp({
-    data() {
-      return {
-        allSayPosts: [],
-        sayPostsLoaded: false,
-        sayPage: 1,
-        sayPageSize: 12,
-        views: {
-          say: { scrollPos: 0, page: 1 },
-          watched: { allItems: [], page: 1, loading: false, scrollPos: 0 },
-          watchlist: { allItems: [], page: 1, loading: false, scrollPos: 0 },
-        },
-
-        // UI
-        showModal: false,
-        modalType: '',
-        mediaTypeFilter: 'all',
-        selectedGenres: [],
-        selectedReleaseRanges: [],
-        releaseRanges: [
-          { id: '90s', name: '90年代' },
-          { id: '2000s', name: '2000-2010' },
-          { id: '2010s', name: '2010-2020' },
-          { id: '2020s', name: '2020后' },
-        ],
-        apiBase: 'https://pub.199105.xyz/api/public-memos',
-        pageSize: 12,
-        photoItems: [],
-        photosLoading: false,
-        photosLoaded: false,
-        isDesktop: false,
-        tags: [],
-        tagsLoaded: false,
-        selectedTags: [],
-        preFilterPage: 1,
-        preFilterScrollY: 0,
-        tagDrawerOpen: false,
-        isDark: false,
-        musicPlaying: false,
-
-        // ★ 新增：滚动位置保存相关
-        drawerScrollY: 0,        // 打开标签抽屉前的滚动位置
-        filterDirtyInDrawer: false, // 抽屉内是否改动过筛选（决定关闭抽屉时的滚动策略）
-        _restoreTimers: [],      // 待执行的滚动补偿定时器
-      };
-    },
-    computed: {
-      filteredSayPosts() {
-        if (!this.selectedTags.length) return this.allSayPosts;
-        return this.allSayPosts.filter(post => {
-          return this.selectedTags.every(tagId => (post.tags || []).includes(tagId));
-        });
-      },
-      sayDisplayItems() {
-        const end = this.sayPage * this.sayPageSize;
-        return this.filteredSayPosts.slice(0, end);
-      },
-      sayTotalPages() {
-        return Math.ceil(this.filteredSayPosts.length / this.sayPageSize) || 1;
-      },
-      sayHasMore() {
-        return this.sayPage < this.sayTotalPages;
-      },
-      posts() {
-        return this.sayDisplayItems;
-      },
-      // ★ 修复：弹窗打开时使用弹窗自身的 loading，否则弹窗加载动画永远不显示
-      loading() {
-        if (this.showModal && this.modalType !== 'photos') return this.currentMediaData.loading;
-        return !this.sayPostsLoaded;
-      },
-      hasMore() {
-        return this.sayHasMore;
-      },
-      // ★ 修复：弹窗打开时翻页器应显示媒体列表的总页数，而不是说说的总页数
-      totalPages() {
-        if (this.showModal) return this.mediaTotalPages;
-        return this.sayTotalPages;
-      },
-      displayGenres() {
-        if (this.mediaTypeFilter === 'all') return uniqueGenres;
-        const movieIds = new Set([28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402, 9648, 10749, 878, 10770, 53, 10752, 37]);
-        const tvIds = new Set([10759, 16, 35, 80, 99, 18, 10751, 10762, 9648, 10763, 10764, 10765, 10766, 10767, 10768, 37]);
-        if (this.mediaTypeFilter === 'movie') return uniqueGenres.filter(g => movieIds.has(g.id));
-        if (this.mediaTypeFilter === 'tv') return uniqueGenres.filter(g => tvIds.has(g.id));
-        return uniqueGenres;
-      },
-      activeMediaKey() {
-        return this.modalType === 'watched' ? 'watched' : 'watchlist';
-      },
-      currentMediaData() {
-        return this.views[this.activeMediaKey] || this.views.watched;
-      },
-      filteredMedia() {
-        if (!this.showModal) return [];
-        const all = this.currentMediaData.allItems;
-        return all.filter(item => {
-          const matchType = this.mediaTypeFilter === 'all' || item.media_type === this.mediaTypeFilter;
-          const matchGenre = this.selectedGenres.length === 0 || this.selectedGenres.every(g => item.genre_ids && item.genre_ids.includes(g));
-          const matchRelease = this.matchesRelease(item);
-          return matchType && matchGenre && matchRelease;
-        });
-      },
-      mediaTotalPages() {
-        if (!this.showModal) return 1;
-        return Math.ceil(this.filteredMedia.length / this.pageSize) || 1;
-      },
-      mediaList() {
-        if (!this.showModal) return [];
-        const page = this.currentMediaData.page;
-        const start = (page - 1) * this.pageSize;
-        return this.filteredMedia.slice(start, start + this.pageSize);
-      },
-      currentPage() {
-        if (this.showModal) return this.currentMediaData.page;
-        return this.sayPage;
-      },
-      tagMap() {
-        const m = {};
-        this.tags.forEach(t => { m[t.id] = t; });
-        return m;
-      },
-      showTagsBar() {
-        if (!this.tags.length) return false;
-        if (this.isDesktop && this.showModal) return false;
-        return this.isDesktop || this.selectedTags.length > 0;
-      },
-    },
-    methods: {
-      // ===================== ★ 滚动位置工具（新增） =====================
-      getScrollY() {
-        return window.scrollY || document.documentElement.scrollTop || 0;
-      },
-      scrollToY(y) {
-        const top = Math.max(0, y || 0);
-        try {
-          window.scrollTo({ top, left: 0, behavior: 'instant' });
-        } catch (e) {
-          window.scrollTo(0, top);
-        }
-        document.documentElement.scrollTop = top;
-        document.body.scrollTop = top;
-      },
-      // 在 DOM 更新后恢复滚动，并用多次延迟补偿对抗图片懒加载造成的布局抖动
-      scheduleScrollRestore(y) {
-        this._restoreTimers.forEach(t => clearTimeout(t));
-        this._restoreTimers = [];
-        this.$nextTick(() => {
-          this.scrollToY(y);
-          [60, 180, 350].forEach(delay => {
-            this._restoreTimers.push(setTimeout(() => this.scrollToY(y), delay));
-          });
-        });
-      },
-      cancelPendingRestore() {
-        this._restoreTimers.forEach(t => clearTimeout(t));
-        this._restoreTimers = [];
-      },
-      // 保存主页（说说流）浏览状态：已加载页数 + 滚动位置
-      saveHomeState() {
-        this.cancelPendingRestore();
-        this.views.say.scrollPos = this.getScrollY();
-        this.views.say.page = this.sayPage;
-      },
-      // 恢复主页浏览状态（关闭弹窗后调用）
-      restoreHomeState() {
-        const targetPage = this.views.say.page || 1;
-        if (this.sayPage < targetPage) this.sayPage = targetPage;
-        this.scheduleScrollRestore(this.views.say.scrollPos || 0);
-      },
-      // 恢复进入标签筛选前的浏览状态
-      restorePreFilterState() {
-        const targetPage = Math.min(Math.max(1, this.preFilterPage || 1), this.sayTotalPages);
-        const targetScroll = this.preFilterScrollY || 0;
-        this.sayPage = targetPage;
-        this.scheduleScrollRestore(targetScroll);
-      },
-      // =================================================================
-
-      async loadAllSayPosts() {
-        if (this.sayPostsLoaded) return;
-        let allData = [];
-        try {
-          const firstRes = await fetch(`${this.apiBase}?view=say&page=1&pageSize=${this.pageSize}`);
-          const firstJson = await firstRes.json();
-          if (firstJson.error) throw new Error(firstJson.error);
-          allData = firstJson.data || [];
-          const totalPages = firstJson.totalPages || 1;
-          const tasks = [];
-          for (let p = 2; p <= totalPages; p++) {
-            tasks.push(
-              fetch(`${this.apiBase}?view=say&page=${p}&pageSize=${this.pageSize}`)
-                .then(r => r.json())
-                .catch(() => null)
-            );
-          }
-          const rest = await Promise.all(tasks);
-          rest.forEach(json => {
-            if (json && Array.isArray(json.data)) {
-              allData = allData.concat(json.data);
-            }
-          });
-          this.allSayPosts = allData;
-          this.sayPostsLoaded = true;
-          this.sayPage = 1;
-        } catch (e) {
-          console.error('加载说说失败:', e);
-          this.sayPostsLoaded = true;
-        }
-      },
-      async fetchSayPosts() {
-        await this.loadAllSayPosts();
-      },
-
-      // ★ 标签筛选：进入筛选保存位置，退出筛选恢复位置
-      toggleTag(id) {
-        const wasEmpty = this.selectedTags.length === 0;
-        const idx = this.selectedTags.indexOf(id);
-
-        // 1. 从「无筛选」进入「筛选」前，记录主页浏览状态
-        //    （抽屉内连续改动筛选时不覆盖最初保存的状态）
-        if (wasEmpty && idx === -1 && !(this.tagDrawerOpen && this.filterDirtyInDrawer)) {
-          this.preFilterPage = this.sayPage;
-          this.preFilterScrollY = this.getScrollY();
-        }
-
-        // 2. 切换选中状态
-        if (idx > -1) this.selectedTags.splice(idx, 1);
-        else this.selectedTags.push(id);
-
-        // 3. 抽屉打开时，滚动统一由 closeTagDrawer 处理
-        if (this.tagDrawerOpen) {
-          this.filterDirtyInDrawer = true;
-          if (this.selectedTags.length > 0) this.sayPage = 1;
-          return;
-        }
-
-        if (this.selectedTags.length === 0) {
-          // 退出筛选：恢复筛选前的页码与滚动位置
-          this.restorePreFilterState();
-        } else {
-          // 进入/变更筛选：从第 1 页展示筛选结果
-          this.sayPage = 1;
-          if (wasEmpty) this.scheduleScrollRestore(0);
-        }
-      },
-      clearTags() {
-        if (this.selectedTags.length === 0) return;
-        this.selectedTags = [];
-        if (this.tagDrawerOpen) {
-          this.filterDirtyInDrawer = true;
-          return;
-        }
-        this.restorePreFilterState();
-      },
-
-      loadMore() {
-        if (this.sayHasMore) this.sayPage++;
-      },
-      renderMarkdown(content) {
-        if (!content) return '';
-        return marked.parse(content);
-      },
-      formatTime(timeStr) {
-        if (!timeStr) return '';
-        return timeStr.replace(/\//g, '-');
-      },
-      getGenreName(id) {
-        return GENRE_LOOKUP[id] || id;
-      },
-      matchesRelease(item) {
-        if (!this.selectedReleaseRanges.length) return true;
-        const raw = String(item.release_date || '');
-        const year = parseInt(raw.slice(0, 4), 10);
-        if (!year || isNaN(year)) return false;
-        return this.selectedReleaseRanges.some(id => {
-          switch (id) {
-            case '90s': return year >= 1990 && year < 2000;
-            case '2000s': return year >= 2000 && year < 2010;
-            case '2010s': return year >= 2010 && year < 2020;
-            case '2020s': return year >= 2020;
-            default: return false;
-          }
-        });
-      },
-
-      onMenuMusic() {
-        if (typeof window.toggleMusicDrawer === 'function') window.toggleMusicDrawer();
-      },
-      onMenuWatched() {
-        this.switchView('watched');
-      },
-      onMenuWatchlist() {
-        this.switchView('watchlist');
-      },
-      // ★ 相册弹窗：打开前保存主页位置
-      onMenuPhotos() {
-        if (this.showModal && this.modalType === 'photos') {
-          this.closeModal();
-          return;
-        }
-        if (!this.showModal) this.saveHomeState();
-        this.showModal = true;
-        this.modalType = 'photos';
-        if (!this.isDesktop) {
-          document.body.classList.add('modal-open');
-          document.body.style.overflow = 'hidden';
-        }
-        this.fetchAllPhotos();
-      },
-      // ★ 标签抽屉：打开前保存滚动位置
-      onMenuTags() {
-        this.drawerScrollY = this.getScrollY();
-        this.filterDirtyInDrawer = false;
-        this.tagDrawerOpen = true;
-        document.body.style.overflow = 'hidden';
-        this.fetchTags();
-      },
-      onMenuTheme() {
-        if (typeof window.toggleTheme === 'function') window.toggleTheme();
-        this.syncChromeState();
-      },
-
-      async fetchMedia(view) {
-        const viewData = this.views[view];
-        if (!viewData || viewData.loading) return;
-        viewData.loading = true;
-        try {
-          const url = `${this.apiBase}?view=${view}`;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const json = await res.json();
-          if (json.error) throw new Error(json.error);
-          viewData.allItems = json.data || [];
-          viewData.page = 1;
-          viewData.loading = false;
-        } catch (e) {
-          console.error('加载失败:', e);
-          viewData.loading = false;
-        }
-      },
-
-      // ★ 打开弹窗前保存主页浏览状态
-      switchView(view) {
-        if (view === 'say') {
-          this.closeModal();
-          return;
-        }
-        if (this.showModal && this.modalType === view) {
-          this.closeModal();
-          return;
-        }
-        if (!this.showModal) this.saveHomeState();
-        this.showModal = true;
-        this.modalType = view;
-        if (!this.isDesktop) {
-          document.body.classList.add('modal-open');
-          document.body.style.overflow = 'hidden';
-        }
-        this.mediaTypeFilter = 'all';
-        this.selectedGenres = [];
-        this.selectedReleaseRanges = [];
-        const target = this.views[view];
-        if (!target.allItems || target.allItems.length === 0) {
-          this.fetchMedia(view);
-        } else {
-          target.page = 1;
-        }
-      },
-
-      // ★ 关闭弹窗后恢复主页页码与滚动位置
-      closeModal() {
-        if (!this.showModal) return;
-        this.showModal = false;
-        this.modalType = '';
-        document.body.classList.remove('modal-open');
-        const drawer = document.getElementById('musicDrawer');
-        const musicOpen = drawer && drawer.classList.contains('open');
-        if (!musicOpen && !this.tagDrawerOpen && !this.isDesktop) {
-          document.body.style.overflow = '';
-        }
-        this.restoreHomeState();
-      },
-      onModalBackdrop() {
-        if (!this.isDesktop) this.closeModal();
-      },
-
-      setMediaType(type) {
-        if (this.mediaTypeFilter === type) return;
-        this.mediaTypeFilter = type;
-        this.selectedGenres = [];
-        if (this.showModal && this.currentMediaData) {
-          this.currentMediaData.page = 1;
-        }
-      },
-      toggleGenre(id) {
-        const idx = this.selectedGenres.indexOf(id);
-        if (idx > -1) this.selectedGenres.splice(idx, 1);
-        else this.selectedGenres.push(id);
-        if (this.showModal && this.currentMediaData) {
-          this.currentMediaData.page = 1;
-        }
-      },
-      toggleReleaseRange(id) {
-        const idx = this.selectedReleaseRanges.indexOf(id);
-        if (idx > -1) this.selectedReleaseRanges.splice(idx, 1);
-        else this.selectedReleaseRanges.push(id);
-        if (this.showModal && this.currentMediaData) {
-          this.currentMediaData.page = 1;
-        }
-      },
-      goPage(page) {
-        if (!this.showModal) return;
-        if (page < 1 || page > this.mediaTotalPages) return;
-        this.currentMediaData.page = page;
-        this.$nextTick(() => {
-          if (this.isDesktop) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          } else {
-            const body = document.querySelector('.modal-body');
-            if (body) body.scrollTop = 0;
-          }
-        });
-      },
-
-      async fetchAllPhotos() {
-        if (this.photosLoaded || this.photosLoading) return;
-        this.photosLoading = true;
-        try {
-          const firstRes = await fetch(`${this.apiBase}?view=say&page=1&pageSize=${this.pageSize}`);
-          if (!firstRes.ok) throw new Error(`HTTP ${firstRes.status}`);
-          const firstJson = await firstRes.json();
-          if (firstJson.error) throw new Error(firstJson.error);
-          let allPosts = firstJson.data || [];
-          const totalPages = firstJson.totalPages || 1;
-          if (totalPages > 1) {
-            const tasks = [];
-            for (let p = 2; p <= totalPages; p++) {
-              tasks.push(
-                fetch(`${this.apiBase}?view=say&page=${p}&pageSize=${this.pageSize}`)
-                  .then(r => r.json())
-                  .catch(() => null)
-              );
-            }
-            const rest = await Promise.all(tasks);
-            rest.forEach(j => {
-              if (j && Array.isArray(j.data)) allPosts = allPosts.concat(j.data);
-            });
-          }
-          const items = [];
-          allPosts.forEach(post => {
-            (post.images || []).forEach(src => {
-              if (src) items.push({ src, date: post.date });
-            });
-          });
-          this.photoItems = items;
-          this.photosLoaded = true;
-        } catch (e) {
-          console.error('加载相册失败:', e);
-        } finally {
-          this.photosLoading = false;
-        }
-      },
-      openPhoto(index) {
-        const ph = this.photoItems[index];
-        if (!ph) return;
-        if (typeof Fancybox === 'undefined') {
-          window.open(ph.src, '_blank');
-          return;
-        }
-        Fancybox.show(
-          this.photoItems.map(p => ({ src: p.src, type: 'image', thumb: p.src })),
-          { startIndex: index }
-        );
-      },
-
-      async fetchTags() {
-        if (this.tagsLoaded) return;
-        try {
-          const res = await fetch(`${this.apiBase}?view=tags`);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const json = await res.json();
-          if (json.error) throw new Error(json.error);
-          this.tags = json.data || [];
-          this.tagsLoaded = true;
-          this.$nextTick(() => {
-            if (window.Iconify && this.$el) {
-              try { window.Iconify.scan(this.$el); } catch (e) {}
-            }
-          });
-        } catch (e) {
-          console.error('加载标签失败:', e);
-        }
-      },
-      // ★ 关闭标签抽屉：按筛选状态恢复正确的滚动位置
-      closeTagDrawer() {
-        this.tagDrawerOpen = false;
-        const musicDrawer = document.getElementById('musicDrawer');
-        const musicOpen = musicDrawer && musicDrawer.classList.contains('open');
-        if (!this.showModal && !musicOpen) {
-          document.body.style.overflow = '';
-        }
-        if (this.selectedTags.length > 0) {
-          if (this.filterDirtyInDrawer) {
-            // 筛选条件有变化：回到筛选结果顶部
-            this.scheduleScrollRestore(0);
-          } else {
-            // 只是打开看了看：回到打开抽屉前的位置
-            this.scheduleScrollRestore(this.drawerScrollY);
-          }
-        } else if (this.filterDirtyInDrawer) {
-          // 在抽屉里清空了筛选：恢复进入筛选前的页码与位置
-          this.restorePreFilterState();
-        } else {
-          // 未做任何筛选改动：回到打开抽屉前的位置
-          this.scheduleScrollRestore(this.drawerScrollY);
-        }
-        this.filterDirtyInDrawer = false;
-      },
-
-      syncChromeState() {
-        this.isDark = document.body.classList.contains('dark');
-        try {
-          if (window.HWPlayer && typeof window.HWPlayer.getState === 'function') {
-            this.musicPlaying = !!window.HWPlayer.getState().isPlaying;
-          }
-        } catch (e) {
-          this.musicPlaying = false;
-        }
-      },
-      onKeydown(e) {
-        if (e.key !== 'Escape') return;
-        if (this.tagDrawerOpen) {
-          this.closeTagDrawer();
-          return;
-        }
-        if (this.showModal) this.closeModal();
-      },
-    },
-    mounted() {
-      this.mq = window.matchMedia('(min-width: 1024px)');
-      this.onMq = (e) => { this.isDesktop = e.matches; };
-      this.isDesktop = this.mq.matches;
-      this.mq.addEventListener('change', this.onMq);
-      this.loadAllSayPosts();
-      this.fetchTags();
-      this.syncChromeState();
-      window.addEventListener('keydown', this.onKeydown);
-      this.onHwUpdate = () => this.syncChromeState();
-      document.addEventListener('hwplayerupdate', this.onHwUpdate);
-      this.themeObs = new MutationObserver(() => this.syncChromeState());
-      this.themeObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-      // ★ 用户主动滚动时，取消尚未执行完的位置补偿，避免拉扯
-      this.onUserScroll = () => this.cancelPendingRestore();
-      window.addEventListener('wheel', this.onUserScroll, { passive: true });
-      window.addEventListener('touchmove', this.onUserScroll, { passive: true });
-      this.$nextTick(() => {
-        if (window.Iconify && this.$el) {
-          try { window.Iconify.scan(this.$el); } catch (e) {}
-        }
-      });
-    },
-    beforeUnmount() {
-      window.removeEventListener('keydown', this.onKeydown);
-      if (this.mq && this.onMq) this.mq.removeEventListener('change', this.onMq);
-      if (this.onHwUpdate) document.removeEventListener('hwplayerupdate', this.onHwUpdate);
-      if (this.onUserScroll) {
-        window.removeEventListener('wheel', this.onUserScroll);
-        window.removeEventListener('touchmove', this.onUserScroll);
-      }
-      if (this.themeObs) this.themeObs.disconnect();
-      this.cancelPendingRestore();
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-    },
-    watch: {
-      posts() {
-        this.$nextTick(() => {
-          if (typeof Fancybox !== 'undefined') {
-            Fancybox.bind('[data-fancybox]');
-          }
-        });
-      },
-    },
-  }).mount('#app');
 </script>
 
-    <script>
-  (function () {
-    const iconEl = document.getElementById('themeIcon');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    let stored = localStorage.getItem('hwTheme');
-    let isDark = false;
-    if (stored === 'dark') isDark = true;
-    else if (stored === 'light') isDark = false;
-    else isDark = prefersDark;
+<!-- ========== 音乐抽屉控制 ========== -->
+<script>
+(function () {
+  const drawer = document.getElementById('musicDrawer');
+  const overlay = document.getElementById('musicDrawerOverlay');
+  let mounted = false;
 
-    function applyTheme(dark) {
-      document.body.classList.toggle('dark', dark);
-      if (iconEl) iconEl.setAttribute('data-icon', dark ? 'carbon:moon' : 'carbon:sun');
-      localStorage.setItem('hwTheme', dark ? 'dark' : 'light');
-      isDark = dark;
-      let meta = document.querySelector('meta[name="theme-color"]:not([media])');
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.name = 'theme-color';
-        document.head.appendChild(meta);
-      }
-      meta.content = dark ? '#121212' : '#ffffff';
+  function openDrawer() {
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (!mounted && window.HWPlayer) {
+      mounted = true;
+      window.HWPlayer.mountAll(document.getElementById('musicDrawerMount').parentElement);
     }
-    applyTheme(isDark);
+  }
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      const stored = localStorage.getItem('hwTheme');
-      if (!stored) applyTheme(e.matches);
-    });
+  document.getElementById('musicBtn').onclick = openDrawer;
+  document.getElementById('musicDrawerClose').onclick = closeDrawer;
+  overlay.onclick = closeDrawer;
 
-    const drawer = document.getElementById('musicDrawer');
-    const overlay = document.getElementById('drawerOverlay');
-    const closeBtn = document.getElementById('drawerCloseBtn');
-    let drawerSavedScrollY = 0; // ★ 新增：记录抽屉打开前的页面滚动位置
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+  });
 
-    function openDrawer() {
-      drawerSavedScrollY = window.scrollY || document.documentElement.scrollTop || 0; // ★
-      drawer.classList.add('open');
-      overlay.classList.add('open');
-      const mount = document.getElementById('drawerPlayerMount');
-      if (mount && !mount.dataset.hwMounted) {
-        if (window.HWPlayer) window.HWPlayer.mountAll();
-      }
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeDrawer() {
-      drawer.classList.remove('open');
-      overlay.classList.remove('open');
-      if (document.body.classList.contains('modal-open')) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-      // ★ 恢复打开抽屉前的页面滚动位置（修复 body overflow:hidden 导致的滚动跳顶）
-      const y = drawerSavedScrollY;
-      requestAnimationFrame(() => {
-        try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); }
-        catch (e) { window.scrollTo(0, y); }
-        setTimeout(() => {
-          try { window.scrollTo({ top: y, left: 0, behavior: 'instant' }); }
-          catch (e) { window.scrollTo(0, y); }
-        }, 80);
-      });
-    }
-
-    window.toggleTheme = function () {
-      applyTheme(!isDark);
-    };
-    window.toggleMusicDrawer = function () {
-      if (drawer.classList.contains('open')) closeDrawer();
-      else openDrawer();
-    };
-
-    if (closeBtn) closeBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      closeDrawer();
-    });
-    if (overlay) overlay.addEventListener('click', function () {
-      closeDrawer();
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
-    });
-
-    window.HWonMasonryNeeded = function () {
-      window.dispatchEvent(new Event('resize'));
-    };
-
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.HWPlayer) window.HWPlayer.mountAll();
-    });
-  })();
+  // 播放状态指示点
+  document.addEventListener('hwplayer:update', e => {
+    const dot = document.getElementById('musicDot');
+    if (dot) dot.classList.toggle('hidden', !(e.detail && e.detail.isPlaying));
+  });
+})();
 </script>
   </body>
 </html>
