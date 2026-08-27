@@ -31,7 +31,7 @@
 
      <style>
   :root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
-  [data-theme="dark"], [data-theme="sunset"] { color-scheme: dark; }
+  [data-theme="dark"], [data-theme="halloween"] { color-scheme: dark; }
   html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
   body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
@@ -122,9 +122,7 @@
   .poster-card { transition: transform .25s ease, box-shadow .25s ease; }
   @media (hover: hover) {
     .poster-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -16px rgb(0 0 0 / .35); }
-    .poster-card:hover .poster-overlay { opacity: 1; }
   }
-  .poster-overlay { opacity: 0; transition: opacity .25s ease; }
 
   .fade-up { animation: fadeUp .45s ease both; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
@@ -165,8 +163,41 @@
   .memo-text hr { border: none; border-top: 1px solid rgb(128 128 128 / .35); margin: 1em 0; }
   .memo-text img { max-width: 100%; border-radius: 10px; }
 
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb { background: rgb(128 128 128 / .3); border-radius: 8px; }
+  /* 隐藏所有滚动条（保留滚动功能，营造系统 APP 无滚动条体验） */
+  * {
+    scrollbar-width: none;           /* Firefox */
+    -ms-overflow-style: none;        /* IE/Edge */
+  }
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  /* ============ 歌词均衡器动画 ============ */
+  .eq {
+    display: flex; align-items: flex-end;
+    gap: 2.5px; height: 16px; flex-shrink: 0;
+  }
+  .eq i {
+    width: 3px; border-radius: 2px;
+    background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+    animation: eq-bounce 1s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+  .eq i:nth-child(1) { height: 60%; animation-delay: 0s; }
+  .eq i:nth-child(2) { height: 100%; animation-delay: .18s; }
+  .eq i:nth-child(3) { height: 45%; animation-delay: .36s; }
+  .eq i:nth-child(4) { height: 80%; animation-delay: .54s; }
+  @keyframes eq-bounce { 50% { transform: scaleY(.35); } }
+
+  /* ============ 深色主题下内容图片降亮度（避免刺眼） ============ */
+  html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
+    filter: brightness(.75);
+  }
+  html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img:hover {
+    filter: brightness(.85);
+  }
 
   /* ============ 音乐抽屉（右侧滑出播放器） ============ */
   .music-drawer-overlay {
@@ -207,7 +238,7 @@
     overflow: hidden;
   }
   .music-drawer.open { transform: translateX(0); }
-  html:is([data-theme="dark"], [data-theme="sunset"]) .music-drawer {
+  html:is([data-theme="dark"], [data-theme="halloween"]) .music-drawer {
     --img-brightness: .7;
     box-shadow: -4px 0 24px rgb(0 0 0 / .5);
   }
@@ -317,84 +348,88 @@
   }
 </style>
 </head>
-<body class="min-h-screen bg-base-200/60 text-base-content">
+<body class="h-screen overflow-hidden flex flex-col bg-base-200/60 text-base-content px-3 sm:px-4 pt-3">
 
-<!-- ======================= 头部 ======================= -->
-<header class="sticky top-0 z-30 backdrop-blur-xl bg-base-100/75 border-b border-base-300/60">
-  <div class="max-w-2xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-2.5 min-w-0">
-      <img src="/avatar.webp" alt="头像" class="w-8 h-8 rounded-full object-cover shadow-md shrink-0" />
-      <div class="min-w-0">
-        <h1 class="font-bold leading-none text-[15px] truncate">小记</h1>
-        <p class="text-[11px] opacity-50 leading-tight mt-0.5">说说 · 光影 · 日常</p>
+<!-- ======================= 主体卡片（头部 + 内容一体） ======================= -->
+<div class="max-w-2xl mx-auto w-full flex-1 min-h-0 flex flex-col bg-base-100 rounded-2xl shadow-sm border border-base-300/60">
+
+  <header class="shrink-0">
+    <div class="h-14 flex items-center justify-between gap-3 px-3 sm:px-4">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <img src="/avatar.webp" alt="头像" class="w-8 h-8 rounded-full object-cover shadow-md shrink-0" />
+        <div class="min-w-0">
+          <h1 class="font-bold leading-none text-[15px] truncate">小记</h1>
+          <p class="text-[11px] opacity-50 leading-tight mt-0.5">说说 · 光影 · 日常</p>
+        </div>
       </div>
-    </div>
-    <div class="flex items-center gap-1.5 shrink-0">
-      <button id="musicBtn" class="btn btn-ghost btn-sm btn-circle relative" aria-label="音乐">
-        <span class="iconify text-xl" data-icon="mdi:music-note-outline"></span>
-        <span id="musicDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-success animate-pulse"></span>
-      </button>
-
-      <div class="dropdown dropdown-end">
-        <button tabindex="0" class="btn btn-ghost btn-sm btn-circle" aria-label="选择主题配色">
-          <span class="iconify text-xl" data-icon="mdi:palette-outline"></span>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button id="musicBtn" class="btn btn-ghost btn-sm btn-circle relative" aria-label="音乐">
+          <span class="iconify text-xl" data-icon="mdi:music-note-outline"></span>
+          <span id="musicDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-success animate-pulse"></span>
         </button>
-        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-2xl z-50 w-40 p-2 shadow-xl border border-base-300 mt-2">
-          <li class="menu-title text-xs opacity-50">主题配色</li>
-          <li>
-            <a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-xl">
-              <span>默认</span><span class="pick-check text-primary">✓</span>
-            </a>
-          </li>
-          <li>
-            <a data-theme-pick="cupcake" class="theme-pick-item flex items-center justify-between rounded-xl">
-              <span>奶油粉彩</span><span class="pick-check text-primary hidden">✓</span>
-            </a>
-          </li>
-          <li>
-            <a data-theme-pick="sunset" class="theme-pick-item flex items-center justify-between rounded-xl">
-              <span>日落暖橘</span><span class="pick-check text-primary hidden">✓</span>
-            </a>
-          </li>
-        </ul>
-      </div>
 
-      <button id="themeBtn" class="btn btn-ghost btn-sm btn-circle" aria-label="切换明暗">
-        <span id="iconSun" class="iconify text-xl" data-icon="mdi:white-balance-sunny"></span>
-        <span id="iconMoon" class="iconify text-xl hidden" data-icon="mdi:moon-waning-crescent"></span>
-      </button>
-    </div>
-  </div>
+        <div class="dropdown dropdown-end">
+          <button tabindex="0" class="btn btn-ghost btn-sm btn-circle" aria-label="选择主题配色">
+            <span class="iconify text-xl" data-icon="mdi:palette-outline"></span>
+          </button>
+          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-2xl z-50 w-40 p-2 shadow-xl border border-base-300 mt-2">
+            <li class="menu-title text-xs opacity-50">主题配色</li>
+            <li>
+              <a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-xl">
+                <span>默认</span><span class="pick-check text-primary">✓</span>
+              </a>
+            </li>
+            <li>
+              <a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-xl">
+                <span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span>
+              </a>
+            </li>
+            <li>
+              <a data-theme-pick="halloween" class="theme-pick-item flex items-center justify-between rounded-xl">
+                <span>万圣夜</span><span class="pick-check text-primary hidden">✓</span>
+              </a>
+            </li>
+          </ul>
+        </div>
 
-  <!-- 歌词横幅：音乐播放时在顶栏显示当前歌词 -->
-  <div id="headerLyricsBar" class="hidden max-w-2xl mx-auto px-3 sm:px-4 pb-2">
-    <div class="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-1.5">
-      <span class="iconify text-base text-primary shrink-0" data-icon="mdi:music-note"></span>
-      <div class="min-w-0 flex-1 text-center">
-        <p id="headerLyricsText" class="text-sm truncate font-medium leading-snug"></p>
+        <button id="themeBtn" class="btn btn-ghost btn-sm btn-circle" aria-label="切换明暗">
+          <span id="iconSun" class="iconify text-xl" data-icon="mdi:white-balance-sunny"></span>
+          <span id="iconMoon" class="iconify text-xl hidden" data-icon="mdi:moon-waning-crescent"></span>
+        </button>
       </div>
     </div>
-  </div>
-</header>
 
-<main class="max-w-2xl mx-auto px-3 sm:px-4 pb-24">
-
-  <div class="pt-5 pb-2">
-    <div role="tablist" class="tabs tabs-boxed bg-base-100 shadow-sm w-full grid grid-cols-4 rounded-2xl p-1">
-      <button role="tab" data-view="say" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:chat-processing-outline"></span>说说</button>
-      <button role="tab" data-view="photos" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:image-multiple-outline"></span>图片</button>
-      <button role="tab" data-view="watched" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:movie-open-check-outline"></span>看过</button>
-      <button role="tab" data-view="watchlist" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:star-outline"></span>想看</button>
+    <!-- 歌词横幅：音乐播放时在顶栏显示当前歌词 -->
+    <div id="headerLyricsBar" class="hidden px-3 sm:px-4 pb-2">
+      <div class="flex items-center gap-2 rounded-xl bg-base-200 px-3 py-1.5">
+        <span class="eq shrink-0" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <div class="min-w-0 flex-1 text-center">
+          <p id="headerLyricsText" class="text-sm truncate font-medium leading-snug"></p>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div id="tagBar" class="mt-3">
-    <div id="tagChips" class="flex flex-wrap gap-2"></div>
-    <div id="tagFilterHint" class="hidden mt-2 flex items-center gap-2 text-xs opacity-70">
-      <span>已选标签（交集筛选）</span>
-      <button id="clearTagsBtn" class="btn btn-xs btn-ghost rounded-full"><span class="iconify" data-icon="mdi:close"></span>清空</button>
+    <!-- 菜单（icon only，横向） -->
+    <div class="px-3 sm:px-4 pb-3">
+      <ul class="menu menu-horizontal bg-base-200 rounded-xl w-full justify-center">
+        <li><a class="tab-btn" data-view="say" title="说说"><span class="iconify text-xl" data-icon="mdi:chat-processing-outline"></span></a></li>
+        <li><a class="tab-btn" data-view="photos" title="图片"><span class="iconify text-xl" data-icon="mdi:image-multiple-outline"></span></a></li>
+        <li><a class="tab-btn" data-view="watched" title="看过"><span class="iconify text-xl" data-icon="mdi:movie-open-check-outline"></span></a></li>
+        <li><a class="tab-btn" data-view="watchlist" title="想看"><span class="iconify text-xl" data-icon="mdi:star-outline"></span></a></li>
+      </ul>
     </div>
-  </div>
+
+    <!-- 标签筛选（置顶，横向滚动标签条） -->
+    <div id="tagBar" class="hidden px-3 sm:px-4 pb-3">
+      <div class="flex items-center gap-2">
+        <div id="tagSelected" class="flex items-center gap-1.5 shrink-0"></div>
+        <div id="tagChips" class="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0"></div>
+        <button id="clearTagsBtn" class="btn btn-xs btn-ghost btn-circle shrink-0 hidden" aria-label="清空标签"><span class="iconify" data-icon="mdi:close"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="mainScroll" class="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 pt-0 pb-24">
 
   <div id="content" class="mt-4 flex flex-col gap-4"></div>
 
@@ -407,7 +442,9 @@
     <div class="join shadow-sm" id="pagerBtns"></div>
   </div>
 
-</main>
+  </main>
+
+</div>
 
 <button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
   <span class="iconify text-xl" data-icon="mdi:arrow-up"></span>
@@ -856,9 +893,8 @@ function tagColor(id) {
 
 function tagChipClasses(id, active) {
   const color = tagColor(id);
-  return active
-    ? `badge badge-${color} tag-chip cursor-pointer select-none transition-all`
-    : `badge badge-soft badge-${color} tag-chip cursor-pointer select-none transition-all`;
+  const base = 'badge tag-chip cursor-pointer select-none transition-all shrink-0 whitespace-nowrap';
+  return active ? `${base} badge-${color}` : `${base} badge-soft badge-${color}`;
 }
 
 function tagChipHtml(id, { active = false, count = null } = {}) {
@@ -929,18 +965,19 @@ function mediaCard(m, idx) {
   <div class="poster-card fade-up card bg-base-100 shadow-sm border border-base-300/50 overflow-hidden" style="animation-delay:${Math.min(idx * 30, 300)}ms">
     <figure class="relative aspect-[2/3] bg-base-300">
       <img src="${escapeHtml(m.poster_path)}" alt="${escapeHtml(m.title)}" loading="lazy" class="w-full h-full object-cover" />
-      <a href="${escapeHtml(m.douban_url)}" target="_blank" rel="noopener"
-         class="poster-overlay absolute inset-0 bg-black/55 grid place-items-center">
-        <span class="btn btn-sm btn-success text-white">豆瓣搜索</span>
-      </a>
       <span class="absolute top-1.5 right-1.5 badge badge-sm bg-black/60 text-white border-none gap-0.5"><span class="iconify text-xs" data-icon="mdi:star"></span>${escapeHtml(m.vote_average)}</span>
     </figure>
     <div class="p-2.5">
       <h3 class="font-semibold text-[13px] leading-snug line-clamp-1" title="${escapeHtml(m.title)}">${escapeHtml(m.title)}</h3>
       <p class="text-[11px] opacity-50 line-clamp-1 mt-0.5" title="${escapeHtml(m.original_title)}">${escapeHtml(m.original_title || '—')}</p>
       <div class="flex items-center justify-between mt-1.5">
-        ${typeBadge}
-        <span class="text-[10px] opacity-40">${escapeHtml(m.date)}</span>
+        <div class="flex items-center gap-1.5 min-w-0">
+          ${typeBadge}
+          <a href="${escapeHtml(m.douban_url)}" target="_blank" rel="noopener" class="btn btn-xs btn-ghost btn-circle shrink-0" aria-label="豆瓣搜索" title="豆瓣搜索">
+            <span class="iconify text-base" data-icon="streamline-logos:douban-logo-block"></span>
+          </a>
+        </div>
+        <span class="text-[10px] opacity-40 shrink-0">${escapeHtml(m.date)}</span>
       </div>
     </div>
   </div>`;
@@ -1101,6 +1138,7 @@ const state = {
 };
 
 const contentEl = $('#content');
+const mainScroll = $('#mainScroll');
 
 /* ---------- 标签栏 ---------- */
 let cachedTags = [];
@@ -1123,22 +1161,31 @@ function loadTags() {
 }
 
 function renderTagChips(tags) {
-  const bar = $('#tagChips');
-  if (!tags.length && !state.selectedTags.size) { bar.innerHTML = ''; return; }
-  const extra = [...state.selectedTags].filter(id => !tags.some(t => t.id === id)).map(id => ({ id, count: null }));
-  bar.innerHTML = [...tags, ...extra].map(t =>
-    tagChipHtml(t.id, { active: state.selectedTags.has(t.id), count: t.count })
-  ).join('');
-  bar.querySelectorAll('.tag-chip').forEach(btn => { btn.onclick = () => toggleTag(btn.dataset.tag); });
-  $('#tagFilterHint').classList.toggle('hidden', state.selectedTags.size === 0);
+  const bar = $('#tagBar');
+  const selectedEl = $('#tagSelected');
+  const chipsEl = $('#tagChips');
+  const clearBtn = $('#clearTagsBtn');
+
+  const selected = [...state.selectedTags];
+  const unselected = (tags || []).filter(t => !state.selectedTags.has(t.id));
+
+  if (!tags.length && !selected.length) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+
+  // 已选标签固定在最前面（实心，点击取消）
+  selectedEl.innerHTML = selected.map(id => tagChipHtml(id, { active: true })).join('');
+  // 未选标签横向滚动
+  chipsEl.innerHTML = unselected.map(t => tagChipHtml(t.id, { count: t.count })).join('');
+  // 清空按钮
+  clearBtn.classList.toggle('hidden', selected.length === 0);
+
+  selectedEl.querySelectorAll('.tag-chip').forEach(btn => { btn.onclick = () => toggleTag(btn.dataset.tag); });
+  chipsEl.querySelectorAll('.tag-chip').forEach(btn => { btn.onclick = () => toggleTag(btn.dataset.tag); });
 }
 
 function toggleTag(id) {
   state.selectedTags.has(id) ? state.selectedTags.delete(id) : state.selectedTags.add(id);
-  document.querySelectorAll('#tagChips .tag-chip').forEach(b => {
-    b.className = tagChipClasses(b.dataset.tag, state.selectedTags.has(b.dataset.tag));
-  });
-  $('#tagFilterHint').classList.toggle('hidden', state.selectedTags.size === 0);
+  renderTagChips(cachedTags);   // 重新渲染：选中标签移到最前面
   resetSay();
 }
 
@@ -1153,6 +1200,7 @@ function bindCardInteractions() {
 function resetSay() {
   state.sayPage = 1;
   state.sayTotalPages = 1;
+  if (mainScroll) mainScroll.scrollTop = 0;   // 筛选/切换后回到列表顶部
   contentEl.innerHTML = skeletonCards(3);
   $('#endHint').classList.add('hidden');
   loadSayPage(1, { replace: true });
@@ -1200,7 +1248,7 @@ const observer = new IntersectionObserver(entries => {
   if (state.view === 'say' && state.sayPage < state.sayTotalPages && !state.loading) {
     loadSayPage(state.sayPage + 1);
   }
-}, { rootMargin: '400px' });
+}, { root: mainScroll, rootMargin: '400px' });
 observer.observe($('#sentinel'));
 
 /* ---------- 图片墙：聚合所有说说的图片 ---------- */
@@ -1362,7 +1410,7 @@ function renderMediaPage(view) {
         if (b.classList.contains('btn-disabled')) return;
         state.mediaPage[view] = Number(b.dataset.p);
         renderMediaPage(view);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        mainScroll.scrollTo({ top: 0, behavior: 'smooth' });
       };
     });
     $('#mediaPager').classList.remove('hidden');
@@ -1379,8 +1427,9 @@ function switchView(view) {
   }
   state.view = view;
   document.querySelectorAll('.tab-btn').forEach(t => {
-    t.classList.toggle('tab-active', t.dataset.view === view);
-    t.classList.toggle('bg-base-300', t.dataset.view === view);
+    const on = t.dataset.view === view;
+    t.classList.toggle('bg-base-300', on);
+    t.classList.toggle('text-primary', on);
   });
   $('#tagBar').classList.toggle('hidden', view !== 'say');
   $('#mediaPager').classList.add('hidden');
@@ -1403,7 +1452,7 @@ document.querySelectorAll('.tab-btn').forEach(t => {
 /* ============================================================
    主题系统
 ============================================================ */
-const DARK_THEMES = new Set(['dark', 'sunset']);
+const DARK_THEMES = new Set(['dark', 'halloween']);
 let themePick = 'auto';
 
 function isDarkTheme(t) { return DARK_THEMES.has(t); }
@@ -1465,7 +1514,7 @@ $('#themeBtn').onclick = () => {
 (function initTheme() {
   let pick = 'auto';
   try { pick = localStorage.getItem('memo-theme-pick') || 'auto'; } catch {}
-  if (!['auto', 'cupcake', 'sunset'].includes(pick)) pick = 'auto';
+  if (!['auto', 'caramellatte', 'halloween'].includes(pick)) pick = 'auto';
   applyPick(pick);
 })();
 
@@ -1478,12 +1527,12 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
 
 /* ---------- 回到顶部 ---------- */
 const toTop = $('#toTop');
-addEventListener('scroll', () => {
-  const show = scrollY > 500;
+mainScroll.addEventListener('scroll', () => {
+  const show = mainScroll.scrollTop > 500;
   toTop.style.opacity = show ? '1' : '0';
   toTop.style.pointerEvents = show ? 'auto' : 'none';
 }, { passive: true });
-toTop.onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+toTop.onclick = () => mainScroll.scrollTo({ top: 0, behavior: 'smooth' });
 
 /* ---------- 启动 ---------- */
 initFancybox();
