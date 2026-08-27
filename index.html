@@ -1369,7 +1369,7 @@ function renderPhotos() {
     <div id="photoGrid">
       <div class="photo-sizer"></div>${photos.map(p => `
       <div class="photo-item">
-        <a href="${escapeHtml(p.url)}" data-fancybox="photos" data-caption="${escapeHtml(fmtDate(p.date))}">
+        <a href="${escapeHtml(p.url)}" data-fancybox="photos">
           <img src="${escapeHtml(p.url)}" loading="lazy" alt="" />
         </a>
       </div>`).join('')}
