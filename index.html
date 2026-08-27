@@ -35,10 +35,8 @@
   html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
   body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
-  .top-glow {
-    background: linear-gradient(90deg,
-      oklch(65% .2 250) 0%, oklch(70% .18 330) 50%, oklch(72% .15 180) 100%);
-  }
+  /* 标签徽章：保证 button 上的 badge 继承全局字体 */
+  .tag-chip { font-family: inherit; }
 
   .memo-card { transition: transform .25s ease, box-shadow .25s ease; }
   @media (hover: hover) {
@@ -321,13 +319,11 @@
 </head>
 <body class="min-h-screen bg-base-200/60 text-base-content">
 
-<div class="top-glow h-1 w-full"></div>
-
 <!-- ======================= 头部 ======================= -->
 <header class="sticky top-0 z-30 backdrop-blur-xl bg-base-100/75 border-b border-base-300/60">
-  <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+  <div class="max-w-2xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-3">
     <div class="flex items-center gap-2.5 min-w-0">
-      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary via-secondary to-accent grid place-items-center text-primary-content text-sm font-bold shadow-md shrink-0">记</div>
+      <img src="/avatar.webp" alt="头像" class="w-8 h-8 rounded-full object-cover shadow-md shrink-0" />
       <div class="min-w-0">
         <h1 class="font-bold leading-none text-[15px] truncate">小记</h1>
         <p class="text-[11px] opacity-50 leading-tight mt-0.5">说说 · 光影 · 日常</p>
@@ -367,6 +363,16 @@
         <span id="iconSun" class="iconify text-xl" data-icon="mdi:white-balance-sunny"></span>
         <span id="iconMoon" class="iconify text-xl hidden" data-icon="mdi:moon-waning-crescent"></span>
       </button>
+    </div>
+  </div>
+
+  <!-- 歌词横幅：音乐播放时在顶栏显示当前歌词 -->
+  <div id="headerLyricsBar" class="hidden max-w-2xl mx-auto px-3 sm:px-4 pb-2">
+    <div class="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-1.5">
+      <span class="iconify text-base text-primary shrink-0" data-icon="mdi:music-note"></span>
+      <div class="min-w-0 flex-1 text-center">
+        <p id="headerLyricsText" class="text-sm truncate font-medium leading-snug"></p>
+      </div>
     </div>
   </div>
 </header>
@@ -838,12 +844,27 @@ function initCarousels(root) {
 ============================================================ */
 let tagNameMap = new Map();
 
+const TAG_COLORS = ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error'];
+
+// 根据标签 id 生成稳定颜色（同一标签始终同色，不同标签颜色分散）
+function tagColor(id) {
+  let h = 0;
+  const s = String(id);
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return TAG_COLORS[h % TAG_COLORS.length];
+}
+
+function tagChipClasses(id, active) {
+  const color = tagColor(id);
+  return active
+    ? `badge badge-${color} tag-chip cursor-pointer select-none transition-all`
+    : `badge badge-soft badge-${color} tag-chip cursor-pointer select-none transition-all`;
+}
+
 function tagChipHtml(id, { active = false, count = null } = {}) {
   const name = tagNameMap.get(id) || id.replace(/^tag_/, '');
-  const base = 'btn btn-xs rounded-full transition-all tag-chip';
-  const cls = active ? base + ' btn-primary' : base + ' btn-ghost bg-base-100 border border-base-300';
-  const badge = count != null ? `<span class="badge badge-xs ${active ? 'badge-neutral' : 'badge-ghost'} ml-0.5">${count}</span>` : '';
-  return `<button class="${cls}" data-tag="${escapeHtml(id)}"># ${escapeHtml(name)}${badge}</button>`;
+  const countHtml = count != null ? ` <span class="opacity-70 ml-0.5">${count}</span>` : '';
+  return `<button type="button" class="${tagChipClasses(id, active)}" data-tag="${escapeHtml(id)}">${escapeHtml(name)}${countHtml}</button>`;
 }
 
 function memoCard(m, idx) {
@@ -852,7 +873,7 @@ function memoCard(m, idx) {
   const extraImages = Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : [];
   const images = parsedImages.length ? parsedImages : extraImages;
   const tags = (m.tags || []).map(t =>
-    `<span class="badge badge-sm badge-ghost badge-outline cursor-pointer hover:badge-primary transition-colors memo-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(tagNameMap.get(t) || t.replace(/^tag_/, ''))}</span>`
+    `<span class="badge badge-dash badge-${tagColor(t)} cursor-pointer hover:opacity-75 transition-opacity memo-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(tagNameMap.get(t) || t.replace(/^tag_/, ''))}</span>`
   ).join(' ');
   return `
   <article class="memo-card fade-up card bg-base-100 shadow-sm border border-base-300/50 overflow-hidden" style="animation-delay:${Math.min(idx * 40, 400)}ms">
@@ -1087,10 +1108,7 @@ function renderTagChips(tags) {
 function toggleTag(id) {
   state.selectedTags.has(id) ? state.selectedTags.delete(id) : state.selectedTags.add(id);
   document.querySelectorAll('#tagChips .tag-chip').forEach(b => {
-    const on = state.selectedTags.has(b.dataset.tag);
-    b.className = on
-      ? 'btn btn-xs rounded-full transition-all tag-chip btn-primary'
-      : 'btn btn-xs rounded-full transition-all tag-chip btn-ghost bg-base-100 border border-base-300';
+    b.className = tagChipClasses(b.dataset.tag, state.selectedTags.has(b.dataset.tag));
   });
   $('#tagFilterHint').classList.toggle('hidden', state.selectedTags.size === 0);
   resetSay();
@@ -2518,6 +2536,94 @@ switchView('say');
   document.addEventListener('hwplayer:update', e => {
     const dot = document.getElementById('musicDot');
     if (dot) dot.classList.toggle('hidden', !(e.detail && e.detail.isPlaying));
+  });
+})();
+
+// 歌词横幅：播放时在顶栏显示当前歌词
+(function () {
+  const bar = document.getElementById('headerLyricsBar');
+  const textEl = document.getElementById('headerLyricsText');
+  if (!bar || !textEl) return;
+
+  const lrcCache = new Map();
+  let currentTrackId = null;
+  let lines = [];
+  let shownText = '';
+
+  function parseLRC(lrcText) {
+    if (!lrcText) return [];
+    const timeTag = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
+    const result = [];
+    for (const line of String(lrcText).split('\n')) {
+      const tags = [...line.matchAll(timeTag)];
+      if (!tags.length) continue;
+      const text = line.replace(timeTag, '').trim();
+      if (!text) continue;
+      for (const t of tags) {
+        const min = parseInt(t[1], 10), sec = parseInt(t[2], 10);
+        const ms = t[3] ? parseInt(t[3].padEnd(3, '0'), 10) : 0;
+        result.push({ time: min * 60000 + sec * 1000 + ms, text });
+      }
+    }
+    result.sort((a, b) => a.time - b.time);
+    return result;
+  }
+
+  function fetchLyrics(neteaseId) {
+    if (lrcCache.has(neteaseId)) return lrcCache.get(neteaseId);
+    const p = (async () => {
+      try {
+        const res = await fetch(`https://meting.zhheo.com/?server=netease&type=lrc&id=${neteaseId}`);
+        const txt = await res.text();
+        return parseLRC(txt);
+      } catch { return []; }
+    })();
+    lrcCache.set(neteaseId, p);
+    return p;
+  }
+
+  function renderLine(posMs, meta) {
+    let text = '';
+    if (lines.length) {
+      let idx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].time <= posMs) idx = i; else break;
+      }
+      text = idx >= 0 ? lines[idx].text : '';
+    }
+    if (!text) text = (meta && meta.title) || '♪ 播放中';
+    if (text === shownText) return;
+    shownText = text;
+    textEl.textContent = text;
+    bar.classList.remove('hidden');
+  }
+
+  document.addEventListener('hwplayer:update', e => {
+    const d = e.detail || {};
+    const meta = d._currentMeta;
+    if (!d.isPlaying || !meta || !meta.trackId) {
+      bar.classList.add('hidden');
+      currentTrackId = null;
+      lines = [];
+      shownText = '';
+      return;
+    }
+
+    const trackId = meta.trackId;
+    if (trackId !== currentTrackId) {
+      currentTrackId = trackId;
+      lines = [];
+      shownText = '';
+      const neId = String(trackId).replace(/^ne-/, '');
+      if (neId) {
+        fetchLyrics(neId).then(ls => {
+          if (currentTrackId !== trackId) return;
+          lines = ls;
+          renderLine(d.position, meta);
+        });
+      }
+    }
+    renderLine(d.position, meta);
   });
 })();
 </script>
