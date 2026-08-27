@@ -27,7 +27,7 @@
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4/dist/infinitegrid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
 
      <style>
   :root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
@@ -45,13 +45,33 @@
     .memo-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -14px rgb(0 0 0 / .18); }
   }
 
-  /* ============ 图片墙（InfiniteGrid 真瀑布流） ============ */
+  /* ============ 图片墙（Masonry.js 瀑布流） ============ */
+  .photo-sizer,
   .photo-item {
-    border-radius: 12px; overflow: hidden;
-    min-height: 120px;
-    cursor: zoom-in; background: rgb(128 128 128 / .12);
+    width: 33.3333%;
   }
-  .photo-item a { display: block; width: 100%; height: 100%; }
+  @media (max-width: 640px) {
+    .photo-sizer,
+    .photo-item {
+      width: 50%;
+    }
+  }
+  .photo-sizer {
+    visibility: hidden;
+    height: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .photo-item {
+    box-sizing: border-box;
+    padding: 5px;
+    cursor: zoom-in;
+  }
+  .photo-item a {
+    display: block; width: 100%; height: 100%;
+    border-radius: 12px; overflow: hidden;
+    background: rgb(128 128 128 / .12);
+  }
   .photo-item img { width: 100%; height: auto; display: block; transition: transform .35s ease; }
   @media (hover: hover) { .photo-item:hover img { transform: scale(1.03); } }
 
@@ -691,20 +711,19 @@ function renderImages(images, group) {
   if (images.length === 1) {
     const img = images[0];
     return `
-    <a class="mt-3 block rounded-xl overflow-hidden bg-base-300/50"
-       href="${escapeHtml(img.url)}" data-fancybox="${escapeHtml(g)}"
-       data-caption="${escapeHtml(img.alt || '')}">
+    <div class="mt-3 rounded-xl overflow-hidden bg-base-300/50">
       <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
-           class="w-full h-auto cursor-zoom-in" />
-    </a>`;
+           data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
+           data-caption="${escapeHtml(img.alt || '')}"
+           class="w-full h-auto max-h-[520px] object-cover cursor-zoom-in" />
+    </div>`;
   }
 
   const items = images.map((img, i) => `
     <div class="strip-item rounded-xl overflow-hidden bg-base-300/50 w-[72%] sm:w-[58%] h-52 sm:h-64">
-      <a href="${escapeHtml(img.url)}" data-fancybox="${escapeHtml(g)}"
-         data-caption="${escapeHtml(img.alt || '')}" class="block w-full h-full">
-        <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy" />
-      </a>
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
+           data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
+           data-caption="${escapeHtml(img.alt || '')}" />
     </div>`).join('');
 
   return `
@@ -1176,7 +1195,8 @@ function renderPhotos() {
   if (!photos.length) { contentEl.innerHTML = emptyState('说说里还没有图片。'); return; }
   contentEl.innerHTML = `
     <p class="text-xs opacity-50 px-1">共 ${photos.length} 张图片 · 来自所有说说</p>
-    <div id="photoGrid" style="width:100%">${photos.map(p => `
+    <div id="photoGrid">
+      <div class="photo-sizer"></div>${photos.map(p => `
       <div class="photo-item">
         <a href="${escapeHtml(p.url)}" data-fancybox="photos" data-caption="${escapeHtml(fmtDate(p.date))}">
           <img src="${escapeHtml(p.url)}" loading="lazy" alt="" />
@@ -1188,42 +1208,40 @@ function renderPhotos() {
 }
 
 let photoGridInstance = null;
+
 function initPhotoGrid() {
   const container = $('#photoGrid');
-  if (!container || !window.InfiniteGrid || !InfiniteGrid.MasonryInfiniteGrid) return;
+  if (!container || !window.Masonry) return;
 
   if (photoGridInstance) {
     try { photoGridInstance.destroy(); } catch {}
     photoGridInstance = null;
   }
 
-  const grid = new InfiniteGrid.MasonryInfiniteGrid(container, {
-    gap: 10,
-    column: window.innerWidth < 640 ? 2 : 3,
-    useRecycle: false,
-    useResizeObserver: true,
-    observeChildren: true,
+  const grid = new Masonry(container, {
+    itemSelector: '.photo-item',
+    columnWidth: '.photo-sizer',
+    percentPosition: true,
+    transitionDuration: 0,
   });
   photoGridInstance = grid;
 
-  // 图片加载完成后重新布局（高度变化后修正瀑布流）
-  const relayout = () => { try { grid.renderItems(); } catch {} };
+  // 图片加载完成后重新布局（防抖，避免抖动）
+  let raf = null;
+  const scheduleLayout = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = null;
+      try { grid.layout(); } catch {}
+    });
+  };
   container.querySelectorAll('img').forEach(img => {
     if (img.complete && img.naturalWidth) return;
-    img.addEventListener('load', relayout);
-    img.addEventListener('error', relayout);
+    img.addEventListener('load', scheduleLayout);
+    img.addEventListener('error', scheduleLayout);
   });
 
-  grid.renderItems();
-
-  // 响应式列数
-  const onResize = () => {
-    const c = window.innerWidth < 640 ? 2 : 3;
-    grid.setOptions({ column: c });
-    try { grid.renderItems(); } catch {}
-  };
-  window.addEventListener('resize', onResize);
-  grid._photoResizeHandler = onResize;
+  grid.layout();
 }
 
 /* ---------- 影视 ---------- */
