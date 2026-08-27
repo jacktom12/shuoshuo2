@@ -982,11 +982,25 @@ function getFilteredMedia(view) {
   });
 }
 
-/* 可选题材：从当前视图缓存中统计，且与类型联动（电影→电影题材，剧集→剧集题材） */
+/* 可选题材：从当前视图缓存中统计，且与类型、年代联动（电影→电影题材，剧集→剧集题材，选年代后题材数量即时刷新） */
 function availableGenres(view) {
   const f = state.mediaFilter;
   const list = state.mediaCache[view] || [];
-  const pool = f.type === 'all' ? list : list.filter(m => m.media_type === f.type);
+  // 题材数量 = 当前「类型 + 年代」条件下各题材的独立数量（不考虑已选题材的 AND 约束）
+  const pool = list.filter(m => {
+    if (f.type !== 'all' && m.media_type !== f.type) return false;
+    if (f.ranges.size) {
+      const y = parseInt(String(m.release_date || '').slice(0, 4), 10);
+      if (!Number.isFinite(y)) return false;
+      let hit = false;
+      for (const id of f.ranges) {
+        const r = RELEASE_RANGES.find(r => r.id === id);
+        if (r && r.test(y)) { hit = true; break; }
+      }
+      if (!hit) return false;
+    }
+    return true;
+  });
   const typeSet = f.type === 'movie' ? MOVIE_GENRES : f.type === 'tv' ? TV_GENRES : null;
   const count = new Map();
   pool.forEach(m => (Array.isArray(m.genre_ids) ? m.genre_ids : []).forEach(g => {
