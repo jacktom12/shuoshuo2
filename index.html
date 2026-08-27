@@ -312,11 +312,6 @@
       </div>
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
-      <div id="sourceBadge" class="badge badge-sm badge-ghost gap-1.5 hidden sm:inline-flex mr-1">
-        <span id="sourceDot" class="w-1.5 h-1.5 rounded-full bg-warning inline-block"></span>
-        <span id="sourceText">连接中…</span>
-      </div>
-
       <button id="musicBtn" class="btn btn-ghost btn-sm btn-circle relative" aria-label="音乐">
         <span class="iconify text-xl" data-icon="mdi:music-note-outline"></span>
         <span id="musicDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-success animate-pulse"></span>
@@ -363,11 +358,6 @@
       <button role="tab" data-view="watched" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:movie-open-check-outline"></span>看过</button>
       <button role="tab" data-view="watchlist" class="tab tab-btn rounded-xl font-medium transition-all"><span class="iconify text-base mr-1" data-icon="mdi:star-outline"></span>想看</button>
     </div>
-  </div>
-
-  <div id="mockBanner" class="hidden mt-2 alert alert-warning alert-soft text-xs py-2 rounded-xl">
-    <span class="iconify text-base shrink-0" data-icon="mdi:information-outline"></span>
-    <span>本地预览模式 · 使用 Mock 数据，部署到 <code class="font-mono">note.199105.xyz</code> 后自动切换生产数据。可用 <code class="font-mono">?mode=api</code> / <code class="font-mono">?mode=mock</code> 强制指定。</span>
   </div>
 
   <div id="tagBar" class="mt-3">
@@ -427,10 +417,8 @@
 /* ============================================================
    配置 & 环境检测
 ============================================================ */
-const PROD_HOST = 'note.199105.xyz';
-const API_BASE = location.hostname === 'note.199105.xyz'
-  ? 'https://pub.199105.xyz/api/public-memos'
-  : '/api/public-memos';  // 本地开发时回退相对路径
+const PROD_HOST = 'pub.199105.xyz';
+const API_BASE = location.hostname === 'note.199105.xyz' ? 'https://pub.199105.xyz/api/public-memos' : '/api/public-memos';  // 本地开发时回退相对路径
 const PAGE_SIZE = 12;
 
 const qs = new URLSearchParams(location.search);
@@ -968,7 +956,10 @@ function tagChipHtml(id, { active = false, count = null } = {}) {
 }
 
 function memoCard(m, idx) {
-  const { html, images } = parseContent(m.content);
+  const { html, images: parsedImages } = parseContent(m.content);
+  // 生产数据图片在 m.images 数组中，与 content 解析的图片合并
+  const extraImages = Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : [];
+  const images = parsedImages.length ? parsedImages : extraImages;
   const tags = (m.tags || []).map(t =>
     `<span class="badge badge-sm badge-ghost badge-outline cursor-pointer hover:badge-primary transition-colors memo-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(tagNameMap.get(t) || t.replace(/^tag_/, ''))}</span>`
   ).join(' ');
@@ -1171,20 +1162,6 @@ const state = {
 
 const contentEl = $('#content');
 
-function updateSourceBadge() {
-  const dot = $('#sourceDot'), txt = $('#sourceText'), badge = $('#sourceBadge');
-  badge.classList.remove('hidden');
-  if (USE_MOCK) {
-    dot.className = 'w-1.5 h-1.5 rounded-full bg-warning inline-block';
-    txt.textContent = 'Mock 数据';
-    $('#mockBanner').classList.remove('hidden');
-  } else {
-    dot.className = 'w-1.5 h-1.5 rounded-full bg-success inline-block';
-    txt.textContent = '生产数据';
-    $('#mockBanner').classList.add('hidden');
-  }
-}
-
 /* ---------- 标签栏 ---------- */
 let cachedTags = [];
 
@@ -1298,7 +1275,10 @@ async function loadPhotos() {
       }
       const photos = [];
       all.forEach(m => {
-        parseContent(m.content).images.forEach(img =>
+        const parsedImages = parseContent(m.content).images;
+        const extraImages = Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : [];
+        const images = parsedImages.length ? parsedImages : extraImages;
+        images.forEach(img =>
           photos.push({ url: img.url, date: m.rawDate }));
       });
       state.photosCache = photos;
@@ -1520,7 +1500,6 @@ addEventListener('scroll', () => {
 toTop.onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
 
 /* ---------- 启动 ---------- */
-updateSourceBadge();
 switchView('say');
 </script>
 
