@@ -199,6 +199,10 @@
     filter: brightness(.85);
   }
 
+  /* ============ 标签条拖拽提示 ============ */
+  #tagChips { cursor: grab; }
+  #tagChips.dragging { cursor: grabbing; }
+
   /* ============ 音乐抽屉（右侧滑出播放器） ============ */
   .music-drawer-overlay {
     position: fixed; inset: 0; z-index: 60;
@@ -876,6 +880,76 @@ function initCarousels(root) {
   });
 }
 
+// 横向拖拽滚动（PC 端鼠标拖拽，移动端走原生触摸滚动）
+function initDragScroll(el) {
+  if (!el || el.dataset.dragScroll) return;
+  el.dataset.dragScroll = '1';
+
+  let down = false, startX = 0, startL = 0, moved = 0;
+  let samples = [];
+  let cancelGlide = null;
+
+  const maxScroll = () => Math.max(0, el.scrollWidth - el.clientWidth);
+
+  const glideTo = target => {
+    const to = Math.max(0, Math.min(target, maxScroll()));
+    const from = el.scrollLeft;
+    const dist = Math.abs(to - from);
+    if (dist < 1) return;
+    if (cancelGlide) cancelGlide();
+    const duration = Math.min(200 + dist * 0.55, 550);
+    cancelGlide = animateValue(from, to, duration, v => { el.scrollLeft = v; }, () => { cancelGlide = null; });
+  };
+
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') return;   // 移动端交给原生触摸滚动
+    if (cancelGlide) { cancelGlide(); cancelGlide = null; }
+    down = true; moved = 0;
+    startX = e.clientX; startL = el.scrollLeft;
+    samples = [{ x: e.clientX, t: performance.now() }];
+  });
+
+  el.addEventListener('pointermove', e => {
+    if (!down) return;
+    const dx = e.clientX - startX;
+    moved = Math.max(moved, Math.abs(dx));
+    if (moved > 4) {
+      el.classList.add('dragging');
+      try { el.setPointerCapture(e.pointerId); } catch {}
+    }
+    el.scrollLeft = startL - dx;
+    samples.push({ x: e.clientX, t: performance.now() });
+    if (samples.length > 6) samples.shift();
+  });
+
+  const up = () => {
+    if (!down) return;
+    down = false;
+    el.classList.remove('dragging');
+    if (moved > 8) el.dataset.justDragged = '1';
+    let v = 0;
+    if (samples.length >= 2) {
+      const a = samples[0], b = samples[samples.length - 1];
+      const dt = b.t - a.t;
+      if (dt > 0) v = (b.x - a.x) / dt;
+    }
+    glideTo(el.scrollLeft - v * 220);
+  };
+
+  el.addEventListener('pointerup', up);
+  el.addEventListener('pointercancel', up);
+  el.addEventListener('pointerleave', up);
+
+  // 拖拽后阻止 click（避免误触标签切换）
+  el.addEventListener('click', e => {
+    if (el.dataset.justDragged) {
+      delete el.dataset.justDragged;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+}
+
 /* ============================================================
    渲染：说说
 ============================================================ */
@@ -1181,6 +1255,9 @@ function renderTagChips(tags) {
 
   selectedEl.querySelectorAll('.tag-chip').forEach(btn => { btn.onclick = () => toggleTag(btn.dataset.tag); });
   chipsEl.querySelectorAll('.tag-chip').forEach(btn => { btn.onclick = () => toggleTag(btn.dataset.tag); });
+
+  // PC 端横向拖拽滚动（移动端走原生触摸）
+  initDragScroll(chipsEl);
 }
 
 function toggleTag(id) {
