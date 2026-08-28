@@ -1390,9 +1390,11 @@ const mainScroll = $('#mainScroll');
 let cachedTags = [];
 let tagsPromise = null;
 
-function loadTags() {
-  if (state.tagsLoaded) return Promise.resolve();
-  if (tagsPromise) return tagsPromise;
+function loadTags({ force = false } = {}) {
+  if (!force) {
+    if (tagsPromise) return tagsPromise;   // 有进行中的拉取（含强制刷新）则共用结果
+    if (state.tagsLoaded) return Promise.resolve();
+  }
   tagsPromise = (async () => {
     try {
       const res = await fetchData({ view: 'tags' });
@@ -1416,7 +1418,8 @@ function renderTagChips(tags) {
   const unselected = (tags || []).filter(t => !state.selectedTags.has(t.id));
 
   if (!tags.length && !selected.length) { bar.classList.add('hidden'); return; }
-  bar.classList.remove('hidden');
+  // 异步刷新完成时可能已切到其他视图，避免标签条误显示在非说说视图上
+  bar.classList.toggle('hidden', state.view !== 'say');
 
   // 已选标签固定在最前面（实心，点击取消）
   selectedEl.innerHTML = selected.map(id => tagChipHtml(id, { active: true })).join('');
@@ -1783,7 +1786,7 @@ function switchView(view) {
 
   if (view === 'say') {
     restoreTarget = { view: 'say', pos: viewScrollPos.say, page: sayLoadedPage };
-    loadTags();
+    loadTags({ force: true });   // 每次切到说说都重新拉取标签，与后台的删除/改动保持同步
     resetSay();
   } else if (view === 'photos') {
     restoreTarget = { view: 'photos', pos: viewScrollPos.photos };
