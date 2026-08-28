@@ -199,6 +199,11 @@
     filter: brightness(.85);
   }
 
+  /* ============ 主页封面深色主题降亮度 ============ */
+  html:is([data-theme="dark"], [data-theme="halloween"]) header .relative > img {
+    filter: brightness(.7);
+  }
+
   /* ============ 标签条拖拽提示 ============ */
   #tagChips { cursor: grab; }
   #tagChips.dragging { cursor: grabbing; }
@@ -358,73 +363,105 @@
 <div class="max-w-2xl mx-auto w-full flex-1 min-h-0 flex flex-col bg-base-100">
 
   <header class="shrink-0">
-    <div class="h-14 flex items-center justify-between gap-3 px-4 sm:px-5">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <img src="/avatar.webp" alt="头像" class="w-8 h-8 rounded-full object-cover shadow-md shrink-0" />
-        <div class="min-w-0">
-          <h1 class="font-bold leading-none text-[15px] truncate">小记</h1>
-          <p class="text-[11px] opacity-50 leading-tight mt-0.5">说说 · 光影 · 日常</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-1.5 shrink-0">
-        <button id="musicBtn" class="btn btn-ghost btn-sm btn-circle relative" aria-label="音乐">
-          <span class="iconify text-xl" data-icon="mdi:music-note-outline"></span>
-          <span id="musicDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-success animate-pulse"></span>
-        </button>
-
-        <div class="dropdown dropdown-end">
-          <button tabindex="0" class="btn btn-ghost btn-sm btn-circle" aria-label="选择主题配色">
-            <span class="iconify text-xl" data-icon="mdi:palette-outline"></span>
+    <!-- 响应式导航栏：小屏折叠，大屏展开 -->
+    <nav class="bg-base-200 w-full relative z-50" id="topNav">
+      <div class="navbar min-h-12 py-0 px-4 sm:px-5">
+        <div class="navbar-start gap-2">
+          <button id="navToggleBtn" class="btn btn-ghost btn-sm btn-circle lg:hidden" aria-label="展开菜单" aria-expanded="false" aria-controls="navMobileMenu">
+            <span class="iconify text-xl" data-icon="mdi:menu"></span>
           </button>
-          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-2xl z-50 w-40 p-2 shadow-xl border border-base-300 mt-2">
-            <li class="menu-title text-xs opacity-50">主题配色</li>
+          <span class="font-bold text-base lg:text-lg">小记</span>
+        </div>
+        <div class="navbar-center hidden lg:flex">
+          <ul class="menu menu-horizontal px-1">
+            <li><a class="tab-btn" data-view="say"><span class="iconify mr-1" data-icon="mdi:chat-processing-outline"></span>说说</a></li>
+            <li><a class="tab-btn" data-view="photos"><span class="iconify mr-1" data-icon="mdi:image-multiple-outline"></span>图片</a></li>
             <li>
-              <a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-xl">
-                <span>默认</span><span class="pick-check text-primary">✓</span>
-              </a>
+              <details>
+                <summary><span class="iconify mr-1" data-icon="mdi:bookmark-outline"></span>标记</summary>
+                <ul class="p-2 bg-base-100 rounded-box shadow-lg w-28 z-50">
+                  <li><a class="tab-btn" data-view="watched"><span class="iconify mr-1" data-icon="mdi:movie-open-check-outline"></span>看过</a></li>
+                  <li><a class="tab-btn" data-view="watchlist"><span class="iconify mr-1" data-icon="mdi:star-outline"></span>想看</a></li>
+                </ul>
+              </details>
             </li>
+            <li><button class="music-trigger" aria-label="音乐"><span class="iconify mr-1" data-icon="mdi:music-note-outline"></span>音乐</button></li>
             <li>
-              <a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-xl">
-                <span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span>
-              </a>
-            </li>
-            <li>
-              <a data-theme-pick="halloween" class="theme-pick-item flex items-center justify-between rounded-xl">
-                <span>万圣夜</span><span class="pick-check text-primary hidden">✓</span>
-              </a>
+              <details>
+                <summary><span class="iconify mr-1" data-icon="mdi:cog-outline"></span>工具</summary>
+                <ul class="p-2 bg-base-100 rounded-box shadow-lg w-40 z-50">
+                  <li class="menu-title text-xs opacity-50">主题配色</li>
+                  <li><a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-lg"><span>默认</span><span class="pick-check text-primary">✓</span></a></li>
+                  <li><a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-lg"><span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span></a></li>
+                  <li><a data-theme-pick="halloween" class="theme-pick-item flex items-center justify-between rounded-lg"><span>万圣夜</span><span class="pick-check text-primary hidden">✓</span></a></li>
+                  <li class="menu-title text-xs opacity-50">显示</li>
+                  <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-1" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-1 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
+                </ul>
+              </details>
             </li>
           </ul>
         </div>
-
-        <button id="themeBtn" class="btn btn-ghost btn-sm btn-circle" aria-label="切换明暗">
-          <span id="iconSun" class="iconify text-xl" data-icon="mdi:white-balance-sunny"></span>
-          <span id="iconMoon" class="iconify text-xl hidden" data-icon="mdi:moon-waning-crescent"></span>
-        </button>
+        <div class="navbar-end"></div>
       </div>
+
+      <!-- 小屏折叠菜单内容 -->
+      <div id="navMobileMenu" class="hidden lg:hidden bg-base-200 border-t border-base-300/50">
+        <ul class="menu px-2 pb-2">
+          <li><a class="tab-btn" data-view="say"><span class="iconify mr-2" data-icon="mdi:chat-processing-outline"></span>说说</a></li>
+          <li><a class="tab-btn" data-view="photos"><span class="iconify mr-2" data-icon="mdi:image-multiple-outline"></span>图片</a></li>
+          <li>
+            <details>
+              <summary><span class="iconify mr-2" data-icon="mdi:bookmark-outline"></span>标记</summary>
+              <ul>
+                <li><a class="tab-btn" data-view="watched"><span class="iconify mr-1" data-icon="mdi:movie-open-check-outline"></span>看过</a></li>
+                <li><a class="tab-btn" data-view="watchlist"><span class="iconify mr-1" data-icon="mdi:star-outline"></span>想看</a></li>
+              </ul>
+            </details>
+          </li>
+          <li><button class="music-trigger" aria-label="音乐"><span class="iconify mr-2" data-icon="mdi:music-note-outline"></span>音乐</button></li>
+          <li>
+            <details>
+              <summary><span class="iconify mr-2" data-icon="mdi:cog-outline"></span>工具</summary>
+              <ul>
+                <li class="menu-title text-xs opacity-50">主题配色</li>
+                <li><a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-lg"><span>默认</span><span class="pick-check text-primary">✓</span></a></li>
+                <li><a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-lg"><span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span></a></li>
+                <li><a data-theme-pick="halloween" class="theme-pick-item flex items-center justify-between rounded-lg"><span>万圣夜</span><span class="pick-check text-primary hidden">✓</span></a></li>
+                <li class="menu-title text-xs opacity-50">显示</li>
+                <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-2" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-2 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- 封面横幅 -->
+    <div class="relative h-28 sm:h-36 overflow-hidden">
+      <img src="/bg.jpg" alt="封面" class="w-full h-full object-cover bg-base-300" />
+      <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/50"></div>
     </div>
 
-    <!-- 歌词横幅：音乐播放时在顶栏显示当前歌词 -->
-    <div id="headerLyricsBar" class="hidden px-4 sm:px-5 pb-2">
-      <div class="flex items-center gap-2 rounded-xl bg-base-200 px-3 py-1.5">
-        <span class="eq shrink-0" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <div class="min-w-0 flex-1 text-center">
-          <p id="headerLyricsText" class="text-sm truncate font-medium leading-snug"></p>
+    <!-- 个人资料区 -->
+    <div class="px-4 sm:px-5 relative">
+      <div class="flex items-end gap-3 -mt-8 sm:-mt-10">
+        <img src="/avatar.webp" alt="头像" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-4 border-base-100 shadow-lg bg-base-100 shrink-0" />
+        <div class="min-w-0 pb-1 flex-1">
+          <!-- 歌词横幅：音乐播放时显示当前歌词 -->
+          <div id="headerLyricsBar" class="hidden">
+            <div class="flex items-center gap-2 rounded-lg bg-base-200 px-2.5 py-1">
+              <span class="eq shrink-0" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              <div class="min-w-0 flex-1">
+                <p id="headerLyricsText" class="text-xs sm:text-sm truncate font-medium leading-snug"></p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 菜单（icon only，横向） -->
-    <div class="px-4 sm:px-5 pb-3">
-      <ul class="menu menu-horizontal bg-base-200 rounded-xl w-full justify-center">
-        <li><a class="tab-btn" data-view="say" title="说说"><span class="iconify text-xl" data-icon="mdi:chat-processing-outline"></span></a></li>
-        <li><a class="tab-btn" data-view="photos" title="图片"><span class="iconify text-xl" data-icon="mdi:image-multiple-outline"></span></a></li>
-        <li><a class="tab-btn" data-view="watched" title="看过"><span class="iconify text-xl" data-icon="mdi:movie-open-check-outline"></span></a></li>
-        <li><a class="tab-btn" data-view="watchlist" title="想看"><span class="iconify text-xl" data-icon="mdi:star-outline"></span></a></li>
-      </ul>
-    </div>
-
     <!-- 标签筛选（置顶，横向滚动标签条） -->
-    <div id="tagBar" class="hidden px-4 sm:px-5 pb-3">
+    <div id="tagBar" class="hidden px-4 sm:px-5 pt-3 pb-3">
       <div class="flex items-center gap-2">
         <div id="tagSelected" class="flex items-center gap-1.5 shrink-0"></div>
         <div id="tagChips" class="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0"></div>
@@ -1576,6 +1613,7 @@ function switchView(view) {
   state.view = view;
   document.querySelectorAll('.tab-btn').forEach(t => {
     const on = t.dataset.view === view;
+    t.classList.toggle('active', on);
     t.classList.toggle('bg-base-300', on);
     t.classList.toggle('text-primary', on);
   });
@@ -1599,8 +1637,35 @@ function switchView(view) {
   }
 }
 
+function closeNav() {
+  const menu = document.getElementById('navMobileMenu');
+  const btn = document.getElementById('navToggleBtn');
+  if (menu) menu.classList.add('hidden');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  document.querySelectorAll('header details').forEach(d => { d.open = false; });
+}
+
+(function initMobileNav() {
+  const btn = document.getElementById('navToggleBtn');
+  const menu = document.getElementById('navMobileMenu');
+  if (!btn || !menu) return;
+  btn.onclick = () => {
+    const open = menu.classList.toggle('hidden');
+    btn.setAttribute('aria-expanded', String(!open));
+  };
+  // 点击 header 外部关闭小屏菜单
+  document.addEventListener('click', e => {
+    if (menu.classList.contains('hidden')) return;
+    const nav = document.getElementById('topNav');
+    if (nav && !nav.contains(e.target)) closeNav();
+  });
+})();
+
 document.querySelectorAll('.tab-btn').forEach(t => {
-  t.onclick = () => { if (state.view !== t.dataset.view) switchView(t.dataset.view); };
+  t.onclick = () => {
+    if (state.view !== t.dataset.view) switchView(t.dataset.view);
+    closeNav();
+  };
 });
 
 /* ============================================================
@@ -1613,8 +1678,8 @@ function isDarkTheme(t) { return DARK_THEMES.has(t); }
 
 function updateThemeIcons(theme) {
   const dark = isDarkTheme(theme);
-  $('#iconSun').classList.toggle('hidden', dark);
-  $('#iconMoon').classList.toggle('hidden', !dark);
+  document.querySelectorAll('#iconSun, .theme-icon-sun').forEach(el => el.classList.toggle('hidden', dark));
+  document.querySelectorAll('#iconMoon, .theme-icon-moon').forEach(el => el.classList.toggle('hidden', !dark));
 }
 
 function updatePickChecks() {
@@ -1652,10 +1717,11 @@ document.querySelectorAll('.theme-pick-item').forEach(item => {
   item.addEventListener('click', () => {
     applyPick(item.dataset.themePick);
     document.activeElement && document.activeElement.blur();
+    closeNav();
   });
 });
 
-$('#themeBtn').onclick = () => {
+function toggleTheme() {
   if (themePick !== 'auto') {
     applyPick('auto');
     const cur = document.documentElement.dataset.theme;
@@ -1663,7 +1729,14 @@ $('#themeBtn').onclick = () => {
     return;
   }
   applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-};
+}
+
+document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+  btn.onclick = () => {
+    toggleTheme();
+    closeNav();
+  };
+});
 
 (function initTheme() {
   let pick = 'auto';
@@ -2755,7 +2828,12 @@ switchView('say');
     document.body.style.overflow = '';
   }
 
-  document.getElementById('musicBtn').onclick = openDrawer;
+  document.querySelectorAll('.music-trigger').forEach(btn => {
+    btn.onclick = () => {
+      openDrawer();
+      closeNav();
+    };
+  });
   document.getElementById('musicDrawerClose').onclick = closeDrawer;
   overlay.onclick = closeDrawer;
 
