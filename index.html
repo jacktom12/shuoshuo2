@@ -410,6 +410,52 @@
   @media (max-width: 400px) {
     .music-drawer { width: 92%; }
   }
+
+  /* ============ 单图等比显示（参考 Threads：按原始比例呈现，不强行拉满容器宽度） ============ */
+  .memo-img-single-wrap {
+    display: inline-block;
+    max-width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgb(128 128 128 / .12);
+    background: rgb(128 128 128 / .08);
+    box-shadow: 0 1px 4px rgb(0 0 0 / .06);
+  }
+  .memo-img-single-wrap img {
+    display: block;
+    width: auto; height: auto;
+    max-width: 100%;
+    max-height: min(70vh, 540px);
+    cursor: zoom-in;
+  }
+  html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hover img {
+    filter: brightness(.85);
+  }
+
+  /* ============ iOS 安全区适配 ============ */
+  /* 100vh 在 iOS Safari 里包含地址栏高度，底部内容会被压在工具栏下面；改用动态视口高度（不支持的旧浏览器自动回退 h-screen 的 100vh） */
+  body { height: 100dvh !important; }
+  /* 顶部导航避开状态栏/刘海（viewport-fit=cover 时内容会顶到屏幕物理边缘） */
+  #topNav { padding-top: env(safe-area-inset-top, 0px); }
+  /* 滚动区底部避开 Home 指示条 */
+  #mainScroll { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  #toTop { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
+
+  /* ============ 翻页控件：吸底常显 + 加大触控区 ============ */
+  #mediaPager {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    padding: 10px 8px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to top, var(--color-base-100) 70%, transparent);
+  }
+  #mediaPager .btn {
+    height: 2.75rem;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    padding-inline: .9rem;
+    font-size: 1rem;
+  }
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col bg-base-200/60 text-base-content px-0 sm:px-4">
@@ -838,11 +884,10 @@ function initFancybox() {
   if (images.length === 1) {
     const img = images[0];
     return `
-    <div class="mt-3 rounded-xl overflow-hidden max-w-md">
-      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
+    <div class="memo-img-single-wrap mt-3">
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy" decoding="async"
            data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
-           data-caption="${escapeHtml(img.alt || '')}"
-           class="w-full h-auto cursor-zoom-in" />
+           data-caption="${escapeHtml(img.alt || '')}" />
     </div>`;
   }
 
@@ -1468,6 +1513,13 @@ async function loadPhotos() {
 function renderPhotos() {
   const photos = state.photosCache || [];
   if (!photos.length) { contentEl.innerHTML = emptyState('说说里还没有图片。'); applyRestore('photos'); return; }
+
+  // 需要恢复滚动位置时图片改为立即加载：lazy 模式下视口外的图片不加载、瀑布流高度不足，位置永远恢复不到位
+  const restoring = !!(restoreTarget && restoreTarget.view === 'photos' && restoreTarget.pos > 1);
+  const pos = restoring ? restoreTarget.pos : 0;
+  if (restoring) restoreTarget = null;
+  const loadingAttr = restoring ? 'eager' : 'lazy';
+
   contentEl.innerHTML = `
     <div class="px-4 sm:px-5">
       <p class="text-xs opacity-50">共 ${photos.length} 张图片 · 来自所有说说</p>
@@ -1475,14 +1527,27 @@ function renderPhotos() {
         <div class="photo-sizer"></div>${photos.map(p => `
         <div class="photo-item">
           <a href="${escapeHtml(p.url)}" data-fancybox="photos">
-            <img src="${escapeHtml(p.url)}" loading="lazy" alt="" />
+            <img src="${escapeHtml(p.url)}" loading="${loadingAttr}" alt="" />
           </a>
         </div>`).join('')}
       </div>
     </div>`;
 
   initPhotoGrid();
-  applyRestore('photos');
+  if (restoring) restorePhotosScroll(pos);
+  else applyRestore('photos');
+}
+
+/* 图片墙恢复滚动：瀑布流高度随图片加载逐渐增长，需反复把滚动条钉到目标位置，直到够高或超时 */
+function restorePhotosScroll(pos) {
+  const start = performance.now();
+  const tick = () => {
+    mainScroll.scrollTop = pos;
+    if (Math.abs(mainScroll.scrollTop - pos) <= 8) return;   // 已恢复到位
+    if (performance.now() - start > 3500) return;            // 兜底超时，避免死循环
+    requestAnimationFrame(tick);
+  };
+  tick();
 }
 
 let photoGridInstance = null;
