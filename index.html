@@ -1259,12 +1259,35 @@ function renderTagChips(tags) {
 }
 
 function toggleTag(id) {
-  state.selectedTags.has(id) ? state.selectedTags.delete(id) : state.selectedTags.add(id);
+  const wasSelected = state.selectedTags.has(id);
+  const wasEmpty = state.selectedTags.size === 0;
+
+  // 从无筛选切到有筛选时，保存无筛选时的滚动位置和加载页数
+  if (wasEmpty) {
+    saveCurrentScroll();
+    sayUnfilteredScroll = viewScrollPos.say;
+    sayUnfilteredPage = state.sayPage;
+  }
+
+  wasSelected ? state.selectedTags.delete(id) : state.selectedTags.add(id);
   renderTagChips(cachedTags);   // 重新渲染：选中标签移到最前面
+
+  // 从有筛选回到无筛选时，恢复之前无筛选的滚动位置（含加载页数）；否则回顶部
+  if (!wasEmpty && state.selectedTags.size === 0) {
+    restoreTarget = { view: 'say', pos: sayUnfilteredScroll, page: sayUnfilteredPage };
+  } else {
+    restoreTarget = null;
+  }
   resetSay();
 }
 
-$('#clearTagsBtn').onclick = () => { state.selectedTags.clear(); renderTagChips(cachedTags); resetSay(); };
+$('#clearTagsBtn').onclick = () => {
+  state.selectedTags.clear();
+  renderTagChips(cachedTags);
+  // 清空筛选：恢复之前无筛选时的滚动位置（含加载页数）
+  restoreTarget = { view: 'say', pos: sayUnfilteredScroll, page: sayUnfilteredPage };
+  resetSay();
+};
 
 /* ---------- 说说：加载与无限滚动 ---------- */
 function bindCardInteractions() {
@@ -1275,7 +1298,7 @@ function bindCardInteractions() {
 function resetSay() {
   state.sayPage = 1;
   state.sayTotalPages = 1;
-  if (mainScroll) mainScroll.scrollTop = 0;   // 筛选/切换后回到列表顶部
+  if (mainScroll) mainScroll.scrollTop = 0;   // 先回顶部（视图切换渲染后恢复位置，筛选保持顶部）
   contentEl.innerHTML = skeletonCards(3);
   $('#endHint').classList.add('hidden');
   loadSayPage(1, { replace: true });
@@ -1304,6 +1327,8 @@ async function loadSayPage(page, { replace = false } = {}) {
     }
 
     bindCardInteractions();
+
+    if (replace) applyRestore('say');
 
     const done = state.sayPage >= state.sayTotalPages;
     $('#endHint').classList.toggle('hidden', !done || state.sayTotal === 0);
@@ -1361,7 +1386,7 @@ async function loadPhotos() {
 
 function renderPhotos() {
   const photos = state.photosCache || [];
-  if (!photos.length) { contentEl.innerHTML = emptyState('说说里还没有图片。'); return; }
+  if (!photos.length) { contentEl.innerHTML = emptyState('说说里还没有图片。'); applyRestore('photos'); return; }
   contentEl.innerHTML = `
     <div class="px-4 sm:px-5">
       <p class="text-xs opacity-50">共 ${photos.length} 张图片 · 来自所有说说</p>
@@ -1376,6 +1401,7 @@ function renderPhotos() {
     </div>`;
 
   initPhotoGrid();
+  applyRestore('photos');
 }
 
 let photoGridInstance = null;
@@ -1424,8 +1450,8 @@ async function loadMedia(view) {
     if (!state.mediaCache[view]) {
       const res = await fetchData({ view });   // 每个视图只拉一次，之后筛选翻页全在前端
       state.mediaCache[view] = res.data || [];
+      state.mediaPage[view] = 1;   // 首次加载才重置页码
     }
-    state.mediaPage[view] = 1;
     renderMediaPage(view);
   } catch (err) {
     contentEl.innerHTML = '';
@@ -1441,6 +1467,7 @@ function renderMediaPage(view) {
   if (!all.length) {
     contentEl.innerHTML = emptyState(view === 'watched' ? '还没有看过的记录。' : '想看清单是空的。');
     $('#mediaPager').classList.add('hidden');
+    applyRestore(view);
     return;
   }
 
@@ -1448,6 +1475,7 @@ function renderMediaPage(view) {
     contentEl.innerHTML = filterBar + emptyState('这个筛选条件下没有片子，放宽一点试试？');
     bindMediaFilterEvents(view);
     $('#mediaPager').classList.add('hidden');
+    applyRestore(view);
     return;
   }
 
@@ -1467,6 +1495,7 @@ function renderMediaPage(view) {
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>
     </div>`;
   bindMediaFilterEvents(view);
+  applyRestore(view);
 
   if (pages > 1) {
     const btns = [];
@@ -1498,10 +1527,50 @@ function renderMediaPage(view) {
   }
 }
 
+/* ---------- 滚动位置管理（各视图独立保存/恢复） ---------- */
+const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0 };
+let sayUnfilteredScroll = 0;   // 说说无筛选时保存的滚动位置
+let sayUnfilteredPage = 1;     // 说说无筛选时保存的已加载页数
+let sayLoadedPage = 1;         // 说说当前已加载到的页码
+let restoreTarget = null;      // { view, pos, page } 渲染完成后恢复
+
+function saveCurrentScroll() {
+  if (mainScroll && state.view) {
+    viewScrollPos[state.view] = mainScroll.scrollTop;
+    if (state.view === 'say') sayLoadedPage = state.sayPage;
+  }
+}
+
+function applyRestore(view) {
+  if (!restoreTarget || restoreTarget.view !== view) return;
+  const { pos, page } = restoreTarget;
+  restoreTarget = null;
+  if (view === 'say' && page > 1) {
+    // 延迟到当前 loadSayPage 结束后（state.loading 复位）再补加载
+    setTimeout(() => loadSayToPage(page, pos), 0);
+  } else {
+    if (mainScroll) mainScroll.scrollTop = pos;
+  }
+}
+
+async function loadSayToPage(targetPage, pos) {
+  while (state.sayPage < targetPage && state.sayPage < state.sayTotalPages && !state.loading) {
+    await loadSayPage(state.sayPage + 1);
+  }
+  if (mainScroll) mainScroll.scrollTop = pos;
+}
+
 /* ---------- 视图切换 ---------- */
 function switchView(view) {
+  // 保存当前视图滚动位置
+  saveCurrentScroll();
+  // 从说说切走且无筛选时，同步保存无筛选位置
+  if (state.view === 'say' && state.selectedTags.size === 0) {
+    sayUnfilteredScroll = viewScrollPos.say;
+  }
+
   // 在 看过/想看 之间切换时重置筛选（参考站逻辑）
-  if (view !== state.view && (view === 'watched' || view === 'watchlist')) {
+  if (view === 'watched' || view === 'watchlist') {
     resetMediaFilter();
   }
   state.view = view;
@@ -1514,12 +1583,18 @@ function switchView(view) {
   $('#mediaPager').classList.add('hidden');
   $('#endHint').classList.add('hidden');
 
+  // 立即回顶部，避免旧视图滚动位置残留
+  if (mainScroll) mainScroll.scrollTop = 0;
+
   if (view === 'say') {
+    restoreTarget = { view: 'say', pos: viewScrollPos.say, page: sayLoadedPage };
     loadTags();
     resetSay();
   } else if (view === 'photos') {
+    restoreTarget = { view: 'photos', pos: viewScrollPos.photos };
     loadPhotos();
   } else {
+    restoreTarget = { view, pos: viewScrollPos[view] };
     loadMedia(view);
   }
 }
