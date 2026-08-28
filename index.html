@@ -87,8 +87,9 @@
   .carousel-strip::-webkit-scrollbar { display: none; }
   .carousel-strip.dragging { cursor: grabbing; }
   .carousel-strip.dragging img { pointer-events: none; }
-  .strip-item {
-    flex: 0 0 min(62%, 520px);
+     .strip-item {
+    flex: 0 0 min(62%, 400px);
+    max-width: 400px;
     aspect-ratio: 16 / 10;
     flex-shrink: 0;
     transition: transform .32s cubic-bezier(.34, 1.56, .64, 1);
@@ -96,10 +97,18 @@
     will-change: transform;
   }
   @media (max-width: 640px) {
-    .strip-item { flex-basis: 78%; aspect-ratio: 4 / 3; }
+    .strip-item {
+      flex-basis: 78%;
+      aspect-ratio: 4 / 3;
+      max-width: 100%;
+    }
   }
   @media (min-width: 1024px) {
-    .strip-item { flex-basis: min(48%, 500px); aspect-ratio: 3 / 2; }
+    .strip-item {
+      flex-basis: min(48%, 400px);
+      aspect-ratio: 3 / 2;
+      max-width: 400px;
+    }
   }
   .strip-item.pressed {
     transform: scale(.94);
@@ -822,18 +831,18 @@ function initFancybox() {
 /* ============================================================
    Threads 风格横向图片条
 ============================================================ */
-function renderImages(images, group) {
+   function renderImages(images, group) {
   if (!images.length) return '';
   const g = group || 'gallery';
 
   if (images.length === 1) {
     const img = images[0];
     return `
-    <div class="mt-3 rounded-xl overflow-hidden bg-base-300/50">
+    <div class="mt-3 rounded-xl overflow-hidden max-w-md">
       <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
            data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
            data-caption="${escapeHtml(img.alt || '')}"
-           class="w-full h-auto max-h-[520px] object-cover cursor-zoom-in" />
+           class="w-full h-auto cursor-zoom-in" />
     </div>`;
   }
 
@@ -853,7 +862,8 @@ function renderImages(images, group) {
     <span class="strip-count badge badge-sm bg-black/55 text-white border-none backdrop-blur-sm">1 / ${images.length}</span>
   </div>`;
 }
-
+   
+   
 function initCarousels(root) {
   root.querySelectorAll('.carousel-strip').forEach(strip => {
     if (strip.dataset.carouselInit) return;
