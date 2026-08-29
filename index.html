@@ -547,6 +547,7 @@
                 <ul class="p-2 bg-base-100 rounded-box shadow-lg w-28 z-50">
                   <li><a class="tab-btn" data-view="watched"><span class="iconify mr-1" data-icon="mdi:movie-open-check-outline"></span>看过</a></li>
                   <li><a class="tab-btn" data-view="watchlist"><span class="iconify mr-1" data-icon="mdi:star-outline"></span>想看</a></li>
+                  <li><a class="tab-btn" data-view="clips"><span class="iconify mr-1" data-icon="streamline-ultimate:kindle-hold-bold"></span>标注</a></li>
                 </ul>
               </details>
             </li>
@@ -579,6 +580,7 @@
               <ul>
                 <li><a class="tab-btn" data-view="watched"><span class="iconify mr-1" data-icon="mdi:movie-open-check-outline"></span>看过</a></li>
                 <li><a class="tab-btn" data-view="watchlist"><span class="iconify mr-1" data-icon="mdi:star-outline"></span>想看</a></li>
+                <li><a class="tab-btn" data-view="clips"><span class="iconify mr-2" data-icon="streamline-ultimate:kindle-hold-bold"></span>标注</a></li>
               </ul>
             </details>
           </li>
@@ -1397,6 +1399,8 @@ const state = {
   tagsLoaded: false,
   mediaCache: { watched: null, watchlist: null },
   photosCache: null,
+  clipsCache: null,     // Kindle 标注：解析后的书单（首次点击加载进内存）
+  clipsBook: null,      // 当前展开的书（null = 书单页）
   mediaPage: { watched: 1, watchlist: 1 },
   // 筛选条件按视图独立保存：切换菜单再切回来时原样恢复
   mediaFilter: {
@@ -1661,6 +1665,176 @@ function initPhotoGrid() {
   grid.layout();
 }
 
+/* ---------- Kindle 标注（My Clippings.txt） ---------- */
+let clipsListScroll = 0;   // 进入某本书前的书单滚动位置，返回时恢复
+
+/* 解码：Kindle 老设备导出 UTF-16（带 BOM），新设备 UTF-8，按 BOM 自适应 */
+function decodeClippings(buf) {
+  const b = new Uint8Array(buf);
+  if (b[0] === 0xFF && b[1] === 0xFE) return new TextDecoder('utf-16le').decode(buf);
+  if (b[0] === 0xFE && b[1] === 0xFF) return new TextDecoder('utf-16be').decode(buf);
+  return new TextDecoder('utf-8').decode(buf);
+}
+
+/* 解析 My Clippings.txt：按 ========== 分块，每块 = 标题行 + 元信息行 + 正文 */
+function parseClippings(text) {
+  const blocks = [];
+  let cur = [];
+  String(text || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n').forEach(line => {
+    if (/^={9,}\s*$/.test(line.trim())) { blocks.push(cur); cur = []; }
+    else cur.push(line);
+  });
+  blocks.push(cur);
+
+  const books = new Map();
+  blocks.forEach(blockLines => {
+    while (blockLines.length && !blockLines[0].trim()) blockLines.shift();
+    while (blockLines.length && !blockLines[blockLines.length - 1].trim()) blockLines.pop();
+    if (blockLines.length < 3) return;
+    const titleLine = blockLines[0].trim();
+    const metaLine = blockLines[1].trim();
+    const content = blockLines.slice(2).join('\n').trim();
+    if (!titleLine || !content) return;
+
+    // 标题行："书名 (作者名)"
+    const tm = titleLine.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    const title = tm ? tm[1].trim() : titleLine;
+    const author = tm ? tm[2].trim() : '';
+
+    // 元信息：类型 / 页码 / 位置 / 添加时间（兼容中英文 Kindle 格式）
+    let type = '标注';
+    if (/笔记|note/i.test(metaLine)) type = '笔记';
+    else if (/书签|bookmark/i.test(metaLine)) type = '书签';
+    const pm = metaLine.match(/第\s*(\d+)\s*页|on page (\d+)/i);
+    const page = pm ? (pm[1] || pm[2]) : '';
+    const lm = metaLine.match(/位置\s*#?\s*([\d\-–,\s]+)|Location\s*([\d\-–,\s]+)/i);
+    const loc = lm ? (lm[1] || lm[2]).trim() : '';
+    const am = metaLine.match(/添加于\s*(.+)|Added on (.+)/i);
+    const added = am ? (am[1] || am[2]).trim() : '';
+
+    const key = title + '|' + author;
+    if (!books.has(key)) books.set(key, { key, title, author, items: [] });
+    books.get(key).items.push({ type, page, loc, added, content });
+  });
+
+  return [...books.values()]
+    .map(b => ({ ...b, count: b.items.length }))
+    .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title, 'zh-CN'));
+}
+
+async function loadClips() {
+  if (state.clipsCache) { renderClips(); return; }
+  contentEl.innerHTML = skeletonCards(2);
+  $('#mediaPager').classList.add('hidden');
+  try {
+    const res = await fetch('My Clippings.txt', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(res.status === 404 ? '未找到 My Clippings.txt，把它放在网站根目录（与 index.html 同级）' : `读取失败 (HTTP ${res.status})`);
+    state.clipsCache = parseClippings(decodeClippings(await res.arrayBuffer()));
+    renderClips();
+  } catch (err) {
+    contentEl.innerHTML = '';
+    contentEl.appendChild(errorState(err.message, () => { state.clipsCache = null; loadClips(); }));
+  }
+}
+
+const CLIP_TYPE_META = {
+  '标注': { icon: 'mdi:highlighter', cls: 'bg-primary/10 text-primary' },
+  '笔记': { icon: 'mdi:pencil-outline', cls: 'bg-secondary/10 text-secondary' },
+  '书签': { icon: 'mdi:bookmark-outline', cls: 'bg-accent/10 text-accent' },
+};
+
+function renderClips() {
+  const books = state.clipsCache || [];
+  const book = state.clipsBook ? books.find(b => b.key === state.clipsBook) : null;
+
+  if (!book) {
+    // 书单页：按标注数排序的书籍列表
+    if (!books.length) { contentEl.innerHTML = emptyState('没有解析到标注内容，检查一下 My Clippings.txt 的格式。'); applyRestore('clips'); return; }
+    const total = books.reduce((s, b) => s + b.count, 0);
+    contentEl.innerHTML = `
+    <div class="px-4 sm:px-5">
+      <ul class="list bg-base-100 rounded-box shadow-md">
+        <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">Kindle 标注 · 共 ${books.length} 本书 · ${total} 条</li>
+        ${books.map((b, i) => `
+        <li class="list-row">
+          <div class="text-4xl font-thin opacity-30 tabular-nums">${String(i + 1).padStart(2, '0')}</div>
+          <div class="size-10 rounded-box bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <span class="iconify text-xl" data-icon="mdi:book-open-variant"></span>
+          </div>
+          <div class="list-col-grow min-w-0">
+            <div class="font-semibold text-sm line-clamp-1" title="${escapeHtml(b.title)}">${escapeHtml(b.title)}</div>
+            <div class="text-xs opacity-60 line-clamp-1">${escapeHtml(b.author || '未知作者')} · ${b.count} 条标注</div>
+          </div>
+          <button class="btn btn-square btn-ghost btn-sm clips-open shrink-0" data-book="${escapeHtml(b.key)}" aria-label="查看标注">
+            <span class="iconify text-lg" data-icon="mdi:chevron-right"></span>
+          </button>
+        </li>`).join('')}
+      </ul>
+    </div>`;
+    contentEl.querySelectorAll('.clips-open').forEach(btn => {
+      btn.onclick = () => {
+        clipsListScroll = mainScroll.scrollTop;
+        state.clipsBook = btn.dataset.book;
+        renderClips();
+      };
+    });
+  } else {
+    // 书内页：这本书的全部标注，复用同样的 List 控件
+    const back = `<button class="btn btn-sm btn-ghost gap-1 mb-2 clips-back">
+        <span class="iconify" data-icon="mdi:arrow-left"></span>返回书单
+      </button>`;
+    contentEl.innerHTML = `
+    <div class="px-4 sm:px-5">
+      ${back}
+      <ul class="list bg-base-100 rounded-box shadow-md">
+        <li class="p-4 pb-2 text-xs opacity-60 tracking-wide line-clamp-1">《${escapeHtml(book.title)}》 · ${escapeHtml(book.author || '未知作者')} · ${book.count} 条标注</li>
+        ${book.items.map((c, i) => {
+          const tm = CLIP_TYPE_META[c.type] || CLIP_TYPE_META['标注'];
+          const metaBits = [
+            c.page ? `第 ${c.page} 页` : '',
+            c.loc ? `位置 ${c.loc}` : '',
+            c.added,
+          ].filter(Boolean).join(' · ');
+          return `
+        <li class="list-row">
+          <div class="text-4xl font-thin opacity-30 tabular-nums">${String(i + 1).padStart(2, '0')}</div>
+          <div class="size-10 rounded-box ${tm.cls} flex items-center justify-center shrink-0" title="${c.type}">
+            <span class="iconify text-xl" data-icon="${tm.icon}"></span>
+          </div>
+          <div class="list-col-grow min-w-0">
+            <div class="whitespace-pre-wrap break-words text-[15px] leading-relaxed">${escapeHtml(c.content)}</div>
+            ${metaBits ? `<div class="text-xs opacity-50 mt-1">${escapeHtml(metaBits)}</div>` : ''}
+          </div>
+          <button class="btn btn-square btn-ghost btn-sm clips-copy shrink-0" data-idx="${i}" aria-label="复制标注">
+            <span class="iconify text-lg" data-icon="mdi:content-copy"></span>
+          </button>
+        </li>`;
+        }).join('')}
+      </ul>
+    </div>`;
+    const backBtn = contentEl.querySelector('.clips-back');
+    if (backBtn) backBtn.onclick = () => {
+      state.clipsBook = null;
+      renderClips();
+      mainScroll.scrollTop = clipsListScroll;   // 回到书单时恢复离开时的位置
+    };
+    contentEl.querySelectorAll('.clips-copy').forEach(btn => {
+      btn.onclick = async () => {
+        const item = book.items[Number(btn.dataset.idx)];
+        if (!item) return;
+        try {
+          await navigator.clipboard.writeText(item.content);
+          const icon = btn.querySelector('.iconify');
+          icon.dataset.icon = 'mdi:check';
+          icon.classList.add('text-success');
+          setTimeout(() => { icon.dataset.icon = 'mdi:content-copy'; icon.classList.remove('text-success'); }, 1200);
+        } catch {}
+      };
+    });
+  }
+  applyRestore('clips');
+}
+
 /* ---------- 影视 ---------- */
 async function loadMedia(view) {
   contentEl.innerHTML = skeletonCards(2);
@@ -1748,7 +1922,7 @@ function renderMediaPage(view) {
 }
 
 /* ---------- 滚动位置管理（各视图独立保存/恢复） ---------- */
-const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0 };
+const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0 };
 let sayUnfilteredScroll = 0;   // 说说无筛选时保存的滚动位置
 let sayUnfilteredPage = 1;     // 说说无筛选时保存的已加载页数
 let sayLoadedPage = 1;         // 说说当前已加载到的页码
@@ -1811,6 +1985,9 @@ function switchView(view) {
   } else if (view === 'photos') {
     restoreTarget = { view: 'photos', pos: viewScrollPos.photos };
     loadPhotos();
+  } else if (view === 'clips') {
+    restoreTarget = { view: 'clips', pos: viewScrollPos.clips };
+    loadClips();
   } else {
     restoreTarget = { view, pos: viewScrollPos[view] };
     loadMedia(view);
