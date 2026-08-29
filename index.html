@@ -1776,6 +1776,7 @@ function renderClips() {
         clipsListScroll = mainScroll.scrollTop;
         state.clipsBook = btn.dataset.book;
         renderClips();
+        mainScroll.scrollTop = 0;   // 进入书内页从第一条标注开始，书单位置留在 clipsListScroll 备返回恢复
       };
     });
   } else {
