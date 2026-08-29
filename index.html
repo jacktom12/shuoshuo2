@@ -508,6 +508,37 @@
     padding-inline: .9rem;
     font-size: 1rem;
   }
+
+  /* ============ 主题色相滑杆（拖动实时改变全站主题色彩） ============ */
+  .hue-slider {
+    -webkit-appearance: none; appearance: none;
+    height: 14px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    background: linear-gradient(90deg,
+      oklch(72% .17 0), oklch(72% .17 60), oklch(72% .17 120), oklch(72% .17 180),
+      oklch(72% .17 240), oklch(72% .17 300), oklch(72% .17 360));
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08);
+  }
+  .hue-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 14px; height: 20px;
+    border-radius: 4px;
+    background: var(--color-base-100);
+    border: 2px solid var(--color-base-content);
+    box-shadow: 0 1px 4px rgb(0 0 0 / .3);
+    cursor: grab;
+  }
+  .hue-slider:active::-webkit-slider-thumb { cursor: grabbing; }
+  .hue-slider::-moz-range-thumb {
+    width: 12px; height: 18px;
+    border-radius: 4px;
+    background: var(--color-base-100);
+    border: 2px solid var(--color-base-content);
+    box-shadow: 0 1px 4px rgb(0 0 0 / .3);
+    cursor: grab;
+  }
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col bg-base-200/60 text-base-content px-0 sm:px-4">
@@ -560,6 +591,21 @@
                   <li><a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-lg"><span>默认</span><span class="pick-check text-primary">✓</span></a></li>
                   <li><a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-lg"><span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span></a></li>
                   <li><a data-theme-pick="halloween" class="theme-pick-item flex items-center justify-between rounded-lg"><span>万圣夜</span><span class="pick-check text-primary hidden">✓</span></a></li>
+                  <li class="menu-title text-xs opacity-50">主题色相</li>
+                  <li class="px-2 pb-1">
+                    <div class="block w-full select-none">
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs opacity-70 flex items-center gap-1"><span class="iconify text-sm" data-icon="mdi:palette-outline"></span>主题色</span>
+                        <span class="flex items-center gap-1">
+                          <span class="hue-val text-xs opacity-70 tabular-nums">默认</span>
+                          <button type="button" class="hue-reset btn btn-ghost btn-xs btn-square" title="恢复默认">
+                            <span class="iconify text-sm" data-icon="mdi:restore"></span>
+                          </button>
+                        </span>
+                      </div>
+                      <input type="range" min="0" max="360" step="1" class="hue-slider w-full" aria-label="主题色相" />
+                    </div>
+                  </li>
                   <li class="menu-title text-xs opacity-50">显示</li>
                   <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-1" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-1 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
                 </ul>
@@ -593,6 +639,21 @@
                 <li><a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-lg"><span>默认</span><span class="pick-check text-primary">✓</span></a></li>
                 <li><a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-lg"><span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span></a></li>
                 <li><a data-theme-pick="halloween" class="theme-pick-item flex items-center justify-between rounded-lg"><span>万圣夜</span><span class="pick-check text-primary hidden">✓</span></a></li>
+                <li class="menu-title text-xs opacity-50">主题色相</li>
+                <li class="px-2 pb-1">
+                  <div class="block w-full select-none">
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs opacity-70 flex items-center gap-1"><span class="iconify text-sm" data-icon="mdi:palette-outline"></span>主题色</span>
+                      <span class="flex items-center gap-1">
+                        <span class="hue-val text-xs opacity-70 tabular-nums">默认</span>
+                        <button type="button" class="hue-reset btn btn-ghost btn-xs btn-square" title="恢复默认">
+                          <span class="iconify text-sm" data-icon="mdi:restore"></span>
+                        </button>
+                      </span>
+                    </div>
+                    <input type="range" min="0" max="360" step="1" class="hue-slider w-full" aria-label="主题色相" />
+                  </div>
+                </li>
                 <li class="menu-title text-xs opacity-50">显示</li>
                 <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-2" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-2 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
               </ul>
@@ -2053,7 +2114,81 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   updateThemeIcons(theme);
   try { localStorage.setItem('memo-theme', theme); } catch {}
+  refreshHueForTheme();   // 主题变了：重建色彩快照，若拖过色相则在新主题上继续生效
 }
+
+/* ---------- 主题色相（拖动滑杆实时旋转全站彩色 token） ---------- */
+const HUE_KEY = 'memo-theme-hue';
+const HUE_TOKENS = ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error'];
+let hueOrigins = null;   // 当前主题各彩色 token 的原始 OKLCH 快照 { name: {l, c, h} }
+
+function parseOklch(str) {
+  const m = String(str || '').trim().match(/^oklch\(\s*([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+)/i);
+  return m ? { l: m[1], c: m[2], h: parseFloat(m[3]) } : null;
+}
+
+function snapshotHueOrigins() {
+  hueOrigins = {};
+  const cs = getComputedStyle(document.documentElement);
+  HUE_TOKENS.forEach(n => {
+    const p = parseOklch(cs.getPropertyValue('--color-' + n));
+    if (p) hueOrigins[n] = p;
+  });
+}
+
+function clearHueOverrides() {
+  HUE_TOKENS.forEach(n => document.documentElement.style.removeProperty('--color-' + n));
+}
+
+/* 拖动：primary 落到指定色相，其余颜色保持主题内的相对色相差整体旋转（明度/饱和度不变，可读性不受影响） */
+function applyHue(hue) {
+  if (!hueOrigins || !hueOrigins.primary) snapshotHueOrigins();
+  if (!hueOrigins.primary) return;
+  const baseH = hueOrigins.primary.h;
+  HUE_TOKENS.forEach(n => {
+    const o = hueOrigins[n];
+    if (!o) return;
+    const nh = ((o.h - baseH + hue) % 360 + 360) % 360;
+    document.documentElement.style.setProperty('--color-' + n, `oklch(${o.l} ${o.c} ${nh.toFixed(2)})`);
+  });
+}
+
+function syncHueControls(val, label = val) {
+  document.querySelectorAll('.hue-val').forEach(el => { el.textContent = label; });
+  document.querySelectorAll('.hue-slider').forEach(s => { s.value = val; });
+}
+
+function refreshHueForTheme() {
+  clearHueOverrides();
+  hueOrigins = null;
+  snapshotHueOrigins();
+  let saved = null;
+  try { saved = localStorage.getItem(HUE_KEY); } catch {}
+  if (saved !== null && saved !== '' && Number.isFinite(+saved)) {
+    applyHue(+saved);
+    syncHueControls(Math.round(+saved));
+  } else {
+    syncHueControls(hueOrigins && hueOrigins.primary ? Math.round(hueOrigins.primary.h) : 0, '默认');
+  }
+}
+
+document.querySelectorAll('.hue-slider').forEach(s => {
+  s.addEventListener('input', () => {
+    applyHue(Number(s.value));
+    document.querySelectorAll('.hue-val').forEach(el => { el.textContent = s.value; });
+    document.querySelectorAll('.hue-slider').forEach(o => { if (o !== s) o.value = s.value; });
+  });
+  s.addEventListener('change', () => { try { localStorage.setItem(HUE_KEY, s.value); } catch {} });
+});
+document.querySelectorAll('.hue-reset').forEach(b => {
+  b.addEventListener('click', () => {
+    try { localStorage.removeItem(HUE_KEY); } catch {}
+    clearHueOverrides();
+    hueOrigins = null;
+    snapshotHueOrigins();
+    syncHueControls(hueOrigins && hueOrigins.primary ? Math.round(hueOrigins.primary.h) : 0, '默认');
+  });
+});
 
 function applyPick(pick) {
   themePick = pick;
