@@ -606,6 +606,7 @@
                       <input type="range" min="0" max="360" step="1" class="hue-slider w-full" aria-label="主题色相" />
                     </div>
                   </li>
+                  <li><button class="tab-btn" data-view="hot"><span class="iconify mr-1" data-icon="mdi:fire"></span>热搜</button></li>
                   <li class="menu-title text-xs opacity-50">显示</li>
                   <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-1" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-1 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
                 </ul>
@@ -654,6 +655,7 @@
                     <input type="range" min="0" max="360" step="1" class="hue-slider w-full" aria-label="主题色相" />
                   </div>
                 </li>
+                <li><button class="tab-btn" data-view="hot"><span class="iconify mr-2" data-icon="mdi:fire"></span>热搜</button></li>
                 <li class="menu-title text-xs opacity-50">显示</li>
                 <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-2" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-2 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
               </ul>
@@ -1462,6 +1464,8 @@ const state = {
   photosCache: null,
   clipsCache: null,     // Kindle 标注：解析后的书单（首次点击加载进内存）
   clipsBook: null,      // 当前展开的书（null = 书单页）
+  hotCache: {},         // 热搜：各平台数据缓存 { [id]: { data, ts } }
+  hotActive: 'weibo',   // 当前热搜平台
   mediaPage: { watched: 1, watchlist: 1 },
   // 筛选条件按视图独立保存：切换菜单再切回来时原样恢复
   mediaFilter: {
@@ -1897,6 +1901,146 @@ function renderClips() {
   applyRestore('clips');
 }
 
+/* ---------- 热搜聚合（uapis hotboard，多平台，自动+手动刷新） ---------- */
+const HOT_SITES = [
+  { id: 'weibo',    name: '微博' },
+  { id: 'zhihu',    name: '知乎' },
+  { id: 'bilibili', name: 'B站' },
+  { id: 'douyin',   name: '抖音' },
+  { id: 'toutiao',  name: '头条' },
+  { id: 'baidu',    name: '百度' },
+  { id: 'ithome',   name: 'IT之家' },
+  { id: 'thepaper', name: '澎湃' },
+  { id: '36kr',     name: '36氪' },
+  { id: 'hupu',     name: '虎扑' },
+  { id: 'kuaishou', name: '快手' },
+  { id: 'sspai',    name: '少数派' },
+  { id: 'weread',   name: '微信读书' },
+];
+const HOT_API = 'https://uapis.cn/api/v1/misc/hotboard?type=';
+const HOT_TTL = 2 * 60 * 1000;        // 平台缓存有效期
+const HOT_AUTO_MS = 3 * 60 * 1000;    // 自动刷新间隔
+let hotTimer = null;
+const hotScrolls = {};                // 各平台独立的滚动位置
+
+function hotSite(id) { return HOT_SITES.find(s => s.id === id) || { id, name: id }; }
+
+function startHotAutoRefresh() {
+  stopHotAutoRefresh();
+  hotTimer = setInterval(() => {
+    if (state.view === 'hot' && !document.hidden) loadHot(state.hotActive, true);
+  }, HOT_AUTO_MS);
+}
+function stopHotAutoRefresh() {
+  if (hotTimer) { clearInterval(hotTimer); hotTimer = null; }
+}
+
+async function loadHot(platform, force = false) {
+  const cached = state.hotCache[platform];
+  const renderList = (data, ts) => renderHotList(platform, data, ts);
+  const showError = (msg) => {
+    const body = contentEl.querySelector('.hot-body');
+    if (!body) return;
+    const box = errorState(msg, () => loadHot(platform, true));
+    if (cached) {
+      // 有旧数据：列表保留，错误提示追加在下方
+      box.classList.add('mx-4', 'sm:mx-5', 'mt-3');
+      const old = body.querySelector('.hot-error');
+      if (old) old.remove();
+      body.appendChild(box);
+    } else {
+      body.innerHTML = '';
+      body.appendChild(box);
+    }
+  };
+
+  if (!force && cached && Date.now() - cached.ts < HOT_TTL) { renderList(cached.data, cached.ts); return; }
+
+  contentEl.querySelector('.hot-refresh')?.classList.add('loading');
+  if (!cached) {
+    // 首次加载该平台：列表区显示骨架
+    const body = contentEl.querySelector('.hot-body');
+    if (body) body.innerHTML = `<div class="px-4 sm:px-5 pt-1">${skeletonCards(3)}</div>`;
+  }
+  try {
+    const res = await fetch(HOT_API + encodeURIComponent(platform));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const list = (json && Array.isArray(json.list)) ? json.list : [];
+    if (!list.length) throw new Error('该平台暂无数据');
+    state.hotCache[platform] = { data: list, ts: Date.now() };
+    renderList(list, Date.now());
+  } catch (err) {
+    if (cached) renderList(cached.data, cached.ts);   // 有旧数据则先显示旧数据
+    showError(`「${hotSite(platform).name}」热搜获取失败：${err.message}`);
+  } finally {
+    contentEl.querySelector('.hot-refresh')?.classList.remove('loading');
+  }
+}
+
+function renderHotView() {
+  const active = state.hotActive;
+  const tabs = HOT_SITES.map(s => {
+    const on = s.id === active;
+    const color = tagColor(s.id);
+    return `<button type="button" class="badge tag-chip cursor-pointer select-none whitespace-nowrap transition-all ${on ? `badge-${color}` : 'badge-soft badge-ghost'}" data-hot="${s.id}">${s.name}</button>`;
+  }).join('');
+  contentEl.innerHTML = `
+  <div class="px-4 sm:px-5">
+    <div class="flex items-center gap-2 sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
+      <div class="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5">${tabs}</div>
+      <button type="button" class="hot-refresh btn btn-xs btn-ghost btn-circle shrink-0" aria-label="手动刷新" title="手动刷新">
+        <span class="iconify text-base" data-icon="mdi:refresh"></span>
+      </button>
+    </div>
+    <div class="hot-body min-h-40"></div>
+  </div>`;
+
+  contentEl.querySelectorAll('[data-hot]').forEach(btn => {
+    btn.onclick = () => {
+      if (state.hotActive === btn.dataset.hot) return;
+      hotScrolls[state.hotActive] = mainScroll.scrollTop;   // 记住当前平台的位置
+      state.hotActive = btn.dataset.hot;
+      renderHotView();
+      loadHot(state.hotActive);
+      mainScroll.scrollTop = hotScrolls[state.hotActive] || 0;   // 恢复目标平台位置（首次为顶部）
+    };
+  });
+  const refreshBtn = contentEl.querySelector('.hot-refresh');
+  refreshBtn.onclick = () => loadHot(state.hotActive, true);
+  loadHot(active);
+}
+
+function renderHotList(platform, list, ts) {
+  const active = state.hotActive;
+  if (platform !== active) return;   // 用户已切到别的平台，丢弃过期渲染
+  const time = new Date(ts).toTimeString().slice(0, 5);
+  const rankCls = i => i === 0 ? 'bg-error/15 text-error' : i === 1 ? 'bg-warning/15 text-warning' : i === 2 ? 'bg-success/15 text-success' : 'bg-base-200/70 opacity-70';
+  const rows = list.slice(0, 50).map((it, i) => {
+    const rank = String(it.index || i + 1).padStart(2, '0');
+    const hot = it.hot_value ? `<span class="text-xs opacity-50 shrink-0 tabular-nums">${escapeHtml(String(it.hot_value))}</span>` : '';
+    return `
+    <a href="${escapeHtml(it.url || '#')}" target="_blank" rel="noopener noreferrer"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${it.url ? 'hover:bg-base-200/60' : 'pointer-events-none'}">
+      <span class="size-7 shrink-0 rounded-lg grid place-items-center text-xs font-bold tabular-nums ${rankCls(i)}">${rank}</span>
+      <span class="flex-1 min-w-0 text-[15px] leading-snug truncate">${escapeHtml(it.title || '')}</span>
+      ${hot}
+    </a>`;
+  }).join('');
+  const body = contentEl.querySelector('.hot-body');
+  if (!body) return;
+  body.innerHTML = `
+    <p class="text-xs opacity-50 px-3 pt-1 pb-1">更新于 ${time} · 每 ${HOT_AUTO_MS / 60000} 分钟自动刷新</p>
+    <div class="flex flex-col gap-0.5">${rows}</div>`;
+  applyRestore('hot');
+}
+
+function loadHotView() {
+  if (!contentEl.querySelector('.hot-body')) renderHotView();
+  else loadHot(state.hotActive);
+  applyRestore('hot');
+}
+
 /* ---------- 影视 ---------- */
 async function loadMedia(view) {
   contentEl.innerHTML = skeletonCards(2);
@@ -1984,7 +2128,7 @@ function renderMediaPage(view) {
 }
 
 /* ---------- 滚动位置管理（各视图独立保存/恢复） ---------- */
-const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0 };
+const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0, hot: 0 };
 let sayUnfilteredScroll = 0;   // 说说无筛选时保存的滚动位置
 let sayUnfilteredPage = 1;     // 说说无筛选时保存的已加载页数
 let sayLoadedPage = 1;         // 说说当前已加载到的页码
@@ -2027,6 +2171,8 @@ function switchView(view) {
 
   // 筛选条件按视图独立保存（mediaFilter[view]），切换菜单不再重置，切回时原样恢复
   state.view = view;
+  // 热搜自动刷新：仅在热搜页运行
+  if (view === 'hot') startHotAutoRefresh(); else stopHotAutoRefresh();
   document.querySelectorAll('.tab-btn').forEach(t => {
     const on = t.dataset.view === view;
     t.classList.toggle('active', on);
@@ -2050,6 +2196,9 @@ function switchView(view) {
   } else if (view === 'clips') {
     restoreTarget = { view: 'clips', pos: viewScrollPos.clips };
     loadClips();
+  } else if (view === 'hot') {
+    restoreTarget = { view: 'hot', pos: viewScrollPos.hot };
+    loadHotView();
   } else {
     restoreTarget = { view, pos: viewScrollPos[view] };
     loadMedia(view);
