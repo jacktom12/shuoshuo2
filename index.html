@@ -77,6 +77,7 @@
   .strip-wrap { position: relative; }
   .carousel-strip {
     display: flex;
+    align-items: center;   /* 各图按自身高度自适应，垂直居中，避免拉伸出留白 */
     gap: 8px;
     overflow-x: auto;
     overscroll-behavior-x: contain;
@@ -87,35 +88,37 @@
   .carousel-strip::-webkit-scrollbar { display: none; }
   .carousel-strip.dragging { cursor: grabbing; }
   .carousel-strip.dragging img { pointer-events: none; }
-  /* Threads 风格：统一高度，宽度按各图原始比例自适应，完整显示不裁切 */
+  /* Threads 风格：各图按原始比例完整显示，只限制最大尺寸；盒子随图自适应，不会出现上下留白 */
   .strip-item {
+    position: relative;
     flex: 0 0 auto;
-    width: auto;
-    height: min(60vw, 270px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-width: 8rem;
+    min-height: 100px;
     max-width: 100%;
-    border-radius: 14px;
     transition: transform .32s cubic-bezier(.34, 1.56, .64, 1);
     transform-origin: center center;
     will-change: transform;
   }
+  .strip-item img {
+    display: block;
+    width: auto; height: auto;
+    max-width: 100%;
+    max-height: min(56vw, 260px);
+    user-select: none;
+    -webkit-user-drag: none;
+    cursor: inherit;
+  }
   @media (min-width: 1024px) {
-    .strip-item { height: 340px; }
+    .strip-item img { max-height: 340px; }
   }
   .strip-item.pressed {
     transform: scale(.94);
     transition: transform .12s ease-out;
   }
   .strip-end { flex-shrink: 0; }
-  .strip-item img {
-    width: auto; height: 100%;
-    max-width: 100%;
-    object-fit: contain;   /* 宽度被 max-width 钳制时（超宽全景图）完整缩放显示，不裁切 */
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
-    cursor: inherit;
-  }
   @media (hover: hover) { .strip-item img:hover { filter: brightness(1.06); } }
   .strip-count { position: absolute; top: 8px; right: 8px; z-index: 2; pointer-events: none; }
   .hw-lyrics-float {
