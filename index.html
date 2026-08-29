@@ -169,7 +169,26 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
 
   .memo-text { word-break: break-word; overflow-wrap: anywhere; }
-  .memo-text a { color: oklch(60% .18 250); text-decoration: underline; text-underline-offset: 3px; }
+  /* 正文链接：主题色药丸底，换行时每个片段保留圆角，带外链箭头提示 */
+  .memo-text a {
+    color: var(--color-primary);
+    background: color-mix(in oklch, var(--color-primary) 10%, transparent);
+    padding: 0.08em 0.45em;
+    border-radius: 6px;
+    text-decoration: none;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    transition: background .15s ease;
+  }
+  .memo-text a:hover {
+    background: color-mix(in oklch, var(--color-primary) 22%, transparent);
+  }
+  .memo-text a::after {
+    content: '↗';
+    font-size: .78em;
+    margin-left: 1px;
+    opacity: .55;
+  }
 
   /* ============ Markdown 渲染样式 ============ */
   .memo-text h1, .memo-text h2, .memo-text h3, .memo-text h4, .memo-text h5, .memo-text h6 {
@@ -823,10 +842,13 @@ function parseContent(raw) {
     }
   } else {
     html = escapeHtml(text)
-      .replace(/(https?:\/\/[^\s&lt;&gt;"']+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+      .replace(/(https?:\/\/[^\s&lt;&gt;"']+)/g, '<a href="$1">$1</a>')
       .replace(/\n{2,}/g, '<br><br>')
       .replace(/\n/g, '<br>');
   }
+
+  // 正文里的所有链接统一在新标签页打开
+  html = html.replace(/<a\s+/gi, '<a target="_blank" rel="noopener noreferrer" ');
 
   return { html, images };
 }
@@ -1226,18 +1248,18 @@ function mediaCard(m, idx) {
    影视筛选（迁移自参考站：类型单选 / 年代多选 OR / 题材多选 AND）
    全程操作前端缓存，不重新请求 API
 ============================================================ */
-function mediaFiltersActive() {
-  const f = state.mediaFilter;
+function mediaFiltersActive(view) {
+  const f = state.mediaFilter[view];
   return f.type !== 'all' || f.ranges.size > 0 || f.genres.size > 0;
 }
 
-function resetMediaFilter() {
-  state.mediaFilter = { type: 'all', ranges: new Set(), genres: new Set() };
+function resetMediaFilter(view) {
+  state.mediaFilter[view] = { type: 'all', ranges: new Set(), genres: new Set() };
 }
 
 function getFilteredMedia(view) {
   const list = state.mediaCache[view] || [];
-  const f = state.mediaFilter;
+  const f = state.mediaFilter[view];
   return list.filter(m => {
     if (f.type !== 'all' && m.media_type !== f.type) return false;
     if (f.ranges.size) {
@@ -1260,7 +1282,7 @@ function getFilteredMedia(view) {
 
 /* 可选题材：从当前视图缓存中统计，且与类型、年代联动（电影→电影题材，剧集→剧集题材，选年代后题材数量即时刷新） */
 function availableGenres(view) {
-  const f = state.mediaFilter;
+  const f = state.mediaFilter[view];
   const list = state.mediaCache[view] || [];
   // 题材数量 = 当前「类型 + 年代」条件下各题材的独立数量（不考虑已选题材的 AND 约束）
   const pool = list.filter(m => {
@@ -1290,7 +1312,7 @@ function availableGenres(view) {
 }
 
 function mediaFilterBarHtml(view) {
-  const f = state.mediaFilter;
+  const f = state.mediaFilter[view];
   // checkbox 按钮组（daisyUI btn 风格）：label 包裹 hidden checkbox，选中态用 btn-primary 高亮
   const chipLabel = on => 'btn btn-xs rounded-full cursor-pointer transition-all ' + (on ? 'btn-primary' : 'btn-ghost bg-base-100 border border-base-300');
 
@@ -1330,33 +1352,34 @@ function mediaFilterBarHtml(view) {
       <span class="text-xs opacity-50 w-7 shrink-0 pt-1.5">题材</span>
       <div class="flex flex-wrap gap-2 flex-1 min-w-0">${genreRow}</div>
     </div>
-    ${mediaFiltersActive() ? '<div><button class="btn btn-square btn-sm mf-clear" aria-label="清空筛选"><span class="iconify" data-icon="mdi:close"></span></button></div>' : ''}
+    ${mediaFiltersActive(view) ? '<div><button class="btn btn-square btn-sm mf-clear" aria-label="清空筛选"><span class="iconify" data-icon="mdi:close"></span></button></div>' : ''}
   </div>`;
 }
 
 function bindMediaFilterEvents(view) {
+  const f = state.mediaFilter[view];
   contentEl.querySelectorAll('.mf-type').forEach(cb => cb.addEventListener('change', () => {
     const v = cb.dataset.v;
-    if (state.mediaFilter.type === v) return;
-    state.mediaFilter.type = v;
-    state.mediaFilter.genres.clear();   // 切类型时清空题材（参考站逻辑）
+    if (f.type === v) return;
+    f.type = v;
+    f.genres.clear();   // 切类型时清空题材（参考站逻辑）
     state.mediaPage[view] = 1;
     renderMediaPage(view);
   }));
   contentEl.querySelectorAll('.mf-range').forEach(cb => cb.addEventListener('change', () => {
     const v = cb.dataset.v;
-    cb.checked ? state.mediaFilter.ranges.add(v) : state.mediaFilter.ranges.delete(v);
+    cb.checked ? f.ranges.add(v) : f.ranges.delete(v);
     state.mediaPage[view] = 1;
     renderMediaPage(view);
   }));
   contentEl.querySelectorAll('.mf-genre').forEach(cb => cb.addEventListener('change', () => {
     const v = Number(cb.dataset.v);
-    cb.checked ? state.mediaFilter.genres.add(v) : state.mediaFilter.genres.delete(v);
+    cb.checked ? f.genres.add(v) : f.genres.delete(v);
     state.mediaPage[view] = 1;
     renderMediaPage(view);
   }));
   const clear = contentEl.querySelector('.mf-clear');
-  if (clear) clear.onclick = () => { resetMediaFilter(); state.mediaPage[view] = 1; renderMediaPage(view); };
+  if (clear) clear.onclick = () => { resetMediaFilter(view); state.mediaPage[view] = 1; renderMediaPage(view); };
 }
 
 /* ============================================================
@@ -1372,7 +1395,11 @@ const state = {
   mediaCache: { watched: null, watchlist: null },
   photosCache: null,
   mediaPage: { watched: 1, watchlist: 1 },
-  mediaFilter: { type: 'all', ranges: new Set(), genres: new Set() },
+  // 筛选条件按视图独立保存：切换菜单再切回来时原样恢复
+  mediaFilter: {
+    watched: { type: 'all', ranges: new Set(), genres: new Set() },
+    watchlist: { type: 'all', ranges: new Set(), genres: new Set() },
+  },
   loading: false,
 };
 
@@ -1674,7 +1701,7 @@ function renderMediaPage(view) {
   state.mediaPage[view] = p;
   const slice = list.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE);
 
-  const countText = mediaFiltersActive()
+  const countText = mediaFiltersActive(view)
     ? `筛出 ${list.length} / ${all.length} 部 · 第 ${p}/${pages} 页`
     : `共 ${all.length} 部${view === 'watched' ? '看过' : '想看'} · 第 ${p}/${pages} 页`;
 
@@ -1759,10 +1786,7 @@ function switchView(view) {
     sayUnfilteredScroll = viewScrollPos.say;
   }
 
-  // 在 看过/想看 之间切换时重置筛选（参考站逻辑）
-  if (view === 'watched' || view === 'watchlist') {
-    resetMediaFilter();
-  }
+  // 筛选条件按视图独立保存（mediaFilter[view]），切换菜单不再重置，切回时原样恢复
   state.view = view;
   document.querySelectorAll('.tab-btn').forEach(t => {
     const on = t.dataset.view === view;
