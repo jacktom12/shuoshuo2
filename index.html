@@ -539,6 +539,69 @@
     box-shadow: 0 1px 4px rgb(0 0 0 / .3);
     cursor: grab;
   }
+
+  /* ============ 全站快速搜索（Ctrl+K Command Palette） ============ */
+  .cmdk-overlay {
+    position: fixed; inset: 0; z-index: 90;
+    background: rgb(0 0 0 / .45);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    display: none;
+    align-items: flex-start; justify-content: center;
+    padding: 10vh 16px 16px;
+  }
+  .cmdk-overlay.open { display: flex; }
+  .cmdk-panel {
+    width: min(580px, 100%);
+    max-height: 72vh;
+    display: flex; flex-direction: column;
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    border: 1px solid var(--color-base-300);
+    border-radius: 16px;
+    box-shadow: 0 24px 64px -20px rgb(0 0 0 / .45);
+    overflow: hidden;
+    animation: fadeUp .18s ease both;
+  }
+  .cmdk-memo-panel { max-height: 80vh; }
+  /* 弹窗空间有限：内嵌多图条限高，避免单图撑满弹窗 */
+  .cmdk-memo-panel .strip-item img { max-height: min(38vh, 300px); }
+  .cmdk-input-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 16px;
+    border-bottom: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);
+    flex: 0 0 auto;
+  }
+  .cmdk-input-row input {
+    flex: 1; min-width: 0;
+    background: transparent; border: none; outline: none;
+    font-size: 1.05rem; color: inherit;
+    font-family: inherit;
+  }
+  .cmdk-results { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 8px; }
+  .cmdk-group-title { font-size: .68rem; opacity: .5; padding: 8px 10px 3px; letter-spacing: .05em; }
+  .cmdk-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 10px;
+    cursor: pointer;
+  }
+  .cmdk-item.active { background: color-mix(in oklch, var(--color-primary) 13%, transparent); }
+  .cmdk-item mark {
+    background: color-mix(in oklch, var(--color-primary) 32%, transparent);
+    color: inherit; border-radius: 3px; padding: 0 1px;
+  }
+  .cmdk-item .cmdk-ico { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 9px; display: grid; place-items: center; }
+  .cmdk-footer {
+    display: flex; align-items: center; gap: 14px;
+    padding: 8px 14px; font-size: .7rem; opacity: .6;
+    border-top: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);
+    flex: 0 0 auto;
+  }
+  .cmdk-memo-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; flex: 0 0 auto;
+    border-bottom: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);
+  }
+  .cmdk-loading { display: flex; align-items: center; gap: 8px; padding: 10px; font-size: .8rem; opacity: .6; }
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col bg-base-200/60 text-base-content px-0 sm:px-4">
@@ -587,6 +650,7 @@
               <details>
                 <summary><span class="iconify mr-1" data-icon="mdi:cog-outline"></span>工具</summary>
                 <ul class="p-2 bg-base-100 rounded-box shadow-lg w-40 z-50">
+                  <li><button type="button" class="cmdk-open"><span class="iconify mr-1" data-icon="mdi:magnify"></span>快速搜索<kbd class="kbd kbd-xs ml-1 opacity-60">Ctrl K</kbd></button></li>
                   <li class="menu-title text-xs opacity-50">主题配色</li>
                   <li><a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-lg"><span>默认</span><span class="pick-check text-primary">✓</span></a></li>
                   <li><a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-lg"><span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span></a></li>
@@ -637,6 +701,7 @@
             <details>
               <summary><span class="iconify mr-2" data-icon="mdi:cog-outline"></span>工具</summary>
               <ul>
+                <li><button type="button" class="cmdk-open"><span class="iconify mr-2" data-icon="mdi:magnify"></span>快速搜索</button></li>
                 <li class="menu-title text-xs opacity-50">主题配色</li>
                 <li><a data-theme-pick="auto" class="theme-pick-item flex items-center justify-between rounded-lg"><span>默认</span><span class="pick-check text-primary">✓</span></a></li>
                 <li><a data-theme-pick="caramellatte" class="theme-pick-item flex items-center justify-between rounded-lg"><span>焦糖拿铁</span><span class="pick-check text-primary hidden">✓</span></a></li>
@@ -724,6 +789,38 @@
   </div>
   <div class="hw-lyrics-scroll-full" id="hwLyricsFloatScroll">
     <div class="hw-lyrics-empty">暂无歌词</div>
+  </div>
+</div>
+
+<!-- ======================= 全站快速搜索（Ctrl+K） ======================= -->
+<div id="cmdkOverlay" class="cmdk-overlay">
+  <div class="cmdk-panel" role="dialog" aria-label="全站搜索">
+    <div class="cmdk-input-row">
+      <span class="iconify text-xl opacity-60 shrink-0" data-icon="mdi:magnify"></span>
+      <input id="cmdkInput" type="text" placeholder="搜索说说 / 书签 / 影视…" autocomplete="off" />
+      <button type="button" class="cmdk-close btn btn-ghost btn-xs btn-circle shrink-0" aria-label="关闭">
+        <span class="iconify text-base" data-icon="mdi:close"></span>
+      </button>
+    </div>
+    <div id="cmdkResults" class="cmdk-results"></div>
+    <div class="cmdk-footer">
+      <span><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs ml-0.5">↓</kbd> 选择</span>
+      <span><kbd class="kbd kbd-xs">Enter</kbd> 打开</span>
+      <span><kbd class="kbd kbd-xs">Esc</kbd> 关闭</span>
+      <span class="ml-auto opacity-70">说说 · 书签 · 影视</span>
+    </div>
+  </div>
+</div>
+<div id="cmdkMemoModal" class="cmdk-overlay">
+  <div class="cmdk-panel cmdk-memo-panel" role="dialog" aria-label="说说详情">
+    <div class="cmdk-memo-bar">
+      <span class="iconify text-lg text-primary" data-icon="mdi:chat-processing-outline"></span>
+      <span class="text-sm font-semibold">说说详情</span>
+      <button type="button" class="cmdk-memo-close btn btn-ghost btn-xs btn-circle ml-auto" aria-label="返回搜索">
+        <span class="iconify text-base" data-icon="mdi:close"></span>
+      </button>
+    </div>
+    <div id="cmdkMemoBody" class="cmdk-results"></div>
   </div>
 </div>
 
@@ -1484,6 +1581,7 @@ const state = {
   bookmarksCache: null, // 书签：全量缓存（首次进入拉取，筛选全在前端）
   bookmarksCat: '全部', // 当前书签分类
   bookmarksQuery: '',   // 当前书签搜索词
+  searchMemosCache: null, // 快速搜索：说说全量缓存（首次打开面板拉取）
   mediaPage: { watched: 1, watchlist: 1 },
   // 筛选条件按视图独立保存：切换菜单再切回来时原样恢复
   mediaFilter: {
@@ -2554,6 +2652,283 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
   let saved = null;
   try { saved = localStorage.getItem('memo-theme'); } catch {}
   if (saved !== 'light' && saved !== 'dark') applyTheme(e.matches ? 'dark' : 'light');
+});
+
+/* ---------- 全站快速搜索（Ctrl+K） ---------- */
+const cmdk = { open: false, query: '', flat: [], active: -1, memosLoading: false, tagView: null };
+const cmdkOverlay = $('#cmdkOverlay');
+const cmdkResults = $('#cmdkResults');
+const cmdkInput = $('#cmdkInput');
+
+/* 首次打开面板时并行补齐三份数据（都写入全局缓存，与各页面共享） */
+function cmdkEnsureData() {
+  // 说说全量（独立标志，不与说说页翻页互斥）
+  if (!state.searchMemosCache && !cmdk.memosLoading) {
+    cmdk.memosLoading = true;
+    (async () => {
+      try {
+        if (USE_MOCK) { await sleep(200); state.searchMemosCache = MOCK_MEMOS; }
+        else {
+          const first = await fetchData({ view: 'say', page: 1, tags: [] });
+          const all = [...(first.data || [])];
+          const totalPages = first.totalPages || 1;
+          if (totalPages > 1) {
+            const rest = await Promise.all(
+              Array.from({ length: totalPages - 1 }, (_, i) => fetchData({ view: 'say', page: i + 2, tags: [] }))
+            );
+            rest.forEach(r => all.push(...(r.data || [])));
+          }
+          state.searchMemosCache = all;
+        }
+      } catch {} finally { cmdk.memosLoading = false; if (cmdk.open) cmdkRender(); }
+    })();
+  }
+  // 书签全量（与书签页共享缓存）
+  if (!state.bookmarksCache) {
+    (async () => {
+      try {
+        if (USE_MOCK) { await sleep(200); state.bookmarksCache = MOCK_BOOKMARKS; }
+        else {
+          const res = await fetch(API_BASE + '?view=bookmarks');
+          if (res.ok) {
+            const json = await res.json();
+            state.bookmarksCache = (Array.isArray(json.data) ? json.data : []).filter(b => b && b.title && b.url);
+          }
+        }
+      } catch {} finally { if (cmdk.open) cmdkRender(); }
+    })();
+  }
+  // 影视两列表（与看过/想看页共享缓存）
+  ['watched', 'watchlist'].forEach(v => {
+    if (state.mediaCache[v]) return;
+    fetchData({ view: v }).then(r => {
+      state.mediaCache[v] = r.data || [];
+      if (cmdk.open) cmdkRender();
+    }).catch(() => {});
+  });
+  loadTags();   // 标签名映射（详情里点标签跳转标签视图时显示名称）
+}
+
+function cmdkHi(text, q) {
+  const s = String(text || '');
+  if (!q) return escapeHtml(s);
+  const i = s.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return escapeHtml(s);
+  return escapeHtml(s.slice(0, i)) + '<mark>' + escapeHtml(s.slice(i, i + q.length)) + '</mark>' + escapeHtml(s.slice(i + q.length));
+}
+
+/* 内存筛选三组数据，返回 [{type, title, sub, url?, memoId?}] */
+function cmdkMatch(q) {
+  const kw = q.trim().toLowerCase();
+  const hit = s => String(s || '').toLowerCase().includes(kw);
+  const groups = [
+    {
+      name: '说说', icon: 'mdi:chat-processing-outline', cls: 'bg-primary/10 text-primary',
+      items: kw ? (state.searchMemosCache || []).filter(m => hit(m.content)).slice(0, 5).map(m => {
+        const plain = String(m.content || '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/#+\s/g, '').replace(/\s+/g, ' ').trim();
+        return { type: 'memo', memoId: m.id, title: plain.slice(0, 64) || '（图片）', sub: relativeTime(m.rawDate), icon: 'mdi:chat-processing-outline', cls: 'bg-primary/10 text-primary' };
+      }) : [],
+      loading: !state.searchMemosCache,
+    },
+    {
+      name: '书签', icon: 'mdi:link-variant', cls: 'bg-accent/10 text-accent',
+      items: kw ? (state.bookmarksCache || []).filter(b => hit(b.title) || hit(b.desc) || (b.tags || []).some(hit)).slice(0, 6).map(b =>
+        ({ type: 'link', title: b.title, sub: b.desc || (b.url || '').replace(/^https?:\/\//, '').slice(0, 50), url: b.url, icon: 'mdi:link-variant', cls: 'bg-accent/10 text-accent' })) : [],
+      loading: !state.bookmarksCache,
+    },
+    {
+      name: '影视', icon: 'mdi:movie-open-outline', cls: 'bg-secondary/10 text-secondary',
+      items: kw ? [...(state.mediaCache.watched || []), ...(state.mediaCache.watchlist || [])]
+        .filter(m => hit(m.title) || hit(m.original_title)).slice(0, 6).map(m =>
+          ({ type: 'link', title: m.title, sub: `${m.status === 'watched' ? '看过' : '想看'} · ${m.date} · ★${m.vote_average}`, url: m.douban_url, icon: 'mdi:movie-open-outline', cls: 'bg-secondary/10 text-secondary' })) : [],
+      loading: !state.mediaCache.watched || !state.mediaCache.watchlist,
+    },
+  ];
+  return groups;
+}
+
+function cmdkRender() {
+  if (cmdk.tagView !== null) { cmdkRenderTagView(); return; }
+  const q = cmdk.query;
+  const groups = cmdkMatch(q);
+  cmdk.flat = [];
+  let html = '';
+  groups.forEach(g => {
+    if (g.loading && !g.items.length) {
+      html += `<div class="cmdk-group-title">${g.name}</div><div class="cmdk-loading"><span class="loading loading-dots loading-xs"></span>正在加载${g.name}数据…</div>`;
+      return;
+    }
+    if (!g.items.length) return;
+    html += `<div class="cmdk-group-title">${g.name}</div>`;
+    g.items.forEach(it => {
+      const idx = cmdk.flat.length;
+      cmdk.flat.push(it);
+      html += `
+      <div class="cmdk-item ${idx === cmdk.active ? 'active' : ''}" data-idx="${idx}">
+        <div class="cmdk-ico ${it.cls}"><span class="iconify text-lg" data-icon="${it.icon}"></span></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm leading-snug truncate">${cmdkHi(it.title, q)}</div>
+          <div class="text-xs opacity-50 truncate">${escapeHtml(it.sub || '')}</div>
+        </div>
+        <span class="iconify text-base opacity-25 shrink-0" data-icon="mdi:chevron-right"></span>
+      </div>`;
+    });
+  });
+  if (!html) {
+    html = `<div class="text-center py-10 opacity-50 text-sm">${q ? '没有匹配的结果' : '输入关键词，同时搜索说说、书签与影视'}</div>`;
+  }
+  cmdkResults.innerHTML = html;
+  cmdkResults.querySelectorAll('.cmdk-item').forEach(el => {
+    el.onclick = () => cmdkExec(Number(el.dataset.idx));
+  });
+  cmdkScrollActive();
+}
+
+/* 标签视图：列出某标签下的全部说说（搜索面板内浏览，不跳页） */
+function cmdkRenderTagView() {
+  const tagId = cmdk.tagView;
+  const name = tagNameMap.get(tagId) || String(tagId).replace(/^tag_/, '');
+  const list = (state.searchMemosCache || [])
+    .filter(m => (m.tags || []).includes(tagId))
+    .sort((a, b) => new Date(String(b.rawDate || '').replace(' ', 'T')).getTime() - new Date(String(a.rawDate || '').replace(' ', 'T')).getTime());
+  cmdk.flat = list.map(m => {
+    const plain = String(m.content || '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/#+\s/g, '').replace(/\s+/g, ' ').trim();
+    return { type: 'memo', memoId: m.id, title: plain.slice(0, 64) || '（图片）', sub: relativeTime(m.rawDate), icon: 'mdi:chat-processing-outline', cls: 'bg-primary/10 text-primary' };
+  });
+  const rows = cmdk.flat.map((it, idx) => `
+    <div class="cmdk-item ${idx === cmdk.active ? 'active' : ''}" data-idx="${idx}">
+      <div class="cmdk-ico ${it.cls}"><span class="iconify text-lg" data-icon="${it.icon}"></span></div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm leading-snug truncate">${escapeHtml(it.title)}</div>
+        <div class="text-xs opacity-50 truncate">${escapeHtml(it.sub || '')}</div>
+      </div>
+      <span class="iconify text-base opacity-25 shrink-0" data-icon="mdi:chevron-right"></span>
+    </div>`).join('');
+  cmdkResults.innerHTML = `
+    <div class="flex items-center gap-2 px-2 pt-1 pb-1">
+      <button type="button" class="btn btn-ghost btn-xs gap-0.5 cmdk-tag-back">
+        <span class="iconify text-base" data-icon="mdi:arrow-left"></span>返回搜索
+      </button>
+      <span class="text-xs opacity-60 truncate">#${escapeHtml(name)} · ${cmdk.flat.length} 条说说</span>
+    </div>
+    ${cmdk.flat.length ? rows : `<div class="text-center py-8 opacity-50 text-sm">这个标签下暂时没有说说</div>`}`;
+  cmdkResults.querySelectorAll('.cmdk-item').forEach(el => {
+    el.onclick = () => cmdkExec(Number(el.dataset.idx));
+  });
+  const back = cmdkResults.querySelector('.cmdk-tag-back');
+  if (back) back.onclick = () => { cmdk.tagView = null; cmdkRender(); cmdkInput.focus(); };
+  cmdkScrollActive();
+}
+
+function cmdkScrollActive() {
+  const el = cmdkResults.querySelector(`.cmdk-item[data-idx="${cmdk.active}"]`);
+  if (el) el.scrollIntoView({ block: 'nearest' });
+}
+
+function cmdkOpen() {
+  cmdk.open = true;
+  cmdkOverlay.classList.add('open');
+  cmdkEnsureData();
+  cmdkRender();
+  setTimeout(() => cmdkInput.focus(), 30);
+}
+function cmdkClose() {
+  cmdk.open = false;
+  cmdk.tagView = null;
+  cmdkOverlay.classList.remove('open');
+  cmdkInput.value = '';
+  cmdk.query = '';
+  $('#cmdkMemoModal').classList.remove('open');
+}
+function cmdkExec(idx) {
+  const it = cmdk.flat[idx];
+  if (!it) return;
+  if (it.type === 'memo') {
+    // 说说：弹出全文详情（复用 memoCard 渲染，图片支持灯箱）
+    const m = (state.searchMemosCache || []).find(x => x.id === it.memoId);
+    if (!m) return;
+    const body = $('#cmdkMemoBody');
+    body.innerHTML = `<div class="px-2">${memoCard(m, 0)}</div>`;
+    initCarousels(body);   // 弹窗内的多图条需要单独初始化拖拽与计数
+    $('#cmdkMemoModal').classList.add('open');
+    body.scrollTop = 0;
+  } else if (it.url) {
+    window.open(it.url, '_blank', 'noopener');   // 面板保持打开，不打断搜索
+  }
+}
+
+cmdkInput.addEventListener('input', () => {
+  cmdk.tagView = null;   // 输入即退出标签视图，回到普通搜索
+  cmdk.query = cmdkInput.value;
+  cmdk.active = 0;
+  cmdkRender();
+});
+// 详情弹窗内点击标签徽章：面板切到该标签的说说列表（不关面板）
+$('#cmdkMemoBody').addEventListener('click', e => {
+  const tag = e.target.closest('.memo-tag');
+  if (!tag || !tag.dataset.tag) return;
+  $('#cmdkMemoModal').classList.remove('open');
+  cmdk.tagView = tag.dataset.tag;
+  cmdk.active = 0;
+  cmdkRender();
+});
+
+// 委托挂 document：搜索面板和详情弹窗是两个平级 overlay，挂在其中一个上收不到另一个的点击
+document.addEventListener('click', e => {
+  const memoModal = $('#cmdkMemoModal');
+  const memoOpen = memoModal.classList.contains('open');
+  const backFocus = () => setTimeout(() => cmdkInput.focus(), 30);
+  // 详情弹窗的 ✕：只关详情，回到搜索列表
+  if (e.target.closest('.cmdk-memo-close')) {
+    memoModal.classList.remove('open');
+    backFocus();
+    return;
+  }
+  // 详情开着时点遮罩（任一层）：先回列表
+  if (memoOpen && (e.target === memoModal || e.target === cmdkOverlay)) {
+    memoModal.classList.remove('open');
+    backFocus();
+    return;
+  }
+  // 搜索面板遮罩 / 面板的 ✕：关闭整个面板
+  if (e.target === cmdkOverlay || e.target.closest('.cmdk-close')) cmdkClose();
+});
+document.querySelectorAll('.cmdk-open').forEach(b => b.addEventListener('click', () => { closeNav(); cmdkOpen(); }));
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    cmdk.open ? cmdkClose() : cmdkOpen();
+    return;
+  }
+  if (!cmdk.open) return;
+  if (e.key === 'Escape') {
+    // 层级关闭：详情弹窗 → 标签视图 → 整个面板
+    if ($('#cmdkMemoModal').classList.contains('open')) {
+      $('#cmdkMemoModal').classList.remove('open');
+      setTimeout(() => cmdkInput.focus(), 30);
+      return;
+    }
+    if (cmdk.tagView !== null) {
+      cmdk.tagView = null;
+      cmdkRender();
+      return;
+    }
+    cmdkClose();
+    return;
+  }
+  if ($('#cmdkMemoModal').classList.contains('open')) return;   // 详情弹窗内不响应列表导航
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (!cmdk.flat.length) return;
+    const delta = e.key === 'ArrowDown' ? 1 : -1;
+    cmdk.active = (cmdk.active + delta + cmdk.flat.length) % cmdk.flat.length;
+    cmdkResults.querySelectorAll('.cmdk-item').forEach(el =>
+      el.classList.toggle('active', Number(el.dataset.idx) === cmdk.active));
+    cmdkScrollActive();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    cmdkExec(cmdk.active);
+  }
 });
 
 /* ---------- 回到顶部 ---------- */
