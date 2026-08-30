@@ -602,6 +602,18 @@
     border-bottom: 1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent);
   }
   .cmdk-loading { display: flex; align-items: center; gap: 8px; padding: 10px; font-size: .8rem; opacity: .6; }
+
+  /* ============ 世界时间页 toast ============ */
+  .wc-toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(16px);
+    z-index: 95;
+    background: var(--color-base-content); color: var(--color-base-100);
+    padding: 9px 18px; border-radius: 999px; font-size: .85rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+    box-shadow: 0 8px 24px -8px rgb(0 0 0 / .4);
+  }
+  .wc-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col bg-base-200/60 text-base-content px-0 sm:px-4">
@@ -672,6 +684,7 @@
                   </li>
                   <li><button class="tab-btn" data-view="hot"><span class="iconify mr-1" data-icon="mdi:fire"></span>热搜</button></li>
                   <li><button class="tab-btn" data-view="bookmarks"><span class="iconify mr-1" data-icon="mdi:bookmark-multiple-outline"></span>书签</button></li>
+                  <li><button class="tab-btn" data-view="worldtime"><span class="iconify mr-1" data-icon="mdi:clock-time-eight-outline"></span>世界时间</button></li>
                   <li class="menu-title text-xs opacity-50">显示</li>
                   <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-1" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-1 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
                 </ul>
@@ -723,6 +736,7 @@
                 </li>
                 <li><button class="tab-btn" data-view="hot"><span class="iconify mr-2" data-icon="mdi:fire"></span>热搜</button></li>
                 <li><button class="tab-btn" data-view="bookmarks"><span class="iconify mr-2" data-icon="mdi:bookmark-multiple-outline"></span>书签</button></li>
+                <li><button class="tab-btn" data-view="worldtime"><span class="iconify mr-2" data-icon="mdi:clock-time-eight-outline"></span>世界时间</button></li>
                 <li class="menu-title text-xs opacity-50">显示</li>
                 <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-2" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-2 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
               </ul>
@@ -1582,6 +1596,7 @@ const state = {
   bookmarksCat: '全部', // 当前书签分类
   bookmarksQuery: '',   // 当前书签搜索词
   searchMemosCache: null, // 快速搜索：说说全量缓存（首次打开面板拉取）
+  remindersCache: null, // 世界时间：提醒列表缓存
   mediaPage: { watched: 1, watchlist: 1 },
   // 筛选条件按视图独立保存：切换菜单再切回来时原样恢复
   mediaFilter: {
@@ -2298,6 +2313,333 @@ function renderBookmarkList() {
     <div class="flex flex-col gap-0.5">${list.length ? rows : `<div class="py-10">${emptyState('没有匹配的书签，换个关键词试试。')}</div>`}</div>`;
 }
 
+/* ---------- 世界时间 & 播放提醒 ---------- */
+const WC_BJ = 'Asia/Shanghai';
+const WC_ZONES = [
+  { tz: 'Asia/Shanghai',      name: '北京',   region: '中国标准时间' },
+  { tz: 'America/New_York',   name: '纽约',   region: '美国东部' },
+  { tz: 'America/Chicago',    name: '芝加哥', region: '美国中部' },
+  { tz: 'America/Denver',     name: '丹佛',   region: '美国山区' },
+  { tz: 'America/Los_Angeles',name: '洛杉矶', region: '美国西部' },
+  { tz: 'Pacific/Honolulu',   name: '檀香山', region: '夏威夷' },
+  { tz: 'Europe/London',      name: '伦敦',   region: '英国' },
+  { tz: 'Europe/Berlin',      name: '柏林',   region: '欧洲中部' },
+  { tz: 'Europe/Moscow',      name: '莫斯科', region: '俄罗斯' },
+  { tz: 'Asia/Tokyo',         name: '东京',   region: '日本' },
+  { tz: 'Asia/Seoul',         name: '首尔',   region: '韩国' },
+  { tz: 'Asia/Singapore',     name: '新加坡', region: '东南亚' },
+  { tz: 'Australia/Sydney',   name: '悉尼',   region: '澳大利亚东部' },
+  { tz: 'UTC',                name: 'UTC',    region: '协调世界时' },
+];
+let wcTimer = null;
+
+function wcParts(tz, date = new Date()) {
+  const dtf = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', weekday: 'long', hourCycle: 'h23',
+  });
+  const p = {};
+  for (const x of dtf.formatToParts(date)) p[x.type] = x.value;
+  return p;
+}
+function wcOffsetMs(tz, date) {
+  const p = {};
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+  });
+  for (const x of dtf.formatToParts(date)) p[x.type] = x.value;
+  return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - date.getTime();
+}
+/* 把"某时区的墙上时间"换算成 UTC 毫秒（两次逼近处理夏令时边界） */
+function wallToUtcMs(wall, tz) {
+  const naive = Date.parse(wall.length === 16 ? wall + ':00Z' : wall + 'Z');
+  if (!Number.isFinite(naive)) return NaN;
+  let utc = naive - wcOffsetMs(tz, new Date(naive));
+  utc = naive - wcOffsetMs(tz, new Date(utc));
+  return utc;
+}
+function wcDayPart(hour) {
+  if (hour < 5) return { t: '深夜', icon: 'mdi:weather-night', cls: 'bg-secondary/15 text-secondary' };
+  if (hour < 8) return { t: '清晨', icon: 'mdi:weather-sunset-up', cls: 'bg-warning/15 text-warning' };
+  if (hour < 11) return { t: '上午', icon: 'mdi:weather-sunny', cls: 'bg-warning/15 text-warning' };
+  if (hour < 13) return { t: '中午', icon: 'mdi:weather-sunny', cls: 'bg-warning/15 text-warning' };
+  if (hour < 17) return { t: '下午', icon: 'mdi:weather-sunny', cls: 'bg-warning/15 text-warning' };
+  if (hour < 19) return { t: '傍晚', icon: 'mdi:weather-sunset-down', cls: 'bg-error/15 text-error' };
+  return { t: '晚上', icon: 'mdi:weather-night', cls: 'bg-secondary/15 text-secondary' };
+}
+function wcDaysFromNow(utcMs) {
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const t = new Date(utcMs); t.setHours(0, 0, 0, 0);
+  return Math.round((t - now) / 864e5);
+}
+function wcDaysLabel(d) {
+  if (d === 0) return '就是今天';
+  if (d === 1) return '明天';
+  if (d === 2) return '后天';
+  return d > 0 ? `${d} 天后` : `已过去 ${-d} 天`;
+}
+function fmtDelta(ms) {
+  const abs = Math.abs(ms);
+  const d = Math.floor(abs / 864e5), h = Math.floor(abs % 864e5 / 36e5), m = Math.floor(abs % 36e5 / 6e4);
+  if (d > 0) return `${d} 天 ${h} 小时`;
+  if (h > 0) return `${h} 小时 ${m} 分`;
+  return `${Math.max(1, m)} 分钟`;
+}
+
+function startWcTick() { stopWcTick(); wcTimer = setInterval(updateWcTimes, 1000); }
+function stopWcTick() { if (wcTimer) { clearInterval(wcTimer); wcTimer = null; } }
+
+function loadWorldClock() {
+  if (!contentEl.querySelector('.wc-root')) renderWorldClock();
+  else updateWcTimes();
+  loadReminders().then(renderWcReminders).catch(() => {});
+  applyRestore('worldtime');
+}
+
+function renderWorldClock() {
+  const zoneOptions = WC_ZONES.map(z => `<option value="${z.tz}" ${z.tz === 'America/New_York' ? 'selected' : ''}>${z.name} · ${z.region}</option>`).join('');
+  const rows = WC_ZONES.map(z => `
+    <li class="list-row items-center" data-wc-row="${z.tz}">
+      <div class="size-10 rounded-lg grid place-items-center shrink-0 wc-daybox" data-wc-icon="${z.tz}"></div>
+      <div class="list-col-grow min-w-0">
+        <div class="text-sm font-semibold">${z.name}</div>
+        <div class="text-xs opacity-50">${z.region}</div>
+      </div>
+      <div class="text-right">
+        <div class="text-lg font-bold tabular-nums" data-wc-time="${z.tz}">--:--</div>
+        <div class="text-xs opacity-60" data-wc-date="${z.tz}"></div>
+      </div>
+      <div class="text-xs opacity-70 w-10 text-center shrink-0" data-wc-part="${z.tz}"></div>
+    </li>`).join('');
+
+  contentEl.innerHTML = `
+  <div class="px-4 sm:px-5 flex flex-col gap-4 wc-root">
+    <div class="rounded-2xl border border-base-300/70 bg-gradient-to-br from-primary/12 via-base-100 to-accent/10 p-6 text-center shadow-sm">
+      <div class="text-xs opacity-60 tracking-widest mb-2">北京时间 · UTC+8</div>
+      <div class="text-5xl sm:text-6xl font-bold tabular-nums tracking-wider" data-wc-main-time>--:--:--</div>
+      <div class="mt-2 text-sm opacity-70" data-wc-main-date></div>
+    </div>
+
+    <div>
+      <ul class="list bg-base-100 rounded-box shadow-md">
+        <li class="p-4 pb-2 text-xs opacity-60 tracking-wide flex items-center justify-between">
+          <span>世界城市时间 · 自动标注昼夜</span>
+          <span class="opacity-70">当地时间</span>
+        </li>
+        ${rows}
+      </ul>
+    </div>
+
+    <div class="rounded-2xl border border-base-300/70 p-4 sm:p-5">
+      <div class="text-sm font-semibold mb-3 flex items-center gap-1.5">
+        <span class="iconify text-primary text-lg" data-icon="mdi:swap-horizontal"></span>时间转换
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <select id="wcTz" class="select select-sm w-44" aria-label="来源时区">${zoneOptions}</select>
+        <input id="wcDt" type="datetime-local" class="input input-sm" aria-label="目标时间" />
+        <button type="button" id="wcConvert" class="btn btn-sm btn-primary">转换</button>
+      </div>
+      <div id="wcResult" class="mt-3"></div>
+    </div>
+
+    <div class="rounded-2xl border border-base-300/70 p-4 sm:p-5">
+      <div class="text-sm font-semibold mb-2 flex items-center gap-1.5">
+        <span class="iconify text-warning text-lg" data-icon="mdi:bell-ring-outline"></span>我的播放提醒
+      </div>
+      <p class="text-xs opacity-50 mb-2">打开首页时会自动提示最近的提醒倒计时（自动清理已过期 3 天以上的记录）</p>
+      <div id="wcReminders" class="flex flex-col gap-2"></div>
+    </div>
+  </div>`;
+
+  $('#wcConvert').onclick = wcConvertClick;
+  updateWcTimes();
+  startWcTick();
+}
+
+function updateWcTimes() {
+  const now = new Date();
+  const main = wcParts(WC_BJ, now);
+  const mainTime = contentEl.querySelector('[data-wc-main-time]');
+  if (mainTime) mainTime.textContent = `${main.hour}:${main.minute}:${main.second}`;
+  const mainDate = contentEl.querySelector('[data-wc-main-date]');
+  if (mainDate) mainDate.textContent = `${main.year} 年 ${main.month} 月 ${main.day} 日 · ${main.weekday}`;
+  WC_ZONES.forEach(z => {
+    const p = wcParts(z.tz, now);
+    const part = wcDayPart(+p.hour);
+    const tEl = contentEl.querySelector(`[data-wc-time="${z.tz}"]`);
+    const dEl = contentEl.querySelector(`[data-wc-date="${z.tz}"]`);
+    const iEl = contentEl.querySelector(`[data-wc-icon="${z.tz}"]`);
+    const pEl = contentEl.querySelector(`[data-wc-part="${z.tz}"]`);
+    if (tEl) tEl.textContent = `${p.hour}:${p.minute}`;
+    if (dEl) dEl.textContent = `${p.month}-${p.day} ${p.weekday}`;
+    if (pEl) pEl.textContent = part.t;
+    if (iEl) iEl.className = `size-10 rounded-lg grid place-items-center shrink-0 ${part.cls}`;
+    if (iEl) iEl.innerHTML = `<span class="iconify text-xl" data-icon="${part.icon}"></span>`;
+  });
+  // 提醒倒计时
+  contentEl.querySelectorAll('[data-cd-utc]').forEach(el => {
+    const ms = Date.parse(el.dataset.cdUtc) - Date.now();
+    el.textContent = ms <= 0 ? '即将开始 / 已开始' : `还有 ${fmtDelta(ms)}`;
+  });
+}
+
+function wcConvertClick() {
+  const tz = $('#wcTz').value;
+  const wall = $('#wcDt').value;
+  const box = $('#wcResult');
+  if (!wall) { box.innerHTML = `<div class="text-xs text-error">请先选择日期和时间</div>`; return; }
+  const utcMs = wallToUtcMs(wall, tz);
+  if (!Number.isFinite(utcMs)) { box.innerHTML = `<div class="text-xs text-error">时间格式不正确</div>`; return; }
+  const zName = (WC_ZONES.find(z => z.tz === tz) || {}).name || tz;
+  const bj = wcParts(WC_BJ, new Date(utcMs));
+  const part = wcDayPart(+bj.hour);
+  const d = wcDaysFromNow(utcMs);
+  const dtl = wcParts(tz, new Date(utcMs));
+  box.innerHTML = `
+  <div class="rounded-xl bg-base-200/60 p-4">
+    <div class="text-xs opacity-60 mb-1">来源：${zName} 当地 ${dtl.year}-${dtl.month}-${dtl.day} ${dtl.hour}:${dtl.minute} · ${dtl.weekday}</div>
+    <div class="text-xs opacity-60">对应北京时间</div>
+    <div class="text-2xl font-bold tabular-nums my-1">${bj.year}-${bj.month}-${bj.day} ${bj.hour}:${bj.minute}</div>
+    <div class="flex items-center gap-2 flex-wrap text-sm">
+      <span>${bj.weekday}</span>
+      <span class="badge badge-sm gap-1 ${part.cls}"><span class="iconify text-xs" data-icon="${part.icon}"></span>${part.t}</span>
+      <span class="badge badge-sm ${d >= 0 ? 'badge-primary' : 'badge-ghost'}">${wcDaysLabel(d)}</span>
+    </div>
+    <div class="flex items-center gap-2 mt-3 flex-wrap">
+      <input id="wcRemTitle" type="text" class="input input-sm input-bordered w-40" placeholder="提醒标题（可选）" maxlength="100" />
+      <button type="button" id="wcRemAdd" class="btn btn-sm btn-warning gap-1">
+        <span class="iconify text-base" data-icon="mdi:bell-plus-outline"></span>设提醒
+      </button>
+    </div>
+  </div>`;
+  $('#wcRemAdd').onclick = async () => {
+    const title = ($('#wcRemTitle').value || '').trim() || `${zName}节目提醒`;
+    try {
+      await reminderPost({ action: 'add', title, utc: new Date(utcMs).toISOString(), fromTz: tz });
+      renderWcReminders();
+      wcToast('已设置提醒，首页会显示倒计时');
+    } catch (err) { wcToast(`设置失败：${err.message}`); }
+  };
+}
+
+/* 提醒数据：生产走 API，本地开发用 localStorage 模拟 */
+async function loadReminders() {
+  if (USE_MOCK) {
+    state.remindersCache = JSON.parse(localStorage.getItem('mock-reminders') || '[]');
+    return;
+  }
+  const res = await fetch(API_BASE + '?view=reminders');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  state.remindersCache = Array.isArray(json.data) ? json.data : [];
+}
+async function reminderPost(body) {
+  if (USE_MOCK) {
+    const list = JSON.parse(localStorage.getItem('mock-reminders') || '[]');
+    if (body.action === 'add') {
+      list.push({ id: 'mock-' + Date.now(), title: body.title, utc: body.utc, fromTz: body.fromTz || '' });
+    } else if (body.action === 'delete') {
+      const i = list.findIndex(r => r.id === body.id);
+      if (i >= 0) list.splice(i, 1);
+    }
+    localStorage.setItem('mock-reminders', JSON.stringify(list));
+    state.remindersCache = list;
+    return;
+  }
+  const res = await fetch(API_BASE + '?view=reminders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+  state.remindersCache = Array.isArray(json.data) ? json.data : state.remindersCache;
+}
+
+function renderWcReminders() {
+  const box = contentEl.querySelector('#wcReminders');
+  if (!box) return;
+  const all = state.remindersCache || [];
+  const future = all.filter(r => Date.parse(r.utc) > Date.now());
+  if (!future.length) {
+    box.innerHTML = `<div class="text-xs opacity-50 py-2">还没有提醒。用上面的时间转换设一个吧（比如 SpaceX 直播开始前）。</div>`;
+    return;
+  }
+  box.innerHTML = future.map(r => {
+    const bj = wcParts(WC_BJ, new Date(r.utc));
+    const part = wcDayPart(+bj.hour);
+    return `
+    <div class="flex items-center gap-3 rounded-xl bg-base-200/50 px-3 py-2.5">
+      <span class="iconify text-warning text-lg shrink-0" data-icon="mdi:bell-badge-outline"></span>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium truncate">${escapeHtml(r.title)}</div>
+        <div class="text-xs opacity-60">北京时间 ${bj.month}-${bj.day} ${bj.hour}:${bj.minute} · ${part.t} · <span data-cd-utc="${r.utc}"></span></div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-xs btn-circle shrink-0 wc-rem-del" data-id="${escapeHtml(r.id)}" aria-label="删除提醒">
+        <span class="iconify text-base" data-icon="mdi:delete-outline"></span>
+      </button>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.wc-rem-del').forEach(btn => {
+    btn.onclick = async () => {
+      try { await reminderPost({ action: 'delete', id: btn.dataset.id }); renderWcReminders(); wcToast('已删除提醒'); }
+      catch (err) { wcToast(`删除失败：${err.message}`); }
+    };
+  });
+  updateWcTimes();
+}
+
+let wcToastTimer = null;
+function wcToast(msg) {
+  let el = document.querySelector('.wc-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'wc-toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(wcToastTimer);
+  wcToastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* 首页提醒横幅：每次刷新提示最近的提醒倒计时 */
+async function showReminderBanner() {
+  try { await loadReminders(); } catch { return; }
+  const up = (state.remindersCache || []).filter(r => Date.parse(r.utc) > Date.now()).sort((a, b) => Date.parse(a.utc) - Date.parse(b.utc));
+  if (!up.length) return;
+  const old = document.querySelector('.rem-banner'); if (old) old.remove();
+  const el = document.createElement('div');
+  el.className = 'rem-banner fade-up mx-4 sm:mx-5 mt-3 rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 flex items-center gap-3';
+  el.innerHTML = `
+    <span class="iconify text-warning text-xl shrink-0" data-icon="mdi:bell-ring-outline"></span>
+    <div class="flex-1 min-w-0 text-sm">
+      <span class="font-medium">${escapeHtml(up[0].title)}</span>
+      <span class="opacity-70 rem-banner-cd"></span>
+    </div>
+    <button type="button" class="btn btn-xs btn-ghost shrink-0 rem-banner-go">查看</button>
+    <button type="button" class="btn btn-ghost btn-xs btn-circle shrink-0 rem-banner-x" aria-label="关闭">
+      <span class="iconify text-base" data-icon="mdi:close"></span>
+    </button>`;
+  el.querySelector('.rem-banner-go').onclick = () => {
+    el.remove();
+    const btn = [...document.querySelectorAll('.tab-btn')].find(b => b.dataset.view === 'worldtime');
+    if (btn) btn.click();
+  };
+  el.querySelector('.rem-banner-x').onclick = () => el.remove();
+  mainScroll.insertBefore(el, contentEl);
+  const updateCd = () => {
+    const cd = el.querySelector('.rem-banner-cd');
+    if (!cd || !el.isConnected) return;
+    const ms = Date.parse(up[0].utc) - Date.now();
+    if (ms <= 0) { cd.textContent = ' · 时间到了！'; return; }
+    cd.textContent = ` · 还有 ${fmtDelta(ms)}（北京时间）`;
+    setTimeout(updateCd, 30000);
+  };
+  updateCd();
+}
+
 /* ---------- 影视 ---------- */
 async function loadMedia(view) {
   contentEl.innerHTML = skeletonCards(2);
@@ -2385,7 +2727,7 @@ function renderMediaPage(view) {
 }
 
 /* ---------- 滚动位置管理（各视图独立保存/恢复） ---------- */
-const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0, hot: 0, bookmarks: 0 };
+const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0, hot: 0, bookmarks: 0, worldtime: 0 };
 let sayUnfilteredScroll = 0;   // 说说无筛选时保存的滚动位置
 let sayUnfilteredPage = 1;     // 说说无筛选时保存的已加载页数
 let sayLoadedPage = 1;         // 说说当前已加载到的页码
@@ -2430,6 +2772,8 @@ function switchView(view) {
   state.view = view;
   // 热搜自动刷新：仅在热搜页运行
   if (view === 'hot') startHotAutoRefresh(); else stopHotAutoRefresh();
+  // 世界时钟秒针：仅在世界时间页运行
+  if (view === 'worldtime') startWcTick(); else stopWcTick();
   document.querySelectorAll('.tab-btn').forEach(t => {
     const on = t.dataset.view === view;
     t.classList.toggle('active', on);
@@ -2459,6 +2803,9 @@ function switchView(view) {
   } else if (view === 'bookmarks') {
     restoreTarget = { view: 'bookmarks', pos: viewScrollPos.bookmarks };
     loadBookmarks();
+  } else if (view === 'worldtime') {
+    restoreTarget = { view: 'worldtime', pos: viewScrollPos.worldtime };
+    loadWorldClock();
   } else {
     restoreTarget = { view, pos: viewScrollPos[view] };
     loadMedia(view);
@@ -2943,6 +3290,7 @@ toTop.onclick = () => mainScroll.scrollTo({ top: 0, behavior: 'smooth' });
 /* ---------- 启动 ---------- */
 initFancybox();
 switchView('say');
+setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
 </script>
 
 <!-- ========== 音乐播放器（迁移自参考站 HWPlayer） ========== -->
