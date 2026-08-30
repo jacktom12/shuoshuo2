@@ -2640,6 +2640,56 @@ async function showReminderBanner() {
   updateCd();
 }
 
+/* 提醒监视器：页面打开期间实时弹 toast（右上角），不依赖刷新 */
+const reminderFired = new Set();
+let reminderRefreshTimer = null;
+function startReminderWatch() {
+  loadReminders().catch(() => {});
+  if (!reminderRefreshTimer) {
+    reminderRefreshTimer = setInterval(() => loadReminders().catch(() => {}), 5 * 60 * 1000);
+  }
+  setInterval(checkDueReminders, 1000);
+}
+function checkDueReminders() {
+  const list = state.remindersCache || [];
+  for (const r of list) {
+    const ms = Date.parse(r.utc) - Date.now();
+    // 到点（或刚刚到 1 分钟内，覆盖刷新页面的情况）且没弹过
+    if (ms <= 0 && ms > -60 * 1000 && !reminderFired.has(r.id)) {
+      reminderFired.add(r.id);
+      showReminderToast(r);
+    }
+  }
+}
+function showReminderToast(r) {
+  let box = document.querySelector('.reminder-toast-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.className = 'reminder-toast-box toast toast-top toast-end z-[100]';
+    document.body.appendChild(box);
+  }
+  const el = document.createElement('div');
+  el.className = 'alert alert-warning shadow-lg gap-2 cursor-pointer transition-opacity duration-300';
+  el.innerHTML = `
+    <span class="iconify text-lg" data-icon="mdi:bell-ring-outline"></span>
+    <div class="text-sm">
+      <div class="font-medium">${escapeHtml(r.title)}</div>
+      <div class="text-xs opacity-70">你设置的提醒时间到了！</div>
+    </div>`;
+  el.title = '点击关闭';
+  const rm = () => {
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.remove();
+      const b = document.querySelector('.reminder-toast-box');
+      if (b && !b.children.length) b.remove();
+    }, 300);
+  };
+  el.onclick = rm;
+  box.appendChild(el);
+  setTimeout(rm, 15 * 60 * 1000);   // 直播提醒留久一点：15 分钟后自动消失
+}
+
 /* ---------- 影视 ---------- */
 async function loadMedia(view) {
   contentEl.innerHTML = skeletonCards(2);
@@ -3290,6 +3340,7 @@ toTop.onclick = () => mainScroll.scrollTo({ top: 0, behavior: 'smooth' });
 /* ---------- 启动 ---------- */
 initFancybox();
 switchView('say');
+startReminderWatch();                    // 提醒监视器：到点实时弹右上角 toast
 setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
 </script>
 
