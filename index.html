@@ -607,6 +607,7 @@
                     </div>
                   </li>
                   <li><button class="tab-btn" data-view="hot"><span class="iconify mr-1" data-icon="mdi:fire"></span>热搜</button></li>
+                  <li><button class="tab-btn" data-view="bookmarks"><span class="iconify mr-1" data-icon="mdi:bookmark-multiple-outline"></span>书签</button></li>
                   <li class="menu-title text-xs opacity-50">显示</li>
                   <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-1" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-1 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
                 </ul>
@@ -656,6 +657,7 @@
                   </div>
                 </li>
                 <li><button class="tab-btn" data-view="hot"><span class="iconify mr-2" data-icon="mdi:fire"></span>热搜</button></li>
+                <li><button class="tab-btn" data-view="bookmarks"><span class="iconify mr-2" data-icon="mdi:bookmark-multiple-outline"></span>书签</button></li>
                 <li class="menu-title text-xs opacity-50">显示</li>
                 <li><button class="theme-toggle-btn" aria-label="切换明暗"><span class="theme-icon-sun iconify mr-2" data-icon="mdi:white-balance-sunny"></span><span class="theme-icon-moon iconify mr-2 hidden" data-icon="mdi:moon-waning-crescent"></span><span>切换明暗</span></button></li>
               </ul>
@@ -864,6 +866,19 @@ const MOCK_MEDIA = (() => {
     watchlist: watchlist.map((m, i) => mk(m, 'watchlist', i)),
   };
 })();
+
+const MOCK_BOOKMARKS = [
+  { id: 'bm1', title: '是日觀影', url: 'https://todayscreening.com/', category: '博客', tags: ['博客'], desc: '每天一部值得看的电影推荐', favorite: true },
+  { id: 'bm2', title: 'Dribbble', url: 'https://dribbble.com/', category: '设计', tags: ['设计', '灵感'], desc: '设计师作品社区', favorite: true },
+  { id: 'bm3', title: 'MDN Web Docs', url: 'https://developer.mozilla.org/', category: '开发', tags: ['文档', '前端'], desc: 'Web 技术权威文档', favorite: false },
+  { id: 'bm4', title: 'Cloudflare Workers', url: 'https://workers.cloudflare.com/', category: '开发', tags: ['云', 'Serverless'], desc: '边缘计算平台', favorite: false },
+  { id: 'bm5', title: '少数派', url: 'https://sspai.com/', category: '资讯', tags: ['数字生活'], desc: '高质量数字指南', favorite: false },
+  { id: 'bm6', title: 'Excalidraw', url: 'https://excalidraw.com/', category: '工具', tags: ['白板', '手绘'], desc: '手绘风流程图工具', favorite: true },
+  { id: 'bm7', title: 'RSSHub', url: 'https://rsshub.app/', category: '工具', tags: ['RSS', '自托管'], desc: '万物皆可 RSS', favorite: false },
+  { id: 'bm8', title: '中国色', url: 'https://colors.ichuantong.cn/', category: '设计', tags: ['配色', '传统文化'], desc: '中国传统色色谱', favorite: false },
+  { id: 'bm9', title: 'V2EX', url: 'https://v2ex.com/', category: '社区', tags: ['程序员', '创意工作者'], desc: '关于分享和探索的地方', favorite: false },
+  { id: 'bm10', title: '豆瓣电影', url: 'https://movie.douban.com/', category: '影视', tags: ['电影', '评分'], desc: '影评与评分参考', favorite: false },
+];
 
 /* ============================================================
    工具函数
@@ -1466,6 +1481,9 @@ const state = {
   clipsBook: null,      // 当前展开的书（null = 书单页）
   hotCache: {},         // 热搜：各平台数据缓存 { [id]: { data, ts } }
   hotActive: 'weibo',   // 当前热搜平台
+  bookmarksCache: null, // 书签：全量缓存（首次进入拉取，筛选全在前端）
+  bookmarksCat: '全部', // 当前书签分类
+  bookmarksQuery: '',   // 当前书签搜索词
   mediaPage: { watched: 1, watchlist: 1 },
   // 筛选条件按视图独立保存：切换菜单再切回来时原样恢复
   mediaFilter: {
@@ -2041,6 +2059,141 @@ function loadHotView() {
   applyRestore('hot');
 }
 
+/* ---------- 书签收藏（/api/bookmarks，一次拉全量，搜索/分类全前端筛选） ---------- */
+let bmSearchTimer = null;
+
+async function loadBookmarks() {
+  if (state.bookmarksCache) { renderBookmarks(); return; }
+  contentEl.innerHTML = skeletonCards(2);
+  $('#mediaPager').classList.add('hidden');
+  try {
+    let list;
+    if (USE_MOCK) {
+      await sleep(300);
+      list = MOCK_BOOKMARKS;
+    } else {
+      const res = await fetch(API_BASE + '/api/bookmarks');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      list = Array.isArray(json.data) ? json.data : [];
+    }
+    state.bookmarksCache = list;
+    renderBookmarks();
+  } catch (err) {
+    contentEl.innerHTML = '';
+    contentEl.appendChild(errorState(err.message, () => { state.bookmarksCache = null; loadBookmarks(); }));
+  }
+}
+
+function bookmarkFiltered() {
+  const q = state.bookmarksQuery.trim().toLowerCase();
+  return (state.bookmarksCache || []).filter(b => {
+    if (state.bookmarksCat === '收藏') {
+      if (!b.favorite) return false;
+    } else if (state.bookmarksCat !== '全部' && b.category !== state.bookmarksCat) {
+      return false;
+    }
+    if (!q) return true;
+    // 搜索：title OR desc OR tags（大小写不敏感）
+    return String(b.title || '').toLowerCase().includes(q)
+      || String(b.desc || '').toLowerCase().includes(q)
+      || (b.tags || []).some(t => String(t).toLowerCase().includes(q));
+  });
+}
+
+function renderBookmarks() {
+  const all = state.bookmarksCache || [];
+  if (!all.length) { contentEl.innerHTML = emptyState('书签还是空的。'); applyRestore('bookmarks'); return; }
+
+  // 分类聚合（按数量降序）；收藏作为特殊分类固定在"全部"后面
+  const catMap = new Map();
+  all.forEach(b => catMap.set(b.category, (catMap.get(b.category) || 0) + 1));
+  const favCount = all.filter(b => b.favorite).length;
+  const cats = ['全部', ...(favCount ? ['收藏'] : []), ...[...catMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN')).map(([c]) => c)];
+
+  contentEl.innerHTML = `
+  <div class="px-4 sm:px-5">
+    <div class="sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
+      <div class="flex items-center gap-2">
+        <label class="input input-sm h-9 w-32 sm:w-48 shrink-0 items-center gap-2">
+          <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </g>
+          </svg>
+          <input type="search" class="bm-search grow min-w-0" placeholder="搜索 标题/描述/标签" />
+        </label>
+        <div class="bm-cats flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5"></div>
+      </div>
+    </div>
+    <div class="bm-body min-h-40"></div>
+  </div>`;
+
+  renderBookmarkChips(cats);
+  renderBookmarkList();
+
+  const search = contentEl.querySelector('.bm-search');
+  search.value = state.bookmarksQuery;
+  search.addEventListener('input', () => {
+    state.bookmarksQuery = search.value;
+    clearTimeout(bmSearchTimer);
+    bmSearchTimer = setTimeout(renderBookmarkList, 150);
+  });
+  applyRestore('bookmarks');
+}
+
+function renderBookmarkChips(cats) {
+  const wrap = contentEl.querySelector('.bm-cats');
+  if (!wrap) return;
+  wrap.innerHTML = cats.map(c => {
+    const on = c === state.bookmarksCat;
+    const isFav = c === '收藏';
+    const color = tagColor('bmcat:' + c);
+    const cls = on ? (isFav ? 'badge-warning' : `badge-${color}`) : 'badge-ghost';
+    return `<button type="button" class="badge tag-chip cursor-pointer select-none whitespace-nowrap transition-all ${cls}" data-bmcat="${escapeHtml(c)}">${isFav ? '★ ' : ''}${escapeHtml(c)}</button>`;
+  }).join('');
+  wrap.querySelectorAll('[data-bmcat]').forEach(btn => {
+    btn.onclick = () => {
+      if (state.bookmarksCat === btn.dataset.bmcat) return;
+      state.bookmarksCat = btn.dataset.bmcat;
+      renderBookmarkChips(cats);
+      renderBookmarkList();
+      mainScroll.scrollTop = 0;   // 切分类回到顶部
+    };
+  });
+}
+
+function renderBookmarkList() {
+  const body = contentEl.querySelector('.bm-body');
+  if (!body) return;
+  const list = bookmarkFiltered();
+  const total = (state.bookmarksCache || []).length;
+
+  const rows = list.map(b => {
+    const tagBadges = (b.tags || []).map(t =>
+      `<span class="badge badge-ghost badge-xs">${escapeHtml(t)}</span>`).join('');
+    const catBadge = `<span class="badge badge-dash badge-xs opacity-70">${escapeHtml(b.category)}</span>`;
+    return `
+    <a href="${escapeHtml(b.url || '#')}" target="_blank" rel="noopener noreferrer"
+       class="flex items-center gap-3 px-3 py-3 rounded-xl transition-colors hover:bg-base-200/60">
+      <div class="size-9 shrink-0 rounded-lg bg-primary/10 grid place-items-center">
+        <span class="iconify text-lg ${b.favorite ? 'text-warning' : 'text-primary'}" data-icon="${b.favorite ? 'mdi:star' : 'mdi:link-variant'}"></span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-[15px] font-medium leading-snug truncate">${escapeHtml(b.title || '')}</div>
+        ${b.desc ? `<div class="text-xs opacity-60 truncate mt-0.5">${escapeHtml(b.desc)}</div>` : ''}
+        <div class="flex items-center gap-1.5 mt-1 flex-wrap">${catBadge}${tagBadges}</div>
+      </div>
+      <span class="iconify opacity-30 shrink-0" data-icon="mdi:chevron-right"></span>
+    </a>`;
+  }).join('');
+
+  body.innerHTML = `
+    <p class="text-xs opacity-50 px-3 pt-1 pb-1">${list.length === total ? `共 ${total} 个书签` : `匹配 ${list.length} / ${total} 个书签`}</p>
+    <div class="flex flex-col gap-0.5">${list.length ? rows : `<div class="py-10">${emptyState('没有匹配的书签，换个关键词试试。')}</div>`}</div>`;
+}
+
 /* ---------- 影视 ---------- */
 async function loadMedia(view) {
   contentEl.innerHTML = skeletonCards(2);
@@ -2128,7 +2281,7 @@ function renderMediaPage(view) {
 }
 
 /* ---------- 滚动位置管理（各视图独立保存/恢复） ---------- */
-const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0, hot: 0 };
+const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0, hot: 0, bookmarks: 0 };
 let sayUnfilteredScroll = 0;   // 说说无筛选时保存的滚动位置
 let sayUnfilteredPage = 1;     // 说说无筛选时保存的已加载页数
 let sayLoadedPage = 1;         // 说说当前已加载到的页码
@@ -2199,6 +2352,9 @@ function switchView(view) {
   } else if (view === 'hot') {
     restoreTarget = { view: 'hot', pos: viewScrollPos.hot };
     loadHotView();
+  } else if (view === 'bookmarks') {
+    restoreTarget = { view: 'bookmarks', pos: viewScrollPos.bookmarks };
+    loadBookmarks();
   } else {
     restoreTarget = { view, pos: viewScrollPos[view] };
     loadMedia(view);
