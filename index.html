@@ -2072,10 +2072,12 @@ async function loadBookmarks() {
       await sleep(300);
       list = MOCK_BOOKMARKS;
     } else {
-      const res = await fetch(API_BASE + '/api/bookmarks');
+      // 注意：API_BASE 已含 /api/public-memos 路径，书签走同一端点的 view 参数，避免拼出双重路径
+      const res = await fetch(API_BASE + '?view=bookmarks');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       list = Array.isArray(json.data) ? json.data : [];
+      list = list.filter(b => b && b.title && b.url);   // 数据形状防御：过滤异常条目
     }
     state.bookmarksCache = list;
     renderBookmarks();
