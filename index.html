@@ -1052,7 +1052,34 @@ const MOCK_BOOKMARKS = [
    工具函数
 ============================================================ */
 const $ = sel => document.querySelector(sel);
-
+// ========== 滚动管理器（兼容 body 滚动与 #mainScroll 滚动） ==========
+const SCROLL_BREAKPOINT = 1024; // 与 tailwind lg: 对齐
+function isBodyScroll() {
+  return window.innerWidth < SCROLL_BREAKPOINT;
+}
+function getScrollPos() {
+  if (isBodyScroll()) return window.scrollY;
+  return mainScroll ? mainScroll.scrollTop : 0;
+}
+function setScrollPos(pos) {
+  if (isBodyScroll()) {
+    window.scrollTo(0, pos);
+  } else if (mainScroll) {
+    mainScroll.scrollTop = pos;
+  }
+}
+function scrollToTop(opts = {}) {
+  const pos = 0;
+  if (opts.behavior === 'smooth') {
+    if (isBodyScroll()) {
+      window.scrollTo({ top: pos, behavior: 'smooth' });
+    } else if (mainScroll) {
+      mainScroll.scrollTo({ top: pos, behavior: 'smooth' });
+    }
+  } else {
+    setScrollPos(pos);
+  }
+}
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -1754,7 +1781,7 @@ function bindCardInteractions() {
 function resetSay() {
   state.sayPage = 1;
   state.sayTotalPages = 1;
-  if (mainScroll) mainScroll.scrollTop = 0;   // 先回顶部（视图切换渲染后恢复位置，筛选保持顶部）
+  scrollToTop(); // 先回顶部（视图切换渲染后恢复位置，筛选保持顶部）
   contentEl.innerHTML = skeletonCards(3);
   $('#endHint').classList.add('hidden');
   loadSayPage(1, { replace: true });
@@ -1869,12 +1896,12 @@ function renderPhotos() {
 }
 
 /* 图片墙恢复滚动：瀑布流高度随图片加载逐渐增长，需反复把滚动条钉到目标位置，直到够高或超时 */
-function restorePhotosScroll(pos) {
+ function restorePhotosScroll(pos) {
   const start = performance.now();
   const tick = () => {
-    mainScroll.scrollTop = pos;
-    if (Math.abs(mainScroll.scrollTop - pos) <= 8) return;   // 已恢复到位
-    if (performance.now() - start > 3500) return;            // 兜底超时，避免死循环
+    setScrollPos(pos);
+    if (Math.abs(getScrollPos() - pos) <= 8) return;
+    if (performance.now() - start > 3500) return;
     requestAnimationFrame(tick);
   };
   tick();
@@ -2025,7 +2052,7 @@ function renderClips() {
     </div>`;
     contentEl.querySelectorAll('.clips-open').forEach(btn => {
       btn.onclick = () => {
-        clipsListScroll = mainScroll.scrollTop;
+        clipsListScroll = getScrollPos();
         state.clipsBook = btn.dataset.book;
         renderClips();
         mainScroll.scrollTop = 0;   // 进入书内页从第一条标注开始，书单位置留在 clipsListScroll 备返回恢复
@@ -2069,7 +2096,7 @@ function renderClips() {
     if (backBtn) backBtn.onclick = () => {
       state.clipsBook = null;
       renderClips();
-      mainScroll.scrollTop = clipsListScroll;   // 回到书单时恢复离开时的位置
+      setScrollPos(clipsListScroll);   // 回到书单时恢复离开时的位置
     };
     contentEl.querySelectorAll('.clips-copy').forEach(btn => {
       btn.onclick = async () => {
@@ -2190,7 +2217,7 @@ function renderHotView() {
       state.hotActive = btn.dataset.hot;
       renderHotView();
       loadHot(state.hotActive);
-      mainScroll.scrollTop = hotScrolls[state.hotActive] || 0;   // 恢复目标平台位置（首次为顶部）
+      setScrollPos(hotScrolls[state.hotActive] || 0);   // 恢复目标平台位置（首次为顶部）
     };
   });
   const refreshBtn = contentEl.querySelector('.hot-refresh');
@@ -2330,11 +2357,11 @@ function renderBookmarkChips(cats) {
   wrap.querySelectorAll('[data-bmcat]').forEach(btn => {
     btn.onclick = () => {
       if (state.bookmarksCat === btn.dataset.bmcat) return;
-      bmScrolls[state.bookmarksCat] = mainScroll.scrollTop;   // 记住当前分类的位置
+      bmScrolls[state.bookmarksCat] = getScrollPos();  // 记住当前分类的位置
       state.bookmarksCat = btn.dataset.bmcat;
       renderBookmarkChips(cats);
       renderBookmarkList();
-      mainScroll.scrollTop = bmScrolls[state.bookmarksCat] || 0;   // 恢复目标分类位置（首次为顶部）
+      setScrollPos(bmScrolls[state.bookmarksCat] || 0);   // 恢复目标分类位置（首次为顶部）
     };
   });
 }
@@ -2823,7 +2850,7 @@ function renderMediaPage(view) {
         if (b.classList.contains('btn-disabled')) return;
         state.mediaPage[view] = Number(b.dataset.p);
         renderMediaPage(view);
-        mainScroll.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToTop({ behavior: 'smooth' });
       };
     });
     $('#mediaPager').classList.remove('hidden');
@@ -2841,7 +2868,7 @@ let restoreTarget = null;      // { view, pos, page } 渲染完成后恢复
 
 function saveCurrentScroll() {
   if (mainScroll && state.view) {
-    viewScrollPos[state.view] = mainScroll.scrollTop;
+    viewScrollPos[state.view] = getScrollPos();
     if (state.view === 'say') sayLoadedPage = state.sayPage;
   }
 }
@@ -2854,7 +2881,7 @@ function applyRestore(view) {
     // 延迟到当前 loadSayPage 结束后（state.loading 复位）再补加载
     setTimeout(() => loadSayToPage(page, pos), 0);
   } else {
-    if (mainScroll) mainScroll.scrollTop = pos;
+    setScrollPos(pos);
   }
 }
 
@@ -2862,7 +2889,7 @@ async function loadSayToPage(targetPage, pos) {
   while (state.sayPage < targetPage && state.sayPage < state.sayTotalPages && !state.loading) {
     await loadSayPage(state.sayPage + 1);
   }
-  if (mainScroll) mainScroll.scrollTop = pos;
+  setScrollPos(pos);
 }
 
 /* ---------- 视图切换 ---------- */
@@ -2896,7 +2923,7 @@ function switchView(view) {
   $('#endHint').classList.add('hidden');
 
   // 立即回顶部，避免旧视图滚动位置残留
-  if (mainScroll) mainScroll.scrollTop = 0;
+  scrollToTop();
 
   if (view === 'say') {
     restoreTarget = { view: 'say', pos: viewScrollPos.say, page: sayLoadedPage };
@@ -3405,7 +3432,7 @@ mainScroll.addEventListener('scroll', () => {
   toTop.style.opacity = show ? '1' : '0';
   toTop.style.pointerEvents = show ? 'auto' : 'none';
 }, { passive: true });
-toTop.onclick = () => mainScroll.scrollTo({ top: 0, behavior: 'smooth' });
+toTop.onclick = () => scrollToTop({ behavior: 'smooth' });
 
 /* ---------- 启动 ---------- */
 initFancybox();
