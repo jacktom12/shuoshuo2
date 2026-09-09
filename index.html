@@ -2711,7 +2711,7 @@ async function showReminderBanner() {
     if (btn) btn.click();
   };
   el.querySelector('.rem-banner-x').onclick = () => el.remove();
-  mainScroll.insertBefore(el, contentEl);
+  contentEl.parentNode.insertBefore(el, contentEl);
   const updateCd = () => {
     const cd = el.querySelector('.rem-banner-cd');
     if (!cd || !el.isConnected) return;
