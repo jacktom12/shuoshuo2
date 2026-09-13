@@ -2116,7 +2116,10 @@ const observer = new IntersectionObserver(entries => {
   if (state.view === 'say' && state.sayPage < state.sayTotalPages && !state.loading) {
     loadSayPage(state.sayPage + 1);
   }
-}, { root: mainScroll, rootMargin: '400px' });
+/* root 用视口（null）：桌面端 mainScroll 是内部滚动容器、手机端由 body 滚动，
+   两种模式下哨兵相对视口的位置都会随滚动变化，观察器都能正确触发；
+   若 root 固定为 mainScroll，手机端它不是滚动容器、永远包含哨兵，交叉状态不变导致下拉加载失效 */
+}, { rootMargin: '400px' });
 observer.observe($('#sentinel'));
 
 /* ---------- 图片墙：聚合所有说说的图片 ---------- */
@@ -2352,7 +2355,7 @@ function renderClips() {
     <div>
       ${back}
       <ul class="list bg-base-100 rounded-box shadow-md">
-        <li class="p-4 pb-2 text-xs opacity-60 tracking-wide line-clamp-1">《${escapeHtml(book.title)}》 · ${escapeHtml(book.author || '未知作者')} · ${book.count} 条标注</li>
+        <li class="p-4 pb-2 text-xs opacity-60 tracking-wide leading-relaxed break-words">《${escapeHtml(book.title)}》 · ${escapeHtml(book.author || '未知作者')} · ${book.count} 条标注</li>
         ${book.items.map((c, i) => {
           const tm = CLIP_TYPE_META[c.type] || CLIP_TYPE_META['标注'];
           const metaBits = [
