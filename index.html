@@ -31,17 +31,50 @@
 
      <style>
   :root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+
+  /* ============ 主题配色（仅浅 / 深两套，跟随系统自动切换） ============ */
+  :root,
+  [data-theme="light"] {
+    color-scheme: light;
+    --color-base-100: oklch(97% 0.014 105);
+    --color-base-200: oklch(93.5% 0.022 105);
+    --color-base-300: oklch(88% 0.032 105);
+    --color-base-content: oklch(32% 0.02 130);
+    --color-primary: oklch(52% 0.062 178);
+    --color-primary-content: oklch(97% 0.012 178);
+    --color-secondary: oklch(60% 0.05 160);
+    --color-secondary-content: oklch(97% 0.012 160);
+    --color-accent: oklch(62% 0.085 75);
+    --color-accent-content: oklch(97% 0.012 75);
+    --color-neutral: oklch(38% 0.02 160);
+    --color-neutral-content: oklch(93% 0.015 160);
+  }
+  /* 深色：墨绿炭底 + 亮青主色 */
+  [data-theme="halloween"],
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --color-base-100: oklch(22.5% 0.01 190);
+    --color-base-200: oklch(19.5% 0.01 190);
+    --color-base-300: oklch(27% 0.012 190);
+    --color-base-content: oklch(88% 0.012 175);
+    --color-primary: oklch(74% 0.095 175);
+    --color-primary-content: oklch(21% 0.02 175);
+    --color-secondary: oklch(68% 0.045 165);
+    --color-secondary-content: oklch(18% 0.012 165);
+    --color-accent: oklch(76% 0.09 85);
+    --color-accent-content: oklch(20% 0.02 85);
+    --color-neutral: oklch(30% 0.012 190);
+    --color-neutral-content: oklch(88% 0.012 175);
+  }
   [data-theme="dark"], [data-theme="halloween"] { color-scheme: dark; }
   html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
   body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
+  /* ============ 全站扁平化：去掉所有圆角（面板、卡片、图片、歌词 UI、按钮、头像等） ============ */
+  *, *::before, *::after { border-radius: 0 !important; }
+
   /* 标签徽章：保证 button 上的 badge 继承全局字体 */
   .tag-chip { font-family: inherit; }
-
-  .memo-card { transition: background-color .2s ease; }
-  @media (hover: hover) {
-    .memo-card:hover { background-color: rgb(128 128 128 / .04); }
-  }
 
   /* ============ 图片墙（Masonry.js 瀑布流） ============ */
   .photo-sizer,
@@ -121,6 +154,28 @@
   .strip-end { flex-shrink: 0; }
   @media (hover: hover) { .strip-item img:hover { filter: brightness(1.06); } }
   .strip-count { position: absolute; top: 8px; right: 8px; z-index: 2; pointer-events: none; }
+  /* 手机端：多图条改为两列栅格铺满卡片宽度（PC 保持横向滑动） */
+  @media (max-width: 640px) {
+    .carousel-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; overflow: hidden; cursor: default; }
+    .carousel-strip .strip-end { display: none; }
+    .carousel-strip .strip-item { min-width: 0; min-height: 0; }
+    .carousel-strip .strip-item img {
+      width: 100%; height: auto; max-height: none;
+      aspect-ratio: 4 / 3; object-fit: cover;
+    }
+    /* 最多展示 9 格，超出折叠；全部可见时无需计数徽章 */
+    .carousel-strip .strip-item:nth-child(n + 10) { display: none; }
+    .strip-wrap .strip-count { display: none; }
+    /* 第 9 格 +N 覆盖层（N = 未展示张数），点击仍打开灯箱查看全部 */
+    .carousel-strip .strip-item[data-more] { position: relative; cursor: pointer; }
+    .carousel-strip .strip-item[data-more]::after {
+      content: '+' attr(data-more);
+      position: absolute; inset: 0; z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      background: rgb(0 0 0 / .45); color: #fff;
+      font-size: 1.4rem; font-weight: 700;
+    }
+  }
   .hw-lyrics-float {
     position: fixed; z-index: 80;
     width: min(320px, calc(100vw - 24px)); height: 280px;
@@ -151,6 +206,13 @@
   .hw-lyrics-float .hw-lyrics-line.active { color: var(--color-primary); font-weight: 700; font-size: .95rem; }
   .hw-lyrics-float .hw-lyrics-empty { margin: auto; text-align: center; opacity: .5; font-size: .82rem; padding: 16px; }
   #headerLyricsBar { user-select: none; }
+  /* 底部悬浮歌词药丸栏（自顶栏迁移）：居中悬浮，避开右下角回到顶部按钮 */
+  #headerLyricsBar:not(.hidden) {
+    position: fixed; z-index: 50;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    left: 50%; transform: translateX(-50%);
+    width: min(520px, calc(100vw - 104px));
+  }
 
 
   /* 骨架屏 */
@@ -306,11 +368,6 @@
     filter: brightness(.85);
   }
 
-  /* ============ 首页横幅深色主题降亮度 ============ */
-  html:is([data-theme="dark"], [data-theme="halloween"]) #sayBanner img {
-    filter: brightness(.8);
-  }
-
   /* ============ 应用框架：侧边栏布局（daisyUI Drawer） ============ */
   #appDrawer { height: 100dvh; }
   #appDrawer > .drawer-content { height: 100dvh; }
@@ -393,6 +450,190 @@
     font-size: .78rem;
     opacity: .55;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* ============================================================
+     手账时间轴主题（概念 B）
+  ============================================================ */
+  /* 全站隐藏滚动条：保留滚动能力，视觉上像原生 APP */
+  * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+  *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+
+  /* 页面底色：C 杂志风——全页统一象牙底（纯色，无背景图） */
+  .paper-bg {
+    background-color: var(--color-base-100);
+  }
+  #topNav { border-bottom-color: color-mix(in oklch, var(--color-base-content) 10%, transparent); }
+  /* 标签区标题（替代原分隔横线，标示下方为标签列表） */
+  .tag-title { font-size: 1.02rem; font-weight: 700; padding: .4rem .25rem .45rem; letter-spacing: .1em; }
+
+  /* 侧栏资料卡 */
+  .side-profile { display: flex; align-items: center; gap: .8rem; padding: .95rem .95rem .4rem; }
+  .side-profile img {
+    width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: 0 0 auto;
+    border: 2px solid var(--color-base-100);
+    box-shadow: 0 2px 10px color-mix(in oklch, var(--color-base-content) 18%, transparent);
+  }
+  .side-profile .name { font-weight: 700; line-height: 1.25; }
+  /* 资料卡功能图标行（原 bio 位置） */
+  .side-actions { display: flex; align-items: center; gap: 2px; margin-top: 3px; }
+
+  /* 侧栏激活项：淡底 + 左侧竖条指示 */
+  #appSidebar .menu .tab-btn.active {
+    background: color-mix(in oklch, var(--color-base-content) 7%, transparent);
+    color: var(--color-primary);
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  /* 侧栏菜单：一行一项 */
+  #appSidebar .menu { gap: 2px; }
+  #appSidebar .menu .tab-btn {
+    padding: .45rem .55rem;
+    font-size: .92rem;
+    gap: .55rem;
+    border: 1px solid transparent;
+    min-height: 0;
+  }
+  #appSidebar .menu .tab-btn .iconify { font-size: 1.15rem; }
+  #appSidebar .menu > li { position: relative; }
+  /* 激活项左侧竖条指示（圆角短棒，骑在条目左缘） */
+  #appSidebar .menu > li:has(> .tab-btn.active)::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 1.5em;
+    border-radius: 999px;
+    background: var(--color-primary);
+  }
+
+  /* 桌面端：侧栏 + 主区合并为一个居中的宽屏面板（C 杂志风：纯色、无边框、无阴影） */
+  @media (min-width: 1024px) {
+    /* body 自身 padding 撑出边距，避免与面板 margin 塌陷露出 html 白底 */
+    body { padding: 16px; }
+    #appDrawer {
+      height: calc(100dvh - 32px);
+      max-width: 1560px;
+      margin: 0 auto;
+      background: var(--color-base-100);
+      overflow: hidden;
+    }
+    #appDrawer > .drawer-content { height: 100%; }
+    #appDrawer > .drawer-toggle ~ .drawer-side { height: 100%; }
+    /* 关键：把 grid 行高钉死为 1fr，否则 100% 高度链会退化为内容高度，面板内无法内部滚动 */
+    #appDrawer { grid-template-rows: minmax(0, 1fr); }
+    #appShell { height: 100%; background: transparent; border: none; box-shadow: none; border-radius: 0; overflow: hidden; }
+    /* 顶栏（汉堡 + 标题）只在移动端存在 */
+    #appShell > header { display: none; }
+    /* 侧栏是面板内的透明分区，与主区之间无分隔线 */
+    #appSidebar {
+      height: 100%;
+      margin: 0; border-radius: 0;
+      background: transparent;
+      border: none;
+      backdrop-filter: none; -webkit-backdrop-filter: none;
+      box-shadow: none;
+    }
+  }
+
+  /* 标签筛选：纯文字（杂志风），自动换行，行尾 × 一键清空 */
+  #tagChips { gap: 2px 16px; }
+  #tagChips .tag-chip {
+    width: auto;
+    padding: .12rem 0;
+    font-size: .85rem;
+    background: none;
+    border: none;
+    color: var(--color-base-content);
+  }
+  #tagChips .tag-chip .tag-dot { display: none; }
+  #tagChips .tag-chip.active {
+    background: none;
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+  #tagChips .tag-chip:hover { color: var(--color-primary); }
+
+  /* ====== 说说时间线（特色）：竖线 + 日期牌，内容保持扁平杂志式 ====== */
+  #content ul.timeline { width: 100%; max-width: 800px; margin: 0 auto; }
+  /* 轨道列固定宽度：有牌/无牌条目的竖线保持在同一 x 上 */
+  #content ul.timeline.timeline-vertical.timeline-snap-icon > li {
+    --timeline-col-start: 0px;
+    grid-template-columns: 0px 47px minmax(0, 1fr);
+  }
+  #content ul.timeline > li > hr { background-color: color-mix(in oklch, var(--color-base-content) 20%, transparent); }
+  /* 首条说说：隐藏顶部探出的引线 */
+  #content ul.timeline > li:first-child > hr:first-child { display: none; }
+  #content ul.timeline .timeline-end {
+    margin: 0; padding: 0 0 1.25rem .9rem;
+    justify-self: stretch;   /* 撑满整列：分隔线等长，不随内容宽窄变化 */
+    /* 条目分隔线：只在内容列宽度内，最后一条不画 */
+    border-bottom: 1px solid color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  }
+  #content ul.timeline > li:last-child .timeline-end { border-bottom: none; }
+  /* max-md:timeline-compact 的等效媒体查询（Tailwind CDN 不会编译 daisyUI 变体） */
+  @media (max-width: 767px) {
+    #content ul.timeline.timeline-snap-icon > li { --timeline-row-start: 0px; }
+    #content ul.timeline.timeline-vertical.timeline-snap-icon > li { grid-template-columns: 0px 42px minmax(0, 1fr); }
+  }
+
+  /* 日期牌（timeline-middle） */
+  .memo-bubble {
+    width: 47px; height: 47px;
+    background: var(--color-base-100);
+    border: 1px solid color-mix(in oklch, var(--color-base-content) 14%, transparent);
+    box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 8%, transparent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    line-height: 1.12;
+  }
+  .memo-bubble b { font-size: .98rem; }
+  .memo-bubble span { font-size: .6rem; opacity: .5; }
+  .sk-bubble { width: 47px; height: 47px; background: var(--color-base-100); }
+
+  /* 单图说说：图文左右分栏（按条目稳定随机左右），标签跟在文字下方 */
+  .memo-split { display: grid; grid-template-columns: 5fr 7fr; gap: 22px; align-items: center; }
+  .memo-split.rev { grid-template-columns: 7fr 5fr; }
+  .memo-split.rev .split-img { order: 2; }
+  .memo-split.rev .split-text { order: 1; }
+  .split-img img { width: 100%; height: 230px; object-fit: cover; cursor: zoom-in; display: block; }
+  .memo-split .split-text .memo-text { font-size: 1.02rem; }
+  @media (max-width: 640px) {
+    .memo-split, .memo-split.rev { grid-template-columns: 1fr; gap: 12px; }
+    .memo-split.rev .split-img { order: 0; }
+    .split-img img { height: auto; }
+  }
+
+  /* 弹窗里的单条说说（无时间线轨道） */
+  .memo-entry { max-width: 760px; margin: 0 auto; }
+
+  @media (max-width: 640px) {
+    .memo-bubble, .sk-bubble { width: 42px; height: 42px; }
+  }
+
+  /* ====== 刊头「花镜」偈（仅说说视图） ====== */
+  #masthead { text-align: center; padding: 3rem 0 .6rem; }
+  #masthead .mh-body { width: fit-content; margin: 0 auto; }
+  #masthead .mh-poem {
+    font-size: 1.04rem; line-height: 2.25; letter-spacing: .22em; text-indent: .22em;
+    color: var(--color-base-content);
+    text-align: center;
+  }
+  #masthead .mh-source {
+    margin-top: .8rem; text-align: right;
+    font-size: .76rem; letter-spacing: .1em;
+    color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
+  }
+
+  html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar .menu .tab-btn.active {
+    background: color-mix(in oklch, white 8%, transparent);
+    border-color: transparent;
+  }
+
+  @media (max-width: 640px) {
+    .memo-entry { padding: 1.3rem 0 1.2rem; }
   }
 
   /* ============ 音乐抽屉（右侧滑出播放器） ============ */
@@ -589,37 +830,6 @@
     font-size: 1rem;
   }
 
-  /* ============ 主题色相滑杆（拖动实时改变全站主题色彩） ============ */
-  .hue-slider {
-    -webkit-appearance: none; appearance: none;
-    height: 14px;
-    border-radius: 8px;
-    outline: none;
-    cursor: pointer;
-    background: linear-gradient(90deg,
-      oklch(72% .17 0), oklch(72% .17 60), oklch(72% .17 120), oklch(72% .17 180),
-      oklch(72% .17 240), oklch(72% .17 300), oklch(72% .17 360));
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08);
-  }
-  .hue-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 14px; height: 20px;
-    border-radius: 4px;
-    background: var(--color-base-100);
-    border: 2px solid var(--color-base-content);
-    box-shadow: 0 1px 4px rgb(0 0 0 / .3);
-    cursor: grab;
-  }
-  .hue-slider:active::-webkit-slider-thumb { cursor: grabbing; }
-  .hue-slider::-moz-range-thumb {
-    width: 12px; height: 18px;
-    border-radius: 4px;
-    background: var(--color-base-100);
-    border: 2px solid var(--color-base-content);
-    box-shadow: 0 1px 4px rgb(0 0 0 / .3);
-    cursor: grab;
-  }
-
   /* ============ 全站快速搜索（Ctrl+K Command Palette） ============ */
   .cmdk-overlay {
     position: fixed; inset: 0; z-index: 90;
@@ -696,7 +906,7 @@
   .wc-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
-<body class="min-h-screen bg-base-300/50 text-base-content lg:h-screen lg:overflow-hidden">
+<body class="min-h-screen paper-bg text-base-content lg:h-screen lg:overflow-hidden">
 
 <!-- ============ 应用框架：daisyUI Drawer —— 大屏左侧固定侧栏，小屏滑出抽屉 ============ -->
 <div class="drawer lg:drawer-open" id="appDrawer">
@@ -704,7 +914,7 @@
 
   <!-- 右侧内容区 -->
   <div class="drawer-content min-w-0 lg:h-full">
-   <div id="appShell" class="w-full min-h-screen flex flex-col bg-base-100 lg:h-full lg:min-h-0">
+   <div id="appShell" class="w-full min-h-screen flex flex-col lg:h-full lg:min-h-0">
 
 
      <header class="shrink-0 sticky top-0 z-40 lg:relative">
@@ -714,58 +924,6 @@
               <span class="iconify text-xl" data-icon="mdi:menu"></span>
             </button>
             <span id="viewTitle" class="font-bold text-base sm:text-lg">小记</span>
-
-        <!-- 歌词药丸：播放时出现在标题右侧，占满剩余空间；歌词过长左右滚动 -->
-        <div id="headerLyricsBar" class="hidden flex-1 min-w-0">
-          <div class="flex items-center gap-2 rounded-full bg-base-200/80 border border-base-300 shadow-sm px-3 py-1.5 w-full min-w-0">
-            <span class="eq shrink-0" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-            <div id="headerLyricsMarquee" class="lyrics-marquee min-w-0 flex-1 overflow-hidden">
-              <p id="headerLyricsText" class="lyrics-marquee-text text-xs sm:text-sm font-medium leading-snug whitespace-nowrap inline-block"></p>
-            </div>
-          </div>
-        </div>
-
-            <!-- 顶栏操作：搜索 / 音乐 / 明暗切换 -->
-            <div class="flex items-center gap-0.5 ml-auto shrink-0">
-              <button type="button" class="cmdk-open btn btn-ghost btn-sm btn-circle" aria-label="快速搜索" title="快速搜索（Ctrl+K）">
-                <span class="iconify text-lg" data-icon="mdi:magnify"></span>
-              </button>
-              <button type="button" class="music-trigger btn btn-ghost btn-sm btn-circle relative" aria-label="音乐" title="音乐">
-                <span class="iconify text-lg" data-icon="mdi:music-note-outline"></span>
-                <span id="musicDot" class="hidden absolute top-1 right-1 size-2 rounded-full bg-primary"></span>
-              </button>
-              <!-- 主题下拉：明暗切换 + 主题配色 + 主题色相（原工具抽屉内设置迁移至此） -->
-              <div class="dropdown dropdown-end">
-                <button type="button" tabindex="0" class="btn btn-ghost btn-sm btn-circle" aria-label="主题设置" title="主题设置">
-                  <span class="theme-icon-sun iconify text-lg" data-icon="mdi:white-balance-sunny"></span>
-                  <span class="theme-icon-moon iconify text-lg hidden" data-icon="mdi:moon-waning-crescent"></span>
-                </button>
-                <div tabindex="0" class="dropdown-content z-[80] mt-1 w-64 rounded-2xl border border-base-300/60 bg-base-100 p-2 shadow-xl">
-                  <button type="button" class="theme-toggle-btn sidebar-tag">
-                    <span class="theme-icon-sun iconify text-base" data-icon="mdi:white-balance-sunny"></span>
-                    <span class="theme-icon-moon iconify text-base hidden" data-icon="mdi:moon-waning-crescent"></span>
-                    <span>切换明暗</span>
-                  </button>
-                  <p class="text-xs opacity-50 tracking-wider mt-2 mb-1 px-1.5">主题配色</p>
-                  <a data-theme-pick="auto" class="theme-pick-item sidebar-tag"><span>默认</span><span class="pick-check text-primary ml-auto">✓</span></a>
-                  <a data-theme-pick="caramellatte" class="theme-pick-item sidebar-tag"><span>焦糖拿铁</span><span class="pick-check text-primary ml-auto hidden">✓</span></a>
-                  <a data-theme-pick="halloween" class="theme-pick-item sidebar-tag"><span>万圣夜</span><span class="pick-check text-primary ml-auto hidden">✓</span></a>
-                  <p class="text-xs opacity-50 tracking-wider mt-2 mb-1 px-1.5">主题色相</p>
-                  <div class="px-1.5 pb-1">
-                    <div class="flex items-center justify-between mb-1.5">
-                      <span class="text-xs opacity-70 flex items-center gap-1"><span class="iconify text-sm" data-icon="mdi:palette-outline"></span>主题色</span>
-                      <span class="flex items-center gap-1">
-                        <span class="hue-val text-xs opacity-70 tabular-nums">默认</span>
-                        <button type="button" class="hue-reset btn btn-ghost btn-xs btn-square" title="恢复默认">
-                          <span class="iconify text-sm" data-icon="mdi:restore"></span>
-                        </button>
-                      </span>
-                    </div>
-                    <input type="range" min="0" max="360" step="1" class="hue-slider w-full" aria-label="主题色相" />
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </nav>
       </header>
@@ -773,10 +931,14 @@
      <main id="mainScroll" class="flex-1 lg:overflow-y-auto lg:min-h-0">
         <div class="max-w-5xl mx-auto w-full">
 
-          <!-- 首页横幅（仅说说视图显示） -->
-          <div id="sayBanner" class="hidden px-3 sm:px-5 pt-3">
-            <div class="relative rounded-2xl overflow-hidden border border-base-300/50 shadow-sm">
-              <img src="bg.jpg" alt="封面" class="w-full h-40 sm:h-52 object-cover" />
+          <!-- 刊头（仅说说视图）：花镜偈 -->
+          <div id="masthead" class="hidden">
+            <div class="mh-body">
+              <div class="mh-poem">
+                <p>生死去来，棚头傀儡</p>
+                <p>一线断时，落落磊磊</p>
+              </div>
+              <p class="mh-source">——世阿弥《花镜》引月庵宗光偈</p>
             </div>
           </div>
 
@@ -800,26 +962,47 @@
   <!-- 左侧边栏：品牌 + 用户 + 菜单 + 热门标签 -->
   <div class="drawer-side z-[70]">
     <label for="appNavChk" aria-label="关闭菜单" class="drawer-overlay"></label>
-    <aside id="appSidebar" class="h-full w-64 sm:w-72 bg-base-200 flex flex-col">
-      <!-- 主菜单（紧凑单行排列） -->
-      <nav class="px-3 pt-3 pb-2 min-h-0 overflow-y-auto" aria-label="主导航">
+    <aside id="appSidebar" class="h-full w-64 sm:w-72 paper-bg flex flex-col">
+      <!-- 资料卡：头像 + 名称 + 功能图标（原底部操作行迁移至此） -->
+      <div class="side-profile shrink-0">
+        <img src="avatar.webp" alt="头像" />
+        <div class="min-w-0 side-profile-meta">
+          <div class="name">小记</div>
+          <div class="side-actions">
+            <button type="button" class="cmdk-open btn btn-ghost btn-xs btn-circle" aria-label="快速搜索" title="快速搜索（Ctrl+K）">
+              <span class="iconify text-base" data-icon="mdi:magnify"></span>
+            </button>
+            <button type="button" class="music-trigger btn btn-ghost btn-xs btn-circle relative" aria-label="音乐" title="音乐">
+              <span class="iconify text-base" data-icon="mdi:music-note-outline"></span>
+              <span id="musicDot" class="hidden absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary"></span>
+            </button>
+            <button type="button" class="theme-toggle-btn btn btn-ghost btn-xs btn-circle" aria-label="切换明暗" title="切换明暗">
+              <span class="theme-icon-sun iconify text-base" data-icon="mdi:white-balance-sunny"></span>
+              <span class="theme-icon-moon iconify text-base hidden" data-icon="mdi:moon-waning-crescent"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- 主菜单（固定不随内容滚动；桌面端可收成图标栏） -->
+      <nav class="px-3 pt-2 pb-2 shrink-0" aria-label="主导航">
         <ul class="menu w-full p-0 gap-0.5 text-[.95rem]">
-          <li><a class="tab-btn" data-view="say"><span class="iconify text-lg opacity-80" data-icon="mdi:home-outline"></span>首页</a></li>
-          <li><a class="tab-btn" data-view="photos"><span class="iconify text-lg opacity-80" data-icon="mdi:image-multiple-outline"></span>图片</a></li>
-          <li><a class="tab-btn" data-view="watched"><span class="iconify text-lg opacity-80" data-icon="mdi:movie-open-check-outline"></span>看过</a></li>
-          <li><a class="tab-btn" data-view="watchlist"><span class="iconify text-lg opacity-80" data-icon="mdi:star-outline"></span>想看</a></li>
-          <li><a class="tab-btn" data-view="clips"><span class="iconify text-lg opacity-80" data-icon="streamline-ultimate:kindle-hold-bold"></span>标注</a></li>
-          <li><a class="tab-btn" data-view="hot"><span class="iconify text-lg opacity-80" data-icon="mdi:fire"></span>热搜</a></li>
-          <li><a class="tab-btn" data-view="bookmarks"><span class="iconify text-lg opacity-80" data-icon="mdi:bookmark-multiple-outline"></span>书签</a></li>
-          <li><a class="tab-btn" data-view="worldtime"><span class="iconify text-lg opacity-80" data-icon="mdi:clock-time-eight-outline"></span>世界时间</a></li>
+          <li><a class="tab-btn" data-view="say"><span class="iconify text-lg opacity-80" data-icon="mdi:home-outline"></span><span class="nav-label">首页</span></a></li>
+          <li><a class="tab-btn" data-view="photos"><span class="iconify text-lg opacity-80" data-icon="mdi:image-multiple-outline"></span><span class="nav-label">图片</span></a></li>
+          <li><a class="tab-btn" data-view="watched"><span class="iconify text-lg opacity-80" data-icon="mdi:movie-open-check-outline"></span><span class="nav-label">看过</span></a></li>
+          <li><a class="tab-btn" data-view="watchlist"><span class="iconify text-lg opacity-80" data-icon="mdi:star-outline"></span><span class="nav-label">想看</span></a></li>
+          <li><a class="tab-btn" data-view="clips"><span class="iconify text-lg opacity-80" data-icon="streamline-ultimate:kindle-hold-bold"></span><span class="nav-label">标注</span></a></li>
+          <li><a class="tab-btn" data-view="hot"><span class="iconify text-lg opacity-80" data-icon="mdi:fire"></span><span class="nav-label">热搜</span></a></li>
+          <li><a class="tab-btn" data-view="bookmarks"><span class="iconify text-lg opacity-80" data-icon="mdi:bookmark-multiple-outline"></span><span class="nav-label">书签</span></a></li>
+          <li><a class="tab-btn" data-view="worldtime"><span class="iconify text-lg opacity-80" data-icon="mdi:clock-time-eight-outline"></span><span class="nav-label">世界时间</span></a></li>
         </ul>
       </nav>
 
-      <!-- 标签筛选（常驻：任何视图下可见可点） -->
-      <div id="tagBar" class="hidden shrink-0 border-t border-base-300/50 px-3 pt-2 pb-2.5">
-        <div class="flex items-start gap-1">
-          <div id="tagChips" class="flex flex-wrap gap-1.5 flex-1 min-w-0"></div>
-          <button id="clearTagsBtn" class="btn btn-ghost btn-xs btn-circle shrink-0 hidden" aria-label="清空标签" title="清空筛选">
+      <!-- 标签筛选（常驻：任何视图下可见可点；纯文字，行尾 × 一键清空） -->
+      <div id="tagBar" class="hidden flex-1 min-h-0 overflow-y-auto px-3 pt-1 pb-2.5">
+        <div class="tag-title">标签</div>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <div id="tagChips" class="flex flex-wrap gap-x-4 gap-y-1.5 min-w-0"></div>
+          <button id="clearTagsBtn" class="btn btn-square btn-xs shrink-0 hidden" aria-label="清空标签" title="清空筛选">
             <span class="iconify text-sm" data-icon="mdi:close"></span>
           </button>
         </div>
@@ -831,6 +1014,16 @@
 <button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
   <span class="iconify text-xl" data-icon="mdi:arrow-up"></span>
 </button>
+
+<!-- 底部悬浮歌词药丸栏：播放时显示，歌词过长左右滚动 -->
+<div id="headerLyricsBar" class="hidden">
+  <div class="flex items-center gap-2 rounded-full border border-base-100/60 shadow-lg px-3.5 py-2 w-full min-w-0 bg-base-100/70 backdrop-blur-md">
+    <span class="eq shrink-0" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <div id="headerLyricsMarquee" class="lyrics-marquee min-w-0 flex-1 overflow-hidden">
+      <p id="headerLyricsText" class="lyrics-marquee-text text-xs sm:text-sm font-medium leading-snug whitespace-nowrap inline-block"></p>
+    </div>
+  </div>
+</div>
 
 
 
@@ -1203,7 +1396,9 @@ function initFancybox() {
     if (!trigger) return;
     e.preventDefault();
     const group = trigger.getAttribute('data-fancybox') || 'gallery';
+    // 排除手机端 +N 覆盖格（div），它只是灯箱入口，本身不算一页
     const items = [...document.querySelectorAll(`[data-fancybox="${group}"]`)]
+      .filter(a => !a.classList.contains('strip-item'))
       .map(a => ({
         src: a.getAttribute('href') || a.getAttribute('data-src') || '',
         caption: a.getAttribute('data-caption') || '',
@@ -1232,12 +1427,18 @@ function initFancybox() {
     </div>`;
   }
 
-  const items = images.map((img, i) => `
-    <div class="strip-item rounded-xl overflow-hidden bg-base-300/50">
+  const items = images.map((img, i) => {
+    // 手机端九宫格：超过 9 张时第 9 格标记 +N（N 为未展示数）；格子自带灯箱属性，点击可查看全部
+    const more = images.length > 9 && i === 8
+      ? ` data-more="${images.length - 8}" data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}"`
+      : '';
+    return `
+    <div class="strip-item rounded-xl overflow-hidden bg-base-300/50"${more}>
       <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
            data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
            data-caption="${escapeHtml(img.alt || '')}" />
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   return `
   <div class="strip-wrap mt-3">
@@ -1245,7 +1446,7 @@ function initFancybox() {
       ${items}
       <div class="strip-end w-1"></div>
     </div>
-    <span class="strip-count badge badge-sm bg-black/55 text-white border-none backdrop-blur-sm">1 / ${images.length}</span>
+    ${images.length > 2 ? `<span class="strip-count badge badge-sm bg-black/55 text-white border-none backdrop-blur-sm">1 / ${images.length}</span>` : ''}
   </div>`;
 }
    
@@ -1432,26 +1633,74 @@ function tagColor(id) {
   return TAG_COLORS[h % TAG_COLORS.length];
 }
 
-function memoCard(m, idx) {
+// 解析 rawDate（"YYYY-MM-DD HH:mm:00"）为日期牌所需信息（含年份，不同年份同月日不会合并）；解析失败返回 null
+function dayInfo(rawDate) {
+  const t = new Date(String(rawDate || '').replace(' ', 'T'));
+  if (!Number.isFinite(t.getTime())) return null;
+  return { day: t.getDate(), month: t.getMonth() + 1 };
+}
+
+// 稳定字符串哈希（单图说说左右分栏的方向用，保证重渲染不换边）
+function hashStr(s) {
+  s = String(s);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function memoCard(m, idx, { plain = false, firstOfDay = true } = {}) {
   const { html, images: parsedImages } = parseContent(m.content);
   // 生产数据图片在 m.images 数组中，与 content 解析的图片合并
   const extraImages = Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : [];
   const images = parsedImages.length ? parsedImages : extraImages;
-  const tags = (m.tags || []).map(t =>
-    `<span class="badge badge-dash badge-${tagColor(t)} cursor-pointer hover:opacity-75 transition-opacity memo-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(tagNameMap.get(t) || t.replace(/^tag_/, ''))}</span>`
-  ).join(' ');
+  const anim = `animation-delay:${Math.min(idx * 40, 400)}ms`;
+  const textDiv = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>`;
+
+  let body;
+  if (images.length === 1) {
+    // 单图：图文左右分栏（方向按条目 id 稳定随机）
+    const rev = hashStr(m.id) % 2 === 1 ? ' rev' : '';
+    const img = images[0];
+    body = `
+    <div class="memo-split${rev}">
+      <div class="split-img">
+        <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async"
+             data-fancybox="${escapeHtml(String(m.id || 'gallery'))}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}" />
+      </div>
+      <div class="split-text">${textDiv}</div>
+    </div>`;
+  } else {
+    body = `${textDiv}
+    ${renderImages(images, m.id)}`;
+  }
+
+  if (plain) {
+    return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
+  }
+  const d = dayInfo(m.rawDate);
   return `
-  <article class="memo-card fade-up -mx-3 sm:-mx-5 px-3 sm:px-5 py-4 sm:py-5 border-b border-base-300/50 last:border-b-0" style="animation-delay:${Math.min(idx * 40, 400)}ms">
-    <div class="memo-text text-[17px] leading-relaxed">${html}</div>
-    ${renderImages(images, m.id)}
-    <div class="flex items-center justify-between flex-wrap gap-2 pt-2">
-      <time class="text-xs opacity-50 flex items-center gap-1" title="${escapeHtml(fmtDate(m.rawDate))}">
-        <span class="iconify text-sm" data-icon="mdi:clock-outline"></span>
-        ${relativeTime(m.rawDate)}
-      </time>
-      ${tags ? `<div class="flex flex-wrap gap-1.5">${tags}</div>` : ''}
-    </div>
-  </article>`;
+  <li class="fade-up" style="${anim}">
+    <hr />
+    ${firstOfDay && d ? `<div class="timeline-middle"><div class="memo-bubble"><b>${d.day}</b><span>${d.month}月</span></div></div>` : ''}
+    <div class="timeline-end">${body}</div>
+    <hr />
+  </li>`;
+}
+
+function skeletonNotes(n = 3) {
+  const li = `
+    <li>
+      <hr />
+      <div class="timeline-middle"><div class="sk-bubble shimmer"></div></div>
+      <div class="timeline-end">
+        <div class="shimmer h-3 rounded w-40"></div>
+        <div class="shimmer h-4 rounded w-3/4 mt-4"></div>
+        <div class="shimmer h-44 w-full mt-4"></div>
+        <div class="shimmer h-3 rounded w-28 mt-3"></div>
+      </div>
+      <hr />
+    </li>`;
+  return `<ul class="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">${li.repeat(n)}</ul>`;
 }
 
 function skeletonCards(n = 3) {
@@ -1714,14 +1963,13 @@ function renderTagChips(tags) {
   if (!tags.length && !selected.length) { bar.classList.add('hidden'); return; }
   bar.classList.remove('hidden');   // 标签区常驻：任何视图下都可见可点
 
-  // 横向药丸 chips，自动换行一行多个；已选标签置顶且实心，未选展示数量
+  // 纵向标签列表：彩点菱形 + 名称 + 数量右对齐；已选标签置顶高亮
   const chip = (id, { active = false, count = null } = {}) => {
     const name = tagNameMap.get(id) || String(id).replace(/^tag_/, '');
     const color = tagColor(id);
-    const base = 'badge tag-chip cursor-pointer select-none transition-all whitespace-nowrap';
-    const cls = active ? `${base} badge-${color}` : `${base} badge-soft badge-${color}`;
-    const countHtml = count != null ? ` <span class="opacity-70 ml-0.5">${count}</span>` : '';
-    return `<button type="button" class="${cls}" data-tag="${escapeHtml(id)}">${escapeHtml(name)}${countHtml}</button>`;
+    const dot = `<span class="tag-dot" style="--dot: var(--color-${color})"></span>`;
+    const countHtml = count != null ? `<span class="tag-count">${count}</span>` : '';
+    return `<button type="button" class="sidebar-tag tag-chip${active ? ' active' : ''}" data-tag="${escapeHtml(id)}">${dot}<span class="flex-1 truncate">${escapeHtml(name)}</span>${countHtml}</button>`;
   };
   chipsEl.innerHTML = selected.map(id => chip(id, { active: true })).join('') + unselected.map(t => chip(t.id, { count: t.count })).join('');
   clearBtn.classList.toggle('hidden', selected.length === 0);
@@ -1781,15 +2029,21 @@ function bindCardInteractions() {
 function resetSay() {
   state.sayPage = 1;
   state.sayTotalPages = 1;
+  sayLastDay = undefined;   // 日期牌从头判断
   scrollToTop(); // 先回顶部（视图切换渲染后恢复位置，筛选保持顶部）
-  contentEl.innerHTML = skeletonCards(3);
+  contentEl.innerHTML = skeletonNotes(3);
   $('#endHint').classList.add('hidden');
   loadSayPage(1, { replace: true });
 }
 
+// 时间线：同一天只在第一条显示日期牌（其余条目日期行写完整日期）
+let sayLastDay;
+const TIMELINE_UL = '<ul class="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">';
+
 async function loadSayPage(page, { replace = false } = {}) {
   if (state.loading) return;
   state.loading = true;
+  if (replace) sayLastDay = undefined;
   if (!replace) $('#loadingMore').classList.remove('hidden');
 
   try {
@@ -1801,12 +2055,22 @@ async function loadSayPage(page, { replace = false } = {}) {
     state.sayTotalPages = res.totalPages;
     state.sayTotal = res.total;
 
-    const html = (res.data || []).map((m, i) => memoCard(m, i)).join('');
+    const html = (res.data || []).map((m, i) => {
+      // 同日判断：rawDate 前 10 位即 "YYYY-MM-DD"，含年份，不同年份同月日不会合并
+      const dk = String(m.rawDate || '').slice(0, 10);
+      const firstOfDay = dk !== sayLastDay;
+      sayLastDay = dk;
+      return memoCard(m, i, { firstOfDay });
+    }).join('');
     if (replace) {
-      contentEl.innerHTML = res.data && res.data.length ? html
+      const hasData = res.data && res.data.length;
+      contentEl.innerHTML = hasData ? TIMELINE_UL + html + '</ul>'
         : emptyState(state.selectedTags.size ? '这些标签的交集下暂时没有说说，试试少选几个？' : '还没有说说，去写第一条吧。');
-    } else {
-      contentEl.insertAdjacentHTML('beforeend', html);
+    } else if (html) {
+      // 翻页：追加到时间线 ul 内部
+      let ul = contentEl.querySelector('ul.timeline');
+      if (!ul) { contentEl.insertAdjacentHTML('beforeend', TIMELINE_UL); ul = contentEl.querySelector('ul.timeline'); }
+      ul.insertAdjacentHTML('beforeend', html);
     }
 
     bindCardInteractions();
@@ -2917,8 +3181,8 @@ function switchView(view) {
   });
   const titleEl = $('#viewTitle');
   if (titleEl) titleEl.textContent = VIEW_TITLES[view] || '小记';
-  const bannerEl = $('#sayBanner');
-  if (bannerEl) bannerEl.classList.toggle('hidden', view !== 'say');
+  const mastheadEl = $('#masthead');
+  if (mastheadEl) mastheadEl.classList.toggle('hidden', view !== 'say');
   $('#mediaPager').classList.add('hidden');
   $('#endHint').classList.add('hidden');
 
@@ -2977,10 +3241,9 @@ document.querySelectorAll('.tab-btn').forEach(t => {
 });
 
 /* ============================================================
-   主题系统
+   主题系统：仅浅色 / 深色两套，默认跟随系统，可手动切换
 ============================================================ */
 const DARK_THEMES = new Set(['dark', 'halloween']);
-let themePick = 'auto';
 
 function isDarkTheme(t) { return DARK_THEMES.has(t); }
 
@@ -2990,141 +3253,14 @@ function updateThemeIcons(theme) {
   document.querySelectorAll('#iconMoon, .theme-icon-moon').forEach(el => el.classList.toggle('hidden', !dark));
 }
 
-function updatePickChecks() {
-  document.querySelectorAll('.theme-pick-item').forEach(item => {
-    const active = item.dataset.themePick === themePick;
-    item.classList.toggle('bg-base-200', active);
-    const check = item.querySelector('.pick-check');
-    if (check) check.classList.toggle('hidden', !active);
-  });
-}
-
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   updateThemeIcons(theme);
   try { localStorage.setItem('memo-theme', theme); } catch {}
-  refreshHueForTheme();   // 主题变了：重建色彩快照，若拖过色相则在新主题上继续生效
 }
-
-/* ---------- 主题色相（拖动滑杆实时旋转全站配色：彩色 token 旋转 + 基础面/文字跟随染色） ---------- */
-const HUE_KEY = 'memo-theme-hue';
-const HUE_TOKENS = ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error'];
-/* 基础面 & 文字/中性/反色 token：整体跟随染色，让色相调节达到接近整套主题切换的效果 */
-const HUE_BASE_TOKENS = [
-  'base-100', 'base-200', 'base-300', 'base-content',
-  'neutral', 'neutral-content',
-  'primary-content', 'secondary-content', 'accent-content',
-  'info-content', 'success-content', 'warning-content', 'error-content',
-];
-/* 近中性的基础面按此强度注入同色相淡彩（浅色/深色各自调过；数值越小越素雅），
-   超过该强度的（如焦糖拿铁的暖白）保留原饱和度只旋转色相 */
-const HUE_TINT_LIGHT = { 'base-100': .012, 'base-200': .018, 'base-300': .024, 'base-content': .018 };
-const HUE_TINT_DARK  = { 'base-100': .016, 'base-200': .022, 'base-300': .028, 'base-content': .02 };
-let hueOrigins = null;   // 当前主题各彩色 token 的原始 OKLCH 快照 { name: {l, c, h} }
-
-function parseOklch(str) {
-  const m = String(str || '').trim().match(/^oklch\(\s*([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+)/i);
-  return m ? { l: m[1], c: parseFloat(m[2]), h: parseFloat(m[3]) } : null;
-}
-
-function snapshotHueOrigins() {
-  hueOrigins = {};
-  const cs = getComputedStyle(document.documentElement);
-  [...HUE_TOKENS, ...HUE_BASE_TOKENS].forEach(n => {
-    const p = parseOklch(cs.getPropertyValue('--color-' + n));
-    if (p) hueOrigins[n] = p;
-  });
-}
-
-function clearHueOverrides() {
-  [...HUE_TOKENS, ...HUE_BASE_TOKENS].forEach(n => document.documentElement.style.removeProperty('--color-' + n));
-}
-
-/* 拖动：primary 落到指定色相；其余彩色 token 保持主题内相对色相差整体旋转（明度/饱和度不变）；
-   基础面/文字等近中性 token 直接染成目标色相的淡彩 —— 明度一律不动，对比度与可读性不受影响 */
-function applyHue(hue) {
-  if (!hueOrigins || !hueOrigins.primary) snapshotHueOrigins();
-  if (!hueOrigins.primary) return;
-  const baseH = hueOrigins.primary.h;
-  const tints = DARK_THEMES.has(document.documentElement.dataset.theme) ? HUE_TINT_DARK : HUE_TINT_LIGHT;
-  Object.entries(hueOrigins).forEach(([n, o]) => {
-    const nearNeutral = o.c < 0.04;   // 近中性（纯灰/纯白/纯黑）：色相无意义，直接用目标色相染色
-    const nh = nearNeutral ? hue : ((o.h - baseH + hue) % 360 + 360) % 360;
-    const tint = tints[n];
-    const c = tint ? Math.max(o.c, tint) : o.c;
-    document.documentElement.style.setProperty('--color-' + n, `oklch(${o.l} ${c.toFixed(3)} ${nh.toFixed(2)})`);
-  });
-}
-
-function syncHueControls(val, label = val) {
-  document.querySelectorAll('.hue-val').forEach(el => { el.textContent = label; });
-  document.querySelectorAll('.hue-slider').forEach(s => { s.value = val; });
-}
-
-function refreshHueForTheme() {
-  clearHueOverrides();
-  hueOrigins = null;
-  snapshotHueOrigins();
-  let saved = null;
-  try { saved = localStorage.getItem(HUE_KEY); } catch {}
-  if (saved !== null && saved !== '' && Number.isFinite(+saved)) {
-    applyHue(+saved);
-    syncHueControls(Math.round(+saved));
-  } else {
-    syncHueControls(hueOrigins && hueOrigins.primary ? Math.round(hueOrigins.primary.h) : 0, '默认');
-  }
-}
-
-document.querySelectorAll('.hue-slider').forEach(s => {
-  s.addEventListener('input', () => {
-    applyHue(Number(s.value));
-    document.querySelectorAll('.hue-val').forEach(el => { el.textContent = s.value; });
-    document.querySelectorAll('.hue-slider').forEach(o => { if (o !== s) o.value = s.value; });
-  });
-  s.addEventListener('change', () => { try { localStorage.setItem(HUE_KEY, s.value); } catch {} });
-});
-document.querySelectorAll('.hue-reset').forEach(b => {
-  b.addEventListener('click', () => {
-    try { localStorage.removeItem(HUE_KEY); } catch {}
-    clearHueOverrides();
-    hueOrigins = null;
-    snapshotHueOrigins();
-    syncHueControls(hueOrigins && hueOrigins.primary ? Math.round(hueOrigins.primary.h) : 0, '默认');
-  });
-});
-
-function applyPick(pick) {
-  themePick = pick;
-  try { localStorage.setItem('memo-theme-pick', pick); } catch {}
-  updatePickChecks();
-  if (pick === 'auto') {
-    let t = 'light';
-    try { t = localStorage.getItem('memo-theme'); } catch {}
-    if (!t || (t !== 'light' && t !== 'dark')) {
-      t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    applyTheme(t === 'light' || t === 'dark' ? t : 'light');
-  } else {
-    applyTheme(pick);
-  }
-}
-
-document.querySelectorAll('.theme-pick-item').forEach(item => {
-  item.addEventListener('click', () => {
-    applyPick(item.dataset.themePick);
-    document.activeElement && document.activeElement.blur();
-    closeNav();
-  });
-});
 
 function toggleTheme() {
-  if (themePick !== 'auto') {
-    applyPick('auto');
-    const cur = document.documentElement.dataset.theme;
-    applyTheme(isDarkTheme(cur) ? 'light' : 'dark');
-    return;
-  }
-  applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  applyTheme(isDarkTheme(document.documentElement.dataset.theme) ? 'light' : 'dark');
 }
 
 document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
@@ -3135,14 +3271,16 @@ document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
 });
 
 (function initTheme() {
-  let pick = 'auto';
-  try { pick = localStorage.getItem('memo-theme-pick') || 'auto'; } catch {}
-  if (!['auto', 'caramellatte', 'halloween'].includes(pick)) pick = 'auto';
-  applyPick(pick);
+  let saved = null;
+  try { saved = localStorage.getItem('memo-theme'); } catch {}
+  // 兼容旧版多主题偏好：只认 light / dark，其余（含 caramellatte 等）一律跟随系统
+  const theme = saved === 'light' || saved === 'dark'
+    ? saved
+    : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(theme);
 })();
 
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-  if (themePick !== 'auto') return;
   let saved = null;
   try { saved = localStorage.getItem('memo-theme'); } catch {}
   if (saved !== 'light' && saved !== 'dark') applyTheme(e.matches ? 'dark' : 'light');
@@ -3342,7 +3480,7 @@ function cmdkExec(idx) {
     const m = (state.searchMemosCache || []).find(x => x.id === it.memoId);
     if (!m) return;
     const body = $('#cmdkMemoBody');
-    body.innerHTML = `<div class="px-2">${memoCard(m, 0)}</div>`;
+    body.innerHTML = `<div class="px-2">${memoCard(m, 0, { plain: true })}</div>`;
     initCarousels(body);   // 弹窗内的多图条需要单独初始化拖拽与计数
     $('#cmdkMemoModal').classList.add('open');
     body.scrollTop = 0;
