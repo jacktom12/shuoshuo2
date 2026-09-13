@@ -1640,16 +1640,9 @@ function dayInfo(rawDate) {
   return { day: t.getDate(), month: t.getMonth() + 1 };
 }
 
-// 稳定字符串哈希（单图说说左右分栏的方向用，保证重渲染不换边）
-function hashStr(s) {
-  s = String(s);
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h;
-}
-
-function memoCard(m, idx, { plain = false, firstOfDay = true } = {}) {
-  const { html, images: parsedImages } = parseContent(m.content);
+function memoCard(m, idx, { plain = false, firstOfDay = true, parsed = null, single = false, rev = false } = {}) {
+  // parsed：loadSayPage 已解析好的正文结果，避免重复解析
+  const { html, images: parsedImages } = parsed || parseContent(m.content);
   // 生产数据图片在 m.images 数组中，与 content 解析的图片合并
   const extraImages = Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : [];
   const images = parsedImages.length ? parsedImages : extraImages;
@@ -1657,12 +1650,11 @@ function memoCard(m, idx, { plain = false, firstOfDay = true } = {}) {
   const textDiv = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>`;
 
   let body;
-  if (images.length === 1) {
-    // 单图：图文左右分栏（方向按条目 id 稳定随机）
-    const rev = hashStr(m.id) % 2 === 1 ? ' rev' : '';
+  if (single) {
+    // 单图：图文左右分栏（连续单图左右交替，方向由 loadSayPage 传入）
     const img = images[0];
     body = `
-    <div class="memo-split${rev}">
+    <div class="memo-split${rev ? ' rev' : ''}">
       <div class="split-img">
         <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async"
              data-fancybox="${escapeHtml(String(m.id || 'gallery'))}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}" />
@@ -2038,12 +2030,14 @@ function resetSay() {
 
 // 时间线：同一天只在第一条显示日期牌（其余条目日期行写完整日期）
 let sayLastDay;
+// 单图分栏方向：每渲染一张单图就翻转一次，保证连续的单图说说左右交替
+let splitFlip = 0;
 const TIMELINE_UL = '<ul class="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">';
 
 async function loadSayPage(page, { replace = false } = {}) {
   if (state.loading) return;
   state.loading = true;
-  if (replace) sayLastDay = undefined;
+  if (replace) { sayLastDay = undefined; splitFlip = 0; }
   if (!replace) $('#loadingMore').classList.remove('hidden');
 
   try {
@@ -2060,7 +2054,11 @@ async function loadSayPage(page, { replace = false } = {}) {
       const dk = String(m.rawDate || '').slice(0, 10);
       const firstOfDay = dk !== sayLastDay;
       sayLastDay = dk;
-      return memoCard(m, i, { firstOfDay });
+      // 连续单图说说：左右交替（计数器只在单图时翻转）
+      const parsed = parseContent(m.content);
+      const single = parsed.images.length === 1;
+      const rev = single ? (splitFlip++ % 2 === 1) : false;
+      return memoCard(m, i, { firstOfDay, parsed, single, rev });
     }).join('');
     if (replace) {
       const hasData = res.data && res.data.length;
