@@ -459,9 +459,9 @@
   * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
   *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
 
-  /* 页面底色：C 杂志风——全页统一象牙底（纯色，无背景图） */
+  /* 页面底色：奶油色调（纯色，无背景图），衬托象牙白卡片 */
   .paper-bg {
-    background-color: var(--color-base-100);
+    background-color: color-mix(in oklch, var(--color-base-300) 52%, var(--color-base-100));
   }
   #topNav { border-bottom-color: color-mix(in oklch, var(--color-base-content) 10%, transparent); }
   /* 标签区标题（替代原分隔横线，标示下方为标签列表） */
@@ -518,7 +518,7 @@
       height: calc(100dvh - 32px);
       max-width: 1560px;
       margin: 0 auto;
-      background: var(--color-base-100);
+      background: color-mix(in oklch, var(--color-base-300) 52%, var(--color-base-100));
       overflow: hidden;
     }
     #appDrawer > .drawer-content { height: 100%; }
@@ -590,6 +590,27 @@
   .memo-bubble b { font-size: .98rem; }
   .memo-bubble span { font-size: .6rem; opacity: .5; }
   .sk-bubble { width: 47px; height: 47px; background: var(--color-base-100); }
+
+  /* 便签卡：象牙白卡片 + 左上角和纸胶带（颜色随第一个标签），无底部标签/时间 */
+  .memo-card {
+    position: relative;
+    background: var(--color-base-100);
+    border: 1px solid color-mix(in oklch, var(--color-base-content) 8%, transparent);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem .8rem;
+    box-shadow: 0 2px 14px color-mix(in oklch, var(--color-base-content) 6%, transparent);
+  }
+  .memo-card::before {
+    content: ''; position: absolute; z-index: 2; top: -9px; left: 24px;
+    width: 62px; height: 18px; transform: rotate(-2deg);
+    background: color-mix(in oklch, var(--tape, var(--color-primary)) 26%, transparent);
+    box-shadow: 0 1px 2px rgb(0 0 0 / .07);
+  }
+  .memo-card.plain::before { display: none; }
+
+  @media (max-width: 640px) {
+    .memo-card { padding: 1rem 1rem .75rem; }
+  }
 
   /* 单图说说：图文左右分栏（按条目稳定随机左右），标签跟在文字下方 */
   .memo-split { display: grid; grid-template-columns: 5fr 7fr; gap: 22px; align-items: center; }
@@ -1670,12 +1691,16 @@ function memoCard(m, idx, { plain = false, firstOfDay = true, parsed = null, img
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
+  // 胶带颜色随第一个标签
+  const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
   const d = dayInfo(m.rawDate);
   return `
   <li class="fade-up" style="${anim}">
     <hr />
     ${firstOfDay && d ? `<div class="timeline-middle"><div class="memo-bubble"><b>${d.day}</b><span>${d.month}月</span></div></div>` : ''}
-    <div class="timeline-end">${body}</div>
+    <div class="timeline-end">
+      <article class="memo-card" style="${tape}">${body}</article>
+    </div>
     <hr />
   </li>`;
 }
