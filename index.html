@@ -565,15 +565,13 @@
     grid-template-columns: 0px 47px minmax(0, 1fr);
   }
   #content ul.timeline > li > hr { background-color: color-mix(in oklch, var(--color-base-content) 20%, transparent); }
-  /* 首条说说：隐藏顶部探出的引线 */
+  /* 首条说说：隐藏顶部探出的引线；最后一条：隐藏底部多出的竖线 */
   #content ul.timeline > li:first-child > hr:first-child { display: none; }
+  #content ul.timeline > li:last-child > hr:last-child { display: none; }
   #content ul.timeline .timeline-end {
     margin: 0; padding: 0 0 1.25rem .9rem;
-    justify-self: stretch;   /* 撑满整列：分隔线等长，不随内容宽窄变化 */
-    /* 条目分隔线：只在内容列宽度内，最后一条不画 */
-    border-bottom: 1px solid color-mix(in oklch, var(--color-base-content) 8%, transparent);
+    justify-self: stretch;   /* 撑满整列，条目宽度一致 */
   }
-  #content ul.timeline > li:last-child .timeline-end { border-bottom: none; }
   /* max-md:timeline-compact 的等效媒体查询（Tailwind CDN 不会编译 daisyUI 变体） */
   @media (max-width: 767px) {
     #content ul.timeline.timeline-snap-icon > li { --timeline-row-start: 0px; }
@@ -1640,12 +1638,15 @@ function dayInfo(rawDate) {
   return { day: t.getDate(), month: t.getMonth() + 1 };
 }
 
-function memoCard(m, idx, { plain = false, firstOfDay = true, parsed = null, single = false, rev = false } = {}) {
-  // parsed：loadSayPage 已解析好的正文结果，避免重复解析
-  const { html, images: parsedImages } = parsed || parseContent(m.content);
-  // 生产数据图片在 m.images 数组中，与 content 解析的图片合并
-  const extraImages = Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : [];
-  const images = parsedImages.length ? parsedImages : extraImages;
+function memoCard(m, idx, { plain = false, firstOfDay = true, parsed = null, imgs = null, single = false, rev = false } = {}) {
+  // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
+  const { html } = parsed || parseContent(m.content);
+  let images = imgs;
+  if (!images) {
+    const { images: parsedImages } = parseContent(m.content);
+    const extraImages = Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : [];
+    images = parsedImages.length ? parsedImages : extraImages;
+  }
   const anim = `animation-delay:${Math.min(idx * 40, 400)}ms`;
   const textDiv = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>`;
 
@@ -2050,15 +2051,18 @@ async function loadSayPage(page, { replace = false } = {}) {
     state.sayTotal = res.total;
 
     const html = (res.data || []).map((m, i) => {
+      // 合并正文图片与 m.images 附件（生产数据图片在附件数组里），再判断是否单图
+      const parsed = parseContent(m.content);
+      const imgs = parsed.images.length ? parsed.images
+        : (Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : []);
       // 同日判断：rawDate 前 10 位即 "YYYY-MM-DD"，含年份，不同年份同月日不会合并
       const dk = String(m.rawDate || '').slice(0, 10);
       const firstOfDay = dk !== sayLastDay;
       sayLastDay = dk;
       // 连续单图说说：左右交替（计数器只在单图时翻转）
-      const parsed = parseContent(m.content);
-      const single = parsed.images.length === 1;
+      const single = imgs.length === 1;
       const rev = single ? (splitFlip++ % 2 === 1) : false;
-      return memoCard(m, i, { firstOfDay, parsed, single, rev });
+      return memoCard(m, i, { firstOfDay, parsed, imgs, single, rev });
     }).join('');
     if (replace) {
       const hasData = res.data && res.data.length;
