@@ -17,7 +17,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="note" />
     <link rel="manifest" href="/site.webmanifest" />
-     <title>小记 · 说说与光影</title>
+     <title>time</title>
 <meta name="description" content="个人说说与影视记录" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
@@ -542,22 +542,9 @@
   
 
   /* ====== 说说：无时间线轨道，卡片占满主内容区 ====== */
-  #content ul.memo-list {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  #content ul.memo-list > li {
-    display: block;
-    width: 100%;
-    margin: 0;
-    padding: 0 0 1.25rem;
-  }
-  #content ul.memo-list .memo-card {
-    width: 100%;
-  }
+  #content ul.memo-list { width: 100%; max-width: none; margin: 0; padding: 0; list-style: none; }
+  #content ul.memo-list > li { display: block; width: 100%; margin: 0; padding: 0 0 1.25rem; }
+  #content ul.memo-list .memo-card { width: 100%; }
 
   /* 便签卡：与页面同底色，以描边 + 阴影 + 左上角和纸胶带（颜色随第一个标签）区分 */
   .memo-card {
@@ -596,6 +583,9 @@
   /* 弹窗里的单条说说（无时间线轨道） */
   .memo-entry { max-width: 760px; margin: 0 auto; }
 
+  @media (max-width: 640px) {
+    .memo-bubble, .sk-bubble { width: 42px; height: 42px; }
+  }
 
   /* ====== 刊头「花镜」偈（仅说说视图） ====== */
   #masthead { text-align: center; padding: 3rem 0 .6rem; }
@@ -2054,6 +2044,22 @@ function tapeTime(rawDate) {
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
 
+/* 稳定伪随机：同一条说说每次渲染位置一致，但不同内容自然分散 */
+function tapePlacement(m) {
+  const key = String(m.id || '') + '|' + String(m.rawDate || '') + '|' + String(m.content || '').slice(0, 80);
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const unit = (hash >>> 0) / 4294967295;
+  const unit2 = ((Math.imul(hash ^ 0x9e3779b9, 1103515245) >>> 0) / 4294967295);
+  return {
+    left: (7 + unit * 61).toFixed(2) + '%',
+    rotate: (-3.2 + unit2 * 6.4).toFixed(2) + 'deg'
+  };
+}
+
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = false, rev = false } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
@@ -2086,13 +2092,15 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = 
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
-  // 胶带颜色随第一个标签；时间文字与胶带是同一个元素
+  // 胶带颜色随第一个标签；位置由内容生成稳定伪随机值，不按条目序号循环
   const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
   const dateText = tapeTime(m.rawDate);
+  const placement = tapePlacement(m);
+  const tapeStyle = `left:${placement.left}; transform:rotate(${placement.rotate});`;
   return `
-  <li class="fade-up" style="${anim}">
+  <li class="fade-up memo-item" style="${anim}">
     <article class="memo-card" style="${tape}">
-      ${dateText ? `<span class="memo-tape-date" aria-label="发布时间">${dateText}</span>` : ''}
+      ${dateText ? `<span class="memo-tape-date" style="${tapeStyle}" aria-label="发布时间">${dateText}</span>` : ''}
       ${body}
     </article>
   </li>`;
@@ -5550,14 +5558,6 @@ body {
 }
 
 /* 让不同说说的胶带稍有变化 */
-#content ul.timeline > li:nth-child(3n+2) .memo-card::before {
-  transform: rotate(2deg) !important;
-  left: 52px !important;
-}
-#content ul.timeline > li:nth-child(3n) .memo-card::before {
-  transform: rotate(-1deg) !important;
-  left: 25% !important;
-}
 
 /* 正文：稍微放松字距，更像手账阅读 */
 .memo-card .memo-text {
@@ -5792,12 +5792,27 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hov
 }
 
 
-/* 时间与胶带为同一元素，卡片无需为时间轴预留任何空间 */
+/* 说说最终布局：无左侧竖线，不保留竖线避让空间 */
+#content ul.memo-list { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+#content ul.memo-list > li { width: 100% !important; padding: 0 0 1.25rem !important; }
+#content ul.memo-list .memo-card {
+  width: 100% !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0, transparent 32px, rgba(80, 68, 52, .06) 32px, rgba(80, 68, 52, .06) 33px),
+    var(--journal-paper) !important;
+  padding: 1.45rem 1.55rem 1.2rem !important;
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) #content ul.memo-list .memo-card {
+  background:
+    repeating-linear-gradient(0deg, transparent 0, transparent 32px, rgba(220, 207, 184, .045) 32px, rgba(220, 207, 184, .045) 33px),
+    #292721 !important;
+}
+
+/* 胶带位置由每条内容的稳定哈希决定：看似随机，刷新、筛选和翻页后不会跳动 */
 .memo-tape-date {
   position: absolute;
   z-index: 3;
   top: -10px;
-  left: 30px;
   width: 76px;
   height: 20px;
   display: flex;
@@ -5812,7 +5827,6 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hov
   letter-spacing: .02em;
   line-height: 1;
   white-space: nowrap;
-  transform: rotate(-2deg);
   text-shadow: 0 1px 0 rgb(255 255 255 / .25);
   pointer-events: none;
 }
@@ -5822,7 +5836,9 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   text-shadow: 0 1px 1px rgb(0 0 0 / .45);
 }
 @media (max-width: 640px) {
-  #content ul.memo-list > li { padding-bottom: 1rem; }
+  #content ul.memo-list > li { padding-bottom: 1rem !important; }
+  #content ul.memo-list .memo-card { padding: 1.2rem 1rem 1rem !important; }
+  .memo-tape-date { width: 72px; font-size: .72rem; }
 }
 </style>
 
