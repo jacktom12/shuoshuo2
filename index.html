@@ -4068,11 +4068,16 @@ document.addEventListener('keydown', e => {
 
 /* ---------- 回到顶部 ---------- */
 const toTop = $('#toTop');
-mainScroll.addEventListener('scroll', () => {
-  const show = mainScroll.scrollTop > 500;
+// 移动端滚动的是 body、桌面端滚动的是 #mainScroll：用 getScrollPos() 统一取值，
+// 两个容器都挂监听，任一滚动都触发，跨断点缩放时也能即时同步
+function updateToTop() {
+  const show = getScrollPos() > 500;
   toTop.style.opacity = show ? '1' : '0';
   toTop.style.pointerEvents = show ? 'auto' : 'none';
-}, { passive: true });
+}
+window.addEventListener('scroll', updateToTop, { passive: true });
+mainScroll.addEventListener('scroll', updateToTop, { passive: true });
+window.addEventListener('resize', updateToTop);
 toTop.onclick = () => scrollToTop({ behavior: 'smooth' });
 
 /* ---------- 启动 ---------- */
