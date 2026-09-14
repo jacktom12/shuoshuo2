@@ -817,17 +817,40 @@
     position: sticky;
     bottom: 0;
     z-index: 30;
-    padding: 10px 8px calc(16px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(to top, var(--color-base-100) 70%, transparent);
+      padding: 6px 8px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(to top, var(--journal-paper, var(--color-base-100)) 70%, transparent);
   }
   #mediaPager .btn {
-    height: 2.75rem;
-    min-height: 2.75rem;
-    min-width: 2.75rem;
-    padding-inline: .9rem;
-    font-size: 1rem;
-  }
+  height: 2rem;
+  min-height: 2rem;
+  min-width: 2rem;
+  padding-inline: .6rem;
+  font-size: .85rem;
+}
+#mediaPager .join {
+  box-shadow: none;
+}
 
+#mediaPager .join .btn {
+  background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 6%, transparent);
+  border-color: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 12%, transparent);
+  color: var(--journal-ink, var(--color-base-content));
+  font-weight: 600;
+}
+
+#mediaPager .join .btn:hover:not(.btn-disabled):not(.btn-active) {
+  background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 10%, transparent);
+}
+
+#mediaPager .join .btn-active {
+  background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 18%, transparent);
+  color: var(--journal-ink, var(--color-base-content));
+  border-color: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 22%, transparent);
+}
+
+#mediaPager .join .btn-disabled {
+  opacity: .35;
+}
   /* ============ 全站快速搜索（Ctrl+K Command Palette） ============ */
   .cmdk-overlay {
     position: fixed; inset: 0; z-index: 90;
@@ -1318,7 +1341,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
             <p id="endHint" class="text-xs opacity-40 hidden">— 到底啦 —</p>
           </div>
 
-          <div id="mediaPager" class="hidden mt-6 flex justify-center">
+          <div id="mediaPager" class="hidden mt-4 flex justify-center">
             <div class="join shadow-sm" id="pagerBtns"></div>
           </div>
 
