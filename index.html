@@ -5466,39 +5466,54 @@ body {
   background: var(--journal-line) !important;
 }
 
-.memo-bubble {
+ .memo-bubble {
   width: 50px !important;
   height: 50px !important;
   border-radius: 3px !important;
-  background: #eee5d3 !important;
-  color: #665846 !important;
-  border: 1px solid rgba(87, 68, 44, .16) !important;
-  box-shadow:
-    1px 2px 5px rgba(65, 47, 28, .12) !important;
-  transform: rotate(-1.5deg);
+  background: transparent !important;
+  color: #a85a52 !important;
+  border: 2px solid #a85a52 !important;
+  box-shadow: inset 0 0 0 1px #a85a52 !important;
+  transform: rotate(-3deg) !important;
+  opacity: .88;
 }
 
 .memo-bubble b {
   font-size: 1.05rem !important;
+  font-family: "Courier New", "Courier", monospace !important;
+  letter-spacing: -.05em;
 }
 
 .memo-bubble span {
-  color: #8a7b68 !important;
+  color: #a85a52 !important;
+  opacity: .75;
 }
 
 /* 说说卡片：纸页，而不是现代卡片 */
 .memo-card {
   border-radius: 2px !important;
   background:
+    /* 左页边红线 */
     linear-gradient(
       90deg,
-      rgba(130, 104, 70, .035) 1px,
-      transparent 1px
+      transparent 26px,
+      rgba(168, 90, 82, .28) 26px,
+      rgba(168, 90, 82, .28) 27px,
+      transparent 27px
+    ),
+    /* 横向淡格线（32px 一档） */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 32px,
+      rgba(80, 68, 52, .06) 32px,
+      rgba(80, 68, 52, .06) 33px
     ),
     var(--journal-paper) !important;
   border: none !important;
   border-bottom: 1px solid rgba(91, 72, 49, .15) !important;
-  padding: 1.45rem 1.55rem 1.2rem !important;
+  /* 上 / 右 / 下 / 左：左边留出 2.5rem 避让红线 */
+  padding: 1.45rem 1.55rem 1.2rem 2.5rem !important;
   box-shadow:
     0 4px 12px rgba(72, 52, 32, .08) !important;
 }
@@ -5522,7 +5537,7 @@ body {
 /* 让不同说说的胶带稍有变化 */
 #content ul.timeline > li:nth-child(3n+2) .memo-card::before {
   transform: rotate(2deg) !important;
-  left: 42px !important;
+  left: 52px !important;
 }
 #content ul.timeline > li:nth-child(3n) .memo-card::before {
   transform: rotate(-1deg) !important;
@@ -5533,7 +5548,7 @@ body {
 .memo-card .memo-text {
   color: #494238 !important;
   font-size: 1.02rem !important;
-  line-height: 1.9 !important;
+  line-height: 32px !important;
 }
 
 .memo-card .memo-text p {
@@ -5717,19 +5732,35 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar .menu .tab-bt
 
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card {
   background:
+    /* 深色下红线换成偏亮的赭红 */
     linear-gradient(
       90deg,
-      rgba(255,255,255,.018) 1px,
-      transparent 1px
+      transparent 26px,
+      rgba(192, 116, 104, .32) 26px,
+      rgba(192, 116, 104, .32) 27px,
+      transparent 27px
+    ),
+    /* 深色下的横线用米白，透明度更低 */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 32px,
+      rgba(220, 207, 184, .045) 32px,
+      rgba(220, 207, 184, .045) 33px
     ),
     #292721 !important;
   box-shadow: 0 5px 16px rgba(0,0,0,.24) !important;
 }
 
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-bubble {
-  background: #302c25 !important;
-  color: #d8cbb5 !important;
-  border-color: rgba(224, 207, 177, .14) !important;
+  background: transparent !important;
+  color: #c07468 !important;
+  border-color: #c07468 !important;
+  box-shadow: inset 0 0 0 1px #c07468 !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-bubble span {
+  color: #c07468 !important;
 }
 
  
