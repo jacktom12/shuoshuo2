@@ -17,7 +17,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="note" />
     <link rel="manifest" href="/site.webmanifest" />
-     <title>time</title>
+     <title>小记 · 说说与光影</title>
 <meta name="description" content="个人说说与影视记录" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
@@ -1319,7 +1319,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
         </div>
       </main>
 <button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
-  <span class="iconify text-xl" data-icon="gg:pin-top"></span>
+  <span class="iconify text-xl" data-icon="arcticons:top-breath"></span>
 </button>
     </div>
   </div>
@@ -2043,21 +2043,13 @@ function tapeTime(rawDate) {
   if (diff >= 0 && diff < 7 * day) return Math.floor(diff / day) + '天前';
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
-
-/* 稳定伪随机：同一条说说每次渲染位置一致，但不同内容自然分散 */
 function tapePlacement(m) {
   const key = String(m.id || '') + '|' + String(m.rawDate || '') + '|' + String(m.content || '').slice(0, 80);
   let hash = 2166136261;
-  for (let i = 0; i < key.length; i++) {
-    hash ^= key.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
+  for (let i = 0; i < key.length; i++) { hash ^= key.charCodeAt(i); hash = Math.imul(hash, 16777619); }
   const unit = (hash >>> 0) / 4294967295;
-  const unit2 = ((Math.imul(hash ^ 0x9e3779b9, 1103515245) >>> 0) / 4294967295);
-  return {
-    left: (7 + unit * 61).toFixed(2) + '%',
-    rotate: (-3.2 + unit2 * 6.4).toFixed(2) + 'deg'
-  };
+  const unit2 = (Math.imul(hash ^ 0x9e3779b9, 1103515245) >>> 0) / 4294967295;
+  return { left: (7 + unit * 61).toFixed(2) + '%', rotate: (-3.2 + unit2 * 6.4).toFixed(2) + 'deg' };
 }
 
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = false, rev = false } = {}) {
@@ -2092,7 +2084,7 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = 
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
-  // 胶带颜色随第一个标签；位置由内容生成稳定伪随机值，不按条目序号循环
+  // 胶带颜色随第一个标签；时间和胶带是同一个元素
   const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
   const dateText = tapeTime(m.rawDate);
   const placement = tapePlacement(m);
@@ -2108,14 +2100,7 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = 
 
 function skeletonNotes(n = 3) {
   const li = `
-    <li>
-      <div class="memo-card">
-        <div class="shimmer h-3 rounded w-40"></div>
-        <div class="shimmer h-4 rounded w-3/4 mt-4"></div>
-        <div class="shimmer h-44 w-full mt-4"></div>
-        <div class="shimmer h-3 rounded w-28 mt-3"></div>
-      </div>
-    </li>`;
+    <li><div class="memo-card"><div class="shimmer h-3 rounded w-40"></div><div class="shimmer h-4 rounded w-3/4 mt-4"></div><div class="shimmer h-44 w-full mt-4"></div><div class="shimmer h-3 rounded w-28 mt-3"></div></div></li>`;
   return `<ul class="memo-list">${li.repeat(n)}</ul>`;
 }
 
@@ -5792,54 +5777,42 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hov
 }
 
 
-/* 说说最终布局：无左侧竖线，不保留竖线避让空间 */
-#content ul.memo-list { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
-#content ul.memo-list > li { width: 100% !important; padding: 0 0 1.25rem !important; }
-#content ul.memo-list .memo-card {
-  width: 100% !important;
-  background:
-    repeating-linear-gradient(0deg, transparent 0, transparent 32px, rgba(80, 68, 52, .06) 32px, rgba(80, 68, 52, .06) 33px),
-    var(--journal-paper) !important;
-  padding: 1.45rem 1.55rem 1.2rem !important;
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) #content ul.memo-list .memo-card {
-  background:
-    repeating-linear-gradient(0deg, transparent 0, transparent 32px, rgba(220, 207, 184, .045) 32px, rgba(220, 207, 184, .045) 33px),
-    #292721 !important;
-}
-
-/* 胶带位置由每条内容的稳定哈希决定：看似随机，刷新、筛选和翻页后不会跳动 */
-.memo-tape-date {
-  position: absolute;
-  z-index: 3;
-  top: -10px;
-  width: 76px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 1px;
-  background: color-mix(in oklch, var(--tape, #b49b76) 55%, transparent);
-  color: #33261d;
-  font-family: "Courier New", "Courier", monospace;
-  font-size: .76rem;
-  font-weight: 700;
-  letter-spacing: .02em;
-  line-height: 1;
-  white-space: nowrap;
-  text-shadow: 0 1px 0 rgb(255 255 255 / .25);
-  pointer-events: none;
-}
-.memo-card:has(.memo-tape-date)::before { display: none !important; }
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
-  color: #f4e7d9;
-  text-shadow: 0 1px 1px rgb(0 0 0 / .45);
-}
-@media (max-width: 640px) {
-  #content ul.memo-list > li { padding-bottom: 1rem !important; }
-  #content ul.memo-list .memo-card { padding: 1.2rem 1rem 1rem !important; }
-  .memo-tape-date { width: 72px; font-size: .72rem; }
-}
+/* ============================================================
+   Apple Glass · 终极媒体与书签精修
+   ============================================================ */
+:root{--glass-blur:blur(22px) saturate(145%);--glass-blur-strong:blur(34px) saturate(155%);--glass-radius-xl:28px;--glass-radius-lg:22px}
+html:not([data-theme="dark"]):not([data-theme="halloween"]){--garden-mint-0:#f2faf6;--garden-mint-1:#e3f4ec;--garden-paper:#fff;--garden-ink:#17352d;--garden-muted:#5c746b;--garden-green:#12a67a;--garden-green-deep:#087a5a}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) body{background:radial-gradient(circle at 85% 6%,rgb(139 114 246/.25),transparent 29rem),radial-gradient(circle at 7% 92%,rgb(18 166 122/.24),transparent 32rem),radial-gradient(circle at 48% 44%,rgb(47 128 237/.11),transparent 25rem),linear-gradient(135deg,var(--garden-mint-0),var(--garden-mint-1))!important;color:var(--garden-ink)!important}
+#appDrawer{border-radius:var(--glass-radius-xl)!important;overflow:hidden!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer{background:rgb(255 255 255/.34)!important;border:1px solid rgb(255 255 255/.68)!important;box-shadow:0 28px 70px rgb(24 78 62/.17),inset 0 1px 0 rgb(255 255 255/.74)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #appDrawer{background:rgb(35 32 28/.54)!important;border:1px solid rgb(255 239 210/.09)!important;box-shadow:0 26px 72px rgb(0 0 0/.42),inset 0 1px 0 rgb(255 240 216/.04)!important}
+#appSidebar{-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong)}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar{background:linear-gradient(155deg,rgb(255 255 255/.70),rgb(229 247 239/.53))!important;border-right:1px solid rgb(255 255 255/.72)!important;box-shadow:14px 0 36px rgb(24 78 62/.10),inset -1px 0 0 rgb(255 255 255/.52)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #appSidebar{background:linear-gradient(155deg,rgb(47 43 37/.78),rgb(29 27 23/.67))!important;border-right:1px solid rgb(255 239 210/.08)!important;box-shadow:14px 0 36px rgb(0 0 0/.26),inset -1px 0 0 rgb(255 240 216/.04)!important}#appShell,#mainScroll{background:transparent!important}
+#appSidebar .menu .tab-btn,.sidebar-tag,.btn,.badge,.memo-tag,#mediaPager .btn{border-radius:999px!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn{color:var(--garden-muted)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn:hover{background:rgb(255 255 255/.54)!important;color:var(--garden-green-deep)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.72),0 5px 14px rgb(18 166 122/.09)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn.active{background:linear-gradient(110deg,rgb(18 166 122/.25),rgb(47 128 237/.16))!important;color:var(--garden-green-deep)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.70),0 6px 18px rgb(18 166 122/.14)!important}
+/* 说说 */
+#content ul.memo-list{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}#content ul.memo-list>li{width:100%!important;padding:0 0 1.25rem!important}#content ul.memo-list .memo-card{width:100%!important;border-radius:var(--glass-radius-lg)!important;padding:1.45rem 1.55rem 1.2rem!important;border:1px solid transparent!important;transition:transform .22s ease,box-shadow .22s ease!important}#content ul.memo-list .memo-card:hover{transform:translateY(-2px)}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(255 255 255/.76),rgb(255 255 255/.68)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(18 166 122/.038) 32px,rgb(18 166 122/.038) 33px)!important;border-color:rgb(255 255 255/.76)!important;box-shadow:0 13px 30px rgb(24 78 62/.12),inset 0 1px 0 rgb(255 255 255/.84)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) .memo-card .memo-text{color:var(--garden-ink)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(47 44 38/.86),rgb(38 36 31/.79)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(220 207 184/.035) 32px,rgb(220 207 184/.035) 33px)!important;border-color:rgb(255 239 210/.075)!important;box-shadow:0 13px 30px rgb(0 0 0/.25),inset 0 1px 0 rgb(255 240 216/.05)!important}#content ul.memo-list .memo-card::after{content:none!important;display:none!important}
+/* ===== 影视专区：更克制的玻璃画廊，而非过度圆润的泡泡卡片 ===== */
+/* 筛选区域按“工具条”整理，信息统计与海报网格拉开恰当呼吸 */
+#content>div:has(.mf-type){display:flex!important;flex-direction:column!important;gap:14px!important}
+#content>div:has(.mf-type)>p.text-xs{order:2!important;margin:0!important;padding:2px 4px 1px!important;font-size:.76rem!important;letter-spacing:.02em!important}
+#content>div:has(.mf-type)>.grid{order:3!important;margin-top:2px!important;gap:14px!important}
+#content>div:has(.mf-type)>.flex.flex-col.gap-2\.5{order:1!important;padding:13px 14px!important;border-radius:18px!important}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5{background:rgb(255 255 255/.42)!important;border:1px solid rgb(255 255 255/.66)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.72),0 8px 18px rgb(24 78 62/.06)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5{background:rgb(255 245 226/.045)!important;border:1px solid rgb(255 239 210/.07)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.04)!important}
+/* 筛选 chip / 清除动作更精致，保留可点性 */
+#content .mf-type+span,#content .mf-range+span,#content .mf-genre+span{border-radius:999px!important;transition:transform .16s ease,box-shadow .16s ease!important}#content label:has(.mf-type),#content label:has(.mf-range),#content label:has(.mf-genre){border-radius:999px!important}#content label:has(.mf-type):hover,#content label:has(.mf-range):hover,#content label:has(.mf-genre):hover{transform:translateY(-1px)}
+#content .mf-clear{border-radius:999px!important;padding-inline:12px!important;min-height:30px!important}
+/* 海报卡减少圆角到 16px，图片与文本为统一的精致卡片 */
+#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{border-radius:16px!important;overflow:hidden!important;transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*>img{border-radius:12px!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{transform:translateY(-3px)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(255 255 255/.48)!important;border:1px solid rgb(255 255 255/.74)!important;box-shadow:0 8px 20px rgb(24 78 62/.10),inset 0 1px 0 rgb(255 255 255/.76)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{border-color:rgb(18 166 122/.26)!important;box-shadow:0 13px 28px rgb(24 78 62/.15),inset 0 1px 0 rgb(255 255 255/.9)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(48 44 38/.62)!important;border:1px solid rgb(255 239 210/.08)!important;box-shadow:0 8px 20px rgb(0 0 0/.24),inset 0 1px 0 rgb(255 240 216/.04)!important}
+/* 翻页控件恢复可点击的轻玻璃托盘，消除原本大面积异色底层 */
+#mediaPager{background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;padding:12px 0 calc(14px + env(safe-area-inset-bottom,0px))!important}#mediaPager .join{padding:5px!important;border-radius:999px!important;background:rgb(255 255 255/.42)!important;border:1px solid rgb(255 255 255/.68)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.76),0 7px 16px rgb(24 78 62/.10)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #mediaPager .join{background:rgb(48 44 38/.56)!important;border-color:rgb(255 239 210/.08)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.05),0 7px 16px rgb(0 0 0/.22)!important}#mediaPager .join .btn{min-width:32px!important;background:transparent!important;box-shadow:none!important;border-color:transparent!important}#mediaPager .join .btn:hover:not(.btn-disabled){background:rgb(18 166 122/.10)!important}#mediaPager .join .btn-active{background:rgb(18 166 122/.19)!important;border-color:rgb(18 166 122/.25)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.48)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #mediaPager .join .btn-active{background:rgb(171 130 84/.23)!important;border-color:rgb(255 239 210/.12)!important}
+/* 歌词 */
+.music-drawer .hw-pl-view-lyrics{border:1px solid transparent!important;border-radius:18px!important;overflow:hidden!important;margin:8px 2px 10px!important;padding:7px!important}.music-drawer .hw-lyrics-scroll-full{border-radius:13px!important;padding:8px 10px!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-pl-view-lyrics{background:rgb(255 255 255/.48)!important;border-color:rgb(255 255 255/.72)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.82),0 6px 15px rgb(24 78 62/.08)!important}html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-pl-view-lyrics{background:rgb(255 245 226/.055)!important;border-color:rgb(255 239 210/.07)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.05)!important}
+/* 标注/世界时间：直出列表 */
+#content .list.bg-base-100.rounded-box.shadow-md{background:transparent!important;box-shadow:none!important;border-radius:0!important}#content .list.bg-base-100.rounded-box.shadow-md>li{background:transparent!important;border-radius:0!important;border-bottom:1px solid rgb(128 128 128/.17)!important;box-shadow:none!important}#content .list.bg-base-100.rounded-box.shadow-md>li:last-child{border-bottom:none!important}#content .wc-root .rounded-2xl{background:transparent!important;box-shadow:none!important}#content .wc-root .rounded-2xl:not(:first-child){border-color:rgb(128 128 128/.18)!important;border-left:0!important;border-right:0!important;border-radius:0!important}
+/* 书签最终去方块：针对常见图标容器与链接图标的伪元素 */
+#content .bm-body [class*="bg-"],#content .bm-body .avatar,#content .bm-body .mask,#content .bm-body .mask-squircle,#content .bm-body .rounded-box,#content .bm-body .rounded-lg,#content .bm-body .rounded-xl,#content .bm-body .rounded-2xl,#content .bm-body .size-8,#content .bm-body .size-10,#content .bm-body .size-12,#content .bm-body .badge{background:transparent!important;box-shadow:none!important;border-color:transparent!important;border-radius:0!important}#content .bm-body [class*="bg-"]::before,#content .bm-body [class*="bg-"]::after{box-shadow:none!important}#content .bm-body .iconify,#content .bm-body svg{background:transparent!important}#content .bm-body>*,#content .bm-body .list-row{box-shadow:none!important}
+/* 标注、热搜、书签、世界时间内的序号 / icon 均直接贴背景 */
+#content .list-row> :first-child:not(.list-col-grow),#content .hot-body [class*="bg-base"],#content .hot-body [class*="rank"],#content .hot-body [class*="index"],#content .hot-body [class*="num"],#content .hot-body .badge,#content .wc-root .wc-daybox{background:transparent!important;box-shadow:none!important;border-color:transparent!important;border-radius:0!important}#content .list-row> :first-child:not(.list-col-grow){min-width:auto!important;width:auto!important;height:auto!important;padding:0!important;margin-right:.7rem!important}
+/* 胶带 */
+.memo-tape-date{position:absolute;z-index:3;top:-10px;width:76px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:7px!important;background:color-mix(in oklch,var(--tape,#b49b76) 58%,transparent);color:#33261d;font-family:"Courier New","Courier",monospace;font-size:.76rem;font-weight:700;letter-spacing:.02em;line-height:1;white-space:nowrap;text-shadow:0 1px 0 rgb(255 255 255/.25);pointer-events:none;box-shadow:inset 0 1px 0 rgb(255 255 255/.28),0 3px 7px rgb(0 0 0/.08)}.memo-card:has(.memo-tape-date)::before{display:none!important}html:is([data-theme="dark"],[data-theme="halloween"]) .memo-tape-date{color:#f4e7d9;text-shadow:0 1px 1px rgb(0 0 0/.45)}
+@media(max-width:640px){#appDrawer{border-radius:0!important}#content ul.memo-list>li{padding-bottom:1rem!important}#content ul.memo-list .memo-card{padding:1.2rem 1rem 1rem!important;border-radius:18px!important}.memo-tape-date{width:72px;font-size:.72rem}#content>div:has(.mf-type)>.grid{gap:10px!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover,#content ul.memo-list .memo-card:hover{transform:none!important}}
 </style>
 
 <script>
