@@ -539,23 +539,7 @@
     }
   }
 
-  /* 标签筛选：纯文字（杂志风），自动换行，行尾 × 一键清空 */
-  #tagChips { gap: 2px 16px; }
-  #tagChips .tag-chip {
-    width: auto;
-    padding: .12rem 0;
-    font-size: .85rem;
-    background: none;
-    border: none;
-    color: var(--color-base-content);
-  }
-  #tagChips .tag-chip .tag-dot { display: none; }
-  #tagChips .tag-chip.active {
-    background: none;
-    color: var(--color-primary);
-    font-weight: 700;
-  }
-  #tagChips .tag-chip:hover { color: var(--color-primary); }
+  
 
   /* ====== 说说时间线（特色）：竖线 + 日期牌，内容保持扁平杂志式 ====== */
   #content ul.timeline { width: 100%; max-width: 800px; margin: 0 auto; }
@@ -918,6 +902,378 @@
     box-shadow: 0 8px 24px -8px rgb(0 0 0 / .4);
   }
   .wc-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   标签抽屉 v1：像音乐歌单一样的左侧纸页抽屉
+   ============================================================ */
+
+.tag-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 88;
+  background: rgba(35, 27, 19, .24);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+}
+
+.tag-drawer-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tag-drawer {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(390px, 88vw);
+  z-index: 89;
+  display: flex !important;
+  flex-direction: column;
+  background:
+    linear-gradient(90deg, rgba(112, 88, 59, .035), transparent 22%),
+    var(--journal-paper);
+  color: var(--journal-ink);
+  border-right: 1px solid rgba(83, 68, 48, .18);
+  box-shadow:
+    14px 0 36px rgba(48, 35, 22, .18),
+    2px 0 8px rgba(48, 35, 22, .08);
+  transform: translateX(-104%);
+  transition: transform .38s cubic-bezier(.22, 1, .36, 1);
+  overflow: hidden;
+}
+
+.tag-drawer.hidden {
+  display: flex !important;
+}
+
+.tag-drawer.open {
+  transform: translateX(0);
+}
+
+.tag-drawer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 10px;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    transparent,
+    rgba(100, 77, 50, .14) 18%,
+    rgba(100, 77, 50, .08) 82%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.tag-drawer-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 28px 20px;
+  border-bottom: 1px dashed rgba(91, 72, 49, .16);
+}
+
+.tag-drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 1.22rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.tag-drawer-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 5px;
+  margin-left: 28px;
+  color: var(--journal-muted);
+  font-size: .72rem;
+  letter-spacing: .12em;
+}
+
+ 
+
+.tag-drawer-close {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--journal-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  transition: background .18s ease, color .18s ease;
+}
+
+.tag-drawer-close:hover {
+  background: rgba(112, 89, 60, .12);
+  color: var(--journal-ink);
+}
+
+.tag-drawer-close:hover {
+  background: rgba(104, 82, 57, .09);
+  transform: rotate(3deg);
+}
+
+.tag-drawer-current {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 24px 10px;
+  padding: 12px 13px;
+  background: rgba(128, 103, 70, .055);
+  border-left: 3px solid #9a7d55;
+}
+
+.tag-drawer-current-label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tag-drawer-current-label > span:first-child {
+  color: var(--journal-muted);
+  font-size: .68rem;
+  letter-spacing: .16em;
+}
+
+#tagSelectedSummary {
+  font-size: .84rem;
+  color: #765f40;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-drawer-clear {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: var(--journal-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 3px;
+  font: inherit;
+  font-size: .74rem;
+}
+
+.tag-drawer-clear:hover {
+  color: #765f40;
+}
+
+.tag-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 24px 30px;
+}
+
+.tag-drawer-body .tag-title {
+  border-top: none !important;
+  margin-top: 0 !important;
+  padding: 9px 2px 12px !important;
+  color: var(--journal-muted) !important;
+  font-size: .72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: .18em !important;
+}
+
+.tag-drawer-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.tag-drawer-list .tag-chip {
+  width: 100%;
+  min-height: 44px;
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px !important;
+  border: 1px solid transparent !important;
+  border-bottom: 1px dashed rgba(91, 72, 49, .10) !important;
+  border-radius: 2px !important;
+  background: transparent !important;
+  color: var(--journal-ink) !important;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background .18s ease,
+    padding-left .18s ease,
+    border-color .18s ease;
+}
+
+.tag-drawer-list .tag-chip:hover {
+  background: rgba(112, 89, 60, .055) !important;
+  padding-left: 14px !important;
+}
+
+.tag-drawer-list .tag-chip.active {
+  background: rgba(139, 113, 76, .10) !important;
+  border-color: rgba(139, 113, 76, .10) !important;
+  color: #705938 !important;
+}
+
+.tag-drawer-list .tag-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+}
+
+.tag-drawer-chip-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .9rem;
+  letter-spacing: .025em;
+}
+
+.tag-drawer-list .tag-count {
+  flex: 0 0 auto;
+  color: var(--journal-muted);
+  font-size: .72rem;
+  opacity: .72;
+}
+
+.tag-drawer-check {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #806844;
+  opacity: .9;
+}
+
+.tag-drawer-check.hidden {
+  display: none !important;
+}
+
+#tagSelectedCount {
+  min-width: 1.15rem;
+  height: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(112, 89, 60, .18);
+  background: rgba(139, 113, 76, .07);
+  color: #806844;
+}
+#tagSelectedCount.hidden {
+  display: none !important;
+}
+/* 桌面端：标签抽屉盖在手账和侧栏之上，像一本从书架抽出的标签索引 */
+@media (min-width: 1024px) {
+  .tag-drawer {
+    width: 390px;
+  }
+}
+
+ /* 移动端：抽屉加宽、内边距收紧，避免拥挤 */
+@media (max-width: 1023px) {
+  .tag-drawer {
+    width: min(390px, 92vw);
+  }
+
+  .tag-drawer-head {
+    gap: 10px;
+    padding: 20px 18px 15px;
+  }
+
+  .tag-drawer-title {
+    font-size: 1.1rem;
+  }
+
+  .tag-drawer-subtitle {
+    margin-top: 4px;
+    margin-left: 27px;
+  }
+
+  .tag-drawer-close {
+    width: 30px;
+    height: 30px;
+  }
+
+  .tag-drawer-current {
+    margin: 12px 16px 8px;
+    padding: 10px 12px;
+  }
+
+  .tag-drawer-body {
+    padding: 4px 16px 26px;
+  }
+
+  .tag-drawer-body .tag-title {
+    padding: 6px 2px 10px !important;
+  }
+
+  .tag-drawer-list .tag-chip {
+    min-height: 40px;
+    padding: 7px 8px !important;
+    gap: 8px;
+  }
+
+  .tag-drawer-chip-name {
+    font-size: .86rem;
+  }
+}
+
+/* 深色手账 */
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.015), transparent 22%),
+    var(--journal-paper);
+  border-right-color: rgba(224, 207, 177, .10);
+  box-shadow: 14px 0 36px rgba(0,0,0,.32);
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-overlay {
+  background: rgba(0,0,0,.38);
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-close {
+  color: var(--journal-muted);
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-close:hover {
+  background: rgba(218, 199, 166, .10);
+  color: var(--journal-ink);
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) #tagSelectedSummary,
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active,
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-check {
+  color: #d0b98e !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip:hover {
+  background: rgba(218, 199, 166, .06) !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
+  background: rgba(218, 199, 166, .055);
+  border-left-color: #aa8b5e;
+}
+
 </style>
 </head>
 <body class="min-h-screen paper-bg text-base-content lg:h-screen lg:overflow-hidden">
@@ -935,7 +1291,7 @@
         <nav class="bg-base-100/90 backdrop-blur border-b border-base-300/50 w-full relative z-40" id="topNav">
           <div class="flex items-center gap-2 sm:gap-3 min-h-12 py-0 px-3 sm:px-5">
             <button id="navToggleBtn" class="btn btn-ghost btn-sm btn-circle lg:hidden" aria-label="打开菜单" aria-expanded="false" aria-controls="appSidebar">
-              <span class="iconify text-xl" data-icon="mdi:menu"></span>
+              <span class="iconify text-xl" data-icon="lucide:menu"></span>
             </button>
             <span id="viewTitle" class="font-bold text-base sm:text-lg">小记</span>
           </div>
@@ -983,15 +1339,15 @@
           <div class="name">小记</div>
           <div class="side-actions">
             <button type="button" class="cmdk-open btn btn-ghost btn-xs btn-circle" aria-label="快速搜索" title="快速搜索（Ctrl+K）">
-              <span class="iconify text-base" data-icon="mdi:magnify"></span>
+              <span class="iconify text-base" data-icon="lucide:search"></span>
             </button>
             <button type="button" class="music-trigger btn btn-ghost btn-xs btn-circle relative" aria-label="音乐" title="音乐">
-              <span class="iconify text-base" data-icon="mdi:music-note-outline"></span>
+              <span class="iconify text-base" data-icon="lucide:music"></span>
               <span id="musicDot" class="hidden absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary"></span>
             </button>
             <button type="button" class="theme-toggle-btn btn btn-ghost btn-xs btn-circle" aria-label="切换明暗" title="切换明暗">
-              <span class="theme-icon-sun iconify text-base" data-icon="mdi:white-balance-sunny"></span>
-              <span class="theme-icon-moon iconify text-base hidden" data-icon="mdi:moon-waning-crescent"></span>
+              <span class="theme-icon-sun iconify text-base" data-icon="lucide:sun"></span>
+              <span class="theme-icon-moon iconify text-base hidden" data-icon="lucide:moon"></span>
             </button>
           </div>
         </div>
@@ -999,33 +1355,68 @@
       <!-- 主菜单（固定不随内容滚动；桌面端可收成图标栏） -->
       <nav class="px-3 pt-2 pb-2 shrink-0" aria-label="主导航">
         <ul class="menu w-full p-0 gap-0.5 text-[.95rem]">
-          <li><a class="tab-btn" data-view="say"><span class="iconify text-lg opacity-80" data-icon="mdi:home-outline"></span><span class="nav-label">首页</span></a></li>
-          <li><a class="tab-btn" data-view="photos"><span class="iconify text-lg opacity-80" data-icon="mdi:image-multiple-outline"></span><span class="nav-label">图片</span></a></li>
-          <li><a class="tab-btn" data-view="watched"><span class="iconify text-lg opacity-80" data-icon="mdi:movie-open-check-outline"></span><span class="nav-label">看过</span></a></li>
-          <li><a class="tab-btn" data-view="watchlist"><span class="iconify text-lg opacity-80" data-icon="mdi:star-outline"></span><span class="nav-label">想看</span></a></li>
-          <li><a class="tab-btn" data-view="clips"><span class="iconify text-lg opacity-80" data-icon="streamline-ultimate:kindle-hold-bold"></span><span class="nav-label">标注</span></a></li>
-          <li><a class="tab-btn" data-view="hot"><span class="iconify text-lg opacity-80" data-icon="mdi:fire"></span><span class="nav-label">热搜</span></a></li>
-          <li><a class="tab-btn" data-view="bookmarks"><span class="iconify text-lg opacity-80" data-icon="mdi:bookmark-multiple-outline"></span><span class="nav-label">书签</span></a></li>
-          <li><a class="tab-btn" data-view="worldtime"><span class="iconify text-lg opacity-80" data-icon="mdi:clock-time-eight-outline"></span><span class="nav-label">世界时间</span></a></li>
+          <li><a class="tab-btn" data-view="say"><span class="iconify text-lg opacity-80" data-icon="lucide:house"></span><span class="nav-label">首页</span></a></li>
+          <li><a class="tab-btn" data-view="photos"><span class="iconify text-lg opacity-80" data-icon="lucide:images"></span><span class="nav-label">图片</span></a></li>
+          <li><a class="tab-btn" data-view="watched"><span class="iconify text-lg opacity-80" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></a></li>
+          <li><a class="tab-btn" data-view="watchlist"><span class="iconify text-lg opacity-80" data-icon="lucide:star"></span><span class="nav-label">想看</span></a></li>
+          <li><a class="tab-btn" data-view="clips"><span class="iconify text-lg opacity-80" data-icon="lucide:book-open-text"></span><span class="nav-label">标注</span></a></li>
+          <li><a class="tab-btn" data-view="hot"><span class="iconify text-lg opacity-80" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></a></li>
+          <li><a class="tab-btn" data-view="bookmarks"><span class="iconify text-lg opacity-80" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></a></li>
+          <li><a class="tab-btn" data-view="worldtime"><span class="iconify text-lg opacity-80" data-icon="lucide:clock"></span><span class="nav-label">世界时间</span></a></li>
+          <li>
+            <button type="button" id="tagDrawerOpen" class="tab-btn w-full text-left" aria-expanded="false" aria-controls="tagBar">
+              <span class="iconify text-lg opacity-80" data-icon="lucide:tags"></span>
+              <span class="nav-label">标签</span>
+               <span id="tagSelectedCount" class="ml-auto text-xs opacity-50 hidden"></span>
+
+            </button>
+          </li>
         </ul>
       </nav>
 
-      <!-- 标签筛选（常驻：任何视图下可见可点；纯文字，行尾 × 一键清空） -->
-      <div id="tagBar" class="hidden flex-1 min-h-0 overflow-y-auto px-3 pt-1 pb-2.5">
-        <div class="tag-title">标签</div>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-          <div id="tagChips" class="flex flex-wrap gap-x-4 gap-y-1.5 min-w-0"></div>
-          <button id="clearTagsBtn" class="btn btn-square btn-xs shrink-0 hidden" aria-label="清空标签" title="清空筛选">
-            <span class="iconify text-sm" data-icon="mdi:close"></span>
-          </button>
-        </div>
-      </div>
     </aside>
   </div>
 </div>
 
+<!-- ======================= 标签抽屉：左侧滑出，支持组合标签 ======================= -->
+<div id="tagDrawerOverlay" class="tag-drawer-overlay" aria-hidden="true"></div>
+
+<aside id="tagBar" class="tag-drawer hidden" role="dialog" aria-modal="true" aria-label="标签筛选">
+  <div class="tag-drawer-head">
+    <div class="tag-drawer-heading">
+      <div class="tag-drawer-title">
+        <span class="iconify text-lg" data-icon="mdi:tag-multiple-outline"></span>
+        <span>标签</span>
+      </div>
+      <div class="tag-drawer-subtitle">
+        <span>组合筛选</span>
+       
+      </div>
+    </div>
+    <button type="button" id="tagDrawerClose" class="tag-drawer-close" aria-label="关闭标签" title="关闭">
+  <span class="iconify text-lg" data-icon="lucide:x"></span>
+</button>
+  </div>
+
+  <div class="tag-drawer-current">
+    <div class="tag-drawer-current-label">
+      <span>当前筛选</span>
+      <span id="tagSelectedSummary">未选择标签</span>
+    </div>
+    <button id="clearTagsBtn" type="button" class="tag-drawer-clear hidden">
+      <span class="iconify text-sm" data-icon="lucide:x-circle"></span>
+      清空
+    </button>
+  </div>
+
+  <div class="tag-drawer-body">
+    <div class="tag-title">全部标签</div>
+    <div id="tagChips" class="tag-drawer-list"></div>
+  </div>
+</aside>
+
 <button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
-  <span class="iconify text-xl" data-icon="mdi:arrow-up"></span>
+  <span class="iconify text-xl" data-icon="lucide:arrow-up"></span>
 </button>
 
 <!-- 底部悬浮歌词药丸栏：播放时显示，歌词过长左右滚动 -->
@@ -1073,7 +1464,7 @@
 <div id="cmdkOverlay" class="cmdk-overlay">
   <div class="cmdk-panel" role="dialog" aria-label="全站搜索">
     <div class="cmdk-input-row">
-      <span class="iconify text-xl opacity-60 shrink-0" data-icon="mdi:magnify"></span>
+      <span class="iconify text-xl opacity-60 shrink-0" data-icon="lucide:search"></span>
       <input id="cmdkInput" type="text" placeholder="搜索说说 / 书签 / 影视…" autocomplete="off" />
       <button type="button" class="cmdk-close btn btn-ghost btn-xs btn-circle shrink-0" aria-label="关闭">
         <span class="iconify text-base" data-icon="mdi:close"></span>
@@ -1728,7 +2119,7 @@ function skeletonCards(n = 3) {
 
 function emptyState(text) {
   return `<div class="text-center py-16 opacity-60 fade-up">
-    <span class="iconify text-4xl block mb-3 mx-auto" data-icon="mdi:leaf"></span><p class="text-sm">${text}</p></div>`;
+    <span class="iconify text-4xl block mb-3 mx-auto" data-icon="lucide:leaf"></span><p class="text-sm">${text}</p></div>`;
 }
 
 function errorState(msg, retryFn) {
@@ -1972,21 +2363,46 @@ function renderTagChips(tags) {
   const selected = [...state.selectedTags];
   const unselected = (tags || []).filter(t => !state.selectedTags.has(t.id));
 
-  if (!tags.length && !selected.length) { bar.classList.add('hidden'); return; }
-  bar.classList.remove('hidden');   // 标签区常驻：任何视图下都可见可点
+  // 标签现在由左侧抽屉承载；数据和筛选状态仍然沿用原来的 state.selectedTags。
+  if (!tags.length && !selected.length) {
+    bar.classList.add('hidden');
+  } else {
+    bar.classList.remove('hidden');
+  }
 
-  // 纵向标签列表：彩点菱形 + 名称 + 数量右对齐；已选标签置顶高亮
+    const countEl = $('#tagSelectedCount');
+  const summaryEl = $('#tagSelectedSummary');
+  if (countEl) {
+    countEl.textContent = selected.length ? `${selected.length}` : '';
+    countEl.classList.toggle('hidden', selected.length === 0);
+  }
+  if (summaryEl) summaryEl.textContent = selected.length
+    ? `${selected.length} 个标签 · AND`
+    : '未选择标签';
+
+  // 选中的标签永远置顶，方便组合筛选时连续点击。
   const chip = (id, { active = false, count = null } = {}) => {
     const name = tagNameMap.get(id) || String(id).replace(/^tag_/, '');
     const color = tagColor(id);
     const dot = `<span class="tag-dot" style="--dot: var(--color-${color})"></span>`;
     const countHtml = count != null ? `<span class="tag-count">${count}</span>` : '';
-    return `<button type="button" class="sidebar-tag tag-chip${active ? ' active' : ''}" data-tag="${escapeHtml(id)}">${dot}<span class="flex-1 truncate">${escapeHtml(name)}</span>${countHtml}</button>`;
+    return `<button type="button" class="sidebar-tag tag-chip${active ? ' active' : ''}" data-tag="${escapeHtml(id)}">
+      ${dot}
+      <span class="tag-drawer-chip-name">${escapeHtml(name)}</span>
+      ${countHtml}
+      <span class="tag-drawer-check ${active ? '' : 'hidden'}"><span class="iconify" data-icon="lucide:check"></span></span>
+    </button>`;
   };
-  chipsEl.innerHTML = selected.map(id => chip(id, { active: true })).join('') + unselected.map(t => chip(t.id, { count: t.count })).join('');
+
+  chipsEl.innerHTML =
+    selected.map(id => chip(id, { active: true })).join('') +
+    unselected.map(t => chip(t.id, { count: t.count })).join('');
+
   clearBtn.classList.toggle('hidden', selected.length === 0);
 
-  chipsEl.querySelectorAll('.tag-chip').forEach(btn => { btn.onclick = () => toggleTag(btn.dataset.tag); });
+  chipsEl.querySelectorAll('.tag-chip').forEach(btn => {
+    btn.onclick = () => toggleTag(btn.dataset.tag);
+  });
 }
 
 function toggleTag(id) {
@@ -2015,7 +2431,7 @@ function toggleTag(id) {
     restoreTarget = null;
     resetSay();
   }
-  closeNav();   // 移动端在侧栏抽屉里点选标签后自动收起抽屉
+  // 标签抽屉故意保持打开：可以连续选择多个标签组成 AND 筛选。
 }
 
 $('#clearTagsBtn').onclick = () => {
@@ -2029,7 +2445,7 @@ $('#clearTagsBtn').onclick = () => {
     restoreTarget = { view: 'say', pos: sayUnfilteredScroll, page: sayUnfilteredPage };
     resetSay();
   }
-  closeNav();
+  // 清空后也保持标签抽屉打开，方便重新组合。
 };
 
 /* ---------- 说说：加载与无限滚动 ---------- */
@@ -2305,9 +2721,9 @@ async function loadClips() {
 }
 
 const CLIP_TYPE_META = {
-  '标注': { icon: 'mdi:highlighter', cls: 'bg-primary/10 text-primary' },
-  '笔记': { icon: 'mdi:pencil-outline', cls: 'bg-secondary/10 text-secondary' },
-  '书签': { icon: 'mdi:bookmark-outline', cls: 'bg-accent/10 text-accent' },
+  '标注': { icon: 'lucide:highlighter', cls: 'bg-primary/10 text-primary' },
+  '笔记': { icon: 'lucide:pencil', cls: 'bg-secondary/10 text-secondary' },
+  '书签': { icon: 'lucide:bookmark', cls: 'bg-accent/10 text-accent' },
 };
 
 function renderClips() {
@@ -2326,14 +2742,14 @@ function renderClips() {
         <li class="list-row">
           <div class="text-4xl font-thin opacity-30 tabular-nums">${String(i + 1).padStart(2, '0')}</div>
           <div class="size-10 rounded-box bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <span class="iconify text-xl" data-icon="mdi:book-open-variant"></span>
+            <span class="iconify text-xl" data-icon="lucide:book-open"></span>
           </div>
           <div class="list-col-grow min-w-0">
             <div class="font-semibold text-sm line-clamp-1" title="${escapeHtml(b.title)}">${escapeHtml(b.title)}</div>
             <div class="text-xs opacity-60 line-clamp-1">${escapeHtml(b.author || '未知作者')} · ${b.count} 条标注</div>
           </div>
           <button class="btn btn-square btn-ghost btn-sm clips-open shrink-0" data-book="${escapeHtml(b.key)}" aria-label="查看标注">
-            <span class="iconify text-lg" data-icon="mdi:chevron-right"></span>
+            <span class="iconify text-lg" data-icon="lucide:chevron-right"></span>
           </button>
         </li>`).join('')}
       </ul>
@@ -2349,7 +2765,7 @@ function renderClips() {
   } else {
     // 书内页：这本书的全部标注，复用同样的 List 控件
     const back = `<button class="btn btn-sm btn-ghost gap-1 mb-2 clips-back">
-        <span class="iconify" data-icon="mdi:arrow-left"></span>返回书单
+        <span class="iconify" data-icon="lucide:arrow-left"></span>返回书单
       </button>`;
     contentEl.innerHTML = `
     <div>
@@ -2393,7 +2809,7 @@ function renderClips() {
         try {
           await navigator.clipboard.writeText(item.content);
           const icon = btn.querySelector('.iconify');
-          icon.dataset.icon = 'mdi:check';
+          icon.dataset.icon = 'lucide:check';
           icon.classList.add('text-success');
           setTimeout(() => { icon.dataset.icon = 'mdi:content-copy'; icon.classList.remove('text-success'); }, 1200);
         } catch {}
@@ -2492,7 +2908,7 @@ function renderHotView() {
     <div class="flex items-center gap-2 sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
       <div class="hot-tabs flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5">${tabs}</div>
       <button type="button" class="hot-refresh btn btn-xs btn-ghost btn-circle shrink-0" aria-label="手动刷新" title="手动刷新">
-        <span class="iconify text-base" data-icon="mdi:refresh"></span>
+        <span class="iconify text-base" data-icon="lucide:refresh-cw"></span>
       </button>
     </div>
     <div class="hot-body min-h-40"></div>
@@ -2675,7 +3091,7 @@ function renderBookmarkList() {
         ${b.desc ? `<div class="text-xs opacity-60 truncate mt-0.5">${escapeHtml(b.desc)}</div>` : ''}
         <div class="flex items-center gap-1.5 mt-1 flex-wrap">${catBadge}${tagBadges}</div>
       </div>
-      <span class="iconify opacity-30 shrink-0" data-icon="mdi:chevron-right"></span>
+      <span class="iconify opacity-30 shrink-0" data-icon="lucide:chevron-right"></span>
     </a>`;
   }).join('');
 
@@ -2731,13 +3147,13 @@ function wallToUtcMs(wall, tz) {
   return utc;
 }
 function wcDayPart(hour) {
-  if (hour < 5) return { t: '深夜', icon: 'mdi:weather-night', cls: 'bg-secondary/15 text-secondary' };
-  if (hour < 8) return { t: '清晨', icon: 'mdi:weather-sunset-up', cls: 'bg-warning/15 text-warning' };
-  if (hour < 11) return { t: '上午', icon: 'mdi:weather-sunny', cls: 'bg-warning/15 text-warning' };
-  if (hour < 13) return { t: '中午', icon: 'mdi:weather-sunny', cls: 'bg-warning/15 text-warning' };
-  if (hour < 17) return { t: '下午', icon: 'mdi:weather-sunny', cls: 'bg-warning/15 text-warning' };
-  if (hour < 19) return { t: '傍晚', icon: 'mdi:weather-sunset-down', cls: 'bg-error/15 text-error' };
-  return { t: '晚上', icon: 'mdi:weather-night', cls: 'bg-secondary/15 text-secondary' };
+  if (hour < 5) return { t: '深夜', icon: 'lucide:moon', cls: 'bg-secondary/15 text-secondary' };
+  if (hour < 8) return { t: '清晨', icon: 'lucide:sunrise', cls: 'bg-warning/15 text-warning' };
+  if (hour < 11) return { t: '上午', icon: 'lucide:sun', cls: 'bg-warning/15 text-warning' };
+  if (hour < 13) return { t: '中午', icon: 'lucide:sun', cls: 'bg-warning/15 text-warning' };
+  if (hour < 17) return { t: '下午', icon: 'lucide:sun', cls: 'bg-warning/15 text-warning' };
+  if (hour < 19) return { t: '傍晚', icon: 'lucide:sunset', cls: 'bg-error/15 text-error' };
+  return { t: '晚上', icon: 'lucide:moon', cls: 'bg-secondary/15 text-secondary' };
 }
 function wcDaysFromNow(utcMs) {
   const now = new Date(); now.setHours(0, 0, 0, 0);
@@ -2804,7 +3220,7 @@ function renderWorldClock() {
 
     <div class="rounded-2xl border border-base-300/70 p-4 sm:p-5">
       <div class="text-sm font-semibold mb-3 flex items-center gap-1.5">
-        <span class="iconify text-primary text-lg" data-icon="mdi:swap-horizontal"></span>时间转换
+        <span class="iconify text-primary text-lg" data-icon="lucide:arrow-left-right"></span>时间转换
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <select id="wcTz" class="select select-sm w-44" aria-label="来源时区">${zoneOptions}</select>
@@ -2816,7 +3232,7 @@ function renderWorldClock() {
 
     <div class="rounded-2xl border border-base-300/70 p-4 sm:p-5">
       <div class="text-sm font-semibold mb-2 flex items-center gap-1.5">
-        <span class="iconify text-warning text-lg" data-icon="mdi:bell-ring-outline"></span>我的播放提醒
+        <span class="iconify text-warning text-lg" data-icon="lucide:bell-ring"></span>我的播放提醒
       </div>
       <p class="text-xs opacity-50 mb-2">打开首页时会自动提示最近的提醒倒计时（自动清理已过期 3 天以上的记录）</p>
       <div id="wcReminders" class="flex flex-col gap-2"></div>
@@ -2880,7 +3296,7 @@ function wcConvertClick() {
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <input id="wcRemTitle" type="text" class="input input-sm input-bordered w-40" placeholder="提醒标题（可选）" maxlength="100" />
       <button type="button" id="wcRemAdd" class="btn btn-sm btn-warning gap-1">
-        <span class="iconify text-base" data-icon="mdi:bell-plus-outline"></span>设提醒
+        <span class="iconify text-base" data-icon="lucide:bell-plus"></span>设提醒
       </button>
     </div>
   </div>`;
@@ -2942,13 +3358,13 @@ function renderWcReminders() {
     const part = wcDayPart(+bj.hour);
     return `
     <div class="flex items-center gap-3 rounded-xl bg-base-200/50 px-3 py-2.5">
-      <span class="iconify text-warning text-lg shrink-0" data-icon="mdi:bell-badge-outline"></span>
+      <span class="iconify text-warning text-lg shrink-0" data-icon="lucide:bell-dot"></span>
       <div class="flex-1 min-w-0">
         <div class="text-sm font-medium truncate">${escapeHtml(r.title)}</div>
         <div class="text-xs opacity-60">北京时间 ${bj.month}-${bj.day} ${bj.hour}:${bj.minute} · ${part.t} · <span data-cd-utc="${r.utc}"></span></div>
       </div>
       <button type="button" class="btn btn-ghost btn-xs btn-circle shrink-0 wc-rem-del" data-id="${escapeHtml(r.id)}" aria-label="删除提醒">
-        <span class="iconify text-base" data-icon="mdi:delete-outline"></span>
+        <span class="iconify text-base" data-icon="lucide:trash-2"></span>
       </button>
     </div>`;
   }).join('');
@@ -2984,7 +3400,7 @@ async function showReminderBanner() {
   const el = document.createElement('div');
   el.className = 'rem-banner fade-up mx-4 sm:mx-5 mt-3 rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 flex items-center gap-3';
   el.innerHTML = `
-    <span class="iconify text-warning text-xl shrink-0" data-icon="mdi:bell-ring-outline"></span>
+    <span class="iconify text-warning text-xl shrink-0" data-icon="lucide:bell-ring"></span>
     <div class="flex-1 min-w-0 text-sm">
       <span class="font-medium">${escapeHtml(up[0].title)}</span>
       <span class="opacity-70 rem-banner-cd"></span>
@@ -3042,7 +3458,7 @@ function showReminderToast(r) {
   const el = document.createElement('div');
   el.className = 'alert alert-warning shadow-lg gap-2 cursor-pointer transition-opacity duration-300';
   el.innerHTML = `
-    <span class="iconify text-lg" data-icon="mdi:bell-ring-outline"></span>
+    <span class="iconify text-lg" data-icon="lucide:bell-ring"></span>
     <div class="text-sm">
       <div class="font-medium">${escapeHtml(r.title)}</div>
       <div class="text-xs opacity-70">你设置的提醒时间到了！</div>
@@ -3197,12 +3613,12 @@ function switchView(view) {
   if (view === 'hot') startHotAutoRefresh(); else stopHotAutoRefresh();
   // 世界时钟秒针：仅在世界时间页运行
   if (view === 'worldtime') startWcTick(); else stopWcTick();
-  document.querySelectorAll('.tab-btn').forEach(t => {
-    const on = t.dataset.view === view;
-    t.classList.toggle('active', on);
-    t.classList.toggle('bg-base-300', on);
-    t.classList.toggle('text-primary', on);
-  });
+ document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
+  const on = t.dataset.view === view;
+  t.classList.toggle('active', on);
+  t.classList.toggle('bg-base-300', on);
+  t.classList.toggle('text-primary', on);
+});
   const titleEl = $('#viewTitle');
   if (titleEl) titleEl.textContent = VIEW_TITLES[view] || '小记';
   const mastheadEl = $('#masthead');
@@ -3238,6 +3654,45 @@ function switchView(view) {
   }
 }
 
+/* ============================================================
+   标签抽屉：左侧滑出
+   - 点击菜单按钮打开
+   - 点击外部或右上角关闭
+   - 点击任意标签不会关闭，可连续组合 AND 筛选
+============================================================ */
+(function initTagDrawer() {
+  const drawer = document.getElementById('tagBar');
+  const overlay = document.getElementById('tagDrawerOverlay');
+  const openBtn = document.getElementById('tagDrawerOpen');
+  const closeBtn = document.getElementById('tagDrawerClose');
+
+  if (!drawer || !overlay || !openBtn || !closeBtn) return;
+
+  const open = () => {
+    closeNav();                        // ← 新增：移动端把左侧菜单先收起来
+
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    openBtn.setAttribute('aria-expanded', 'true');
+    overlay.setAttribute('aria-hidden', 'false');
+  };
+
+  const close = () => {
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+    openBtn.setAttribute('aria-expanded', 'false');
+    overlay.setAttribute('aria-hidden', 'true');
+  };
+
+  openBtn.onclick = open;
+  closeBtn.onclick = close;
+  overlay.onclick = close;
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) close();
+  });
+})();
+
 function closeNav() {
   const chk = document.getElementById('appNavChk');
   if (!chk || !chk.checked) return;   // 桌面端侧栏常驻，仅在移动端抽屉打开时收起
@@ -3257,11 +3712,12 @@ function closeNav() {
   };
 })();
 
-document.querySelectorAll('.tab-btn').forEach(t => {
-  t.onclick = () => {
+// 只绑定真正代表视图的菜单项；标签抽屉按钮没有 data-view，交给 initTagDrawer 自己处理
+document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
+  t.addEventListener('click', () => {
     if (state.view !== t.dataset.view) switchView(t.dataset.view);
     closeNav();
-  };
+  });
 });
 
 /* ============================================================
@@ -3426,7 +3882,7 @@ function cmdkRender() {
           <div class="text-sm leading-snug truncate">${cmdkHi(it.title, q)}</div>
           <div class="text-xs opacity-50 truncate">${escapeHtml(it.sub || '')}</div>
         </div>
-        <span class="iconify text-base opacity-25 shrink-0" data-icon="mdi:chevron-right"></span>
+        <span class="iconify text-base opacity-25 shrink-0" data-icon="lucide:chevron-right"></span>
       </div>`;
     });
   });
@@ -3458,12 +3914,12 @@ function cmdkRenderTagView() {
         <div class="text-sm leading-snug truncate">${escapeHtml(it.title)}</div>
         <div class="text-xs opacity-50 truncate">${escapeHtml(it.sub || '')}</div>
       </div>
-      <span class="iconify text-base opacity-25 shrink-0" data-icon="mdi:chevron-right"></span>
+      <span class="iconify text-base opacity-25 shrink-0" data-icon="lucide:chevron-right"></span>
     </div>`).join('');
   cmdkResults.innerHTML = `
     <div class="flex items-center gap-2 px-2 pt-1 pb-1">
       <button type="button" class="btn btn-ghost btn-xs gap-0.5 cmdk-tag-back">
-        <span class="iconify text-base" data-icon="mdi:arrow-left"></span>返回搜索
+        <span class="iconify text-base" data-icon="lucide:arrow-left"></span>返回搜索
       </button>
       <span class="text-xs opacity-60 truncate">#${escapeHtml(name)} · ${cmdk.flat.length} 条说说</span>
     </div>
@@ -4790,6 +5246,493 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
     0%, 18% { transform: translateX(0); }
     82%, 100% { transform: translateX(var(--lyrics-shift, 0px)); }
   }
+
+/* ============================================================
+   书桌手账主题 v1
+   仅覆盖视觉层：不修改 JS / 数据结构 / 交互逻辑
+   ============================================================ */
+
+:root {
+  --journal-paper: #f4eedf;
+  --journal-paper-deep: #e9dfca;
+  --journal-ink: #403a32;
+  --journal-muted: #81786a;
+  --journal-line: rgba(80, 68, 52, .16);
+  --journal-wood-a: #b59a7b;
+  --journal-wood-b: #9d8063;
+  --journal-tape: rgba(188, 161, 113, .56);
+   --journal-photo-border: #f8f2e5;
+   --journal-photo-paper: #f8f3e8;
+}
+
+/* 桌面：不用任何外部壁纸，纯 CSS 做旧木桌 */
+html,
+body {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(74, 54, 35, .035) 0 1px,
+      transparent 1px 5px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--journal-wood-a) 86%, #fff),
+      var(--journal-wood-b) 48%,
+      color-mix(in srgb, var(--journal-wood-a) 88%, #fff)
+    ) !important;
+  color: var(--journal-ink);
+}
+
+/* 大屏：把原来的“APP 面板”改成桌面上的一本摊开的手账 */
+@media (min-width: 1024px) {
+  body {
+    padding: 28px !important;
+  }
+
+  #appDrawer {
+    max-width: 1580px !important;
+    height: calc(100dvh - 56px) !important;
+    background: transparent !important;
+    overflow: hidden !important;
+    box-shadow:
+      0 26px 70px rgba(45, 31, 18, .28),
+      0 3px 12px rgba(45, 31, 18, .14) !important;
+  }
+
+  #appSidebar {
+    width: 250px !important;
+    background:
+      linear-gradient(90deg, rgba(87, 64, 41, .05), transparent 18%),
+      var(--journal-paper-deep) !important;
+    color: var(--journal-ink) !important;
+    border-right: 1px solid rgba(83, 68, 48, .18) !important;
+    box-shadow: 8px 0 24px rgba(55, 40, 25, .08) !important;
+    padding: 18px 14px !important;
+  }
+
+  #appShell {
+    background: var(--journal-paper) !important;
+    color: var(--journal-ink) !important;
+    position: relative;
+  }
+
+  /* 中间装订线 */
+  #appShell::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 18px;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(72, 51, 31, .13),
+        rgba(255,255,255,.22) 38%,
+        transparent 100%
+      );
+    opacity: .55;
+  }
+
+  #mainScroll {
+    position: relative;
+    z-index: 1;
+  }
+
+  #mainScroll > .max-w-5xl {
+    max-width: 1050px !important;
+    padding: 0 42px 40px !important;
+  }
+}
+
+/* 头像：像贴在笔记本上的照片 */
+.side-profile {
+  padding: .5rem .35rem 1rem !important;
+  border-bottom: 1px dashed var(--journal-line);
+  margin-bottom: .6rem;
+}
+
+.side-profile img {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 4px !important;
+   border: 5px solid var(--journal-photo-border, #f8f2e5) !important;
+  box-shadow:
+    0 2px 5px rgba(45, 32, 19, .18),
+    0 0 0 1px rgba(80, 65, 45, .10) !important;
+  transform: rotate(-2deg);
+}
+
+.side-profile .name {
+  color: var(--journal-ink) !important;
+  font-size: 1.05rem;
+  letter-spacing: .08em;
+}
+
+/* 侧栏菜单：从 APP 菜单变成手账索引 */
+#appSidebar .menu {
+  gap: 5px !important;
+}
+
+#appSidebar .menu .tab-btn {
+  border-radius: 5px !important;
+  color: var(--journal-ink) !important;
+  padding: .48rem .62rem !important;
+  letter-spacing: .04em;
+}
+
+#appSidebar .menu .tab-btn:hover {
+  background: rgba(104, 82, 57, .08) !important;
+}
+
+#appSidebar .menu .tab-btn.active {
+  background: rgba(139, 113, 76, .12) !important;
+  color: #765f40 !important;
+  box-shadow: inset 3px 0 0 #9a7d55 !important;
+}
+
+#appSidebar .menu > li:has(> .tab-btn.active)::before {
+  display: none !important;
+}
+
+/* 标签区像书桌上的小索引 */
+.tag-title {
+  color: #665947 !important;
+  border-top: 1px dashed var(--journal-line);
+  margin-top: .75rem;
+  padding-top: .9rem !important;
+}
+
+.sidebar-tag {
+  border-radius: 4px !important;
+  color: var(--journal-muted) !important;
+}
+
+.sidebar-tag:hover,
+.sidebar-tag.active {
+  background: rgba(110, 87, 58, .08) !important;
+  color: #765f40 !important;
+}
+
+/* 刊头：像写在纸页顶部的一句题记 */
+#masthead {
+  padding: 3.8rem 0 1.4rem !important;
+  position: relative;
+}
+
+ 
+
+#masthead .mh-poem {
+  color: #4c453b !important;
+  font-size: 1.12rem !important;
+  letter-spacing: .25em !important;
+}
+
+/* 时间轴：不再像 UI 时间轴，而像笔记本左侧日期栏 */
+#content ul.timeline {
+  max-width: 900px !important;
+}
+
+#content ul.timeline.timeline-vertical.timeline-snap-icon > li {
+  grid-template-columns: 0px 62px minmax(0, 1fr) !important;
+}
+
+#content ul.timeline > li > hr {
+  background: var(--journal-line) !important;
+}
+
+.memo-bubble {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 3px !important;
+  background: #eee5d3 !important;
+  color: #665846 !important;
+  border: 1px solid rgba(87, 68, 44, .16) !important;
+  box-shadow:
+    1px 2px 5px rgba(65, 47, 28, .12) !important;
+  transform: rotate(-1.5deg);
+}
+
+.memo-bubble b {
+  font-size: 1.05rem !important;
+}
+
+.memo-bubble span {
+  color: #8a7b68 !important;
+}
+
+/* 说说卡片：纸页，而不是现代卡片 */
+.memo-card {
+  border-radius: 2px !important;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(130, 104, 70, .035) 1px,
+      transparent 1px
+    ),
+    var(--journal-paper) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(91, 72, 49, .15) !important;
+  padding: 1.45rem 1.55rem 1.2rem !important;
+  box-shadow:
+    0 4px 12px rgba(72, 52, 32, .08) !important;
+}
+
+/* 顶部和纸胶带：每条说说自动继承你已有的 --tape */
+.memo-card::before {
+  top: -10px !important;
+  left: 30px !important;
+  width: 76px !important;
+  height: 20px !important;
+  border-radius: 1px !important;
+  background: color-mix(
+    in oklch,
+    var(--tape, #b49b76) 55%,
+    transparent
+  ) !important;
+  transform: rotate(-2deg) !important;
+  box-shadow: none !important;
+}
+
+/* 让不同说说的胶带稍有变化 */
+#content ul.timeline > li:nth-child(3n+2) .memo-card::before {
+  transform: rotate(2deg) !important;
+  left: 42px !important;
+}
+#content ul.timeline > li:nth-child(3n) .memo-card::before {
+  transform: rotate(-1deg) !important;
+  left: 25% !important;
+}
+
+/* 正文：稍微放松字距，更像手账阅读 */
+.memo-card .memo-text {
+  color: #494238 !important;
+  font-size: 1.02rem !important;
+  line-height: 1.9 !important;
+}
+
+.memo-card .memo-text p {
+  margin: .7em 0 !important;
+}
+
+/* 单图：像照片贴在纸上 */
+.memo-img-single-wrap {
+  border-radius: 2px !important;
+  padding: 7px !important;
+   background: var(--journal-photo-paper) !important;
+  border: 1px solid rgba(72, 53, 33, .10) !important;
+  box-shadow:
+    0 3px 9px rgba(65, 47, 28, .15) !important;
+  transform: rotate(-.35deg);
+}
+
+.memo-img-single-wrap img {
+  border-radius: 0 !important;
+}
+
+/* 连续单图：照片卡 */
+.memo-split {
+  gap: 28px !important;
+}
+
+.split-img {
+  padding: 7px !important;
+   background: var(--journal-photo-paper) !important;
+  box-shadow: 0 4px 10px rgba(65, 47, 28, .14) !important;
+  transform: rotate(-.6deg);
+}
+
+.memo-split.rev .split-img {
+  transform: rotate(.7deg);
+}
+
+.split-img img {
+  height: 235px !important;
+  border-radius: 0 !important;
+}
+
+/* 多图横条：保留原来的拖拽逻辑，只换成照片排布 */
+.carousel-strip {
+  gap: 14px !important;
+  padding: 8px 4px 12px !important;
+}
+
+.carousel-strip .strip-item {
+  padding: 6px !important;
+    background: var(--journal-photo-paper);
+  box-shadow: 0 3px 9px rgba(65, 47, 28, .12);
+}
+
+.carousel-strip .strip-item:nth-child(odd) {
+  transform: rotate(-.45deg);
+}
+
+.carousel-strip .strip-item:nth-child(even) {
+  transform: rotate(.5deg);
+}
+
+.carousel-strip .strip-item img {
+  border-radius: 0 !important;
+}
+
+/* 正文里的标题继续保留原本“手写标记”的味道 */
+.memo-text h2::before,
+.memo-text h2::after {
+  filter: blur(4px) !important;
+  opacity: .20 !important;
+}
+
+/* 页面底部：像纸页边缘 */
+#sentinel {
+  color: #887a68;
+}
+
+#endHint {
+  letter-spacing: .16em;
+}
+
+/* 桌面端给页面一点“纸张不完全平整”的细节 */
+@media (min-width: 1024px) {
+  #appShell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    background:
+      radial-gradient(
+        ellipse at 15% 10%,
+        rgba(255,255,255,.22),
+        transparent 35%
+      ),
+      radial-gradient(
+        ellipse at 90% 90%,
+        rgba(105,78,48,.06),
+        transparent 38%
+      );
+    mix-blend-mode: multiply;
+    opacity: .45;
+  }
+}
+
+/* 手机端：不做“桌面实景”，保留纸页手账感，避免小屏过度装饰 */
+@media (max-width: 1023px) {
+  body {
+    background: var(--journal-paper) !important;
+  }
+
+  #appSidebar {
+    background: var(--journal-paper-deep) !important;
+  }
+
+  #mainScroll > .max-w-5xl {
+    background: var(--journal-paper) !important;
+  }
+
+  .memo-card {
+    margin-bottom: 1.1rem;
+  }
+}
+
+/* ============================================================
+   深色模式：同一套手账结构，换成夜里的木桌 + 米白纸张
+   ============================================================ */
+
+html:is([data-theme="dark"], [data-theme="halloween"]) body {
+  --journal-paper: #25231f;
+  --journal-paper-deep: #211f1b;
+  --journal-ink: #ddd4c3;
+  --journal-muted: #a79b87;
+  --journal-line: rgba(220, 207, 184, .14);
+  --journal-wood-a: #40372e;
+  --journal-wood-b: #302920;
+  --journal-photo-border: #3a342c;
+  --journal-photo-paper: #3a342c;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.018) 0 1px,
+      transparent 1px 5px
+    ),
+    linear-gradient(
+      90deg,
+      #40362c,
+      #2f2821 48%,
+      #40362c
+    ) !important;
+  color: var(--journal-ink);
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) #appShell,
+html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar {
+  background: var(--journal-paper) !important;
+  color: var(--journal-ink) !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar {
+  background: #211f1b !important;
+  border-right-color: rgba(230, 214, 187, .10) !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .side-profile .name,
+html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card .memo-text {
+  color: var(--journal-ink) !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar .menu .tab-btn {
+  color: #c8bdab !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar .menu .tab-btn.active {
+  background: rgba(218, 199, 166, .09) !important;
+  color: #d5bd91 !important;
+  box-shadow: inset 3px 0 0 #aa8b5e !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.018) 1px,
+      transparent 1px
+    ),
+    #292721 !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,.24) !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-bubble {
+  background: #302c25 !important;
+  color: #d8cbb5 !important;
+  border-color: rgba(224, 207, 177, .14) !important;
+}
+
+ 
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card::before {
+  opacity: .78;
+}
+
+/* 关闭原来的“整站图片压暗”，手账照片要像照片 */
+html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
+  filter: none !important;
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hover img {
+  filter: brightness(.92) !important;
+}
+
+/* 全局圆角规则来自旧主题，这里只对手账需要的视觉元素恢复轻微纸张圆角 */
+.memo-card,
+.memo-bubble,
+.memo-img-single-wrap,
+.split-img,
+.carousel-strip .strip-item {
+  border-radius: 3px !important;
+}
+
 </style>
 
 <script>
