@@ -1347,7 +1347,9 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 
         </div>
       </main>
-
+<button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
+  <span class="iconify text-xl" data-icon="arcticons:top-breath"></span>
+</button>
     </div>
   </div>
 
@@ -1438,9 +1440,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   </div>
 </aside>
 
-<button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
-  <span class="iconify text-xl" data-icon="lucide:arrow-up"></span>
-</button>
+
 
 <!-- 底部悬浮歌词药丸栏：播放时显示，歌词过长左右滚动 -->
 <div id="headerLyricsBar" class="hidden">
@@ -5368,7 +5368,42 @@ body {
     max-width: 1050px !important;
     padding: 0 42px 40px !important;
   }
+  
+   
+    /* 回到顶部：纸张右下角的幽灵图标，无底无边 */
+  #toTop {
+    position: absolute !important;
+    bottom: 1.5rem !important;
+    right: 1.5rem !important;
+   
+  }
+
+ 
 }
+
+  /* 回到顶部：纸张右下角的幽灵图标，无底无边 */
+  #toTop {
+    
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: color-mix(in oklch, var(--journal-ink) 55%, transparent) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: color .2s ease, transform .2s ease !important;
+  }
+
+  #toTop:hover {
+    background: transparent !important;
+    color: var(--journal-ink) !important;
+    transform: translateY(-2px);
+  }
+
+  /* 让内层图标本身也有过渡 */
+  #toTop .iconify {
+    font-size: 1.5rem;
+    transition: inherit;
+  }
 
 /* 头像：像贴在笔记本上的照片 */
 .side-profile {
