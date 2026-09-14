@@ -48,6 +48,10 @@
     --color-accent-content: oklch(97% 0.012 75);
     --color-neutral: oklch(38% 0.02 160);
     --color-neutral-content: oklch(93% 0.015 160);
+    /* 圆角尺度（daisyUI 5 token）：勾选 8px / 控件 12px / 卡片 16px */
+    --radius-selector: 0.5rem;
+    --radius-field: 0.75rem;
+    --radius-box: 1rem;
   }
   /* 深色：墨绿炭底 + 亮青主色 */
   [data-theme="halloween"],
@@ -65,13 +69,18 @@
     --color-accent-content: oklch(20% 0.02 85);
     --color-neutral: oklch(30% 0.012 190);
     --color-neutral-content: oklch(88% 0.012 175);
+    /* 圆角尺度（与浅色一致） */
+    --radius-selector: 0.5rem;
+    --radius-field: 0.75rem;
+    --radius-box: 1rem;
   }
   [data-theme="dark"], [data-theme="halloween"] { color-scheme: dark; }
   html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
   body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
-  /* ============ 全站扁平化：去掉所有圆角（面板、卡片、图片、歌词 UI、按钮、头像等） ============ */
-  *, *::before, *::after { border-radius: 0 !important; }
+  /* ============ 全站圆润化：不再全局清零圆角，各组件用自身声明 / 主题半径 ============ */
+  /* 旧规则（扁平化时期，已废弃）：
+     *, *::before, *::after { border-radius: 0 !important; } */
 
   /* 标签徽章：保证 button 上的 badge 继承全局字体 */
   .tag-chip { font-family: inherit; }
@@ -230,7 +239,11 @@
     .poster-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -16px rgb(0 0 0 / .35); }
   }
 
-  .fade-up { animation: fadeUp .45s ease both; }
+  /* fade-up 必须用 backwards 填充：
+     both/forwards 会让动画结束时的 `transform:none` 永久生效，
+     从而把元素自己的 :hover 位移整个吃掉（海报卡片上浮曾因此失效）；
+     另外 `to{opacity:1}` 也会一直压着 opacity-60 这类普通声明。 */
+  .fade-up { animation: fadeUp .45s ease backwards; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
 
   .memo-text { word-break: break-word; overflow-wrap: anywhere; }
@@ -546,7 +559,7 @@
   #content ul.memo-list > li { display: block; width: 100%; margin: 0; padding: 0 0 1.25rem; }
   #content ul.memo-list .memo-card { width: 100%; }
 
-  /* 便签卡：与页面同底色，以描边 + 阴影 + 左上角和纸胶带（颜色随第一个标签）区分 */
+  /* 便签卡：与页面同底色，以描边 + 阴影区分 */
   .memo-card {
     position: relative;
     background: var(--color-base-100);
@@ -555,13 +568,9 @@
     padding: 1.1rem 1.25rem .8rem;
     box-shadow: 0 2px 14px color-mix(in oklch, var(--color-base-content) 7%, transparent);
   }
-  .memo-card::before {
-    content: ''; position: absolute; z-index: 2; top: -9px; left: 24px;
-    width: 62px; height: 18px; transform: rotate(-2deg);
-    background: color-mix(in oklch, var(--tape, var(--color-primary)) 26%, transparent);
-    box-shadow: 0 1px 2px rgb(0 0 0 / .07);
-  }
-  .memo-card.plain::before { display: none; }
+  /* 和纸胶带装饰（.memo-card::before）已彻底移除——用户不再需要胶布 UI。
+     注意：骨架屏 skeletonNotes() 用的也是 .memo-card，所以以前刷新首页时
+     骨架卡片上会露出这块胶布（它没有 .memo-tape-date，:has() 那条隐藏规则不生效）。 */
 
   @media (max-width: 640px) {
     .memo-card { padding: 1rem 1rem .75rem; }
@@ -1012,14 +1021,11 @@
   transition: background .18s ease, color .18s ease;
 }
 
+/* hover 只做颜色反馈，不再出现大方块底 */
 .tag-drawer-close:hover {
-  background: rgba(112, 89, 60, .12);
+  background: transparent !important;
+  box-shadow: none !important;
   color: var(--journal-ink);
-}
-
-.tag-drawer-close:hover {
-  background: rgba(104, 82, 57, .09);
-  transform: rotate(3deg);
 }
 
 .tag-drawer-current {
@@ -1250,7 +1256,8 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-close {
   color: var(--journal-muted);
 }
 html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-close:hover {
-  background: rgba(218, 199, 166, .10);
+  background: transparent !important;
+  box-shadow: none !important;
   color: var(--journal-ink);
 }
 html:is([data-theme="dark"], [data-theme="halloween"]) #tagSelectedSummary,
@@ -1271,6 +1278,11 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 </style>
 </head>
 <body class="min-h-screen paper-bg text-base-content lg:h-screen lg:overflow-hidden">
+
+<!-- 背景光斑：大到柔和、缓慢漂浮的圆形（浅 / 深各一套配色，见样式表 ⑪ 段） -->
+<div id="bgOrbs" aria-hidden="true">
+  <span></span><span></span><span></span><span></span>
+</div>
 
 <!-- ============ 应用框架：daisyUI Drawer —— 大屏左侧固定侧栏，小屏滑出抽屉 ============ -->
 <div class="drawer lg:drawer-open" id="appDrawer">
@@ -1319,7 +1331,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
         </div>
       </main>
 <button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
-  <span class="iconify text-xl" data-icon="arcticons:top-breath"></span>
+  <span class="iconify text-xl" data-icon="gg:pin-top"></span>
 </button>
     </div>
   </div>
@@ -2043,15 +2055,6 @@ function tapeTime(rawDate) {
   if (diff >= 0 && diff < 7 * day) return Math.floor(diff / day) + '天前';
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
-function tapePlacement(m) {
-  const key = String(m.id || '') + '|' + String(m.rawDate || '') + '|' + String(m.content || '').slice(0, 80);
-  let hash = 2166136261;
-  for (let i = 0; i < key.length; i++) { hash ^= key.charCodeAt(i); hash = Math.imul(hash, 16777619); }
-  const unit = (hash >>> 0) / 4294967295;
-  const unit2 = (Math.imul(hash ^ 0x9e3779b9, 1103515245) >>> 0) / 4294967295;
-  return { left: (7 + unit * 61).toFixed(2) + '%', rotate: (-3.2 + unit2 * 6.4).toFixed(2) + 'deg' };
-}
-
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = false, rev = false } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
@@ -2084,15 +2087,12 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = 
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
-  // 胶带颜色随第一个标签；时间和胶带是同一个元素
-  const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
+  // 日期：卡片内部顶部的小号元信息行（胶布 / 随机贴角都已移除，不再需要 --tape）
   const dateText = tapeTime(m.rawDate);
-  const placement = tapePlacement(m);
-  const tapeStyle = `left:${placement.left}; transform:rotate(${placement.rotate});`;
   return `
   <li class="fade-up memo-item" style="${anim}">
-    <article class="memo-card" style="${tape}">
-      ${dateText ? `<span class="memo-tape-date" style="${tapeStyle}" aria-label="发布时间">${dateText}</span>` : ''}
+    <article class="memo-card">
+      ${dateText ? `<span class="memo-tape-date" aria-label="发布时间">${dateText}</span>` : ''}
       ${body}
     </article>
   </li>`;
@@ -2712,9 +2712,9 @@ async function loadClips() {
 }
 
 const CLIP_TYPE_META = {
-  '标注': { icon: 'lucide:highlighter', cls: 'bg-primary/10 text-primary' },
-  '笔记': { icon: 'lucide:pencil', cls: 'bg-secondary/10 text-secondary' },
-  '书签': { icon: 'lucide:bookmark', cls: 'bg-accent/10 text-accent' },
+  '标注': { icon: 'lucide:highlighter', cls: 'bg-primary/10 text-primary', fg: 'text-primary' },
+  '笔记': { icon: 'lucide:pencil', cls: 'bg-secondary/10 text-secondary', fg: 'text-secondary' },
+  '书签': { icon: 'lucide:bookmark', cls: 'bg-accent/10 text-accent', fg: 'text-accent' },
 };
 
 function renderClips() {
@@ -2732,7 +2732,7 @@ function renderClips() {
         ${books.map((b, i) => `
         <li class="list-row">
           <div class="text-4xl font-thin opacity-30 tabular-nums">${String(i + 1).padStart(2, '0')}</div>
-          <div class="size-10 rounded-box bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <div class="clips-ico size-10 text-primary flex items-center justify-center shrink-0">
             <span class="iconify text-xl" data-icon="lucide:book-open"></span>
           </div>
           <div class="list-col-grow min-w-0">
@@ -2773,7 +2773,7 @@ function renderClips() {
           return `
         <li class="list-row">
           <div class="text-4xl font-thin opacity-30 tabular-nums">${String(i + 1).padStart(2, '0')}</div>
-          <div class="size-10 rounded-box ${tm.cls} flex items-center justify-center shrink-0" title="${c.type}">
+          <div class="clips-ico size-10 ${tm.fg} flex items-center justify-center shrink-0" title="${c.type}">
             <span class="iconify text-xl" data-icon="${tm.icon}"></span>
           </div>
           <div class="list-col-grow min-w-0">
@@ -3110,6 +3110,18 @@ const WC_ZONES = [
   { tz: 'UTC',                name: 'UTC',    region: '协调世界时' },
 ];
 let wcTimer = null;
+/* 这个视图里最细的粒度是"分钟"（列表只显示 HH:MM、日期、昼夜段），
+   只有顶部北京时钟需要秒级刷新。用分钟戳做缓存，别每秒把 14 行全部标脏。 */
+let wcMinuteStamp = null;
+/* 昼夜段图标只有 4 种，而且配色 cls 完全由图标决定
+   （moon→secondary / sunrise·sun→warning / sunset→error）。
+   一次性把 4 个变体都渲染进同一个格子（grid-area 叠放），之后每秒只切 display。
+   原因：原来每秒 innerHTML 重建一个 `<span class="iconify">`，
+   Iconify 得异步重画 SVG —— 实测图标每秒缺 1~2 帧，就是用户看到的"闪一闪"。 */
+const WC_PART_ICONS = ['lucide:moon', 'lucide:sunrise', 'lucide:sun', 'lucide:sunset'];
+const WC_ICON_VARIANTS = WC_PART_ICONS
+  .map(ic => `<span class="iconify text-xl" data-icon="${ic}" data-wc-pv="${ic}" style="grid-area:1/1;display:none"></span>`)
+  .join('');
 
 function wcParts(tz, date = new Date()) {
   const dtf = new Intl.DateTimeFormat('zh-CN', {
@@ -3179,7 +3191,7 @@ function renderWorldClock() {
   const zoneOptions = WC_ZONES.map(z => `<option value="${z.tz}" ${z.tz === 'America/New_York' ? 'selected' : ''}>${z.name} · ${z.region}</option>`).join('');
   const rows = WC_ZONES.map(z => `
     <li class="list-row items-center" data-wc-row="${z.tz}">
-      <div class="size-10 rounded-lg grid place-items-center shrink-0 wc-daybox" data-wc-icon="${z.tz}"></div>
+      <div class="size-10 rounded-lg grid place-items-center shrink-0 wc-daybox" data-wc-icon="${z.tz}">${WC_ICON_VARIANTS}</div>
       <div class="list-col-grow min-w-0">
         <div class="text-sm font-semibold">${z.name}</div>
         <div class="text-xs opacity-50">${z.region}</div>
@@ -3231,6 +3243,7 @@ function renderWorldClock() {
   </div>`;
 
   $('#wcConvert').onclick = wcConvertClick;
+  wcMinuteStamp = null;   // 刚重建过 DOM，缓存作废，强制走一次完整刷新（否则会停在 --:--）
   updateWcTimes();
   startWcTick();
 }
@@ -3238,10 +3251,25 @@ function renderWorldClock() {
 function updateWcTimes() {
   const now = new Date();
   const main = wcParts(WC_BJ, now);
+
+  // ① 顶部北京时钟：唯一需要每秒刷新的东西
   const mainTime = contentEl.querySelector('[data-wc-main-time]');
-  if (mainTime) mainTime.textContent = `${main.hour}:${main.minute}:${main.second}`;
+  if (mainTime) {
+    const t = `${main.hour}:${main.minute}:${main.second}`;
+    if (mainTime.textContent !== t) mainTime.textContent = t;
+  }
+
+  // ② 其余全是"分钟级"信息，同一分钟内直接跳过。
+  //    这就是"闪一闪"的根治点：原来每秒都要重写 14 行 × 4 个字段，
+  //    还把每行的昼夜图标 innerHTML 拆掉重画，实测每秒 86 次 DOM 变更（新增 72 / 删除 72 个节点），
+  //    图标每秒缺 1~2 帧。
+  const stamp = `${main.year}-${main.month}-${main.day} ${main.hour}:${main.minute}`;
+  if (stamp === wcMinuteStamp) return;
+  wcMinuteStamp = stamp;
+
   const mainDate = contentEl.querySelector('[data-wc-main-date]');
   if (mainDate) mainDate.textContent = `${main.year} 年 ${main.month} 月 ${main.day} 日 · ${main.weekday}`;
+
   WC_ZONES.forEach(z => {
     const p = wcParts(z.tz, now);
     const part = wcDayPart(+p.hour);
@@ -3252,10 +3280,24 @@ function updateWcTimes() {
     if (tEl) tEl.textContent = `${p.hour}:${p.minute}`;
     if (dEl) dEl.textContent = `${p.month}-${p.day} ${p.weekday}`;
     if (pEl) pEl.textContent = part.t;
-    if (iEl) iEl.className = `size-10 rounded-lg grid place-items-center shrink-0 ${part.cls}`;
-    if (iEl) iEl.innerHTML = `<span class="iconify text-xl" data-icon="${part.icon}"></span>`;
+    if (iEl) {
+      // 只切换 4 个预渲染图标的显隐：不建 DOM、不碰 innerHTML。
+      // 注意：Iconify 会把 `<span class="iconify">` 整个换成 `<svg>`（保留属性），
+      // 所以这里同时兼容自己的 data-wc-pv 和 iconify 自己的 data-icon，避免将来被换掉就失联。
+      iEl.querySelectorAll('[data-wc-pv],[data-icon]').forEach(s => {
+        const ic = s.dataset.wcPv || s.dataset.icon;
+        s.style.display = ic === part.icon ? '' : 'none';
+      });
+      // 外层只负责配色。注意必须保留 wc-daybox —— 原来重写 className 时把它丢了，
+      // 使得末段那条 `#content .wc-root .wc-daybox{...}` 覆盖样式只生效 1 秒。
+      if (iEl.dataset.wcCls !== part.cls) {
+        iEl.dataset.wcCls = part.cls;
+        iEl.className = `size-10 rounded-lg grid place-items-center shrink-0 wc-daybox ${part.cls}`;
+      }
+    }
   });
-  // 提醒倒计时
+
+  // ③ 提醒倒计时（文案本身就是"X 小时 Y 分 / X 分钟"，分钟级足够）
   contentEl.querySelectorAll('[data-cd-utc]').forEach(el => {
     const ms = Date.parse(el.dataset.cdUtc) - Date.now();
     el.textContent = ms <= 0 ? '即将开始 / 已开始' : `还有 ${fmtDelta(ms)}`;
@@ -4127,8 +4169,8 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
         initLyricsFloatDrag();
 
         const ICONS = {
-          play: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>',
-          pause: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>',
+          play: '<span class="iconify" data-icon="solar:play-bold"></span>',
+          pause: '<span class="iconify" data-icon="solar:pause-bold"></span>',
           heart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.1,18.55L12,18.65L11.89,18.55C7.14,14.24 4,11.39 4,8.5C4,6.5 5.5,5 7.5,5C9.04,5 10.54,6 11.07,7.36H12.93C13.46,6 14.96,5 16.5,5C18.5,5 20,6.5 20,8.5C20,11.39 16.86,14.24 12.1,18.55M16.5,3C14.76,3 13.09,3.81 12,5.08C10.91,3.81 9.24,3 7.5,3C4.42,3 2,5.41 2,8.5C2,12.27 5.4,15.36 10.55,20.03L12,21.35L13.45,20.03C18.6,15.36 22,12.27 22,8.5C22,5.41 19.58,3 16.5,3Z"/></svg>',
           heartFilled: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/></svg>',
           repeat: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17,17H7V14L3,18L7,22V19H19V13H17M7,7H17V10L21,6L17,2V5H5V11H7V7Z"/></svg>',
@@ -5256,26 +5298,22 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   --journal-line: rgba(80, 68, 52, .16);
   --journal-wood-a: #b59a7b;
   --journal-wood-b: #9d8063;
-  --journal-tape: rgba(188, 161, 113, .56);
    --journal-photo-border: #f8f2e5;
    --journal-photo-paper: #f8f3e8;
 }
 
-/* 桌面：不用任何外部壁纸，纯 CSS 做旧木桌 */
+/* 桌面：不用任何外部壁纸，纯 CSS 做旧木桌
+   ★ 原来这里还叠了一层 repeating-linear-gradient(0deg, ... 0 1px, transparent 1px 5px) 的木纹细横纹。
+     以前 #appShell 是不透明的把它挡住了；现在 #appShell 透明（为了透出 #bgOrbs 光斑），
+     那层 5px 横纹就会在整个页面背景上一横一横地显出来 → 整个删掉，只保留平滑的木色渐变。 */
 html,
 body {
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(74, 54, 35, .035) 0 1px,
-      transparent 1px 5px
-    ),
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--journal-wood-a) 86%, #fff),
-      var(--journal-wood-b) 48%,
-      color-mix(in srgb, var(--journal-wood-a) 88%, #fff)
-    ) !important;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--journal-wood-a) 86%, #fff),
+    var(--journal-wood-b) 48%,
+    color-mix(in srgb, var(--journal-wood-a) 88%, #fff)
+  ) !important;
   color: var(--journal-ink);
 }
 
@@ -5385,15 +5423,16 @@ body {
   margin-bottom: .6rem;
 }
 
+/* 头像：圆形外框（去掉原来的方照片 + 旋转） */
 .side-profile img {
   width: 58px !important;
   height: 58px !important;
-  border-radius: 4px !important;
-   border: 5px solid var(--journal-photo-border, #f8f2e5) !important;
+  border-radius: 50% !important;
+  border: 3px solid var(--journal-photo-border, #f8f2e5) !important;
   box-shadow:
-    0 2px 5px rgba(45, 32, 19, .18),
-    0 0 0 1px rgba(80, 65, 45, .10) !important;
-  transform: rotate(-2deg);
+    0 2px 8px rgba(45, 32, 19, .20),
+    0 0 0 1px rgba(80, 65, 45, .12) !important;
+  transform: none !important;
 }
 
 .side-profile .name {
@@ -5526,23 +5565,7 @@ body {
     0 4px 12px rgba(72, 52, 32, .08) !important;
 }
 
-/* 顶部和纸胶带：每条说说自动继承你已有的 --tape */
-.memo-card::before {
-  top: -10px !important;
-  left: 30px !important;
-  width: 76px !important;
-  height: 20px !important;
-  border-radius: 1px !important;
-  background: color-mix(
-    in oklch,
-    var(--tape, #b49b76) 55%,
-    transparent
-  ) !important;
-  transform: rotate(-2deg) !important;
-  box-shadow: none !important;
-}
-
-/* 让不同说说的胶带稍有变化 */
+/* 和纸胶带装饰已移除（见前面 .memo-card::before 处的说明） */
 
 /* 正文：稍微放松字距，更像手账阅读 */
 .memo-card .memo-text {
@@ -5688,22 +5711,24 @@ html:is([data-theme="dark"], [data-theme="halloween"]) body {
   --journal-wood-b: #302920;
   --journal-photo-border: #3a342c;
   --journal-photo-paper: #3a342c;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255,255,255,.018) 0 1px,
-      transparent 1px 5px
-    ),
-    linear-gradient(
-      90deg,
-      #40362c,
-      #2f2821 48%,
-      #40362c
-    ) !important;
+  /* 同上：深色这层 5px 米白横纹也一并去掉，背景只留平滑的暗木色 */
+  background: linear-gradient(
+    90deg,
+    #40362c,
+    #2f2821 48%,
+    #40362c
+  ) !important;
   color: var(--journal-ink);
 }
 
-html:is([data-theme="dark"], [data-theme="halloween"]) #appShell,
+/* 深色：#appShell 必须保持透明——否则这块不透明的 #25231f 会把 #bgOrbs 的光斑
+   整个挡在内容面板外面（只看得见外框边缘那一点点）。浅色走的就是 transparent 这条路，
+   这里让深色对齐：深色的「纸面」基调由 #appDrawer 的半透明底色 rgba(35,32,28,.54) 承担。 */
+html:is([data-theme="dark"], [data-theme="halloween"]) #appShell {
+  background: transparent !important;
+  color: var(--journal-ink) !important;
+}
+
 html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar {
   background: var(--journal-paper) !important;
   color: var(--journal-ink) !important;
@@ -5755,9 +5780,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card {
 
  
 
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card::before {
-  opacity: .78;
-}
+/* 胶布已移除，深色下这条透明度规则一并去掉 */
 
 /* 关闭原来的“整站图片压暗”，手账照片要像照片 */
 html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
@@ -5779,15 +5802,20 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hov
 
 /* ============================================================
    Apple Glass · 终极媒体与书签精修
+   圆角阶梯（2026-09-14 统一）：大面板 16px → 说说卡片 12px。
+   原先外框 28px、.music-drawer 22px，比内部卡片还圆，呈"倒挂"。
+   用户以 12px 说卡片为准，外框收到 16px（与海报磁贴 / .cmdk-panel /
+   .tag-drawer-current 同档），保证"容器不比内容更圆"。
+   移动端 ≤640px 外框仍为 0（全屏贴边），不受此影响。
    ============================================================ */
-:root{--glass-blur:blur(22px) saturate(145%);--glass-blur-strong:blur(34px) saturate(155%);--glass-radius-xl:28px;--glass-radius-lg:22px}
+:root{--glass-blur:blur(22px) saturate(145%);--glass-blur-strong:blur(34px) saturate(155%);--glass-radius-xl:16px;--glass-radius-lg:16px}
 html:not([data-theme="dark"]):not([data-theme="halloween"]){--garden-mint-0:#f2faf6;--garden-mint-1:#e3f4ec;--garden-paper:#fff;--garden-ink:#17352d;--garden-muted:#5c746b;--garden-green:#12a67a;--garden-green-deep:#087a5a}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) body{background:radial-gradient(circle at 85% 6%,rgb(139 114 246/.25),transparent 29rem),radial-gradient(circle at 7% 92%,rgb(18 166 122/.24),transparent 32rem),radial-gradient(circle at 48% 44%,rgb(47 128 237/.11),transparent 25rem),linear-gradient(135deg,var(--garden-mint-0),var(--garden-mint-1))!important;color:var(--garden-ink)!important}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) body{background:linear-gradient(135deg,var(--garden-mint-0),var(--garden-mint-1))!important;color:var(--garden-ink)!important}
 #appDrawer{border-radius:var(--glass-radius-xl)!important;overflow:hidden!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer{background:rgb(255 255 255/.34)!important;border:1px solid rgb(255 255 255/.68)!important;box-shadow:0 28px 70px rgb(24 78 62/.17),inset 0 1px 0 rgb(255 255 255/.74)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #appDrawer{background:rgb(35 32 28/.54)!important;border:1px solid rgb(255 239 210/.09)!important;box-shadow:0 26px 72px rgb(0 0 0/.42),inset 0 1px 0 rgb(255 240 216/.04)!important}
 #appSidebar{-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong)}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar{background:linear-gradient(155deg,rgb(255 255 255/.70),rgb(229 247 239/.53))!important;border-right:1px solid rgb(255 255 255/.72)!important;box-shadow:14px 0 36px rgb(24 78 62/.10),inset -1px 0 0 rgb(255 255 255/.52)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #appSidebar{background:linear-gradient(155deg,rgb(47 43 37/.78),rgb(29 27 23/.67))!important;border-right:1px solid rgb(255 239 210/.08)!important;box-shadow:14px 0 36px rgb(0 0 0/.26),inset -1px 0 0 rgb(255 240 216/.04)!important}#appShell,#mainScroll{background:transparent!important}
 #appSidebar .menu .tab-btn,.sidebar-tag,.btn,.badge,.memo-tag,#mediaPager .btn{border-radius:999px!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn{color:var(--garden-muted)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn:hover{background:rgb(255 255 255/.54)!important;color:var(--garden-green-deep)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.72),0 5px 14px rgb(18 166 122/.09)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn.active{background:linear-gradient(110deg,rgb(18 166 122/.25),rgb(47 128 237/.16))!important;color:var(--garden-green-deep)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.70),0 6px 18px rgb(18 166 122/.14)!important}
 /* 说说 */
-#content ul.memo-list{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}#content ul.memo-list>li{width:100%!important;padding:0 0 1.25rem!important}#content ul.memo-list .memo-card{width:100%!important;border-radius:var(--glass-radius-lg)!important;padding:1.45rem 1.55rem 1.2rem!important;border:1px solid transparent!important;transition:transform .22s ease,box-shadow .22s ease!important}#content ul.memo-list .memo-card:hover{transform:translateY(-2px)}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(255 255 255/.76),rgb(255 255 255/.68)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(18 166 122/.038) 32px,rgb(18 166 122/.038) 33px)!important;border-color:rgb(255 255 255/.76)!important;box-shadow:0 13px 30px rgb(24 78 62/.12),inset 0 1px 0 rgb(255 255 255/.84)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) .memo-card .memo-text{color:var(--garden-ink)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(47 44 38/.86),rgb(38 36 31/.79)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(220 207 184/.035) 32px,rgb(220 207 184/.035) 33px)!important;border-color:rgb(255 239 210/.075)!important;box-shadow:0 13px 30px rgb(0 0 0/.25),inset 0 1px 0 rgb(255 240 216/.05)!important}#content ul.memo-list .memo-card::after{content:none!important;display:none!important}
+#content ul.memo-list{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}#content ul.memo-list>li{width:100%!important;padding:0 0 1.25rem!important}#content ul.memo-list .memo-card{width:100%!important;border-radius:var(--glass-radius-lg)!important;padding:1.45rem 1.55rem 1.2rem!important;border:1px solid transparent!important;transition:box-shadow .22s ease!important}#content ul.memo-list .memo-card:hover{transform:none!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(255 255 255/.76),rgb(255 255 255/.68)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(18 166 122/.038) 32px,rgb(18 166 122/.038) 33px)!important;border-color:rgb(255 255 255/.76)!important;box-shadow:0 13px 30px rgb(24 78 62/.12),inset 0 1px 0 rgb(255 255 255/.84)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) .memo-card .memo-text{color:var(--garden-ink)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(47 44 38/.86),rgb(38 36 31/.79)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(220 207 184/.035) 32px,rgb(220 207 184/.035) 33px)!important;border-color:rgb(255 239 210/.075)!important;box-shadow:0 13px 30px rgb(0 0 0/.25),inset 0 1px 0 rgb(255 240 216/.05)!important}#content ul.memo-list .memo-card::after{content:none!important;display:none!important}
 /* ===== 影视专区：更克制的玻璃画廊，而非过度圆润的泡泡卡片 ===== */
 /* 筛选区域按“工具条”整理，信息统计与海报网格拉开恰当呼吸 */
 #content>div:has(.mf-type){display:flex!important;flex-direction:column!important;gap:14px!important}
@@ -5799,20 +5827,459 @@ html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf
 #content .mf-type+span,#content .mf-range+span,#content .mf-genre+span{border-radius:999px!important;transition:transform .16s ease,box-shadow .16s ease!important}#content label:has(.mf-type),#content label:has(.mf-range),#content label:has(.mf-genre){border-radius:999px!important}#content label:has(.mf-type):hover,#content label:has(.mf-range):hover,#content label:has(.mf-genre):hover{transform:translateY(-1px)}
 #content .mf-clear{border-radius:999px!important;padding-inline:12px!important;min-height:30px!important}
 /* 海报卡减少圆角到 16px，图片与文本为统一的精致卡片 */
-#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{border-radius:16px!important;overflow:hidden!important;transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*>img{border-radius:12px!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{transform:translateY(-3px)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(255 255 255/.48)!important;border:1px solid rgb(255 255 255/.74)!important;box-shadow:0 8px 20px rgb(24 78 62/.10),inset 0 1px 0 rgb(255 255 255/.76)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{border-color:rgb(18 166 122/.26)!important;box-shadow:0 13px 28px rgb(24 78 62/.15),inset 0 1px 0 rgb(255 255 255/.9)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(48 44 38/.62)!important;border:1px solid rgb(255 239 210/.08)!important;box-shadow:0 8px 20px rgb(0 0 0/.24),inset 0 1px 0 rgb(255 240 216/.04)!important}
+#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{border-radius:16px!important;overflow:hidden!important;transition:transform .34s cubic-bezier(.22,.61,.36,1),box-shadow .34s ease,border-color .34s ease!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*>img{border-radius:12px!important}/* 看过 / 想看：hover 上浮 */
+#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{transform:translateY(-6px)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(255 255 255/.48)!important;border:1px solid rgb(255 255 255/.74)!important;box-shadow:0 8px 20px rgb(24 78 62/.10),inset 0 1px 0 rgb(255 255 255/.76)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{border-color:rgb(18 166 122/.30)!important;box-shadow:0 24px 44px -16px rgb(24 78 62/.30),0 10px 22px rgb(24 78 62/.13),inset 0 1px 0 rgb(255 255 255/.95)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(48 44 38/.62)!important;border:1px solid rgb(255 239 210/.08)!important;box-shadow:0 8px 20px rgb(0 0 0/.24),inset 0 1px 0 rgb(255 240 216/.04)!important}
+/* 暗色原本缺 hover 影子规则，只有位移 → 看着"不优雅"。这里补上浮起来的投影 */
+html:is([data-theme="dark"],[data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{border-color:rgb(255 239 210/.18)!important;box-shadow:0 26px 48px -18px rgb(0 0 0/.58),0 12px 24px rgb(0 0 0/.30),inset 0 1px 0 rgb(255 240 216/.10)!important}
 /* 翻页控件恢复可点击的轻玻璃托盘，消除原本大面积异色底层 */
 #mediaPager{background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;padding:12px 0 calc(14px + env(safe-area-inset-bottom,0px))!important}#mediaPager .join{padding:5px!important;border-radius:999px!important;background:rgb(255 255 255/.42)!important;border:1px solid rgb(255 255 255/.68)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.76),0 7px 16px rgb(24 78 62/.10)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #mediaPager .join{background:rgb(48 44 38/.56)!important;border-color:rgb(255 239 210/.08)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.05),0 7px 16px rgb(0 0 0/.22)!important}#mediaPager .join .btn{min-width:32px!important;background:transparent!important;box-shadow:none!important;border-color:transparent!important}#mediaPager .join .btn:hover:not(.btn-disabled){background:rgb(18 166 122/.10)!important}#mediaPager .join .btn-active{background:rgb(18 166 122/.19)!important;border-color:rgb(18 166 122/.25)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.48)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #mediaPager .join .btn-active{background:rgb(171 130 84/.23)!important;border-color:rgb(255 239 210/.12)!important}
 /* 歌词 */
 .music-drawer .hw-pl-view-lyrics{border:1px solid transparent!important;border-radius:18px!important;overflow:hidden!important;margin:8px 2px 10px!important;padding:7px!important}.music-drawer .hw-lyrics-scroll-full{border-radius:13px!important;padding:8px 10px!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-pl-view-lyrics{background:rgb(255 255 255/.48)!important;border-color:rgb(255 255 255/.72)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.82),0 6px 15px rgb(24 78 62/.08)!important}html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-pl-view-lyrics{background:rgb(255 245 226/.055)!important;border-color:rgb(255 239 210/.07)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.05)!important}
 /* 标注/世界时间：直出列表 */
 #content .list.bg-base-100.rounded-box.shadow-md{background:transparent!important;box-shadow:none!important;border-radius:0!important}#content .list.bg-base-100.rounded-box.shadow-md>li{background:transparent!important;border-radius:0!important;border-bottom:1px solid rgb(128 128 128/.17)!important;box-shadow:none!important}#content .list.bg-base-100.rounded-box.shadow-md>li:last-child{border-bottom:none!important}#content .wc-root .rounded-2xl{background:transparent!important;box-shadow:none!important}#content .wc-root .rounded-2xl:not(:first-child){border-color:rgb(128 128 128/.18)!important;border-left:0!important;border-right:0!important;border-radius:0!important}
+/* 浅色模式下最上方的北京时间卡片会露出一圈边框：去掉，跟深色一样直接贴在页面上 */
+#content .wc-root>.rounded-2xl:first-child{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
 /* 书签最终去方块：针对常见图标容器与链接图标的伪元素 */
 #content .bm-body [class*="bg-"],#content .bm-body .avatar,#content .bm-body .mask,#content .bm-body .mask-squircle,#content .bm-body .rounded-box,#content .bm-body .rounded-lg,#content .bm-body .rounded-xl,#content .bm-body .rounded-2xl,#content .bm-body .size-8,#content .bm-body .size-10,#content .bm-body .size-12,#content .bm-body .badge{background:transparent!important;box-shadow:none!important;border-color:transparent!important;border-radius:0!important}#content .bm-body [class*="bg-"]::before,#content .bm-body [class*="bg-"]::after{box-shadow:none!important}#content .bm-body .iconify,#content .bm-body svg{background:transparent!important}#content .bm-body>*,#content .bm-body .list-row{box-shadow:none!important}
+/* 标注页：书本 / 标注类型图标去掉大方框，改成透明样式直接贴背景 */
+#content .clips-ico{background:transparent!important;box-shadow:none!important;border:0!important;border-radius:0!important;width:auto!important;height:auto!important;min-width:0!important;padding:0!important}
 /* 标注、热搜、书签、世界时间内的序号 / icon 均直接贴背景 */
 #content .list-row> :first-child:not(.list-col-grow),#content .hot-body [class*="bg-base"],#content .hot-body [class*="rank"],#content .hot-body [class*="index"],#content .hot-body [class*="num"],#content .hot-body .badge,#content .wc-root .wc-daybox{background:transparent!important;box-shadow:none!important;border-color:transparent!important;border-radius:0!important}#content .list-row> :first-child:not(.list-col-grow){min-width:auto!important;width:auto!important;height:auto!important;padding:0!important;margin-right:.7rem!important}
-/* 胶带 */
-.memo-tape-date{position:absolute;z-index:3;top:-10px;width:76px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:7px!important;background:color-mix(in oklch,var(--tape,#b49b76) 58%,transparent);color:#33261d;font-family:"Courier New","Courier",monospace;font-size:.76rem;font-weight:700;letter-spacing:.02em;line-height:1;white-space:nowrap;text-shadow:0 1px 0 rgb(255 255 255/.25);pointer-events:none;box-shadow:inset 0 1px 0 rgb(255 255 255/.28),0 3px 7px rgb(0 0 0/.08)}.memo-card:has(.memo-tape-date)::before{display:none!important}html:is([data-theme="dark"],[data-theme="halloween"]) .memo-tape-date{color:#f4e7d9;text-shadow:0 1px 1px rgb(0 0 0/.45)}
-@media(max-width:640px){#appDrawer{border-radius:0!important}#content ul.memo-list>li{padding-bottom:1rem!important}#content ul.memo-list .memo-card{padding:1.2rem 1rem 1rem!important;border-radius:18px!important}.memo-tape-date{width:72px;font-size:.72rem}#content>div:has(.mf-type)>.grid{gap:10px!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover,#content ul.memo-list .memo-card:hover{transform:none!important}}
+/* 时间：卡片内部顶部的小号元信息行（原"胶布"UI 已全部移除） */
+.memo-tape-date{position:static;display:inline-flex;align-items:center;width:auto;height:auto;margin:0 0 .6rem;padding:.2rem .62rem;border-radius:999px!important;background:color-mix(in oklch,var(--tape,var(--color-primary)) 16%,transparent);color:color-mix(in oklch,var(--tape,var(--color-primary)) 78%,var(--color-base-content));font-family:var(--font-family);font-size:.74rem;font-weight:600;letter-spacing:.02em;line-height:1.5;white-space:nowrap;text-shadow:none;box-shadow:none}html:is([data-theme="dark"],[data-theme="halloween"]) .memo-tape-date{background:color-mix(in oklch,var(--tape,var(--color-primary)) 24%,transparent)}
+@media(max-width:640px){#appDrawer{border-radius:0!important}#content ul.memo-list>li{padding-bottom:1rem!important}#content ul.memo-list .memo-card{padding:1.2rem 1rem 1rem!important;border-radius:18px!important}#content>div:has(.mf-type)>.grid{gap:10px!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:not(.poster-card):hover,#content ul.memo-list .memo-card:hover{transform:none!important}}
+
+/* ============================================================
+   标签抽屉 + 歌单抽屉：圆角玻璃化，配色对齐主页侧栏菜单
+   ============================================================ */
+/* ① 从贴边直角长条改为悬浮圆角面板 */
+.tag-drawer,
+.music-drawer{
+  border-width:1px!important;
+  border-style:solid!important;
+  border-radius:var(--glass-radius-lg)!important;
+  overflow:hidden!important;
+  transition:transform .38s cubic-bezier(.22,1,.36,1),box-shadow .3s ease!important;
+}
+.tag-drawer{top:10px!important;bottom:10px!important;left:10px!important;transform:translateX(calc(-100% - 28px))!important}
+.tag-drawer.open{transform:translateX(0)!important}
+.music-drawer{top:10px!important;bottom:10px!important;right:10px!important;height:auto!important;transform:translateX(calc(100% + 28px))!important}
+.music-drawer.open{transform:translateX(0)!important}
+/* 原右侧装饰竖线在圆角面板里多余 */
+.tag-drawer::after{display:none!important}
+
+/* ② 浅色：对齐 Garden 侧栏（白绿玻璃 + 薄白边 + 柔光） */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer,
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer{
+  --panel-accent:var(--garden-green);
+  --panel-accent-deep:var(--garden-green-deep);
+  --panel-ink:var(--garden-ink);
+  --panel-border:rgb(255 255 255/.72);
+  /* 内部原本引用手账配色，这里整体换成 Garden 绿调 */
+  --journal-ink:var(--garden-ink);
+  --journal-muted:var(--garden-muted);
+  --journal-line:rgb(18 166 122/.16);
+  background:linear-gradient(155deg,rgb(255 255 255/.80),rgb(229 247 239/.64))!important;
+  border-color:var(--panel-border)!important;
+  box-shadow:0 24px 60px rgb(24 78 62/.22),inset 0 1px 0 rgb(255 255 255/.80)!important;
+  color:var(--panel-ink)!important;
+  -webkit-backdrop-filter:var(--glass-blur-strong);
+  backdrop-filter:var(--glass-blur-strong);
+}
+/* ③ 深色：对齐手账侧栏（暖炭玻璃 + 米金点缀） */
+html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer,
+html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer{
+  --panel-accent:#d5bd91;
+  --panel-accent-deep:#d5bd91;
+  --panel-ink:var(--journal-ink);
+  --panel-border:rgb(255 239 210/.10);
+  background:linear-gradient(155deg,rgb(47 43 37/.92),rgb(29 27 23/.88))!important;
+  border-color:var(--panel-border)!important;
+  box-shadow:0 24px 60px rgb(0 0 0/.55),inset 0 1px 0 rgb(255 240 216/.05)!important;
+  color:var(--panel-ink)!important;
+  -webkit-backdrop-filter:var(--glass-blur-strong);
+  backdrop-filter:var(--glass-blur-strong);
+}
+
+/* ④ 标签项：胶囊化，hover / 选中态与侧栏菜单同款 */
+.tag-drawer-list .tag-chip{
+  border-radius:999px!important;
+  border-bottom-color:transparent!important;
+}
+.tag-drawer-list .tag-chip:hover{padding-left:10px!important}
+.tag-drawer-close{border-radius:999px!important}
+.tag-drawer-current{border-radius:16px!important;border-left:0!important}
+#tagSelectedCount{border-radius:999px!important}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-list .tag-chip:hover{
+  background:rgb(255 255 255/.60)!important;
+  color:var(--garden-green-deep)!important;
+  box-shadow:inset 0 1px 0 rgb(255 255 255/.72),0 5px 14px rgb(18 166 122/.10)!important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-list .tag-chip.active{
+  background:linear-gradient(110deg,rgb(18 166 122/.26),rgb(47 128 237/.18))!important;
+  border-color:transparent!important;
+  color:var(--garden-green-deep)!important;
+  box-shadow:inset 0 1px 0 rgb(255 255 255/.70),0 6px 18px rgb(18 166 122/.16)!important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-current{
+  background:rgb(255 255 255/.52)!important;
+  box-shadow:inset 0 1px 0 rgb(255 255 255/.72)!important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #tagSelectedSummary,
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-clear:hover,
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-check{
+  color:var(--garden-green-deep)!important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #tagSelectedCount{
+  border-color:rgb(18 166 122/.24)!important;
+  background:rgb(18 166 122/.10)!important;
+  color:var(--garden-green-deep)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-list .tag-chip:hover{
+  background:rgba(218,199,166,.09)!important;
+  color:#d5bd91!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-list .tag-chip.active{
+  background:rgba(218,199,166,.13)!important;
+  border-color:transparent!important;
+  color:#d5bd91!important;
+  box-shadow:inset 0 1px 0 rgba(255,240,216,.06)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-current{
+  background:rgba(218,199,166,.07)!important;
+  border-left-color:transparent!important;
+}
+
+/* ⑤ 歌单：圆角组件 + 主题色跟随侧栏 */
+.music-drawer{
+  --accent:var(--panel-accent)!important;
+  --accent-color:var(--panel-accent)!important;
+  --accent-dark:color-mix(in oklch,var(--panel-accent) 82%,black)!important;
+  --text:var(--panel-ink)!important;
+  --text-main:var(--panel-ink)!important;
+  --secondary-text:color-mix(in oklch,var(--panel-ink) 58%,transparent)!important;
+  --text-muted:color-mix(in oklch,var(--panel-ink) 58%,transparent)!important;
+  --border:var(--panel-border)!important;
+  --border-light:var(--panel-border)!important;
+  --bg-player:color-mix(in oklch,var(--panel-ink) 7%,transparent)!important;
+  --dot-normal:color-mix(in oklch,var(--panel-ink) 18%,transparent)!important;
+}
+.music-drawer .hw-pl-cover{border-radius:14px!important}
+.music-drawer .hw-pl-row-thumb{border-radius:10px!important}
+.music-drawer .hw-btn,.music-drawer .hw-play{border-radius:999px!important}
+.music-drawer .hw-pl-row{
+  border-radius:999px!important;
+  padding-left:8px!important;
+  padding-right:8px!important;
+}
+.music-drawer .hw-pl-view-lyrics{
+  border:0!important;
+  border-radius:16px!important;
+  background:color-mix(in oklch,var(--panel-ink) 6%,transparent)!important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-pl-row:hover,
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-btn:not(.hw-play):hover{
+  background:rgb(255 255 255/.60)!important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-pl-row.playing{
+  background:linear-gradient(110deg,rgb(18 166 122/.20),rgb(47 128 237/.12))!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-pl-row:hover,
+html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-btn:not(.hw-play):hover{
+  background:rgba(218,199,166,.08)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-pl-row.playing{
+  background:rgba(218,199,166,.13)!important;
+}
+/* ⑥ 补齐被全局 border-radius:0 抹掉的圆角（复读徽章 / 进度条 / 歌词浮窗） */
+.music-drawer .hw-repeat-badge{border-radius:999px!important}
+.music-drawer .hw-progress{border-radius:999px!important}
+.hw-lyrics-float{border-radius:18px!important}
+.hw-lyrics-float-close{border-radius:999px!important}
+/* 抽屉顶部虚线分隔也换成主题色 */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-head{
+  border-bottom-color:rgb(18 166 122/.18)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-head{
+  border-bottom-color:rgba(255,239,210,.11)!important;
+}
+
+/* ============================================================
+   ⑦ 全局圆润化收尾：把当年为了"扁平"压成 2~3px 的直角组件提上来
+   ============================================================ */
+/* 说说纸页卡片 */
+.memo-card{border-radius:var(--glass-radius-lg)!important}
+/* 照片框：外层与内层圆角同心（外圆角 - 内边距 = 内圆角，视觉上才均匀） */
+.memo-img-single-wrap,
+.split-img,
+.carousel-strip .strip-item{border-radius:22px!important}
+.memo-img-single-wrap img,
+.split-img img{border-radius:15px!important}
+.carousel-strip .strip-item img{border-radius:16px!important}
+/* 图片墙瀑布流 */
+.photo-item a{border-radius:16px!important}
+/* 歌词均衡器小条 */
+.eq i{border-radius:999px!important}
+
+/* ============================================================
+   ⑧ 播放键：改成正圆 + 与其他控制键同尺，修掉 hover 被染白的问题
+   ============================================================ */
+/* 四个控制键统一成 32×32 正方盒，图标 15px */
+.music-drawer .hw-btn{width:32px;height:32px}
+.music-drawer .hw-btn .iconify{font-size:15px;line-height:1}
+/* 播放键：原来 34×30 配 999px 出来是个椭圆，这里收成正圆 */
+.music-drawer .hw-play{
+  width:30px!important;
+  height:30px!important;
+  border-radius:999px!important;
+  background:var(--panel-accent)!important;
+  color:var(--color-primary-content,#fff)!important;
+  box-shadow:0 4px 12px -3px color-mix(in oklch,var(--panel-accent) 55%,transparent)!important;
+}
+.music-drawer .hw-play .iconify{font-size:14px}
+.music-drawer .hw-play:hover{
+  background:var(--accent-dark)!important;
+  box-shadow:0 6px 16px -4px color-mix(in oklch,var(--panel-accent) 70%,transparent)!important;
+}
+
+/* ============================================================
+   ⑨ 修复：小屏（<1024px）整页无法向下滚动
+   原因：#appDrawer 被 Apple Glass 段无差别加了 overflow:hidden!important，
+        而小屏下 #mainScroll 没有 overflow-y:auto（那是 lg: 前缀，只在桌面生效）。
+        结果 100dvh 的框把 4000px 的内容直接裁掉，且页面里没有任何滚动容器。
+   修法：小屏恢复文件原本设计的「由 body 滚动」（#mainScroll 在手机端不是滚动容器，
+        与底部无限滚动的 IntersectionObserver root:null 也是一致的）。
+   ============================================================ */
+@media (max-width: 1023px) {
+  #appDrawer {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+  #appDrawer > .drawer-content { height: auto !important; }
+}
+
+/* ============================================================
+   ⑪ 背景光斑：柔和大圆 + 极缓慢的漂浮 / 呼吸
+   说明：浅色/深色都必须让 #appShell 保持透明（见上面 #appShell 那条深色规则），
+        光斑才能透过 #appDrawer(半透明玻璃) 显进内容面板；只透外框是不够的。
+   层次：html 木纹底 → body 底色渐变 → #bgOrbs(本层) → #appDrawer → #appShell(透明) → 内容。
+   用 z-index:0 而不是负值——body 底色是不透明的，负值会被压在它下面看不见。
+   深色光斑透明度比浅色高一档：它要额外穿过 #appDrawer 的 rgba(35,32,28/.54)。
+   ============================================================ */
+#bgOrbs {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#bgOrbs span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle closest-side,
+    var(--orb-c) 0%,
+    color-mix(in srgb, var(--orb-c) 58%, transparent) 60%,
+    transparent 100%
+  );
+  will-change: transform;
+  animation: orbDrift var(--orb-t, 34s) ease-in-out infinite alternate;
+  animation-delay: var(--orb-d, 0s);
+}
+/* 四颗光斑：尺寸 / 位置 / 周期 / 漂移幅度各不相同，避免看出同频 */
+#bgOrbs span:nth-child(1) { width: 54vmax; height: 54vmax; top: -16vmax; left: -12vmax; --orb-t: 42s; --orb-x: 7vmax; --orb-y: 5vmax; --orb-s: 1.16; }
+#bgOrbs span:nth-child(2) { width: 46vmax; height: 46vmax; right: -10vmax; bottom: -16vmax; --orb-t: 36s; --orb-d: -6s; --orb-x: -6vmax; --orb-y: -5vmax; --orb-s: 1.12; }
+#bgOrbs span:nth-child(3) { width: 34vmax; height: 34vmax; top: 38%; left: 42%; --orb-t: 48s; --orb-d: -14s; --orb-x: 9vmax; --orb-y: -4vmax; --orb-s: 1.2; }
+#bgOrbs span:nth-child(4) { width: 26vmax; height: 26vmax; left: 6%; bottom: 8%; --orb-t: 30s; --orb-d: -20s; --orb-x: -5vmax; --orb-y: 6vmax; --orb-s: 1.1; }
+
+@keyframes orbDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(var(--orb-x, 5vmax), var(--orb-y, -4vmax), 0) scale(var(--orb-s, 1.12)); }
+}
+
+/* 浅色：薄荷 / 薰衣草 / 天蓝 / 暖杏，通透 */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(1) { --orb-c: rgb(139 114 246/.34); }
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(2) { --orb-c: rgb(18 166 122/.32); }
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(3) { --orb-c: rgb(47 128 237/.20); }
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(4) { --orb-c: rgb(255 206 138/.30); }
+/* 深色：暖金 / 青瓷 / 琥珀 / 冷灰，压暗后像落在桌面上的光 */
+html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(1) { --orb-c: rgb(213 189 145/.26); }
+html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(2) { --orb-c: rgb(122 178 168/.23); }
+html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(3) { --orb-c: rgb(196 138 84/.20); }
+html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(4) { --orb-c: rgb(154 165 180/.17); }
+
+/* 尊重系统的"减少动态效果" */
+@media (prefers-reduced-motion: reduce) {
+  #bgOrbs span { animation: none; }
+}
+
+/* ============================================================
+   ⑬ 说说卡片：圆角收紧 + 顶部日期改成「小号灰字元信息行」
+   参考站实测（用户给的截图，1x）：卡片宽 558px、圆角约 6px → 圆角/卡宽 ≈ 1.1%；
+   我们的卡片宽约 1026px，按同一比例取 12px（原为 22px，用户反馈"太圆润"）。
+   文字布局也对齐参考站：最上方单独一行放小号、低对比的日期（原来是个彩色胶囊），
+   往下才是正文与标签（标签本来就跟在正文尾部）——节奏与参考站一致。
+   照片瓦片（.carousel-strip .strip-item / 内层 img）按用户"图片保留自己的"要求未改动。
+   ============================================================ */
+#content ul.memo-list .memo-card { border-radius: 12px !important; }
+
+#content ul.memo-list .memo-card .memo-tape-date {
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0 0 .5rem;
+  padding: 0;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  font-family: var(--font-family);
+  font-size: .76rem;
+  font-weight: 500;
+  letter-spacing: .035em;
+  line-height: 1.5;
+  text-shadow: none !important;
+  color: color-mix(in oklch, var(--color-base-content) 48%, transparent);
+}
+
+/* ============================================================
+   ⑭ 图片计数徽章（1 / N）：补上浅色 / 深色两套外观
+   原来 markup 里是 Tailwind 写死的 `bg-black/55 text-white`，
+   不论什么主题都是同一块深灰底 + 白字，浅色下很突兀（贴在照片上尤其跳）。
+   做法：做成"磨砂玻璃药丸"，底色/文字/描边/投影分主题给值，
+   用 !important 压过 Tailwind 的 bg-black/55、text-white 与 daisyUI .badge 的默认色。
+   注意：徽章永远压在照片上，所以不能只靠页面底色——两套都要自带足够对比。
+   ============================================================ */
+.strip-count {
+  background: rgb(255 255 255 / .78) !important;
+  color: rgb(38 34 28 / .92) !important;
+  border: 1px solid rgb(255 255 255 / .90) !important;
+  /* 最外面那圈极淡的 0 0 0 1px 很关键：白玻璃贴在亮照片上时，
+     光靠白色描边会糊成一片，这圈淡暗描边负责把徽章的轮廓勾出来 */
+  box-shadow:
+    0 0 0 1px rgb(48 40 30 / .07),
+    0 4px 12px rgb(24 78 62 / .20),
+    inset 0 1px 0 rgb(255 255 255 / .95) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.6);
+  backdrop-filter: blur(12px) saturate(1.6);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .05em;
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) .strip-count {
+  background: rgb(22 19 16 / .70) !important;
+  color: rgb(255 240 216 / .94) !important;
+  border-color: rgb(255 239 210 / .20) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / .25),
+    0 5px 14px rgb(0 0 0 / .48),
+    inset 0 1px 0 rgb(255 240 216 / .12) !important;
+}
+
+/* ============================================================
+   ⑮ 刊头偈语「化灰」特效
+   「生死去来，棚头傀儡 / 一线断时，落落磊磊」四个层次叠出"烧剩的灰"：
+     ① 字底下那团还没熄的暖光（#masthead::before）—— 让灰有个来源
+     ② 每个字灰化程度不一 + 明灭不定（.mh-ch 的 --o1 静态底 + mh-ember-breathe）
+     ③ 字面不断有细灰剥落、上浮、游移（.mh-em + mh-ash-rise）
+     ④ 字迹外蹭开的一圈极淡"尘晕"（text-shadow）
+
+   性能取舍（关键）：全程**只动 opacity / transform**——
+   这两个属性由合成器接管，不触发重排重绘，而这页到处是 backdrop-filter，
+   一旦掉进重绘就会被放大成卡顿。所以：
+     · 不用 canvas、不跑 requestAnimationFrame（省一条常驻主线程循环）
+     · 粒子的"热→冷"烘死在 radial-gradient 里，靠 scale 变大时冷边占比升高来体现冷却，
+       而不是动画 background-color（那会每帧重绘）
+     · 每粒灰只有 2px，DOM 一次性播种完就让 CSS 自己无限循环
+   #masthead 带 .hidden(display:none) 时浏览器根本不渲染这些动画，
+   切到图片/剪藏等视图零开销；两个主题全靠 CSS 变量，切主题不需要 JS 参与。
+   ============================================================ */
+#masthead{
+  /* 浅色（Garden：浅绿纸 + 深墨字）：灰要用偏深的暖褐——
+     浅底上如果灰太浅，肉眼会读成"噪点"而不是"灰烬"，所以冷灰压深、alpha 抬高一档 */
+  --mh-ash-hot-rgb: 206 104 34;
+  --mh-ash-cold-rgb: 112 98 80;
+  --mh-ash-dust: rgb(140 122 98 / .20);
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) #masthead{
+  /* 深色（手账：深褐纸 + 米白字）：灰是暖白，余烬可以亮一档 */
+  --mh-ash-hot-rgb: 255 178 98;
+  --mh-ash-cold-rgb: 238 226 204;
+  --mh-ash-dust: rgb(255 226 180 / .12);
+}
+
+/* ① 字底下那团余温 */
+#masthead::before{
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: min(440px, 76vw);
+  height: 8.4rem;
+  transform: translate(-50%, -42%);
+  background: radial-gradient(ellipse at center,
+    rgb(var(--mh-ash-hot-rgb) / .11),
+    rgb(var(--mh-ash-hot-rgb) / 0) 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+#masthead .mh-body{ position: relative; z-index: 1; }
+
+/* ④ 尘晕：像字迹旁边蹭开的灰。很淡，只负责"毛边" */
+#masthead .mh-poem p{
+  text-shadow:
+    0 0 2px   var(--mh-ash-dust),
+    0 0 7px   var(--mh-ash-dust),
+    0 -1px 14px var(--mh-ash-dust);
+}
+
+/* ② 单字：既是粒子的定位上下文，也承载自己的灰化程度与明灭相位 */
+.mh-ch{
+  position: relative;
+  display: inline-block;
+  opacity: var(--o1, 1);   /* 静态底（reduced-motion 下就是最终色），也是动画的基准 */
+}
+
+/* ③ 一粒灰：热→冷烘死在渐变里，整个生命周期只需 transform / opacity */
+.mh-em{
+  position: absolute;
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  width: var(--s, 2px);
+  height: var(--s, 2px);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgb(var(--mh-ash-hot-rgb) / .95) 0%,
+    rgb(var(--mh-ash-cold-rgb) / .48) 46%,
+    rgb(var(--mh-ash-cold-rgb) / 0) 100%);
+  opacity: 0;
+  pointer-events: none;
+  animation: mh-ash-rise var(--dur, 7s) linear var(--delay, 0s) infinite;
+}
+
+/* 出生 → 亮一下 → 一路变淡、变大、飘走 */
+@keyframes mh-ash-rise{
+  0%   { transform: translate(-50%, -50%) scale(.5); opacity: 0; }
+  13%  { opacity: var(--peak, .6); }
+  58%  { opacity: calc(var(--peak, .6) * .78); }
+  100% { transform: translate(calc(-50% + var(--dx, 6px)), calc(-50% + var(--dy, -36px))) scale(1.12); opacity: 0; }
+}
+
+/* 余烬明灭：幅度刻意压小（只在 20% 以内），像暗下去又亮一下，不是闪 */
+@keyframes mh-ember-breathe{
+  0%, 100% { opacity: var(--o1, 1); }
+  37%      { opacity: calc(var(--o1, 1) * .80); }
+  63%      { opacity: calc(var(--o1, 1) * .93); }
+}
+
+@media (prefers-reduced-motion: no-preference){
+  .mh-ch{ animation: mh-ember-breathe var(--br-dur, 6.5s) ease-in-out var(--br-delay, 0s) infinite; }
+}
+/* 系统开了"减少动态效果"：一粒灰都不撒，只留安静的字 + 极淡尘晕 */
+@media (prefers-reduced-motion: reduce){
+  #masthead::before{ display: none; }
+  .mh-em{ display: none; }
+}
 </style>
 
 <script>
@@ -5943,6 +6410,61 @@ html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf
     }
     renderLine(d.position, meta);
   });
+})();
+</script>
+
+<script>
+/* 刊头偈语「化灰」：把每个字包一层 span，再往字面撒几粒灰。
+   与 ⑮ 样式区配套。这里只做"一次性播种"——随机值写进内联自定义属性，
+   之后动画全部交给 CSS 无限循环，不再占用主线程（不跑 rAF）。
+   #masthead 初始是 .hidden，但这里不量尺寸、只按百分比定位，所以隐藏状态下播种也没问题。 */
+(() => {
+  const poem = document.querySelector('#masthead .mh-poem');
+  if (!poem || poem.dataset.ashReady) return;
+
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const perChar = window.matchMedia('(max-width: 640px)').matches ? 3 : 5; // 手机上别烧太旺
+  const PUNCT = '，。、；：！？…—「」『』（）《》,.;:!? ';  // 标点不撒灰
+
+  const chars = [];
+  poem.querySelectorAll('p').forEach((p) => {
+    const text = p.textContent;
+    p.textContent = '';
+    for (const ch of text) {
+      const s = document.createElement('span');
+      s.className = 'mh-ch';
+      s.textContent = ch;
+      // 每个字自己的灰化程度 + 明灭节奏，避免一整块同步呼吸（那会像闪烁）
+      s.style.setProperty('--o1', rnd(.78, 1).toFixed(3));
+      s.style.setProperty('--br-dur', rnd(5.2, 8.8).toFixed(2) + 's');
+      s.style.setProperty('--br-delay', (-rnd(0, 8.8)).toFixed(2) + 's');
+      p.appendChild(s);
+      chars.push(s);
+    }
+  });
+
+  chars.forEach((s) => {
+    if (PUNCT.includes(s.textContent)) return;
+    const n = perChar + (Math.random() < .45 ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      const em = document.createElement('i');
+      em.className = 'mh-em';
+      em.setAttribute('aria-hidden', 'true');
+      em.style.setProperty('--x', rnd(12, 88).toFixed(1) + '%');   // 出生点在字面之内
+      em.style.setProperty('--y', rnd(8, 92).toFixed(1) + '%');
+      em.style.setProperty('--s', rnd(1.5, 2.9).toFixed(2) + 'px');
+      em.style.setProperty('--dx', rnd(-11, 11).toFixed(1) + 'px');
+      // 大多数随热气流上浮，少数是慢慢沉落的冷灰（全往上飘会很假）
+      const down = Math.random() < .25;
+      em.style.setProperty('--dy', (down ? rnd(4, 18) : -rnd(24, 54)).toFixed(1) + 'px');
+      em.style.setProperty('--dur', rnd(5.5, 10.5).toFixed(2) + 's');
+      em.style.setProperty('--delay', (-rnd(0, 10.5)).toFixed(2) + 's'); // 负延迟 → 首屏就有灰在飘，不用等
+      em.style.setProperty('--peak', rnd(.42, .76).toFixed(3));
+      s.appendChild(em);
+    }
+  });
+
+  poem.dataset.ashReady = '1';
 })();
 </script>
 
