@@ -541,39 +541,23 @@
 
   
 
-  /* ====== 说说时间线（特色）：竖线 + 日期牌，内容保持扁平杂志式 ====== */
-  #content ul.timeline { width: 100%; max-width: 800px; margin: 0 auto; }
-  /* 轨道列固定宽度：有牌/无牌条目的竖线保持在同一 x 上 */
-  #content ul.timeline.timeline-vertical.timeline-snap-icon > li {
-    --timeline-col-start: 0px;
-    grid-template-columns: 0px 47px minmax(0, 1fr);
+  /* ====== 说说：无时间线轨道，卡片占满主内容区 ====== */
+  #content ul.memo-list {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
-  #content ul.timeline > li > hr { background-color: color-mix(in oklch, var(--color-base-content) 20%, transparent); }
-  /* 首条说说：隐藏顶部探出的引线；最后一条：隐藏底部多出的竖线 */
-  #content ul.timeline > li:first-child > hr:first-child { display: none; }
-  #content ul.timeline > li:last-child > hr:last-child { display: none; }
-  #content ul.timeline .timeline-end {
-    margin: 0; padding: 0 0 1.25rem .9rem;
-    justify-self: stretch;   /* 撑满整列，条目宽度一致 */
+  #content ul.memo-list > li {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 1.25rem;
   }
-  /* max-md:timeline-compact 的等效媒体查询（Tailwind CDN 不会编译 daisyUI 变体） */
-  @media (max-width: 767px) {
-    #content ul.timeline.timeline-snap-icon > li { --timeline-row-start: 0px; }
-    #content ul.timeline.timeline-vertical.timeline-snap-icon > li { grid-template-columns: 0px 42px minmax(0, 1fr); }
+  #content ul.memo-list .memo-card {
+    width: 100%;
   }
-
-  /* 日期牌（timeline-middle） */
-  .memo-bubble {
-    width: 47px; height: 47px;
-    background: var(--color-base-100);
-    border: 1px solid color-mix(in oklch, var(--color-base-content) 14%, transparent);
-    box-shadow: 0 2px 8px color-mix(in oklch, var(--color-base-content) 8%, transparent);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    line-height: 1.12;
-  }
-  .memo-bubble b { font-size: .98rem; }
-  .memo-bubble span { font-size: .6rem; opacity: .5; }
-  .sk-bubble { width: 47px; height: 47px; background: var(--color-base-100); }
 
   /* 便签卡：与页面同底色，以描边 + 阴影 + 左上角和纸胶带（颜色随第一个标签）区分 */
   .memo-card {
@@ -612,9 +596,6 @@
   /* 弹窗里的单条说说（无时间线轨道） */
   .memo-entry { max-width: 760px; margin: 0 auto; }
 
-  @media (max-width: 640px) {
-    .memo-bubble, .sk-bubble { width: 42px; height: 42px; }
-  }
 
   /* ====== 刊头「花镜」偈（仅说说视图） ====== */
   #masthead { text-align: center; padding: 3rem 0 .6rem; }
@@ -2061,13 +2042,19 @@ function tagColor(id) {
 }
 
 // 解析 rawDate（"YYYY-MM-DD HH:mm:00"）为日期牌所需信息（含年份，不同年份同月日不会合并）；解析失败返回 null
-function dayInfo(rawDate) {
+function tapeTime(rawDate) {
   const t = new Date(String(rawDate || '').replace(' ', 'T'));
-  if (!Number.isFinite(t.getTime())) return null;
-  return { day: t.getDate(), month: t.getMonth() + 1 };
+  if (!Number.isFinite(t.getTime())) return '';
+  const diff = Date.now() - t.getTime();
+  const minute = 6e4, hour = 36e5, day = 864e5;
+  if (diff >= 0 && diff < minute) return '刚刚';
+  if (diff >= 0 && diff < hour) return Math.floor(diff / minute) + '分钟前';
+  if (diff >= 0 && diff < day) return Math.floor(diff / hour) + '小时前';
+  if (diff >= 0 && diff < 7 * day) return Math.floor(diff / day) + '天前';
+  return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
 
-function memoCard(m, idx, { plain = false, firstOfDay = true, parsed = null, imgs = null, single = false, rev = false } = {}) {
+function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = false, rev = false } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
   let images = imgs;
@@ -2099,34 +2086,29 @@ function memoCard(m, idx, { plain = false, firstOfDay = true, parsed = null, img
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
-  // 胶带颜色随第一个标签
+  // 胶带颜色随第一个标签；时间文字与胶带是同一个元素
   const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
-  const d = dayInfo(m.rawDate);
+  const dateText = tapeTime(m.rawDate);
   return `
   <li class="fade-up" style="${anim}">
-    <hr />
-    ${firstOfDay && d ? `<div class="timeline-middle"><div class="memo-bubble"><b>${d.day}</b><span>${d.month}月</span></div></div>` : ''}
-    <div class="timeline-end">
-      <article class="memo-card" style="${tape}">${body}</article>
-    </div>
-    <hr />
+    <article class="memo-card" style="${tape}">
+      ${dateText ? `<span class="memo-tape-date" aria-label="发布时间">${dateText}</span>` : ''}
+      ${body}
+    </article>
   </li>`;
 }
 
 function skeletonNotes(n = 3) {
   const li = `
     <li>
-      <hr />
-      <div class="timeline-middle"><div class="sk-bubble shimmer"></div></div>
-      <div class="timeline-end">
+      <div class="memo-card">
         <div class="shimmer h-3 rounded w-40"></div>
         <div class="shimmer h-4 rounded w-3/4 mt-4"></div>
         <div class="shimmer h-44 w-full mt-4"></div>
         <div class="shimmer h-3 rounded w-28 mt-3"></div>
       </div>
-      <hr />
     </li>`;
-  return `<ul class="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">${li.repeat(n)}</ul>`;
+  return `<ul class="memo-list">${li.repeat(n)}</ul>`;
 }
 
 function skeletonCards(n = 3) {
@@ -2480,23 +2462,20 @@ function bindCardInteractions() {
 function resetSay() {
   state.sayPage = 1;
   state.sayTotalPages = 1;
-  sayLastDay = undefined;   // 日期牌从头判断
   scrollToTop(); // 先回顶部（视图切换渲染后恢复位置，筛选保持顶部）
   contentEl.innerHTML = skeletonNotes(3);
   $('#endHint').classList.add('hidden');
   loadSayPage(1, { replace: true });
 }
 
-// 时间线：同一天只在第一条显示日期牌（其余条目日期行写完整日期）
-let sayLastDay;
 // 单图分栏方向：每渲染一张单图就翻转一次，保证连续的单图说说左右交替
 let splitFlip = 0;
-const TIMELINE_UL = '<ul class="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">';
+const MEMO_LIST_UL = '<ul class="memo-list">';
 
 async function loadSayPage(page, { replace = false } = {}) {
   if (state.loading) return;
   state.loading = true;
-  if (replace) { sayLastDay = undefined; splitFlip = 0; }
+  if (replace) { splitFlip = 0; }
   if (!replace) $('#loadingMore').classList.remove('hidden');
 
   try {
@@ -2513,23 +2492,19 @@ async function loadSayPage(page, { replace = false } = {}) {
       const parsed = parseContent(m.content);
       const imgs = parsed.images.length ? parsed.images
         : (Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : []);
-      // 同日判断：rawDate 前 10 位即 "YYYY-MM-DD"，含年份，不同年份同月日不会合并
-      const dk = String(m.rawDate || '').slice(0, 10);
-      const firstOfDay = dk !== sayLastDay;
-      sayLastDay = dk;
       // 连续单图说说：左右交替（计数器只在单图时翻转）
       const single = imgs.length === 1;
       const rev = single ? (splitFlip++ % 2 === 1) : false;
-      return memoCard(m, i, { firstOfDay, parsed, imgs, single, rev });
+      return memoCard(m, i, { parsed, imgs, single, rev });
     }).join('');
     if (replace) {
       const hasData = res.data && res.data.length;
-      contentEl.innerHTML = hasData ? TIMELINE_UL + html + '</ul>'
+      contentEl.innerHTML = hasData ? MEMO_LIST_UL + html + '</ul>'
         : emptyState(state.selectedTags.size ? '这些标签的交集下暂时没有说说，试试少选几个？' : '还没有说说，去写第一条吧。');
     } else if (html) {
       // 翻页：追加到时间线 ul 内部
-      let ul = contentEl.querySelector('ul.timeline');
-      if (!ul) { contentEl.insertAdjacentHTML('beforeend', TIMELINE_UL); ul = contentEl.querySelector('ul.timeline'); }
+      let ul = contentEl.querySelector('ul.memo-list');
+      if (!ul) { contentEl.insertAdjacentHTML('beforeend', MEMO_LIST_UL); ul = contentEl.querySelector('ul.memo-list'); }
       ul.insertAdjacentHTML('beforeend', html);
     }
 
@@ -5792,16 +5767,6 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card {
   box-shadow: 0 5px 16px rgba(0,0,0,.24) !important;
 }
 
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-bubble {
-  background: transparent !important;
-  color: #c07468 !important;
-  border-color: #c07468 !important;
-  box-shadow: inset 0 0 0 1px #c07468 !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-bubble span {
-  color: #c07468 !important;
-}
 
  
 
@@ -5820,13 +5785,45 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hov
 
 /* 全局圆角规则来自旧主题，这里只对手账需要的视觉元素恢复轻微纸张圆角 */
 .memo-card,
-.memo-bubble,
 .memo-img-single-wrap,
 .split-img,
 .carousel-strip .strip-item {
   border-radius: 3px !important;
 }
 
+
+/* 时间与胶带为同一元素，卡片无需为时间轴预留任何空间 */
+.memo-tape-date {
+  position: absolute;
+  z-index: 3;
+  top: -10px;
+  left: 30px;
+  width: 76px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1px;
+  background: color-mix(in oklch, var(--tape, #b49b76) 55%, transparent);
+  color: #33261d;
+  font-family: "Courier New", "Courier", monospace;
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1;
+  white-space: nowrap;
+  transform: rotate(-2deg);
+  text-shadow: 0 1px 0 rgb(255 255 255 / .25);
+  pointer-events: none;
+}
+.memo-card:has(.memo-tape-date)::before { display: none !important; }
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
+  color: #f4e7d9;
+  text-shadow: 0 1px 1px rgb(0 0 0 / .45);
+}
+@media (max-width: 640px) {
+  #content ul.memo-list > li { padding-bottom: 1rem; }
+}
 </style>
 
 <script>
