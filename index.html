@@ -6925,6 +6925,38 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   background-color: #1c1c1e !important;
 }
 
+/* ㉒ 手机端撤掉底部 Dock，改成「左边缘往右滑」唤出左侧菜单抽屉（2026-09-15）
+      文哥原话：「上面确实跟浏览器完美融合了，下方还是无法做到，我想可能是我们网页上有
+                 dock 的缘故…去掉 dock 改成在网页上往右边侧滑，出现抽屉吧。」
+      ------------------------------------------------------------
+      为什么 Dock 会挡住融合：Dock 是 position:fixed 的磨砂玻璃卡，悬在视口底部，
+      iOS Safari 自己的底栏又紧贴在它下面 —— 两层 chrome 叠着，中间必然出现一道缝。
+      撤掉之后，页面自己的白底一路铺到最底，跟 Safari 的底栏就成了一片。
+      ------------------------------------------------------------
+      ① **藏** Dock（不是删 DOM）。⑯ 段的绑定（更多按钮 / 音乐小点 / MutationObserver）
+         和 ⑰ 段的上滑收起脚本都留着不碍事；想找回 Dock，删掉本段即可。
+         注：Dock 那 5 项在左侧抽屉里一个都没少 ——
+         首页 / 热搜 / 时间 / 标签 是菜单项，音乐在侧栏资料卡那排小图标里。
+      ② 把 ⑯ 段 ④⑦ 为 Dock 让位而加的间距**还原成 Dock 出现之前的值**
+         （原值就在本文件里：`#mainScroll` 796 行、`#toTop` 797 行、
+          `#mediaPager` 801 行 / 5882 行、`#headerLyricsBar` 225 行）。
+         不还原的话，页面底部会白白空掉 88px。
+      ③ 顺手一个巧合：⑰ 段「收起态」的目标值本来就等于这些原始值
+         （toTop `1.25rem`、歌词 `18px`）→ 还原之后 ⑰ 段自动退化成无害的空操作，
+         **不用去改它**。
+      ⚠️ 覆盖 ⑯ 段 ⑦ 那几条，选择器形状必须跟它一样（都是 id 级 + !important），
+         靠"源码顺序在后来"取胜。 */
+#mobileDock { display: none !important; }
+
+@media (max-width: 1023px) {
+  #mainScroll { padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
+  #toTop { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)) !important; }
+  #headerLyricsBar:not(.hidden) {
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  #mediaPager { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
 </style>
 
 <script>
@@ -7211,6 +7243,91 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
     lastY = getScrollPos();
     setAsleep(false);
   });
+})();
+</script>
+
+<script>
+/* ============================================================
+   ㉒ 手机端：左边缘往右滑 → 唤出左侧菜单抽屉（2026-09-15）
+   Dock 撤掉之后，这是小屏打开菜单的唯一入口（样式见 §㉒ 那一整段）
+   ------------------------------------------------------------
+   为什么起点限制在"屏幕最左 EDGE 这一条带"而不是全屏任意位置：
+     正文里有横向排布的东西（图集胶片条、底部的翻页托盘），
+     全屏横滑会跟它们抢手势；收窄起点，冲突面最小。
+   为什么要把"竖向优先"判死（VERT_KILL）：
+     手指斜着划是很常见的，如果不先判竖向，轻轻一划就会莫名弹出抽屉，
+     比"不响应"更烦人。竖着走就直接放手，交回给页面滚动。
+   抽屉开着时反过来：任意位置向左滑 = 关掉它（跟 iOS 的返回手势一致的直觉）。
+   ------------------------------------------------------------
+   注：iOS Safari 自己的「左边缘右滑 = 后退」也吃这一条带。本站通常是直接输入
+   网址打开的、没有可后退的历史，所以撞不上；真撞上了再把这个 EDGE 往右挪一点。
+   ============================================================ */
+(() => {
+  const chk = document.getElementById('appNavChk');
+  if (!chk) return;
+  const mqMobile = window.matchMedia('(max-width: 1023px)');
+
+  const EDGE      = 30;   // 起点必须落在屏幕最左这么宽的一条带里，才可能"打开"
+  const OPEN_AT   = 44;   // 向右划够这么远 → 打开
+  const CLOSE_AT  = 56;   // 抽屉开着时，向左划够这么远 → 关闭
+  const VERT_KILL = 16;   // 竖向位移超过它、且比横向大 → 判定为滚动，放手
+
+  let sx = 0, sy = 0, active = false, closing = false;
+
+  const first = (e) => (e.touches && e.touches[0]) ||
+                       (e.changedTouches && e.changedTouches[0]);
+
+  /* 改 checked 不会自动冒 change 事件，显式补一发，别让别的监听者（⑯ 段那套
+     aria 同步）读到过期状态。daisyUI 抽屉本身只认 :checked 伪类，不受影响。 */
+  const setOpen = (v) => {
+    if (chk.checked === v) return;
+    chk.checked = v;
+    chk.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  document.addEventListener('touchstart', (e) => {
+    active = false;
+    closing = false;
+    if (!mqMobile.matches || e.touches.length !== 1) return;
+    const t = first(e);
+    if (!t) return;
+    if (chk.checked) {                       // 抽屉开着 → 只等"向左滑关闭"
+      closing = true;
+    } else if (t.clientX > EDGE) {            // 起手不在最左边缘 → 不参与
+      return;
+    }
+    sx = t.clientX;
+    sy = t.clientY;
+    active = true;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!active) return;
+    const t = first(e);
+    if (!t) return;
+    const dx = t.clientX - sx;
+    const dy = t.clientY - sy;
+
+    if (Math.abs(dy) > VERT_KILL && Math.abs(dy) > Math.abs(dx)) {
+      active = false;                        // 竖着走 → 让给页面滚动
+      return;
+    }
+    if (closing) {
+      if (dx < -CLOSE_AT && Math.abs(dy) < Math.abs(dx)) {
+        setOpen(false);
+        active = false;
+      }
+      return;
+    }
+    if (dx > OPEN_AT && Math.abs(dy) < Math.abs(dx)) {
+      setOpen(true);
+      active = false;
+    }
+  }, { passive: true });
+
+  const end = () => { active = false; closing = false; };
+  document.addEventListener('touchend', end, { passive: true });
+  document.addEventListener('touchcancel', end, { passive: true });
 })();
 </script>
 
