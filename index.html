@@ -6957,6 +6957,46 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   #mediaPager { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
+/* ㉓ 手机端翻页控件不再「吸底」，跟着列表末尾走（2026-09-15）
+      文哥原话：「首页下拉底部 URL 会变小，很原生；但看过/想看的页面下拉 URL 不缩小，
+                 底部还一片白，除非拉到最底部才缩小。是翻页控件的原因还是筛选卡片？」
+      ------------------------------------------------------------
+      **答案：是翻页控件。筛选卡片完全无辜。**
+      实测（500px 探针，滚到 55% 位置）：
+        · 筛选卡片 `#content > div > .flex.flex-col` → `position: static`，
+          rect.top 已到 -1188px，**它是普通文档流，跟着内容一起滚走了**，
+          根本不可能影响浏览器 chrome。
+        · `#mediaPager` → `position: sticky; bottom: 0; z-index: 30`，
+          rect 的 bottom **正好等于视口高度**（805 / vh=805），高度 71px，
+          而且是**整宽、紧贴底边**的一条带。
+        · 对照首页（说说）：底部 150px 内 elementFromPoint 全是 `img`，
+          **没有任何元素被钉在底边**。
+        · 两页的 scrollingElement 都是 `html`、都没有内部滚动容器 → 滚动结构一致，
+          不是"滚动容器不同"的问题。
+      ------------------------------------------------------------
+      为什么"吸血底那一条"会拦住 Safari 底栏收起：
+      Apple WWDC「Design for Safari 15」原文——Safari 的底部标签栏是**随主框架滚动方向
+      自动收起/展开**的，收起后只剩一行域名贴在屏幕最底。而 iOS 对"从视口最底那条带
+      开始的触摸"有特殊处理（认为是想去够浏览器自己的工具栏 → 把工具栏重新展开）。
+      ⑯ 段给翻页控件写的是「吸底常显」（801 行 `position: sticky; bottom: 0`），
+      等于**我们用自己的一条带，常年占着 Safari 底栏要落的那块地方**。
+      ------------------------------------------------------------
+      修法：手机端把 `position` 从 `sticky` 改回 `static` → 它就变成列表末尾的普通一块，
+      页面底边跟首页一样是"纯内容"。**这一步的全部意义就是让两页的底边结构等价**
+      （首页 = 已知能融合的对照样本），所以好验证、也好回滚。
+      · 只改 ≤1023px；桌面端保持吸底（那边没有浏览器 chrome 要避让）。
+      · 顺手补一点下边距，不用再替 Dock 留位（㉒ 段已经把 ⑯ 段那 88px 还原了）。
+      ⚠️ 覆盖 801 行那条：id 级 + !important + 源码在后，稳赢。
+      ⚠️ 翻页后的体验没有损失：`renderMediaPage()` 里本来就 `scrollToTop()`，
+        点了页码会自动回到顶部，不需要抬手就能再翻。 */
+@media (max-width: 1023px) {
+  #mediaPager {
+    position: static !important;
+    bottom: auto !important;
+    padding: 18px 0 calc(26px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
 </style>
 
 <script>
