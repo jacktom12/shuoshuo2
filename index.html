@@ -7350,6 +7350,30 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
   -webkit-backdrop-filter: none !important;
 }
 
+/* ㊱ 左菜单 .drawer-side：别开滚动容器 + 抬离底边 4px（2026-09-15 深夜，治「右滑出菜单还有蒙版」）
+     ------------------------------------------------------------
+     ㉟ 之后实测：标签/歌单抽屉全好了，唯独左菜单（daisyUI）开着时 URL 玻璃仍染色。
+     探针（禁过渡后开态实测）：底条上 daisyUI 比另两个抽屉多一个 `.drawer-side` ——
+       fixed 满视口（距底 0px、宽 100%、高 100dvh）、z-70、开着时 daisyUI 还给它
+       `overflow-y:auto`（= 一个满屏滚动容器）。它本身透明，但结构上是
+       「贴在底边上的满屏滚动层」——怀疑 iOS 26 玻璃推导把这层当成了"当前页面"，
+       读到透明背景 → 回退系统默认色 → 跟页面 #1c1c1e 之间显出边界（待复检的假设，
+       本机复现不了 iOS 玻璃；标签/歌单的遮罩只是满屏 fixed，不是滚动容器，所以没事）。
+     ------------------------------------------------------------
+     改法（双管齐下，都只碰 .drawer-side 这个容器，#appSidebar 面板一个字没动）：
+       ① overflow: hidden —— 摘掉 daisyUI 开态给的 overflow-y:auto，
+          不再当滚动容器（菜单列表滚动靠 #appSidebar 自己的 overflow:hidden auto(6481)，不受影响）；
+       ② height 100dvh → calc(100dvh - 4px) —— 整层抬离底边 4px，
+          破掉采样门槛"距边 ≤3px"。里面的遮罩是 sticky stretch、跟着矮 4px ——
+          底边那 4px 本来就被工具栏/Home 条挡着，点外面关门不受影响。
+     🔙 回滚：删本段。若这版还不行，下一步要文哥一张开菜单的截图逐像素量染色区。 */
+@media (max-width: 1023px) {
+  #appDrawer > .drawer-toggle ~ .drawer-side {
+    overflow: hidden !important;
+    height: calc(100dvh - 4px) !important;
+  }
+}
+
 </style>
 
 <script>
