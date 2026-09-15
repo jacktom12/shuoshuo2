@@ -6623,6 +6623,41 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead{
   #toTop,
   #headerLyricsBar:not(.hidden) { transition: none !important; }
 }
+
+/* ============================================================
+   ⑱ 修：小屏页面底部露出一条「木桌」色带（2026-09-15）
+   ------------------------------------------------------------
+   现象：手机端滚到页面最底部，最后 88px 是一块偏棕/偏灰的色带，
+        跟纸色明显不是一家。
+   成因：第 ⑫ 段当时说"小屏只允许一层底色"，但只改了 body，漏了 html：
+     ① html 背着桌面那张木桌渐变（第 5309 行 `html, body {background:
+        linear-gradient(...)}`）；
+     ② html 自己有背景时，它会被提升成 canvas 背景，body 的背景
+        就**只画自己那个盒子**了——而 body 是 `height:100dvh`，
+        只够盖住文档的第一屏；
+     ③ 小屏真正的"纸"其实是 .max-w-5xl（第 5722 行），
+        凡是在它**外面**的东西都没有底：
+            · #mainScroll 的 padding-bottom（第 ⑯ 段为 Dock 让位的 88px）
+            · #appDrawer / #appShell / .drawer-content 全是透明的
+        → 一路漏到 canvas，也就是那张木桌。
+   实测（Playwright 390×844，拉到真正的底部）：最后 89px = #b19f86（木色），
+        往上才是 #e9e6d7（纸色）；层级栈最后一环正是 html(+IMG)。
+   修法：小屏把 html 也刷成纸色，让"只留一层底色"真正闭环。
+        比"再给某几个容器补背景"稳——以后无论谁在 .max-w-5xl 外面留白，
+        露出来的都是纸，不是木头。
+        桌面端不动：那张木桌是"桌上一本手账"的底，要留着。
+   ============================================================ */
+@media (max-width: 1023px) {
+  /* 浅色：:root 里的 --journal-paper 就是纸色，直接用 */
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) {
+    background: var(--journal-paper, #f4eedf) !important;
+  }
+  /* 深色：--journal-paper 被重定义在 body 上（见上面深色段），html 这边取不到，
+     所以写死同一个值。改深色纸色时两处要一起改。 */
+  html:is([data-theme="dark"], [data-theme="halloween"]) {
+    background: #25231f !important;
+  }
+}
 </style>
 
 <script>
