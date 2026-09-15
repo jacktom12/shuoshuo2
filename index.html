@@ -7105,6 +7105,45 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   transform: translateX(calc(100% + 28px)) !important;
 }
 
+/* ㉗ 小屏：`body` / `#appShell` 的 `min-height` 从 `100vh` 换成 `100dvh`
+      （2026-09-15，修文哥报的「标签筛选后下滑，URL 缩起来了却泡在一段白色区块里」）
+      ------------------------------------------------------------
+      病根：`min-h-screen` 是 `min-height: 100vh`，而 iOS Safari 的 `100vh`
+           取的是**最大视口 = lvh**（工具栏收起时的高度），不是当前可视高度。
+            工具栏展开时可视高度只有 `svh` ≈ `lvh - 60~90px`
+            → **不管内容多长，页面永远比可视区高 60~90px**。
+      于是：筛选后列表变短（多选标签 AND 甚至为空），屏幕底下本来就是一片
+            **没有任何内容的纯白**；你手指一划，滚的根本不是内容、而是这段"空气"，
+            iOS 照样判定"页面在滚"→ 收起工具栏 → 收起后可视视口变高、可滚距离
+            归零、位置弹回顶端，而工具栏那一带底下正好是那段空白
+            → 就是你看到的「URL 缩小了，却泡在一段白色区块里」。
+            首页内容 4202px 高，滚到哪工具栏底下都是卡片，所以看不出来。
+      ------------------------------------------------------------
+      实测（390×844，Playwright + Chrome）：
+        · 首页                    docScrollH 4202 / maxScroll 3358
+        · 选中 1 个标签（7 张卡）  docScrollH 2144 / maxScroll 1300
+        · 多选标签（交集为空）     docScrollH  846 / maxScroll    2 ← 底下全是白
+        三种状态页面结构**完全一致**（无新增吸顶/吸底件、根滚动仍是 body、
+        html 背景白、theme-color 白）→ 唯一的变量就是"内容长度"。
+      ------------------------------------------------------------
+      改法：只改小屏这两个 `100vh`。`100dvh` 跟着**当前可视视口**走：
+        · 内容长 → `min-height` 是空操作，一切照旧；
+        · 内容短 → 页面高度正好等于可视高度（不再多出那 60~90px），
+                   滚不动 → iOS 不会莫名收起工具栏 → 白块消失。
+      ⚠️ 这与 ⑨ 段给 `#appDrawer` 写的 `min-height: 100dvh`（6136 行）现在**对齐了**，
+         当初就是漏了 body / #appShell 这两个 `100vh`。
+      ⚠️ 只写在小屏 `@media (max-width:1023px)` 里：桌面端 `body` 是
+         `lg:h-screen lg:overflow-hidden` + `#appDrawer` 固定高，不归这条管。
+      🔙 想回滚：整块删掉即可，等于恢复 `100vh` 的老行为。
+      ⚠️ 如果哪天还看到"底部一条白缝"，优先怀疑的还是任何 `vh` 单位
+         （Tailwind 的 `h-screen` / `min-h-screen` / `max-h-screen` 全是 `vh`）。 */
+@media (max-width: 1023px) {
+  body.min-h-screen,
+  #appShell.min-h-screen {
+    min-height: 100dvh !important;
+  }
+}
+
 </style>
 
 <script>
