@@ -7375,11 +7375,28 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
 }
 
 
-/* Final mobile edge-swipe direction: right edge opens navigation; tag drawer only opens from its menu control. */
+/* Final mobile drawer direction: main navigation enters from the right; tags enter from the left only after tapping Tags in that navigation. */
 @media (max-width: 1023px) {
+  #appDrawer .drawer-toggle .drawer-side { justify-content: flex-end !important; }
+  #appDrawer .drawer-toggle .drawer-side > #appSidebar {
+    position: fixed !important;
+    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+    right: 10px !important;
+    left: auto !important;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    width: min(304px, 84vw) !important;
+    height: auto !important;
+    margin: 0 !important;
+    transform: translateX(calc(100% + 28px)) !important;
+    transition: transform .38s cubic-bezier(.22, 1, .36, 1) !important;
+  }
+  #appDrawer .drawer-toggle:checked ~ .drawer-side > #appSidebar,
+  #appNavChk:checked ~ .drawer-side > #appSidebar { transform: translateX(0) !important; }
   #tagBar.tag-drawer {
+    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
     left: 10px !important;
     right: auto !important;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
     transform: translateX(calc(-100% - 28px)) !important;
   }
   #tagBar.tag-drawer.open { transform: translateX(0) !important; }
