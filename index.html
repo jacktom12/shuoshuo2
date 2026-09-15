@@ -7320,6 +7320,36 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
   display: none;
 }
 
+/* ㉟ 三层遮罩全透明化：撤掉"蒙版"本身，只留"点外面关门"的点击区（2026-09-15 晚，文哥原话：
+     「为啥要加个蒙版呢？干脆蒙版取消不就是了」）
+     ------------------------------------------------------------
+     ㉞ 修好后实测：抽屉一开 URL 玻璃立刻染出方块、关上就消 —— 证明开着的那几秒，
+       玻璃采的就是这层**看得见的**遮罩（半透明 tint + backdrop-filter 满屏贴边）。
+     蒙版为什么不能直接删 DOM：它是「点抽屉外面就关上」的点击区
+       （手机上抽屉 min(304px,84vw)，露出那 76px 就靠它接点击；overlay.onclick = close）。
+       删了 → 点外面会戳到下面的卡片/链接，抽屉还关不掉。
+     ------------------------------------------------------------
+     改法：三处遮罩的 background / backdrop-filter 全部撤掉（transparent + none），
+       点击区原样保留（pointer-events 开关、㉞ 的 display:none 机制都不动）：
+       · .tag-drawer-overlay      —— 压 917 基线 rgba(35,27,19,.24) 和 1256 深色 rgba(0,0,0,.38)
+       · .music-drawer-overlay    —— 压 622 基线 rgb(0 0 0/.35)
+       · 左菜单 daisyUI .drawer-overlay —— 压 6503（那边带 !important，
+         这里同选择器形状 + !important + 源码靠后取胜；桌面端它本来就 display:none(406)，无害）
+     效果：抽屉开着时 Safari 玻璃底下什么都采不到 → URL 不再染色；
+       代价是开抽屉时页面不再压暗（抽屉自己有玻璃卡背景 + 投影，照样分得开）。
+     🔙 回滚：删本段即恢复三层灰纱 + 模糊。 */
+.tag-drawer-overlay,
+.music-drawer-overlay {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#appDrawer > .drawer-toggle ~ .drawer-side > .drawer-overlay {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 </style>
 
 <script>
