@@ -3728,6 +3728,21 @@ function switchView(view) {
    - 点击外部或右上角关闭
    - 点击任意标签不会关闭，可连续组合 AND 筛选
 ============================================================ */
+/* ============================================================
+   标签抽屉（2026-09-15 起：**改到屏幕右侧**，从左边缘侧滑的菜单里彻底分家）
+   文哥原话：「这个标签打开抽屉跟右滑出菜单的抽屉逻辑体验有点冲突，
+             把这个标签菜单直接变成在屏幕右侧左滑出标签抽屉，
+             直接把这个标签菜单抽离出来就会好很多。」
+   ------------------------------------------------------------
+   两条进入路径（都通到同一个抽屉，抽屉本身在右边）：
+     · 左菜单里点「标签」→ 菜单收掉，抽屉从右侧滑进来（open()）
+     · 右边缘往左滑 → 直接开（手势脚本在文件末尾，调 window.openTagDrawer）
+   ------------------------------------------------------------
+   上一版那套「记住上次在标签抽屉 → 拉开菜单就自动带出来」的逻辑**整块删掉了**：
+   它正是文哥说的"冲突"来源。现在两边各管各的边，不需要记忆了。
+   注：`chk.dispatchEvent(change)` 那两处保留 —— 那是给 Dock「更多」的 aria 同步用的，
+       顺手修的老毛病（程序化 .checked = true 不触发原生 change），跟本段无关。
+   ============================================================ */
 (function initTagDrawer() {
   const drawer = document.getElementById('tagBar');
   const overlay = document.getElementById('tagDrawerOverlay');
@@ -3736,13 +3751,19 @@ function switchView(view) {
 
   if (!drawer || !overlay || !openBtn || !closeBtn) return;
 
-  const open = () => {
-    closeNav();                        // ← 新增：移动端把左侧菜单先收起来
-
+  const show = () => {
+    // 都挤在右边：歌单抽屉开着就先收掉，别叠一起（它自己那个 IIFE 在 5333 行，晚于本段执行，所以这里能取到）
+    if (typeof window.closeMusicDrawer === 'function') window.closeMusicDrawer();
     drawer.classList.add('open');
     overlay.classList.add('open');
     openBtn.setAttribute('aria-expanded', 'true');
     overlay.setAttribute('aria-hidden', 'false');
+  };
+
+  /* 从左侧菜单点「标签」进来：菜单收掉（不然左边还杵着一块），抽屉从右边进来 */
+  const open = () => {
+    closeNav();
+    show();
   };
 
   const close = () => {
@@ -3754,11 +3775,17 @@ function switchView(view) {
 
   openBtn.onclick = open;
   closeBtn.onclick = close;
+  /* 点抽屉外面（现在是左边那一大片）→ 收掉抽屉，回到内容 */
   overlay.onclick = close;
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && drawer.classList.contains('open')) close();
   });
+
+  /* 给右侧边缘手势用（那个脚本在文件末尾，晚于本段执行）*/
+  window.openTagDrawer = open;
+  window.closeTagDrawer = close;
+  window.isTagDrawerOpen = () => drawer.classList.contains('open');
 })();
 
 function closeNav() {
@@ -3776,6 +3803,9 @@ function closeNav() {
   if (!btn || !chk) return;
   btn.onclick = () => {
     chk.checked = true;
+    // 程序化勾选不会触发原生 change，手动补一次：
+    // Dock「更多」的 aria 同步（第 7249 行那段）监听的就是这个事件
+    chk.dispatchEvent(new Event('change', { bubbles: true }));
     btn.setAttribute('aria-expanded', 'true');
   };
 })();
@@ -5307,6 +5337,9 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   });
   document.getElementById('musicDrawerClose').onclick = closeDrawer;
   overlay.onclick = closeDrawer;
+
+  // 标签抽屉（右边那本）打开时要先把歌单抽屉收掉，所以把关闭函数交出去
+  window.closeMusicDrawer = closeDrawer;
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
@@ -6997,6 +7030,81 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   }
 }
 
+/* ㉔ 小屏标签抽屉收窄，跟「左侧菜单抽屉」同宽（2026-09-15）
+      文哥原话：「把点击标签出来的抽屉宽度改成首页右滑出来的菜单抽屉一样款吧。
+                 这样点击不会感觉突然变大的抽屉，而且我也好方便单手点击完标签后，
+                 可以自己点去页面其他部分好关闭这个抽屉。毕竟这个抽屉的标签是组合查询，
+                 逻辑功能上我是不能让它点一下标签就自动关闭抽屉的。」
+      ------------------------------------------------------------
+      ⚠️ 关键前提：**标签抽屉不能改成"点标签就自动关"**。
+      它是组合查询（类型 / 年代 / 题材可多选叠加），点一个标签只是改条件，
+      抽屉必须留在原地让人接着点第二个。→ 所以唯一的解法是**把它变窄**，
+      让右边露出足够宽的遮罩，单手拇指能直接点到抽屉外面去关。
+      ------------------------------------------------------------
+      实测差距（390×844）：
+        · 左侧菜单抽屉 `#appSidebar`：`width: min(304px, 84vw)` + `left:10px`
+          → 占 10+304 = 314px，右边露出 76px 遮罩（好点）
+        · 标签抽屉 `.tag-drawer`：`width: min(390px, 92vw)`（1201 行）+ `left:10px`
+          → 占 10+359 = 369px，右边只剩 21px 遮罩（基本点不到）
+      差 55px，就是文哥说的"突然变大"。
+      ------------------------------------------------------------
+      ① 宽度：`.tag-drawer` 改成跟 `#appSidebar` **逐字一致** `min(304px, 84vw)`。
+         ⚠️ 要覆盖两处，而且两处的压法不一样：
+            · 1201 行（小屏 width）——**没有** !important，我用 !important 直接压掉；
+            · 5911 行（top/bottom/left）——**有** !important，这就要靠
+              "同样的 (0,1,0) 选择器形状 + 源码顺序在后"（同特异性下后写的赢）。
+              别想着用 id 级去提权，`#tagBar` 那个 id 在当前 DOM 上不好接。
+      ② 顺手修一个真毛病：5911 段把抽屉写死成 `top:10px; bottom:10px`，
+         **没有加 `env(safe-area-inset-*)`**。而 `viewport-fit=cover` 是开着的（第 7 行），
+         所以这两个 10px 是量到**屏幕物理边**的 —— 在刘海里抽屉顶边会钻到状态栏底下、
+         底边会压到 Home 指示条。⑬ 段给 `#appSidebar` 就是加了 safe-area 的，
+         这里补齐，两个抽屉的上下边距才真的一致。
+      ------------------------------------------------------------
+      ③ **不动桌面端宽度**（≥1024px 仍是 390px）。桌面用鼠标、也没有刘海挤压。
+         （抽屉的**站位**在 ㉖ 段里改成右侧了；本段只管宽度和上下安全区，仍然有效。）
+      ④ 也不动 `#tagBar` 的名字 —— 是 id="tagBar"，类名才是 `.tag-drawer`，
+         别被这俩不一致搞混。 */
+@media (max-width: 1023px) {
+  .tag-drawer {
+    width: min(304px, 84vw) !important;
+    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* ㉖ 标签抽屉改到**屏幕右侧**，由「右边缘往左滑」唤出（2026-09-15）
+      文哥原话：「这个标签打开抽屉跟右滑出菜单的抽屉逻辑体验有点冲突，
+                 把这个标签菜单直接变成在屏幕右侧左滑出标签抽屉，
+                 直接把这个标签菜单抽离出来就会好很多。」
+      ------------------------------------------------------------
+      病根：左右两个抽屉都从**左边**出来、都靠左边缘那一带触发、关闭手势还都在左边
+      （菜单"往左滑关"），一重叠起来人根本分不清现在滑的是哪一个。
+      上上版为了绕开这个还搞了一套"记住上次在标签抽屉"的逻辑，
+      等于在冲突之上又加了一层状态 —— 现在整块删掉，两边各管各的边。
+      ------------------------------------------------------------
+      改法：把 `.tag-drawer` 的锚点从 left 换成 right，滑出方向取反。
+      这几条要覆盖 5911 行那套（必须同 (0,1,0) 形状 + !important + 源码在后）：
+        5911 → `.tag-drawer{top:10px;bottom:10px;left:10px;
+                              transform:translateX(calc(-100% - 28px))}`
+        这里 → right:10px / left:auto / translateX(calc(100% + 28px))
+      `.tag-drawer.open{transform:translateX(0)}` 在 5912 行，值一样，不用重写。
+      ------------------------------------------------------------
+      现在三对"左右对称"，一眼能记住：
+        · 左菜单：左边缘**往右滑**开，开着时往左滑关
+        · 标签本：右边缘**往左滑**开，开着时往右滑关
+        · 关不掉的兜底：点抽屉外面那片遮罩（标签本现在剩左边 76px 可点，见 ㉔ 段）
+      ------------------------------------------------------------
+      ⚠️ 宽度（304px）和上下 safe-area 仍由 ㉔ 段负责，本段只管"站哪边、往哪滑"。
+      ⚠️ 歌单抽屉本来就在右边（`right:10px` / `translateX(calc(100% + 28px))`）——
+         `initTagDrawer` 里开标签抽屉时会先调 `window.closeMusicDrawer()`，两者不叠加。
+      ⚠️ 桌面端（≥1024px）**也一起改成右侧**了：左菜单在桌面是常驻侧栏，
+         标签抽屉原来会盖在它上面；挪到右边就不打架了。 */
+.tag-drawer {
+  right: 10px !important;
+  left: auto !important;
+  transform: translateX(calc(100% + 28px)) !important;
+}
+
 </style>
 
 <script>
@@ -7206,6 +7314,8 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   if (chk && moreBtn) {
     moreBtn.addEventListener('click', () => {
       chk.checked = true;
+      // 程序化勾选不触发原生 change → 手动补（initTagDrawer 的"直接带出标签抽屉"靠它）
+      chk.dispatchEvent(new Event('change', { bubbles: true }));
       moreBtn.setAttribute('aria-expanded', 'true');
       if (navBtn) navBtn.setAttribute('aria-expanded', 'true');
     });
@@ -7288,57 +7398,65 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
 
 <script>
 /* ============================================================
-   ㉒ 手机端：左边缘往右滑 → 唤出左侧菜单抽屉（2026-09-15）
-   Dock 撤掉之后，这是小屏打开菜单的唯一入口（样式见 §㉒ 那一整段）
+   ㉒ + ㉖ 手机端两侧边缘侧滑（2026-09-15）
+     · 左边缘 → 往右滑 → 唤出**左侧菜单**抽屉（daisyUI #appNavChk）
+     · 右边缘 → 往左滑 → 唤出**右侧标签本**（调 window.openTagDrawer）
+     · 抽屉开着时把方向反过来拖回去即可关：菜单往左滑关、标签本往右滑关
    ------------------------------------------------------------
-   为什么起点限制在"屏幕最左 EDGE 这一条带"而不是全屏任意位置：
+   为什么起点限制在"屏幕最边缘 EDGE 这一条带"而不是全屏任意位置：
      正文里有横向排布的东西（图集胶片条、底部的翻页托盘），
      全屏横滑会跟它们抢手势；收窄起点，冲突面最小。
+   **左右两条带互不重叠，一次触摸只会命中其中一边** —— 这正是文哥要的
+     "把标签菜单抽离出来"：以前两个抽屉都在左边、都从左边缘出发，
+     根本分不清滑出来的是哪一个。
    为什么要把"竖向优先"判死（VERT_KILL）：
      手指斜着划是很常见的，如果不先判竖向，轻轻一划就会莫名弹出抽屉，
      比"不响应"更烦人。竖着走就直接放手，交回给页面滚动。
-   抽屉开着时反过来：任意位置向左滑 = 关掉它（跟 iOS 的返回手势一致的直觉）。
    ------------------------------------------------------------
-   注：iOS Safari 自己的「左边缘右滑 = 后退」也吃这一条带。本站通常是直接输入
+   注：iOS Safari 自己的「左边缘右滑 = 后退」也吃左边这条带。本站通常是直接输入
    网址打开的、没有可后退的历史，所以撞不上；真撞上了再把这个 EDGE 往右挪一点。
    ============================================================ */
 (() => {
   const chk = document.getElementById('appNavChk');
-  if (!chk) return;
   const mqMobile = window.matchMedia('(max-width: 1023px)');
 
-  const EDGE      = 30;   // 起点必须落在屏幕最左这么宽的一条带里，才可能"打开"
-  const OPEN_AT   = 44;   // 向右划够这么远 → 打开
-  const CLOSE_AT  = 56;   // 抽屉开着时，向左划够这么远 → 关闭
+  const EDGE      = 30;   // 起点要落在最边缘这么宽的一条带里，才算"从边缘起手"
+  const OPEN_AT   = 44;   // 往屏幕内侧划够这么远 → 打开
+  const CLOSE_AT  = 56;   // 抽屉开着时，往它那一侧推够这么远 → 关闭
   const VERT_KILL = 16;   // 竖向位移超过它、且比横向大 → 判定为滚动，放手
 
-  let sx = 0, sy = 0, active = false, closing = false;
+  /* active: 'nav-open' | 'nav-close' | 'tag-open' | 'tag-close' | null */
+  let sx = 0, sy = 0, active = null;
 
   const first = (e) => (e.touches && e.touches[0]) ||
                        (e.changedTouches && e.changedTouches[0]);
 
   /* 改 checked 不会自动冒 change 事件，显式补一发，别让别的监听者（⑯ 段那套
      aria 同步）读到过期状态。daisyUI 抽屉本身只认 :checked 伪类，不受影响。 */
-  const setOpen = (v) => {
-    if (chk.checked === v) return;
+  const setNav = (v) => {
+    if (!chk || chk.checked === v) return;
     chk.checked = v;
     chk.dispatchEvent(new Event('change', { bubbles: true }));
   };
+  const tagIsOpen = () => typeof window.isTagDrawerOpen === 'function' && window.isTagDrawerOpen();
+  const tagOpen   = () => { if (typeof window.openTagDrawer  === 'function') window.openTagDrawer(); };
+  const tagClose  = () => { if (typeof window.closeTagDrawer === 'function') window.closeTagDrawer(); };
 
   document.addEventListener('touchstart', (e) => {
-    active = false;
-    closing = false;
+    active = null;
     if (!mqMobile.matches || e.touches.length !== 1) return;
     const t = first(e);
     if (!t) return;
-    if (chk.checked) {                       // 抽屉开着 → 只等"向左滑关闭"
-      closing = true;
-    } else if (t.clientX > EDGE) {            // 起手不在最左边缘 → 不参与
-      return;
-    }
+    const W = innerWidth;
+    /* 优先级：先看"有没有开着的抽屉"—— 开着就只等把它拖回去；
+       都没开，才按起手落在哪条边缘决定要开哪个。 */
+    if (tagIsOpen())            active = 'tag-close';
+    else if (chk && chk.checked) active = 'nav-close';
+    else if (t.clientX >= W - EDGE) active = 'tag-open';   // 右边缘
+    else if (t.clientX <= EDGE)     active = 'nav-open';   // 左边缘
+    else return;
     sx = t.clientX;
     sy = t.clientY;
-    active = true;
   }, { passive: true });
 
   document.addEventListener('touchmove', (e) => {
@@ -7349,23 +7467,19 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
     const dy = t.clientY - sy;
 
     if (Math.abs(dy) > VERT_KILL && Math.abs(dy) > Math.abs(dx)) {
-      active = false;                        // 竖着走 → 让给页面滚动
+      active = null;                          // 竖着走 → 让给页面滚动
       return;
     }
-    if (closing) {
-      if (dx < -CLOSE_AT && Math.abs(dy) < Math.abs(dx)) {
-        setOpen(false);
-        active = false;
-      }
-      return;
-    }
-    if (dx > OPEN_AT && Math.abs(dy) < Math.abs(dx)) {
-      setOpen(true);
-      active = false;
-    }
+    const horiz = Math.abs(dy) < Math.abs(dx);
+    if (!horiz) return;
+
+    if (active === 'nav-open'  && dx >  OPEN_AT)  { setNav(true);   active = null; }
+    else if (active === 'nav-close' && dx < -CLOSE_AT) { setNav(false);  active = null; }
+    else if (active === 'tag-open'  && dx < -OPEN_AT)  { tagOpen();      active = null; }
+    else if (active === 'tag-close' && dx >  CLOSE_AT) { tagClose();     active = null; }
   }, { passive: true });
 
-  const end = () => { active = false; closing = false; };
+  const end = () => { active = null; };
   document.addEventListener('touchend', end, { passive: true });
   document.addEventListener('touchcancel', end, { passive: true });
 })();
