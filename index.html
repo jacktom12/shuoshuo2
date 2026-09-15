@@ -3754,6 +3754,12 @@ function switchView(view) {
   const show = () => {
     // 都挤在右边：歌单抽屉开着就先收掉，别叠一起（它自己那个 IIFE 在 5333 行，晚于本段执行，所以这里能取到）
     if (typeof window.closeMusicDrawer === 'function') window.closeMusicDrawer();
+    /* ㉞ 配套：遮罩平时 display:none 撤出渲染树（治 iOS 26 URL 玻璃染色，
+       病根见补丁层 ㉞ 段注释）。开前先恢复渲染 + 强制 reflow，
+       这样 opacity 淡入过渡才照常播放（display:none→block 同帧加类不会播过渡）。 */
+    clearTimeout(overlay._hideTimer);
+    overlay.style.display = 'block';
+    void overlay.offsetWidth;
     drawer.classList.add('open');
     overlay.classList.add('open');
     openBtn.setAttribute('aria-expanded', 'true');
@@ -3769,6 +3775,12 @@ function switchView(view) {
   const close = () => {
     drawer.classList.remove('open');
     overlay.classList.remove('open');
+    /* ㉞ 配套：等 opacity 淡出（.28s）播完再把遮罩 display:none 撤出渲染树，
+       让 Safari 重新推导边缘玻璃色；期间若重新打开，show() 的 clearTimeout 会拦下。 */
+    clearTimeout(overlay._hideTimer);
+    overlay._hideTimer = setTimeout(() => {
+      if (!overlay.classList.contains('open')) overlay.style.display = 'none';
+    }, 300);
     openBtn.setAttribute('aria-expanded', 'false');
     overlay.setAttribute('aria-hidden', 'true');
   };
@@ -5315,6 +5327,11 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   let mounted = false;
 
   function openDrawer() {
+    /* ㉞ 配套：同标签抽屉 —— 遮罩平时 display:none（治 iOS 26 URL 玻璃染色），
+       开前恢复渲染 + 强制 reflow，opacity 淡入才照常播 */
+    clearTimeout(overlay._hideTimer);
+    overlay.style.display = 'block';
+    void overlay.offsetWidth;
     drawer.classList.add('open');
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -5326,6 +5343,11 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   function closeDrawer() {
     drawer.classList.remove('open');
     overlay.classList.remove('open');
+    /* ㉞ 配套：淡出（.3s）播完再把遮罩撤出渲染树 */
+    clearTimeout(overlay._hideTimer);
+    overlay._hideTimer = setTimeout(() => {
+      if (!overlay.classList.contains('open')) overlay.style.display = 'none';
+    }, 320);
     document.body.style.overflow = '';
   }
 
@@ -7262,6 +7284,40 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
     margin: 0 2px;
     box-shadow: 0 12px 28px rgb(0 0 0/.30);
   }
+}
+
+/* ㉞ 抽屉遮罩关闭时撤出渲染树：治「开过标签抽屉后 URL 被方块包围」（2026-09-15 晚，文哥二刷 IMG_4818/4819）
+     ------------------------------------------------------------
+     文哥复现路径（推翻了 ㉝ 的"短列表纯色砖"诊断）：
+       只要**打开过标签抽屉**（PC 点「标签」菜单 / 手机右缘左滑），URL 玻璃立刻出方块；
+       跟筛不筛选无关；再右滑开菜单点「首页」（= SPA 重渲染，非浏览器刷新）→ 方块消失。
+     ------------------------------------------------------------
+     真凶：`.tag-drawer-overlay` / `.music-drawer-overlay` 是 fixed inset:0 **满屏贴边**
+       （距底 0px、宽 100%、高 100%），还带 backdrop-filter: blur(2px) + 暖/暗 tint ——
+       正是 iOS 26 边缘玻璃推导顺序①"贴视口边缘的 fixed 元素"的合格采样源。
+       抽屉一开（opacity 0→1）→ 底部玻璃把这层采进去 → URL 染色出边界；
+       关掉时旧代码只把 opacity 收回 0，**display 仍 block**（opacity:0 不会被采样器跳过），
+       而纯 opacity 过渡不触发 Safari 重新推导 → 染色一直挂着；
+       点「首页」触发 #content 重渲染（真·渲染变更）→ Safari 才重新推导、回根背景。
+       全新首屏没事 = 遮罩从没亮过、还没"案底"。（memory 里早标过这条隐患："若哪天
+       开过抽屉后工具栏变暗，先查这两条，药方：关闭时 display:none" —— 就是今天。）
+     ------------------------------------------------------------
+     改法（JS + 本段配合）：
+       · 本段：两个遮罩默认 display:none —— 首屏就不进渲染树；
+       · initTagDrawer show()/close()、音乐抽屉 openDrawer()/closeDrawer()：
+         开时 inline display:block + 强制 reflow 再加 .open（淡入照常）；
+         关时先摘 .open（淡出照播），300/320ms 后再 display:none。
+         display 变更本身是渲染树变更 → 触发 Safari 重新推导边缘色 → 染色当场清掉。
+       · display:none 是实测确认会被采样器跳过的状态（区别于 opacity:0）。
+     ⚠️ 抽屉面板本身清白：top/bottom/right 各留 10px(+safe-area) > 3px 采样门槛，不背锅。
+     ⚠️ 本机复现不了 iOS 玻璃 → 待文哥复检：开抽屉→关掉，看 URL 栏方块是否当场消失。
+     ⚠️ 若"抽屉开着的那几秒"玻璃染色仍在（开着时遮罩本就亮着，属合理），关后应立刻干净；
+        还嫌开着时碍眼，下一步才把遮罩底边抬 4px（bottom:4px 破"距边≤3px"门槛）。
+     🔙 回滚：删本段 + 把 initTagDrawer show()/close() 和音乐抽屉 openDrawer()/closeDrawer()
+        里四处「㉞ 配套」代码块删掉（恢复原函数体即可）。㉝ 深色纸面保留（跟本病无关）。 */
+.tag-drawer-overlay,
+.music-drawer-overlay {
+  display: none;
 }
 
 </style>
