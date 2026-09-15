@@ -1293,7 +1293,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
    <div id="appShell" class="w-full min-h-screen flex flex-col lg:h-full lg:min-h-0">
 
 
-     <header class="shrink-0 sticky top-0 z-40 lg:relative">
+     <header id="topHeader" class="shrink-0 sticky top-0 z-40 lg:relative">
         <nav class="bg-base-100/90 backdrop-blur border-b border-base-300/50 w-full relative z-40" id="topNav">
           <div class="flex items-center gap-2 sm:gap-3 min-h-12 py-0 px-3 sm:px-5">
             <button id="navToggleBtn" class="btn btn-ghost btn-sm btn-circle lg:hidden" aria-label="打开菜单" aria-expanded="false" aria-controls="appSidebar">
@@ -1385,6 +1385,37 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
     </aside>
   </div>
 </div>
+
+<!-- ======================= 手机端底部 Dock（≤1023px 才显示，见样式 ⑯ 段） =======================
+     放在 #appDrawer 外面（body 直属子节点）：它是 position:fixed 的悬浮卡，
+     留在抽屉容器里会被那层 overflow 牵连。
+     · 首页 / 热搜 / 时间 → 带 .tab-btn[data-view]，直接复用既有的视图切换逻辑（含选中态）
+     · 音乐             → 带 .music-trigger，复用音乐抽屉的既有绑定
+     · 更多             → 打开左侧抽屉，与原来的面包按钮（#navToggleBtn / #appNavChk）同一逻辑
+     ====================================================================================== -->
+<nav id="mobileDock" class="dock" aria-label="底部导航">
+  <button type="button" class="tab-btn" data-view="say" aria-label="首页">
+    <span class="iconify dock-icon" data-icon="lucide:house"></span>
+    <span class="dock-label">首页</span>
+  </button>
+  <button type="button" class="music-trigger" aria-label="音乐">
+    <span class="iconify dock-icon" data-icon="lucide:music"></span>
+    <span class="dock-label">音乐</span>
+    <span id="dockMusicDot" class="dock-dot hidden" aria-hidden="true"></span>
+  </button>
+  <button type="button" class="tab-btn" data-view="hot" aria-label="热搜">
+    <span class="iconify dock-icon" data-icon="lucide:flame"></span>
+    <span class="dock-label">热搜</span>
+  </button>
+  <button type="button" class="tab-btn" data-view="worldtime" aria-label="时间">
+    <span class="iconify dock-icon" data-icon="lucide:clock"></span>
+    <span class="dock-label">时间</span>
+  </button>
+  <button type="button" id="dockMoreBtn" aria-label="更多" aria-expanded="false" aria-controls="appSidebar">
+    <span class="iconify dock-icon" data-icon="lucide:menu"></span>
+    <span class="dock-label">更多</span>
+  </button>
+</nav>
 
 <!-- ======================= 标签抽屉：左侧滑出，支持组合标签 ======================= -->
 <div id="tagDrawerOverlay" class="tag-drawer-overlay" aria-hidden="true"></div>
@@ -6280,6 +6311,318 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead{
   #masthead::before{ display: none; }
   .mh-em{ display: none; }
 }
+
+/* ============================================================
+   ⑫ 移动端「单层纸面」修正（2026-09-15）
+   ------------------------------------------------------------
+   现象：小屏浅色下，首页正常，但切到「想看 / 看过」等菜单后，白色顶栏下方
+        会连出一大片近白色区域（筛选工具条），整页像好几层纸叠在一起；
+        海报磁贴也透着底，能看到"卡片下面还有背景"。
+   成因：小屏同时叠了 4 层底色，而且冷暖深浅各不相同——
+        ① body 的薄荷渐变（Garden 主题，2026-09-14 那版留下的）
+        ② #appDrawer 的玻璃白纱 rgb(255 255 255/.34) + 白描边 + 内高光
+        ③ #mainScroll>.max-w-5xl 的米色纸（手账主题遗留，第 5682 段）
+        ④ 内容里的近白玻璃（筛选工具条 42% 白、海报磁贴 48% 白）
+       关键：#topNav 是 base-100/90 ≈ #f5f4ec，而 ④ 的 42% 白压在米色纸上
+        ≈ #f9f5ec，两者几乎同色 → 顶栏和工具条连成一整块白，米色纸反而
+        "退"到下面才露出来，于是首页没问题、其他菜单就分层。
+   修法：小屏只留一层底色（纸色），卡片一律换成不透明白卡（与首页说说卡同款）。
+   ============================================================ */
+@media (max-width: 1023px) {
+  /* ① 全屏时不需要"桌面上的玻璃面板"这层白纱，去掉白纱/白描边/内高光/外投影 */
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer,
+  html:is([data-theme="dark"], [data-theme="halloween"]) #appDrawer {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* ② 底色只由 body 一处提供：整页就是一张纸，和首页内容列完全同色 */
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) body,
+  html:is([data-theme="dark"], [data-theme="halloween"]) body {
+    background: var(--journal-paper) !important;
+  }
+
+  /* ③ 光斑在小屏没有舞台（上面那层纸是不透明的），关掉更省电，也少一层 */
+  #bgOrbs { display: none !important; }
+
+  /* ④ 筛选工具条：换成首页说说卡那种"实心白卡"，不再半透地跟顶栏糊成一片 */
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5 {
+    background: linear-gradient(rgb(255 255 255/.78), rgb(255 255 255/.70)) !important;
+    border: 1px solid rgb(255 255 255/.80) !important;
+    box-shadow: 0 10px 26px rgb(24 78 62/.10), inset 0 1px 0 rgb(255 255 255/.86) !important;
+  }
+  html:is([data-theme="dark"], [data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5 {
+    background: linear-gradient(rgb(47 44 38/.90), rgb(38 36 31/.84)) !important;
+    border: 1px solid rgb(255 239 210/.10) !important;
+    box-shadow: 0 10px 26px rgb(0 0 0/.22), inset 0 1px 0 rgb(255 240 216/.05) !important;
+  }
+
+  /* ⑤ 热搜 / 书签的吸顶工具条：换成纸色（仍不透明，吸顶时照样盖住滚动内容） */
+  #content > div > div.sticky {
+    background: var(--journal-paper) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* ⑥ 海报磁贴同样换成实心白卡，和说说卡共用一套材质 */
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>* {
+    background: linear-gradient(rgb(255 255 255/.78), rgb(255 255 255/.70)) !important;
+    border-color: rgb(255 255 255/.80) !important;
+    box-shadow: 0 6px 16px rgb(24 78 62/.10), inset 0 1px 0 rgb(255 255 255/.86) !important;
+  }
+  html:is([data-theme="dark"], [data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>* {
+    background: linear-gradient(rgb(47 44 38/.90), rgb(38 36 31/.84)) !important;
+    border-color: rgb(255 239 210/.10) !important;
+  }
+}
+
+/* ============================================================
+   ⑬ 小屏菜单抽屉：从"贴边扁平长条"改成"浮起来的圆角玻璃卡"
+   对齐 PC 上标签抽屉（.tag-drawer，见第 5852 段）的那套规格：
+   四周留 10px、圆角 16px（--glass-radius-xl）、
+   玻璃底 + 1px 白描边 + 大投影 + 单侧滑入，遮罩用同一层灰。
+   注意：背景/描边必须用和 Apple Glass 段（5815）**同样的选择器形状**才能压过它，
+   因为两边都带 !important，这时候靠的是 specificity 而不是源码顺序。
+   ============================================================ */
+@media (max-width: 1023px) {
+  /* ① 关闭态要多推出去 24px：面板左边留了 10px 边距，
+        只推 -100% 的话圆角还会露出细细一条 */
+  #appDrawer > .drawer-toggle ~ .drawer-side > #appSidebar {
+    translate: calc(-100% - 24px) 0 !important;
+  }
+  #appDrawer > .drawer-toggle:checked ~ .drawer-side > #appSidebar {
+    translate: 0 0 !important;
+  }
+
+  /* ② 面板几何：四周留边 + 圆角 + 裁剪。
+        高度写死成「视口高 - 上下各 10px」而不是靠 stretch——
+        daisyUI 的 .drawer-side 是 grid 容器，grid item 给 height:100% 会连
+        margin 一起算进去而溢出（被 .drawer-side 的 overflow:hidden 裁掉底边）。 */
+  #appSidebar {
+    width: min(304px, 84vw) !important;
+    height: calc(100dvh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
+    margin: calc(10px + env(safe-area-inset-top, 0px)) 0 calc(10px + env(safe-area-inset-bottom, 0px)) 10px !important;
+    padding: 10px 12px 14px !important;
+    border-radius: var(--glass-radius-xl) !important;
+    overflow: hidden auto !important;
+    transition: translate .38s cubic-bezier(.22, 1, .36, 1) !important;
+  }
+
+  /* ③ 浅色：Garden 白绿玻璃，和标签抽屉逐字一致 */
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar {
+    background: linear-gradient(155deg, rgb(255 255 255/.80), rgb(229 247 239/.64)) !important;
+    border: 1px solid rgb(255 255 255/.72) !important;
+    box-shadow: 0 24px 60px rgb(24 78 62/.22), inset 0 1px 0 rgb(255 255 255/.80) !important;
+    -webkit-backdrop-filter: var(--glass-blur-strong);
+    backdrop-filter: var(--glass-blur-strong);
+  }
+  /* ④ 深色：暖炭玻璃，同样对齐标签抽屉 */
+  html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar {
+    background: linear-gradient(155deg, rgb(47 43 37/.92), rgb(29 27 23/.88)) !important;
+    border: 1px solid rgb(255 239 210/.10) !important;
+    box-shadow: 0 24px 60px rgb(0 0 0/.55), inset 0 1px 0 rgb(255 240 216/.05) !important;
+    -webkit-backdrop-filter: var(--glass-blur-strong);
+    backdrop-filter: var(--glass-blur-strong);
+  }
+
+  /* ⑤ 遮罩换成标签抽屉那层灰（原来是 daisyUI 默认的半透 base-100，偏白） */
+  #appDrawer > .drawer-toggle ~ .drawer-side > .drawer-overlay {
+    background: rgba(35, 27, 19, .24) !important;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* ============================================================
+   ⑭ 图片页：张数统计与瀑布流之间补一点呼吸
+   （原来那句「共 N 张图片 · 来自所有说说」是个 margin:0 的 <p>，
+     紧接着就是 Masonry 容器，文字几乎贴在第一排照片上。
+      18px 是为了明显大于照片之间 5+5=10px 的内间距，
+     让"一句话 + 一堵墙"读起来是两段，而不是糊在一起。）
+   ============================================================ */
+#photoGrid {
+  margin-top: 18px;
+}
+
+/* ============================================================
+   ⑯ 手机端布局改版（2026-09-15）：撤掉置顶横幅 → 换到底部 Dock
+   ------------------------------------------------------------
+   动机：≤1023px 时顶部只有「面包按钮 + 小记」一条横幅，占掉一整条高度，
+        却不携带任何信息；同时屏幕下方是完全空着的。
+   改法：
+     ① 整条顶栏 #topHeader 在 ≤1023px 下 display:none（桌面端照旧）。
+     ② 底部换成 daisyUI 的 .dock，5 项：首页 / 音乐 / 热搜 / 时间 / 更多。
+        「更多」= 打开左侧抽屉（勾选 #appNavChk），与原来的面包按钮完全同一条逻辑。
+     ③ Dock 做成"悬浮磨砂玻璃卡"：四周留 10px + 16px 圆角 + 强模糊，
+        与标签抽屉 / 歌单抽屉 / 小屏菜单抽屉（第 5852 段、⑬ 段）同一套规格。
+     ④ 连带让位：内容底部留白、#toTop、歌词药丸、#mediaPager 全部抬高 --dock-space，
+        否则会被 Dock 压住；顶部再补回刘海/状态栏安全距离
+        （原来由 #topNav 的 padding-top 负责，顶栏撤了就得自己补）。
+   ------------------------------------------------------------
+   注：本补丁层的编号此前重复过一次（6120 段与 6285 段各有一套 ⑫⑬⑭），
+      这里取 ⑯ 保证唯一。
+   ============================================================ */
+
+/* 桌面端（≥1024px）不存在 Dock。放在全局是为了压掉 daisyUI .dock 的 display:flex */
+#mobileDock { display: none; }
+
+@media (max-width: 1023px) {
+  :root {
+    --dock-gap: 10px;      /* 悬浮卡四周留边，与三个抽屉一致 */
+    --dock-h: 58px;        /* Dock 本体高度 */
+    /* Dock 从视口底部往上占掉的总高度：本体 + 上下留边 + Home 指示条 */
+    --dock-space: calc(var(--dock-h) + var(--dock-gap) * 2 + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ① 顶栏整条撤掉，把这条高度让给内容 */
+  #topHeader { display: none !important; }
+
+  /* ② 内容顶端补回刘海 / 状态栏的安全距离；
+        内容里的吸顶工具条（热搜 / 书签）的 top 也要跟着让位，否则会钻到状态栏下面 */
+  #content { padding-top: calc(.75rem + env(safe-area-inset-top, 0px)); }
+  #content > div > div.sticky { top: env(safe-area-inset-top, 0px); }
+
+  /* ③ Dock 本体：悬浮磨砂玻璃卡 */
+  #mobileDock {
+    display: flex !important;
+    position: fixed !important;
+    left: var(--dock-gap) !important;
+    right: var(--dock-gap) !important;
+    bottom: calc(var(--dock-gap) + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    height: var(--dock-h) !important;
+    padding: 6px 4px !important;
+    border: 1px solid transparent !important;   /* 描边颜色交给下面两套主题 */
+    border-radius: var(--glass-radius-xl) !important;
+    z-index: 55 !important;                     /* 低于抽屉（60/70/80），高于内容与翻页条 */
+    overflow: hidden;
+    -webkit-backdrop-filter: var(--glass-blur-strong) !important;
+    backdrop-filter: var(--glass-blur-strong) !important;
+  }
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) #mobileDock {
+    background: linear-gradient(155deg, rgb(255 255 255/.84), rgb(229 247 239/.70)) !important;
+    border-color: rgb(255 255 255/.88) !important;
+    box-shadow: 0 16px 40px rgb(24 78 62/.22), inset 0 1px 0 rgb(255 255 255/.90) !important;
+  }
+  /* 深色：比抽屉那套稍实一点。抽屉背后永远是一层满屏遮罩，Dock 背后却是
+     随时在滚的内容，所以底色要更沉、描边要更亮，才能"浮"在手账纸面上
+     （#25231f）而不是糊成一片。 */
+  html:is([data-theme="dark"], [data-theme="halloween"]) #mobileDock {
+    background: linear-gradient(155deg, rgb(46 42 35/.95), rgb(24 22 19/.95)) !important;
+    border-color: rgb(255 239 210/.15) !important;
+    box-shadow: 0 18px 46px rgb(0 0 0/.60), 0 0 0 1px rgb(0 0 0/.30), inset 0 1px 0 rgb(255 240 216/.07) !important;
+  }
+
+  /* ④ Dock 里的每一项 */
+  #mobileDock > button {
+    margin-bottom: 0 !important;   /* daisyUI 默认给子项留了 .5rem 下边距 */
+    height: 100% !important;
+    gap: 2px !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    color: var(--journal-muted);
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color .18s ease, color .18s ease, opacity .18s ease;
+  }
+  #mobileDock > button:active { opacity: .62; }
+  #mobileDock .dock-icon { font-size: 1.28rem; line-height: 1; }
+  #mobileDock .dock-label { font-size: .68rem; letter-spacing: .02em; }
+
+  /* ⑤ 选中态：柔色药丸底（比 daisyUI 默认那根小横杠更贴这套纸感 UI）。
+        选择器比 ④ 多一个 .active / .dock-more-on——两边都带 !important 时靠 specificity 决胜。 */
+  #mobileDock > .tab-btn.active,
+  #mobileDock > .dock-more-on {
+    background: color-mix(in oklch, var(--color-primary) 16%, transparent) !important;
+    color: var(--color-primary) !important;
+  }
+  /* daisyUI 给每个 dock 子项都挂了 ::after（一条透明小横杠），选中时会显形。
+     这套 UI 用上面的药丸就够了，横杠统一关掉 */
+  #mobileDock > button::after { display: none !important; }
+
+  /* ⑥ 音乐项右上角的"正在播放"小点（侧栏那个是单 id 的 #musicDot，这里另起一个） */
+  #mobileDock .dock-dot {
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    margin-left: 6px;
+    border-radius: 999px;
+    background: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-primary) 26%, transparent);
+  }
+
+  /* ⑦ 让位：所有吸底 / 悬浮元素都要抬到 Dock 上方 */
+  #mainScroll { padding-bottom: calc(var(--dock-space) + 10px) !important; }
+  #toTop { bottom: calc(var(--dock-space) + 8px) !important; }
+  #headerLyricsBar:not(.hidden) { bottom: calc(var(--dock-space) + 6px) !important; }
+  /* 翻页条本身就是"吸底托盘"（自带一层纸色渐变）：
+     直接把 Dock 的高度算进它自己的下内边距，按钮就自然落在 Dock 上方，
+     中间那段渐变也不会漏出滚动内容 */
+  #mediaPager {
+    bottom: 0 !important;
+    padding-bottom: calc(var(--dock-space) + 6px) !important;
+  }
+}
+
+/* ============================================================
+   ⑰ 手机端 Dock「上滑收起 / 下滑弹出」（2026-09-15）
+   ------------------------------------------------------------
+   行为：内容往下滚（手指上滑）→ Dock 滑出屏幕外收走；
+        往回滚（手指下滑）→ 立刻滑回来。
+        三个例外永远保持显示：距顶部 90px 内、距页面底部 96px 内、
+        以及页面根本不可滚动时（判据见脚本里的 SHOW_ZONE / BOTTOM_ZONE）。
+   ------------------------------------------------------------
+   实现：只挂一个状态类 `body.dock-asleep`，由脚本按滚动方向开关。
+   为什么 #toTop / 歌词药丸要一起收：
+        它们都靠 --dock-space 悬在 Dock 正上方（第 ⑯ 段 ⑦），
+        Dock 走了它们还杵在半空会很奇怪，所以整排"底部家具"一起下移，
+        落回它们本来该在的位置（1.25rem / 18px）。
+   #mediaPager 例外，不动：
+        它是吸底托盘，让位靠的是自己的 padding-bottom，
+        改 padding 就等于改元素高度 → 会引起内容跳动；
+        而它只在页面底部出现，那个时候 Dock 按上面的规则本来就是显示的。
+   ============================================================ */
+@media (max-width: 1023px) {
+  #mobileDock {
+    transition: translate .34s cubic-bezier(.22, 1, .36, 1), opacity .26s ease;
+    will-change: translate;
+  }
+  body.dock-asleep #mobileDock {
+    /* 100% 是 Dock 自己的高 58px；加上它离底的 10px + Home 指示条 + 8px 余量，
+       正好整条落到视口外 */
+    translate: 0 calc(100% + var(--dock-gap) + env(safe-area-inset-bottom, 0px) + 8px);
+    opacity: 0;
+    pointer-events: none;   /* 别让"收走途中"的误触点了音乐/更多 */
+  }
+
+  /* 回到顶部：跟 Dock 同进同出（两个 !important 之间，靠 body.dock-asleep 这档 specificity 取胜） */
+  #toTop {
+    transition: bottom .34s cubic-bezier(.22, 1, .36, 1), opacity .3s ease,
+                color .2s ease, transform .2s ease !important;
+  }
+  body.dock-asleep #toTop {
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* 歌词药丸：同理 */
+  #headerLyricsBar:not(.hidden) {
+    transition: bottom .34s cubic-bezier(.22, 1, .36, 1);
+  }
+  body.dock-asleep #headerLyricsBar:not(.hidden) {
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* 尊重系统的"减少动态效果"：不做位移过渡，直接切 */
+@media (prefers-reduced-motion: reduce) {
+  #mobileDock,
+  #toTop,
+  #headerLyricsBar:not(.hidden) { transition: none !important; }
+}
 </style>
 
 <script>
@@ -6465,6 +6808,107 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead{
   });
 
   poem.dataset.ashReady = '1';
+})();
+</script>
+
+<script>
+/* ============================================================
+   手机端底部 Dock（样式见 ⑯ 段）
+   1) 「更多」= 打开左侧抽屉，和原来的面包按钮走同一条路（勾选 #appNavChk）
+   2) 音乐项的"正在播放"小点：侧栏那个是单 id 的 #musicDot，这里另起一个监听
+   3) 「更多」的选中态：当前视图不在 Dock 的 4 个 tab 里
+      （图片 / 看过 / 想看 / 标注 / 书签）时点亮，
+      用 MutationObserver 盯 dock 内 tab 的 class，不侵入 switchView
+   ============================================================ */
+(() => {
+  const dock = document.getElementById('mobileDock');
+  if (!dock) return;
+
+  const chk = document.getElementById('appNavChk');
+  const navBtn = document.getElementById('navToggleBtn');
+  const moreBtn = document.getElementById('dockMoreBtn');
+
+  /* ---------- 1) 更多 = 打开左侧抽屉 ---------- */
+  if (chk && moreBtn) {
+    moreBtn.addEventListener('click', () => {
+      chk.checked = true;
+      moreBtn.setAttribute('aria-expanded', 'true');
+      if (navBtn) navBtn.setAttribute('aria-expanded', 'true');
+    });
+    // 抽屉被遮罩 / 菜单项关掉时，把「更多」的 aria 状态同步回来
+    chk.addEventListener('change', () => moreBtn.setAttribute('aria-expanded', String(chk.checked)));
+  }
+
+  /* ---------- 2) 音乐播放小点 ---------- */
+  const dot = document.getElementById('dockMusicDot');
+  if (dot) {
+    document.addEventListener('hwplayer:update', (e) => {
+      dot.classList.toggle('hidden', !(e.detail && e.detail.isPlaying));
+    });
+  }
+
+  /* ---------- 3) 「更多」选中态 ---------- */
+  if (moreBtn) {
+    const items = [...dock.querySelectorAll('.tab-btn[data-view]')];
+    const syncMore = () => {
+      const anyActive = items.some((b) => b.classList.contains('active'));
+      moreBtn.classList.toggle('dock-more-on', !anyActive);
+    };
+    syncMore();
+    const mo = new MutationObserver(syncMore);
+    // 只盯 dock 内这几项：moreBtn 自己的 class 不在观察范围，不会自激
+    items.forEach((b) => mo.observe(b, { attributes: true, attributeFilter: ['class'] }));
+  }
+
+  /* ---------- 4) 上滑收起 / 下滑弹出（样式见 ⑰ 段） ----------
+     只挂一个 body 状态类，Dock / 回到顶部 / 歌词药丸一起动。
+     阈值 MIN_DELTA 是必须的：`scroll` 事件里同一方向的微小抖动会被误判成反向。 */
+  const mqMobile = window.matchMedia('(max-width: 1023px)');
+  const SHOW_ZONE  = 90;   // 距顶部这么近 → 永远显示
+  const BOTTOM_ZONE = 96;  // 距底部这么近 → 永远显示（#mainScroll 底部留白是 88px）
+  const MIN_DELTA  = 8;    // 方向判定门槛
+  let lastY = getScrollPos();
+  let asleep = false;
+
+  const setAsleep = (v) => {
+    if (v === asleep) return;
+    asleep = v;
+    document.body.classList.toggle('dock-asleep', v);
+  };
+
+  const onScroll = () => {
+    if (!mqMobile.matches) { setAsleep(false); return; }   // 桌面端不存在 Dock
+    const cur = getScrollPos();
+    if (cur <= SHOW_ZONE) {                 // 顶部这段永远显示（也省掉一次 scrollHeight 读取）
+      lastY = cur;
+      setAsleep(false);
+      return;
+    }
+    const d = cur - lastY;
+    if (d > MIN_DELTA) {
+      lastY = cur;
+      /* 只在"往下滚"这一支去读 scrollHeight —— 它会触发一次强制布局，
+         能少读就少读。到底部时强制显示：不然翻页条上方会空出一块。 */
+      const max = isBodyScroll()
+        ? document.documentElement.scrollHeight - window.innerHeight
+        : Math.max(0, mainScroll.scrollHeight - mainScroll.clientHeight);
+      setAsleep(cur < max - BOTTOM_ZONE);
+    } else if (d < -MIN_DELTA) {
+      lastY = cur;
+      setAsleep(false);
+    }
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  mainScroll.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', () => {
+    lastY = getScrollPos();
+    if (!mqMobile.matches) setAsleep(false);
+  });
+  mqMobile.addEventListener('change', () => {
+    lastY = getScrollPos();
+    setAsleep(false);
+  });
 })();
 </script>
 
