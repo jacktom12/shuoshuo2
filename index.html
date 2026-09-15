@@ -1288,10 +1288,6 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   <span></span><span></span><span></span><span></span>
 </div>
 
-<!-- ㉙ 底部贴边取色条：给 iOS Safari 的底部地址栏一个"垫色源"（详见样式表 ㉙ 段）。
-     仅手机端显示，6px 高、贴死底边、不吃点击。删掉它与样式表 ㉙ 段即可回滚。 -->
-<div id="safariBottomTint" aria-hidden="true"></div>
-
 <!-- ============ 应用框架：daisyUI Drawer —— 大屏左侧固定侧栏，小屏滑出抽屉 ============ -->
 <div class="drawer lg:drawer-open" id="appDrawer">
   <input id="appNavChk" type="checkbox" class="drawer-toggle" />
@@ -7166,52 +7162,26 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
       🔙 这一段现在**没有任何 CSS**（已整块删除，正文回到 ④ 段的 `body 透明` + ㉑ 段的 `html 白`）。
          顶部因此回到改动前的白、与状态栏重新融合。 */
 
-/* ㉙ 小屏：只在**底边**放一条贴边取色条，专门给底部地址栏"垫色"（2026-09-15）
+/* ㉙ ⚠️ 原方案已作废、CSS 已整块删除（2026-09-15 文哥 IMG_4814 推翻）—— 只留这段记录
       ------------------------------------------------------------
-      病根（文哥最初报的）：说说列表一筛选，URL 控件就被"一块白色块状"包住。
-        底部那条控件是 iOS 26 的玻璃（半透明），底色/边界由 Safari 自己从页面推导；
-        页面纯白 → 控件压在白底上 → 没有边界 → 看着像一块白砖。
-        内容长的时候控件底下压着卡片，边界隐约可见，所以他说"不明显"。
+      原方案：给**底边**塞一条 6px 满宽浅灰 `#safariBottomTint` 贴边取色条，
+              想让底部地址栏"有个边界感"。
+      ❌ 文哥原话打脸：「我要的是没有边界感的URL……URL这一套控件是透明的底色。
+              你改得更严重了，以前不筛选所有页面都完美的。」
+      → 我**把意图理解反了**：他要的不是"加一道更深色的边界"，而是
+        "URL 控件透明、跟白页融为一体、上滑能缩小、没有边界感"。
+        在白页上，iOS 26 玻璃工具栏本就呈现白 = 无边界；我加灰条反而制造了
+        一条可见灰带、还压不住原本的白边。
       ------------------------------------------------------------
-      改法：给**底边**一个合格的"贴边取色源"。Safari 推导底色时第一优先级就是
-            「贴视口边缘的 fixed / sticky 元素」（门槛：距底 ≤3px、宽 ≥80%、高 ≥3px）。
-            这里就是一条 6px 高、满宽、贴死底边的浅灰条 —— 满足门槛，而且只在底边。
-      ⚠️ 为什么不顺手再改 html / body：见上面 ㉘ 段的实测，全局色会同时染到顶边。
-      ⚠️ 这 6px 是**故意做得几乎看不见**的：#f1f3f4 只比纯白深 14 阶，又贴在屏幕最下沿
-         （Home 指示条那一带）。它的作用是"给 Safari 读"，不是"给人看"。
-      🔧 两个旋钮：① `height`（必须 ≥3px）；② 两个 `background-color`。
-         觉得边界还不够明显 → 调深（#eaedef）；觉得底下多出一条线 → 调浅（#f7f8f9）。
-      ⚠️ 如果真机上底部**依然是一块白、毫无变化**，说明这条边不认 fixed 元素 ——
-         那就把本段删掉、别再折腾（属 Apple 自身设计，纯白页面无解）。
-      ------------------------------------------------------------
-      ⚠️ 顺带排查（本次**没动**，只记录实测）：
-        全站本来就有两个"满屏 + 贴死上下两条边 + opacity:0 但 display 仍成立"的遮罩 ——
-        `.tag-drawer-overlay`(rgba(0,0,0,.38)) 与 `.music-drawer-overlay`(rgba(0,0,0,.35))。
-        无头 Chrome 实测它们**同时**是合格的顶边源和底边源。按"opacity:0 不跳过"那条规则，
-        它们本该把地址栏染成深灰 —— 但真机上一直是浅色，没被采到。
-        → 反推：Safari 认的是**不透明**的 `background-color`（rgba 半透明不算）。
-           所以下面这条 `#f1f3f4` 是实色、能生效；那两个遮罩不会捣乱。
-        ⚠️ 不过仍留着一条隐患排查：它们关闭时只写 `opacity:0`、`display` 还是 block，
-           还带 `backdrop-filter`（= 一层隐形的全屏模糊）。以后若出现
-           "开过抽屉之后地址栏变暗"，第一个来查这两条（药方：关闭时补 `display:none`）。
-      🔙 想回滚：删掉本段 CSS + HTML 里那个 `#safariBottomTint` 空 div（共两处）。 */
-@media (max-width: 1023px) {
-  #safariBottomTint {
-    display: block !important;
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100%;
-    height: 6px;
-    background-color: #f1f3f4;
-    pointer-events: none;
-    z-index: 1;
-  }
-  html:is([data-theme="dark"], [data-theme="halloween"]) #safariBottomTint {
-    background-color: #2c2c2e;
-  }
-}
+      ⚠️ 由此得到的定论（比这一段本身值钱）：
+        文哥要的是"透明无边界"，不是"加深色边界"。任何给 URL / 地址栏加**实色**
+        贴边条（灰/深色都算）的方案都走反了方向——白页上只有"白"才等于"无边界"，
+        加任何非白实色都会变成一条可见的带。
+      ⚠️ 真正该守的基线（回到 ④ 段 body 透明 + ㉑ 段 html 白）：
+        白页 → 工具栏玻璃透出白 → 看着就是页面的一部分 = 无边界；
+        短内容（筛选后）底部若是纯白，工具栏自然也是白，本就该"融"进去，
+        不要为了制造边界而去垫色。
+      🔙 HTML 里那个 `#safariBottomTint` 空 div（原 1293 行附近）也一并删了，共两处。 */
 
 </style>
 
