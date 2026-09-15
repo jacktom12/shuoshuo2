@@ -9,8 +9,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-<meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: light)" />
+<!-- 浏览器/系统 UI 的颜色（iOS Safari 顶栏与底栏、Android 状态栏）。
+     浅色原本是 #1a1a2e 那个深藏青 —— 老配色遗留，白页面配深蓝栏，
+     正是「跟手机屏幕结合不起来」的元凶。这里给 light 白 / dark #1c1c1e 的兜底值，
+     真正的取值由下面的 syncThemeColor() 按**站点主题**动态写（见 §㉑ 的注释：
+     本站主题存在 localStorage，可以和系统偏好相反，所以不能用 media 写死）。 -->
+<meta name="theme-color" content="#ffffff" id="metaThemeColor" />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -3797,9 +3801,21 @@ function updateThemeIcons(theme) {
   document.querySelectorAll('#iconMoon, .theme-icon-moon').forEach(el => el.classList.toggle('hidden', !dark));
 }
 
+/* 浏览器/系统 UI 的颜色跟着**站点主题**走（iOS Safari 顶栏与底栏、Android 状态栏）。
+   为什么不用 `<meta media="(prefers-color-scheme: …)">` 写死：
+   本站主题存在 localStorage['memo-theme']，可以和系统偏好**相反** ——
+   手机是浅色但稿子切成深色时，写死 media 会把顶栏染成白的，又对不上了。
+   取值与 §㉑ 的 html 底色一一对应：浅 #ffffff / 深 #1c1c1e。 */
+function syncThemeColor(theme) {
+  const m = document.getElementById('metaThemeColor');
+  if (!m) return;
+  m.setAttribute('content', isDarkTheme(theme) ? '#1c1c1e' : '#ffffff');
+}
+
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   updateThemeIcons(theme);
+  syncThemeColor(theme);
   try { localStorage.setItem('memo-theme', theme); } catch {}
 }
 
@@ -6866,6 +6882,47 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content ul.memo-list .me
   html:is([data-theme="dark"], [data-theme="halloween"]) #appDrawer > .drawer-content {
     background: linear-gradient(155deg, rgb(47 43 37/.78), rgb(29 27 23/.67)) !important;
   }
+}
+
+/* ㉑ 去掉云朵壁纸：浅色纯白 / 深色用 iOS 系统深灰（2026-09-15）
+      文哥原话：「去掉这个云朵壁纸，直接浅色就是纯白色，暗色就是纯灰色还是黑色来着，
+                 你觉得呢？苹果系统一般的暗黑模式是啥颜色你就用那种颜色吧」
+      真正的动机（原话）：手机上「iOS 自带的浏览器都无法好好跟手机屏幕结合起来」。
+      ------------------------------------------------------------
+      配色取值（Apple HIG · Dark Mode 的系统色）：
+        · systemBackground          = #000000   ← 纯黑，OLED 上最"黑"
+        · secondarySystemBackground = #1C1C1E   ← 取这个
+        · tertiarySystemBackground  = #2C2C2E
+      iOS 深色界面的"灰底"（设置里的分组行、Safari 自己的深色工具栏）用的就是 #1C1C1E。
+      页面要跟手机自己的 UI **融成一体**，用这个比纯黑更贴（纯黑反而会跟工具栏差一档）。
+      → 想换纯黑：只改下面 dark 那条的 `#1c1c1e` 为 `#000000`，一处。
+      ------------------------------------------------------------
+      ⚠️ 选择器形状必须和 ⑲ 段 ①② **一模一样**：那边是
+         `html:not([data-theme="dark"]):not([data-theme="halloween"])`（0,2,1）
+         配 `background-color` + `background-image` 两条 !important，
+         同形状 + 源码顺序靠后才是本段赢（光靠 !important 不够）。
+      ⚠️ 只把 background-image 压掉，**不动 ⑲ 段那两条 data URI 本身**。
+         想恢复云朵壁纸：删掉本段整块就回去了（那两条还在，不会丢）。
+      ------------------------------------------------------------
+      同一件事另外还改了两处（都是老配色遗留，一并纠正）：
+        · <head> 的 theme-color：浅色原本是 **#1a1a2e 深藏青** —— 页面是白的、
+          Safari 顶栏却被染成深蓝，这才是"跟手机屏幕结合不起来"的真凶。
+        · site.webmanifest 的 theme_color / background_color：原本 **#0a0e18**。
+      ------------------------------------------------------------
+      旁注（没有改，仅记录）：壁纸一去，⑳ 段那层玻璃的 `backdrop-filter` 就没东西可模糊了，
+      但它的**渐变**仍然有效 —— 桌面面板会从纯白渐到极淡的薄荷（rgb(241,251,247)），
+      配合面板投影，依旧读得出"浮在桌面的一张纸"。手机端的磨砂（Dock / 抽屉 / 吸顶条）
+      同理：模糊失效，白色不透明度照旧。视觉上没有副作用。 */
+html:not([data-theme="dark"]):not([data-theme="halloween"]),
+html:is([data-theme="dark"], [data-theme="halloween"]) {
+  background-image: none !important;
+  background-repeat: no-repeat !important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) {
+  background-color: #ffffff !important;
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) {
+  background-color: #1c1c1e !important;
 }
 
 </style>
