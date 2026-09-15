@@ -3766,10 +3766,16 @@ function switchView(view) {
     overlay.setAttribute('aria-hidden', 'false');
   };
 
-  /* 从左侧菜单点「标签」进来：菜单收掉（不然左边还杵着一块），抽屉从右边进来 */
+  /* 菜单抽屉点击「标签」：先收起菜单，再从网页左侧滑出标签抽屉。 */
   const open = () => {
+    const nav = document.getElementById('appNavChk');
+    const navWasOpen = !!(nav && nav.checked);
     closeNav();
-    show();
+    if (navWasOpen) {
+      window.setTimeout(show, 180);
+    } else {
+      show();
+    }
   };
 
   const close = () => {
@@ -3794,7 +3800,7 @@ function switchView(view) {
     if (e.key === 'Escape' && drawer.classList.contains('open')) close();
   });
 
-  /* 给右侧边缘手势用（那个脚本在文件末尾，晚于本段执行）*/
+  /* 供菜单中的「标签」入口及其他显式控件调用。 */
   window.openTagDrawer = open;
   window.closeTagDrawer = close;
   window.isTagDrawerOpen = () => drawer.classList.contains('open');
@@ -7375,31 +7381,35 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
 }
 
 
-/* Final mobile drawer direction: main navigation enters from the right; tags enter from the left only after tapping Tags in that navigation. */
+/* Final mobile drawer and dark-view cleanup */
 @media (max-width: 1023px) {
-  #appDrawer .drawer-toggle .drawer-side { justify-content: flex-end !important; }
-  #appDrawer .drawer-toggle .drawer-side > #appSidebar {
+  #content ul.memo-list { min-height: 0 !important; }
+  #content ul.memo-list::after { content: none !important; display: none !important; }
+  #tagDrawerOverlay, #musicDrawerOverlay, #cmdkOverlay, #cmdkMemoModal {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  #tagDrawerOverlay, #musicDrawerOverlay {
     position: fixed !important;
-    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
-    right: 10px !important;
-    left: auto !important;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
-    width: min(304px, 84vw) !important;
-    height: auto !important;
-    margin: 0 !important;
-    transform: translateX(calc(100% + 28px)) !important;
-    transition: transform .38s cubic-bezier(.22, 1, .36, 1) !important;
+    inset: 0 !important;
+    z-index: 74 !important;
   }
-  #appDrawer .drawer-toggle:checked ~ .drawer-side > #appSidebar,
-  #appNavChk:checked ~ .drawer-side > #appSidebar { transform: translateX(0) !important; }
-  #tagBar.tag-drawer {
-    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
-    left: 10px !important;
-    right: auto !important;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
-    transform: translateX(calc(-100% - 28px)) !important;
+  #tagBar, #musicDrawer {
+    z-index: 75 !important;
+    max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
   }
-  #tagBar.tag-drawer.open { transform: translateX(0) !important; }
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) #content .hot-body > div > a,
+html:is([data-theme="dark"], [data-theme="halloween"]) #content .bm-body > div > a {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) #content .hot-body > div > a:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) #content .bm-body > div > a:hover {
+  background: color-mix(in oklch, var(--color-base-content) 6%, transparent) !important;
+  box-shadow: none !important;
 }
 </style>
 
@@ -7694,63 +7704,45 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
 
 <script>
 /* ============================================================
-   ㉒ + ㉖ 手机端两侧边缘侧滑（2026-09-15）
-     · 左边缘 → 往右滑 → 唤出**左侧菜单**抽屉（daisyUI #appNavChk）
-     · 右边缘 → 往左滑 → 唤出**右侧标签本**（调 window.openTagDrawer）
-     · 抽屉开着时把方向反过来拖回去即可关：菜单往左滑关、标签本往右滑关
-   ------------------------------------------------------------
-   为什么起点限制在"屏幕最边缘 EDGE 这一条带"而不是全屏任意位置：
-     正文里有横向排布的东西（图集胶片条、底部的翻页托盘），
-     全屏横滑会跟它们抢手势；收窄起点，冲突面最小。
-   **左右两条带互不重叠，一次触摸只会命中其中一边** —— 这正是文哥要的
-     "把标签菜单抽离出来"：以前两个抽屉都在左边、都从左边缘出发，
-     根本分不清滑出来的是哪一个。
-   为什么要把"竖向优先"判死（VERT_KILL）：
-     手指斜着划是很常见的，如果不先判竖向，轻轻一划就会莫名弹出抽屉，
-     比"不响应"更烦人。竖着走就直接放手，交回给页面滚动。
-   ------------------------------------------------------------
-   注：iOS Safari 自己的「左边缘右滑 = 后退」也吃左边这条带。本站通常是直接输入
-   网址打开的、没有可后退的历史，所以撞不上；真撞上了再把这个 EDGE 往右挪一点。
+   手机端单侧边缘手势
+   · 左侧边缘右滑：不触发任何抽屉
+   · 右侧边缘左滑：打开菜单抽屉
+   · 菜单抽屉内点击「标签」后：标签抽屉从网页左侧滑出
+   · 菜单 / 标签抽屉打开后：向左滑可关闭
    ============================================================ */
 (() => {
   const chk = document.getElementById('appNavChk');
   const mqMobile = window.matchMedia('(max-width: 1023px)');
+  const EDGE = 30;
+  const OPEN_AT = 44;
+  const CLOSE_AT = 56;
+  const VERT_KILL = 16;
 
-  const EDGE      = 30;   // 起点要落在最边缘这么宽的一条带里，才算"从边缘起手"
-  const OPEN_AT   = 44;   // 往屏幕内侧划够这么远 → 打开
-  const CLOSE_AT  = 56;   // 抽屉开着时，往它那一侧推够这么远 → 关闭
-  const VERT_KILL = 16;   // 竖向位移超过它、且比横向大 → 判定为滚动，放手
-
-  /* active: 'nav-open' | 'nav-close' | 'tag-open' | 'tag-close' | null */
   let sx = 0, sy = 0, active = null;
-
   const first = (e) => (e.touches && e.touches[0]) ||
                        (e.changedTouches && e.changedTouches[0]);
-
-  /* 改 checked 不会自动冒 change 事件，显式补一发，别让别的监听者（⑯ 段那套
-     aria 同步）读到过期状态。daisyUI 抽屉本身只认 :checked 伪类，不受影响。 */
-  const setNav = (v) => {
-    if (!chk || chk.checked === v) return;
-    chk.checked = v;
+  const setNav = (open) => {
+    if (!chk || chk.checked === open) return;
+    chk.checked = open;
     chk.dispatchEvent(new Event('change', { bubbles: true }));
   };
-  const tagIsOpen = () => typeof window.isTagDrawerOpen === 'function' && window.isTagDrawerOpen();
-  const tagOpen   = () => { if (typeof window.openTagDrawer  === 'function') window.openTagDrawer(); };
-  const tagClose  = () => { if (typeof window.closeTagDrawer === 'function') window.closeTagDrawer(); };
+  const tagIsOpen = () =>
+    typeof window.isTagDrawerOpen === 'function' && window.isTagDrawerOpen();
+  const tagClose = () => {
+    if (typeof window.closeTagDrawer === 'function') window.closeTagDrawer();
+  };
 
   document.addEventListener('touchstart', (e) => {
     active = null;
     if (!mqMobile.matches || e.touches.length !== 1) return;
     const t = first(e);
     if (!t) return;
-    const W = innerWidth;
-    /* 优先级：先看"有没有开着的抽屉"—— 开着就只等把它拖回去；
-       都没开，才按起手落在哪条边缘决定要开哪个。 */
-    if (tagIsOpen())            active = 'tag-close';
+
+    if (tagIsOpen()) active = 'tag-close';
     else if (chk && chk.checked) active = 'nav-close';
-    else if (t.clientX >= W - EDGE) active = 'tag-open';   // 右边缘
-    else if (t.clientX <= EDGE)     active = 'nav-open';   // 左边缘
+    else if (t.clientX >= innerWidth - EDGE) active = 'nav-open';
     else return;
+
     sx = t.clientX;
     sy = t.clientY;
   }, { passive: true });
@@ -7763,16 +7755,21 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
     const dy = t.clientY - sy;
 
     if (Math.abs(dy) > VERT_KILL && Math.abs(dy) > Math.abs(dx)) {
-      active = null;                          // 竖着走 → 让给页面滚动
+      active = null;
       return;
     }
-    const horiz = Math.abs(dy) < Math.abs(dx);
-    if (!horiz) return;
+    if (Math.abs(dy) >= Math.abs(dx)) return;
 
-    if (active === 'nav-open'  && dx >  OPEN_AT)  { setNav(true);   active = null; }
-    else if (active === 'nav-close' && dx < -CLOSE_AT) { setNav(false);  active = null; }
-    else if (active === 'tag-open'  && dx < -OPEN_AT)  { tagOpen();      active = null; }
-    else if (active === 'tag-close' && dx >  CLOSE_AT) { tagClose();     active = null; }
+    if (active === 'nav-open' && dx < -OPEN_AT) {
+      setNav(true);
+      active = null;
+    } else if (active === 'nav-close' && dx < -CLOSE_AT) {
+      setNav(false);
+      active = null;
+    } else if (active === 'tag-close' && dx < -CLOSE_AT) {
+      tagClose();
+      active = null;
+    }
   }, { passive: true });
 
   const end = () => { active = null; };
