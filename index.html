@@ -7238,6 +7238,32 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
   }
 }
 
+/* ㉝ 小屏·深色：筛选后短列表的 URL 玻璃砖（2026-09-15，文哥截图 IMG_4818）
+     ------------------------------------------------------------
+     病根：跟 ㉛ 是同一个病，只是发生在深色 ——
+           未筛选列表长 → URL 玻璃底下压着卡片(带图) → 模糊出卡片色 → 融（IMG_4819 完美）；
+           筛选后列表短 → 玻璃底下只剩 bare #1c1c1e → iOS 26 展开态玻璃在纯净色上
+           显出一块可见的长方形边界（IMG_4818 的"方块包围 URL"）。
+           ㉛ 当时假设"深色采样 #1c1c1e 本就融"，被 IMG_4818 推翻（当时只验了浅色）。
+     改法：把 ㉛ 的"纸面"占位 ::after 补一个深色版 —— 深色卡片同款渐层
+           (6862 段 memo-card 的 rgb(47 44 38/.86)→rgb(38 36 31/.79))，
+           列表短时 flex 垫满视口底 → 玻璃模糊纸面色 = 纸面色 → 无边界；
+           列表长时 flex:1 无多余空间 → 高度塌成 0，末尾不会多出空卡。
+     ⚠️ 本机复现不了 iOS 玻璃（Chrome 里 100dvh==viewport）→ 待文哥复检，
+           验证路径同 ㉛：小屏深色、点标签筛选到只剩一两条、看底部 URL 栏。
+     🔙 回滚：删本段即可（㉛ 浅色段不受影响）。 */
+@media (max-width: 1023px) {
+  html:is([data-theme="dark"], [data-theme="halloween"]) #content ul.memo-list::after {
+    content: "";
+    flex: 1 1 auto;
+    min-height: 0;
+    background: linear-gradient(rgb(47 44 38/.86), rgb(38 36 31/.79));
+    border-radius: 16px;
+    margin: 0 2px;
+    box-shadow: 0 12px 28px rgb(0 0 0/.30);
+  }
+}
+
 </style>
 
 <script>
