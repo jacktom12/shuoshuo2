@@ -1288,6 +1288,10 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   <span></span><span></span><span></span><span></span>
 </div>
 
+<!-- ㉙ 底部贴边取色条：给 iOS Safari 的底部地址栏一个"垫色源"（详见样式表 ㉙ 段）。
+     仅手机端显示，6px 高、贴死底边、不吃点击。删掉它与样式表 ㉙ 段即可回滚。 -->
+<div id="safariBottomTint" aria-hidden="true"></div>
+
 <!-- ============ 应用框架：daisyUI Drawer —— 大屏左侧固定侧栏，小屏滑出抽屉 ============ -->
 <div class="drawer lg:drawer-open" id="appDrawer">
   <input id="appNavChk" type="checkbox" class="drawer-toggle" />
@@ -7144,70 +7148,68 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   }
 }
 
-/* ㉘ 小屏：修 iOS 26 Safari「地址栏被一块白色包围」
-      （2026-09-15，接 ㉗ 段。文哥：「只要我点击了标签进行筛选，URL 就被一块白色块状包围」）
+/* ㉘ ⚠️ 原方案已作废、CSS 已整块删除（2026-09-15 当天推翻）—— 只留这段记录，别再走一遍
       ------------------------------------------------------------
-      病根 —— 不是 bug，是 Safari 26 的新设计撞上了我们的"全透明"优化：
-        · iOS 26 起地址栏是一层**玻璃**（半透明，实时透出后面的页面像素），
-          它的"底色"由 Safari **自己从 CSS 推导**；`theme-color` 已被 Apple 弃用
-          （meta 仍解析，值无效）。
-        · 推导顺序（三家独立来源一致）：
-            ① 贴视口边缘的 `position:fixed|sticky` 元素（iOS 门槛：距底 ≤3px、
-               宽 ≥80%、高 ≥3px；`display:none` 跳过，但 `opacity:0` 不跳过）
-            ② 没有 → 退回 **`body` 的 `background-color`**（⚠️ **`html` 的不算**）
-            ③ 连 body 也没有 → 退回系统默认（浅色 = 纯白，深色 = 纯黑）
-        ------------------------------------------------------------
-        本站三档全落空：
-          ① 小屏没有任何合格的贴边件：顶栏（㉒ display:none）、底部 Dock（㉒ display:none）、
-             `#mediaPager`（㉓ 已改回 static）、两个抽屉遮罩都带 backdrop-filter。
-          ② `body` 被第 ④ 段写成 `background: transparent !important`
-             （当年为让云朵壁纸透到底；㉑ 段删壁纸后，真正的底色挂在了 `html` 上）。
-             而**792 行 `body{height:100dvh}`** 又把 body 钉死在"视觉视口高"，
-             工具栏那 ~80px 落在 body **之外** → 露的是 `html` 的白。
-          ③ → 最终落到"系统默认纯白"，地址栏被染成一块**实心白**。
-        ------------------------------------------------------------
-        → #ffffff（地址栏）压 #ffffff（页面）＝ 没有边界 ＝ 「白块」。
-        · 不筛选：列表长，屏幕底部压着卡片（薄荷发丝边 + 薄荷软投影，实测 246~250），
-          玻璃透出浅灰 → 边界隐约可见 → 你说的"可忽略"。
-        · 一筛选：列表变短，底部落在 `#content` 之后的空白页面上（纯白 255）
-          → 玻璃透白 → 白块明显。
-        ⚠️ 与"内容长度 / 滚动 / vh"都无关：㉗ 段修的是另一个病
-           （页面永远多出 60~90px 可滚空白），修完白块照旧 —— 因为底色一直是白的。
+      原方案：把 `html` + `body` 都铺成 #f1f3f4（浅）/ #2c2c2e（深），
+              指望"底部地址栏采样到比纯白深一档的颜色"，好让 URL 控件有个边界感。
+      真机实测（文哥 IMG_4813 改动后 vs IMG_4809 改动前，同一位置取像素）：
+        · 顶部状态栏那一带    255,255,255 → 241,242,244   ★ 被染灰了
+          文哥原话：「第一次进入首页，最上方都是灰色的了？我网页背景不是白色的吗？
+                   之前还能很好地融合呢，现在直接分层了。」
+        · 底部那一带          253,253,253 → 253,253,253   —— 一个像素都没动
+          → "底部那块白"根本不是 html / body 的颜色决定的。
+             改它 = 治不了底、还把顶弄脏。
       ------------------------------------------------------------
-      改法（三层，视觉上页面主体**仍是纯白**）：
-        ① `html`  + ② `body` 都换成"略深于纯白"的浅灰
-           （html 管"工具栏那 80px 露出来的色"，body 管"Safari 采样读到的色"）；
-        ③ `#appShell` 铺回纯白 —— 盖住 body 的浅灰，日常观感与改动前**一模一样**。
-      唯一会看见浅灰的地方 = `#appShell` 底边到屏幕底边那一小条，
-      而那里正好是 Safari 工具栏压着的位置（`100dvh` 是动态的：工具栏一收起，
-      dvh 就长高、这一条自动消失）→ 相当于"只在玻璃底下垫了一层色"。
+      ⚠️ 由此得到的定论（重要，比这一段本身值钱）：
+        屏幕的**上边和下边是两条独立的边**，各自只认**自己那条边上的贴边元素**，
+        不是一个全局色管上下两头。所以**绝不要在 `html` / `body` 上铺全局色**去修某一条边。
+      🔙 这一段现在**没有任何 CSS**（已整块删除，正文回到 ④ 段的 `body 透明` + ㉑ 段的 `html 白`）。
+         顶部因此回到改动前的白、与状态栏重新融合。 */
+
+/* ㉙ 小屏：只在**底边**放一条贴边取色条，专门给底部地址栏"垫色"（2026-09-15）
       ------------------------------------------------------------
-      🔧 唯一的旋钮 = 下面浅色那两处色值。想要边界更明显就调深（#eaedef），
-         想几乎看不见就调浅（#f8f9fa）。现在 #f1f3f4 比纯白深 12~14。
-      ⚠️ 深色 #2c2c2e = iOS 的 tertiarySystemBackground，比页面底（㉑ 的 #1c1c1e）
-         亮一档，同理制造边界。
-      ⚠️ 桌面端（≥1024px）不动：那边地址栏不在底部，且 `#appDrawer` 是浮动面板。
-      🔙 想回滚：整块删掉即可 —— 恢复"body 透明 → Safari 取系统默认白"。
-      ⚠️ 顺带排查（本次**没动**）：`.tag-drawer-overlay` / `.music-drawer-overlay` 关闭时
-         只写 `opacity:0`、`display` 仍是 block 且带 `backdrop-filter`。按 1ar.io 实测，
-         这类"全屏 fixed + 半透明 + blur"的遮罩 Safari **可能照采**（会把工具栏染暗）。
-         目前实测没被采到（工具栏是白不是暗）；以后若发现"开过抽屉后工具栏变暗"，
-         第一个来查这两条（药方：关闭时 `display:none`）。 */
+      病根（文哥最初报的）：说说列表一筛选，URL 控件就被"一块白色块状"包住。
+        底部那条控件是 iOS 26 的玻璃（半透明），底色/边界由 Safari 自己从页面推导；
+        页面纯白 → 控件压在白底上 → 没有边界 → 看着像一块白砖。
+        内容长的时候控件底下压着卡片，边界隐约可见，所以他说"不明显"。
+      ------------------------------------------------------------
+      改法：给**底边**一个合格的"贴边取色源"。Safari 推导底色时第一优先级就是
+            「贴视口边缘的 fixed / sticky 元素」（门槛：距底 ≤3px、宽 ≥80%、高 ≥3px）。
+            这里就是一条 6px 高、满宽、贴死底边的浅灰条 —— 满足门槛，而且只在底边。
+      ⚠️ 为什么不顺手再改 html / body：见上面 ㉘ 段的实测，全局色会同时染到顶边。
+      ⚠️ 这 6px 是**故意做得几乎看不见**的：#f1f3f4 只比纯白深 14 阶，又贴在屏幕最下沿
+         （Home 指示条那一带）。它的作用是"给 Safari 读"，不是"给人看"。
+      🔧 两个旋钮：① `height`（必须 ≥3px）；② 两个 `background-color`。
+         觉得边界还不够明显 → 调深（#eaedef）；觉得底下多出一条线 → 调浅（#f7f8f9）。
+      ⚠️ 如果真机上底部**依然是一块白、毫无变化**，说明这条边不认 fixed 元素 ——
+         那就把本段删掉、别再折腾（属 Apple 自身设计，纯白页面无解）。
+      ------------------------------------------------------------
+      ⚠️ 顺带排查（本次**没动**，只记录实测）：
+        全站本来就有两个"满屏 + 贴死上下两条边 + opacity:0 但 display 仍成立"的遮罩 ——
+        `.tag-drawer-overlay`(rgba(0,0,0,.38)) 与 `.music-drawer-overlay`(rgba(0,0,0,.35))。
+        无头 Chrome 实测它们**同时**是合格的顶边源和底边源。按"opacity:0 不跳过"那条规则，
+        它们本该把地址栏染成深灰 —— 但真机上一直是浅色，没被采到。
+        → 反推：Safari 认的是**不透明**的 `background-color`（rgba 半透明不算）。
+           所以下面这条 `#f1f3f4` 是实色、能生效；那两个遮罩不会捣乱。
+        ⚠️ 不过仍留着一条隐患排查：它们关闭时只写 `opacity:0`、`display` 还是 block，
+           还带 `backdrop-filter`（= 一层隐形的全屏模糊）。以后若出现
+           "开过抽屉之后地址栏变暗"，第一个来查这两条（药方：关闭时补 `display:none`）。
+      🔙 想回滚：删掉本段 CSS + HTML 里那个 `#safariBottomTint` 空 div（共两处）。 */
 @media (max-width: 1023px) {
-  html:not([data-theme="dark"]):not([data-theme="halloween"]),
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) body {
-    background-color: #f1f3f4 !important;
+  #safariBottomTint {
+    display: block !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100%;
+    height: 6px;
+    background-color: #f1f3f4;
+    pointer-events: none;
+    z-index: 1;
   }
-  html:is([data-theme="dark"], [data-theme="halloween"]),
-  html:is([data-theme="dark"], [data-theme="halloween"]) body {
-    background-color: #2c2c2e !important;
-  }
-  /* 页面本体铺回纯白：盖住上面那层浅灰，观感与改动前一致 */
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appShell {
-    background-color: #ffffff !important;
-  }
-  html:is([data-theme="dark"], [data-theme="halloween"]) #appShell {
-    background-color: #1c1c1e !important;
+  html:is([data-theme="dark"], [data-theme="halloween"]) #safariBottomTint {
+    background-color: #2c2c2e;
   }
 }
 
