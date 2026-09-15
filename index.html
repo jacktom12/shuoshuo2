@@ -6658,6 +6658,216 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead{
     background: #25231f !important;
   }
 }
+
+/* ============================================================
+   ⑲ 背景回归本源：整站只留「一张 Endless Clouds 壁纸」（2026-09-15）
+   ★ v2（同日 09:35 修订）。v1 有两个错，都是我的：
+     ① **图案抄错了**。v1 从一篇博客里抄的 data URI 是 `100×18` 的另一款图案
+        （那篇博客标题写着 Endless Clouds，其实不是），所以用户"没看到云朵"。
+        heropatterns 真正的 Endless Clouds 是 **56×28 的鳞片状小云**
+        （用户截图里能看到 `viewBox='0 0 56 28'`）。
+        → 换成正确 path，取自 npm 包 `@danielfgray/tw-heropatterns` 的 `endlessClouds`。
+     ② **顺手把桌面端的「浮动圆角面板」也拆了**（#appDrawer 透明 + 去阴影 +
+        侧栏换薄玻璃），结果侧栏变成一块从顶到底的直角长条、整个版面观感全变。
+        用户原话：「布局改了啊」「左边菜单恢复圆润啊，你现在都成扁平啦」。
+      → v2 严格只做「换壁纸」这一件事：面板 / 侧栏 / 装订线 / 暗角全部还原。
+   ------------------------------------------------------------
+   壁纸（唯一保留的改动）：
+     · 浅色 = 白底 + 薄荷绿云朵   （白底好跟手机浅色浏览器的白 chrome 融成一体）
+     · 深色 = 暗木底 + 薄荷绿云朵 （同图案，亮度压低一档，与手账深色调同族）
+   铺在 `html` 上：根元素背景 = 浏览器 canvas 背景，且不随滚动移动 —— 天然就是"壁纸"，
+   正好对上用户要的"别再来会动的那种"。
+   ★ 卡片上的薄荷色（格线 / 描边 / 投影）一个都没删。
+   ------------------------------------------------------------
+   被本段覆盖的旧规则（只覆盖、不回改原文，方便回滚）：
+     · 5340  html, body 木桌渐变
+     · 5714  小屏 body 纸色（⑫ ②）
+     · 5722  小屏 #mainScroll>.max-w-5xl 纸色
+     · 5746  深色 body 暗木渐变
+     · 5844  body 的 Garden 薄荷渐变（Apple Glass 段，specificity 0,2,2，必须同名压）
+     · 6102  #bgOrbs 四颗浮动光斑
+     · 6343  小屏 body 纸色（⑫ ② 小屏版）
+     · 6364  小屏吸顶条纸色（⑫ ⑤）
+     · 6652  小屏 html 纸色（⑱）
+   ============================================================ */
+
+/* ① 唯一的壁纸。浅色：白底 + 薄荷绿鳞片云
+      （浓淡就是 data URI 里那个 `fill-opacity`；深色在 ②） */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) {
+  background-color: #ffffff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 28' width='56' height='28'%3E%3Cpath fill='%2312A67A' fill-opacity='0.15' d='M56 26v2h-7.75c2.3-1.27 4.94-2 7.75-2zm-26 2a2 2 0 1 0-4 0h-4.09A25.98 25.98 0 0 0 0 16v-2c.67 0 1.34.02 2 .07V14a2 2 0 0 0-2-2v-2a4 4 0 0 1 3.98 3.6 28.09 28.09 0 0 1 2.8-3.86A8 8 0 0 0 0 6V4a9.99 9.99 0 0 1 8.17 4.23c.94-.95 1.96-1.83 3.03-2.63A13.98 13.98 0 0 0 0 0h7.75c2 1.1 3.73 2.63 5.1 4.45 1.12-.72 2.3-1.37 3.53-1.93A20.1 20.1 0 0 0 14.28 0h2.7c.45.56.88 1.14 1.29 1.74 1.3-.48 2.63-.87 4-1.15-.11-.2-.23-.4-.36-.59H26v.07a28.4 28.4 0 0 1 4 0V0h4.09l-.37.59c1.38.28 2.72.67 4.01 1.15.4-.6.84-1.18 1.3-1.74h2.69a20.1 20.1 0 0 0-2.1 2.52c1.23.56 2.41 1.2 3.54 1.93A16.08 16.08 0 0 1 48.25 0H56c-4.58 0-8.65 2.2-11.2 5.6 1.07.8 2.09 1.68 3.03 2.63A9.99 9.99 0 0 1 56 4v2a8 8 0 0 0-6.77 3.74c1.03 1.2 1.97 2.5 2.79 3.86A4 4 0 0 1 56 10v2a2 2 0 0 0-2 2.07 28.4 28.4 0 0 1 2-.07v2c-9.2 0-17.3 4.78-21.91 12H30zM7.75 28H0v-2c2.81 0 5.46.73 7.75 2zM56 20v2c-5.6 0-10.65 2.3-14.28 6h-2.7c4.04-4.89 10.15-8 16.98-8zm-39.03 8h-2.69C10.65 24.3 5.6 22 0 22v-2c6.83 0 12.94 3.11 16.97 8zm15.01-.4a28.09 28.09 0 0 1 2.8-3.86 8 8 0 0 0-13.55 0c1.03 1.2 1.97 2.5 2.79 3.86a4 4 0 0 1 7.96 0zm14.29-11.86c1.3-.48 2.63-.87 4-1.15a25.99 25.99 0 0 0-44.55 0c1.38.28 2.72.67 4.01 1.15a21.98 21.98 0 0 1 36.54 0zm-5.43 2.71c1.13-.72 2.3-1.37 3.54-1.93a19.98 19.98 0 0 0-32.76 0c1.23.56 2.41 1.2 3.54 1.93a15.98 15.98 0 0 1 25.68 0zm-4.67 3.78c.94-.95 1.96-1.83 3.03-2.63a13.98 13.98 0 0 0-22.4 0c1.07.8 2.09 1.68 3.03 2.63a9.99 9.99 0 0 1 16.34 0z'/%3E%3C/svg%3E") !important;
+}
+/* ② 深色：暗木底 + 同款薄荷云，亮度压低一档 */
+html:is([data-theme="dark"], [data-theme="halloween"]) {
+  background-color: #25231f !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 28' width='56' height='28'%3E%3Cpath fill='%2312A67A' fill-opacity='0.10' d='M56 26v2h-7.75c2.3-1.27 4.94-2 7.75-2zm-26 2a2 2 0 1 0-4 0h-4.09A25.98 25.98 0 0 0 0 16v-2c.67 0 1.34.02 2 .07V14a2 2 0 0 0-2-2v-2a4 4 0 0 1 3.98 3.6 28.09 28.09 0 0 1 2.8-3.86A8 8 0 0 0 0 6V4a9.99 9.99 0 0 1 8.17 4.23c.94-.95 1.96-1.83 3.03-2.63A13.98 13.98 0 0 0 0 0h7.75c2 1.1 3.73 2.63 5.1 4.45 1.12-.72 2.3-1.37 3.53-1.93A20.1 20.1 0 0 0 14.28 0h2.7c.45.56.88 1.14 1.29 1.74 1.3-.48 2.63-.87 4-1.15-.11-.2-.23-.4-.36-.59H26v.07a28.4 28.4 0 0 1 4 0V0h4.09l-.37.59c1.38.28 2.72.67 4.01 1.15.4-.6.84-1.18 1.3-1.74h2.69a20.1 20.1 0 0 0-2.1 2.52c1.23.56 2.41 1.2 3.54 1.93A16.08 16.08 0 0 1 48.25 0H56c-4.58 0-8.65 2.2-11.2 5.6 1.07.8 2.09 1.68 3.03 2.63A9.99 9.99 0 0 1 56 4v2a8 8 0 0 0-6.77 3.74c1.03 1.2 1.97 2.5 2.79 3.86A4 4 0 0 1 56 10v2a2 2 0 0 0-2 2.07 28.4 28.4 0 0 1 2-.07v2c-9.2 0-17.3 4.78-21.91 12H30zM7.75 28H0v-2c2.81 0 5.46.73 7.75 2zM56 20v2c-5.6 0-10.65 2.3-14.28 6h-2.7c4.04-4.89 10.15-8 16.98-8zm-39.03 8h-2.69C10.65 24.3 5.6 22 0 22v-2c6.83 0 12.94 3.11 16.97 8zm15.01-.4a28.09 28.09 0 0 1 2.8-3.86 8 8 0 0 0-13.55 0c1.03 1.2 1.97 2.5 2.79 3.86a4 4 0 0 1 7.96 0zm14.29-11.86c1.3-.48 2.63-.87 4-1.15a25.99 25.99 0 0 0-44.55 0c1.38.28 2.72.67 4.01 1.15a21.98 21.98 0 0 1 36.54 0zm-5.43 2.71c1.13-.72 2.3-1.37 3.54-1.93a19.98 19.98 0 0 0-32.76 0c1.23.56 2.41 1.2 3.54 1.93a15.98 15.98 0 0 1 25.68 0zm-4.67 3.78c.94-.95 1.96-1.83 3.03-2.63a13.98 13.98 0 0 0-22.4 0c1.07.8 2.09 1.68 3.03 2.63a9.99 9.99 0 0 1 16.34 0z'/%3E%3C/svg%3E") !important;
+}
+/* ③ 平铺参数。原生 56×28 在大屏上偏细密，放大 1.5 倍。
+      ⚠️ 必须写成和 ①② 同一个选择器形状：§⑱ 那条 `html:not():not(){background: …}`
+         是 shorthand + !important（specificity 0,2,1），会把**窄选择器**里的
+         `background-size` 一起重置回 `auto` —— v1 就栽在这，手机端平铺参数静默失效。
+      不带 attachment：根元素的背景本来就铺满 canvas 且不随滚动移动，天然是壁纸。 */
+html:not([data-theme="dark"]):not([data-theme="halloween"]),
+html:is([data-theme="dark"], [data-theme="halloween"]) {
+  background-repeat: repeat !important;
+  background-size: 84px 42px !important;
+  background-position: 0 0 !important;
+}
+
+/* ④ 中间层透明：壁纸一路透到底，不再有任何中间底色。
+      **故意不含 #appDrawer** —— 那块浮动面板在桌面要留着（见 ⑤）。
+      小屏要的"面板全透明"交给 §⑫ 段（那边选择器更强：0,2,1，且带 !important）。
+      ⚠️ body 这两条也必须带 `html:not():not()` / `html:is()` 前缀：
+         §⑫ 的 `html:not():not() body{background: var(--journal-paper)}`（0,2,2）
+         和 Apple Glass 段 body 那条薄荷渐变（0,2,2）都比我写成裸 `body{}` 强，
+         否则手机端第一屏会是一块米色纸盖在壁纸上（v2 第一版就漏了这个）。 */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) body,
+html:is([data-theme="dark"], [data-theme="halloween"]) body,
+#appShell,
+#mainScroll,
+#mainScroll > .max-w-5xl {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* ⑤ 桌面：恢复「桌上一本手账」那块浮动圆角面板——现在它是"浮在云上的一张纸"。
+      圆角 + 投影就是"圆润"的来源：没有一层看得见的面板底，
+      侧栏（250px 直角竖条）就只是块直板，整个版面立刻显平。
+      ⚠️ 只写在 min-width:1024px 里：小屏必须保持全透明（§⑫ 段），
+         若写在全局，本条 specificity 0,2,1 会反压 §⑫ 那条同样 0,2,1 的透明规则。
+      特意**不用 backdrop-filter**——用户要的就是"去掉那层模糊玻璃"。 */
+@media (min-width: 1024px) {
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer {
+    background: rgb(255 255 255/.62) !important;
+    border: 1px solid rgb(255 255 255/.72) !important;
+    box-shadow: 0 28px 70px rgb(24 78 62/.17), inset 0 1px 0 rgb(255 255 255/.74) !important;
+  }
+  html:is([data-theme="dark"], [data-theme="halloween"]) #appDrawer {
+    background: rgb(35 32 28/.56) !important;
+    border: 1px solid rgb(255 239 210/.10) !important;
+    box-shadow: 0 26px 72px rgb(0 0 0/.42), inset 0 1px 0 rgb(255 240 216/.04) !important;
+  }
+}
+
+/* ⑥ 浮动光斑下岗（第 ⑪ / ⑫ 段那四颗漂移圆斑）——这就是用户说的
+      "复杂的、会动的、模糊的背景"。DOM 留着，只是不画。 */
+#bgOrbs {
+  display: none !important;
+}
+
+/* ⑦ 小屏吸顶工具条：原来是纸色，现在壁纸是白的 → 换白底
+      （够不透明，吸顶时才压得住滚过去的内容；不用模糊） */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #content > div > div.sticky {
+  background: rgb(255 255 255/.92) !important;
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) #content > div > div.sticky {
+  background: rgb(28 27 23/.92) !important;
+}
+
+/* ⑧ 浅色下卡片「提实」：壁纸底色是白的，原来那几档半透明白玻璃（.42 ~ .76）
+      压在白底上等于隐形，卡片会糊成一片。这里把白量提到接近实心，
+      改用「薄荷色发丝边 + 薄荷投影」来界定边界。
+      ★ 薄荷色一个都没少：格线 / 描边 / 投影全是 rgb(18 166 122) 那一系。
+      深色侧一律不动——暗底上原来的暗色玻璃本来就分得开。
+      选择器形状必须和上面 Apple Glass 段（5849 / 5856 / 5862 / 5866）一一对应：
+      那边全是 !important，同 specificity 时靠源码顺序取胜。 */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #content ul.memo-list .memo-card {
+  /* 只有一层白渐变 —— 原来那层 32px 横向淡格线（模拟笔记本横线）已在 ⑩ 段删掉 */
+  background: linear-gradient(rgb(255 255 255/.93), rgb(255 255 255/.87)) !important;
+  border-color: rgb(18 166 122/.16) !important;
+  box-shadow: 0 12px 28px rgb(24 78 62/.11), inset 0 1px 0 rgb(255 255 255/.95) !important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>* {
+  background: rgb(255 255 255/.86) !important;
+  border-color: rgb(18 166 122/.14) !important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5 {
+  background: rgb(255 255 255/.80) !important;
+  border-color: rgb(18 166 122/.12) !important;
+}
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #mediaPager .join {
+  background: rgb(255 255 255/.78) !important;
+  border-color: rgb(18 166 122/.14) !important;
+}
+
+/* ⑨ 底部 Dock：浅色描边原来是纯白，压在白壁纸上等于没有 →
+      换成薄荷发丝边（深色那边加一点点冷光，跟云纹呼应）。
+      选择器形状对齐第 6490 段那两条。 */
+html:not([data-theme="dark"]):not([data-theme="halloween"]) #mobileDock {
+  border-color: rgb(18 166 122/.18) !important;
+  box-shadow: 0 16px 40px rgb(24 78 62/.20), inset 0 1px 0 rgb(255 255 255/.90) !important;
+}
+html:is([data-theme="dark"], [data-theme="halloween"]) #mobileDock {
+  border-color: rgb(18 166 122/.22) !important;
+}
+
+/* ⑩ 说说卡片上的「笔记本横线」全部去掉（2026-09-15）
+      用户原话：「说说卡片有这种横线啊，去掉吧。没必要模拟那种笔记本的横线，没意思」。
+      横向 32px 淡格线在这个文件里有三处生效点：
+        · 5586 段  手账底座 .memo-card 的格线（早就被 5849 段的 Apple Glass 覆盖，不用管）
+        · 5849 段  浅色 rgb(18 166 122/.038) —— 被上面 ⑧ 那层白渐变盖住了
+        · 5849 段  深色 rgb(220 207 184/.035) —— **还有效**，所以要单独压一条（下面这条）
+      压完以后卡片背景只剩一层白 / 暗底渐变，没有任何纹理，也就没有"横线"了。
+      选择器形状照抄 5849 段（那边全是 !important，同 specificity 时靠源码顺序取胜）。
+      用户只提了浅色，深色这条是同一种"笔记本横线"的同一个毛病，一并删掉；想留就说一声。 */
+html:is([data-theme="dark"], [data-theme="halloween"]) #content ul.memo-list .memo-card {
+  background: linear-gradient(rgb(47 44 38/.86), rgb(38 36 31/.79)) !important;
+}
+
+/* ⑪ 世界时间：相邻两块面板之间挨着的「两条线」合成一条（2026-09-15）
+      用户原话：「世界时间这里，转换时间下面 2 条线，我觉得有一条线就可以了」。
+      成因：5870 段最后那条
+        `#content .wc-root .rounded-2xl:not(:first-child){border-color:…;
+         border-left:0;border-right:0;border-radius:0}`
+      只去了**左右**两条边和圆角，上下两条都留着；而每块面板本来就带
+      `border border-base-300/70`。于是相邻两块 = 「上一块的下边」+「下一块的上边」
+      = 两条线，中间还夹着 `.wc-root` 的 `gap-4`(16px)，看着就是上下两条细线。
+      修法：用**相邻兄弟选择器**，只打「紧跟在另一块 .rounded-2xl 后面」的那块，
+            去掉它的**上边**。这样：
+              · 世界城市时间 → 时间转换   不受影响（前者是普通 div，本来就只有一条）
+              · 时间转换 → 我的播放提醒   只剩「时间转换的下边」这一条  ✅
+      选择器形状对齐 5870 段（那边全是 !important，同 specificity 靠源码顺序取胜）。 */
+#content .wc-root .rounded-2xl + .rounded-2xl {
+  border-top: 0 !important;
+}
+
+/* ⑳ 桌面端：右侧内容区补上「跟左侧菜单同一套」的磨砂玻璃（2026-09-15）
+      文哥原话：「把右侧这个区域也加上左侧一样的玻璃效果，现在的我感觉太透了」
+      现状：桌面 #appDrawer 只铺了一层 rgb(255 255 255/.62) 的白纱（⑲ 段 ⑤），
+            面板内部其他层全是 transparent（⑲ 段 ④）→ 云纹是"清晰但很淡"地透出来，
+            没有模糊也没有冷调，读起来就是"太透"。
+            左侧 #appSidebar 之所以显得更实，是因为它在同一层白纱之上**又多叠了一层**
+            Apple Glass 的玻璃：`linear-gradient(155deg,…)` + `backdrop-filter`
+            （第 5846 行，`--glass-blur-strong` = blur(34px) saturate(155%)）。
+      改法：给右侧那一列 `#appDrawer > .drawer-content` 铺**逐字相同**的一套值。
+            实测范围 [x 279, w 1132, h 842] = 正好是 250px 侧栏之后的整列、铺满面板高度，
+            跟 #appSidebar 是同级的两个 grid 列，所以叠出来的层次完全对称：
+              左 = 白纱@.62 + 侧栏玻璃   /   右 = 白纱@.62 + 本段这层玻璃
+            合起来通透度落到 ~.82，就是一块正经毛玻璃，不再是"淡云纸"。
+      ⚠️ 只写在 `min-width:1024px` 里：小屏 #appDrawer 是 `overflow:visible` 的整页流
+         （第 ⑨ 段），没有面板可言，不该挂面板玻璃；小屏观感由 ⑫ / ⑯ 段各自管。
+      ⚠️ **不碰 #appSidebar 本身**——⑲ 段 v1 就是因为顺手改了左侧把版面搞"扁"，
+         用户明确要求过"左边菜单恢复圆润"。这次只加右侧，左侧一个字不动。
+      ⚠️ 圆角不用自己管：#appDrawer 有 `overflow:hidden` + `radius 16px`（第 5845 行），
+         会把这一层的四角裁好。
+      ⚠️ 不给本层加 border：`.drawer-content` 左边界 x=279 与 #appSidebar 右边界是同一条线，
+         侧栏那边已经有 `border-right + inset 高光` 当了分隔，再加 `border-left` 会变成 2px。
+      想调通透度：改下面两个渐变的**端点 alpha**（.70/.53 与 .78/.67），数越大越实。
+      想退回"太透"的原样：删掉本段整块即可。 */
+@media (min-width: 1024px) {
+  /* 模糊只写一次（浅/深通用），值直接取左侧那套变量，保证两边完全一致 */
+  #appDrawer > .drawer-content {
+    -webkit-backdrop-filter: var(--glass-blur-strong);
+    backdrop-filter: var(--glass-blur-strong);
+  }
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer > .drawer-content {
+    background: linear-gradient(155deg, rgb(255 255 255/.70), rgb(229 247 239/.53)) !important;
+  }
+  html:is([data-theme="dark"], [data-theme="halloween"]) #appDrawer > .drawer-content {
+    background: linear-gradient(155deg, rgb(47 43 37/.78), rgb(29 27 23/.67)) !important;
+  }
+}
+
 </style>
 
 <script>
