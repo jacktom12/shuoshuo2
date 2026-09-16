@@ -1426,34 +1426,16 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 
 <aside id="tagBar" class="tag-drawer hidden" role="dialog" aria-modal="true" aria-label="标签筛选">
   <div class="tag-drawer-head">
-    <div class="tag-drawer-heading">
-      <div class="tag-drawer-title">
-        <span class="iconify text-lg" data-icon="mdi:tag-multiple-outline"></span>
-        <span>标签</span>
-      </div>
-      <div class="tag-drawer-subtitle">
-        <span>组合筛选</span>
-       
-      </div>
-    </div>
-    <button type="button" id="tagDrawerClose" class="tag-drawer-close" aria-label="关闭标签" title="关闭">
-  <span class="iconify text-lg" data-icon="lucide:x"></span>
-</button>
-  </div>
-
-  <div class="tag-drawer-current">
-    <div class="tag-drawer-current-label">
-      <span>当前筛选</span>
-      <span id="tagSelectedSummary">未选择标签</span>
-    </div>
-    <button id="clearTagsBtn" type="button" class="tag-drawer-clear hidden">
+    <button id="clearTagsBtn" type="button" class="tag-drawer-clear hidden" aria-label="清空已选标签">
       <span class="iconify text-sm" data-icon="lucide:x-circle"></span>
       清空
     </button>
+    <button type="button" id="tagDrawerClose" class="tag-drawer-close" aria-label="关闭标签" title="关闭">
+      <span class="iconify text-lg" data-icon="lucide:x"></span>
+    </button>
   </div>
-
   <div class="tag-drawer-body">
-    <div class="tag-title">全部标签</div>
+    <span id="tagSelectedSummary" class="sr-only">未选择标签</span>
     <div id="tagChips" class="tag-drawer-list"></div>
   </div>
 </aside>
@@ -2931,7 +2913,7 @@ function renderHotView() {
   }).join('');
   contentEl.innerHTML = `
   <div>
-    <div class="flex items-center gap-2 sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
+    <div class="filter-toolbar flex items-center gap-2  top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
       <div class="hot-tabs flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5">${tabs}</div>
       <button type="button" class="hot-refresh btn btn-xs btn-ghost btn-circle shrink-0" aria-label="手动刷新" title="手动刷新">
         <span class="iconify text-base" data-icon="lucide:refresh-cw"></span>
@@ -3043,7 +3025,7 @@ function renderBookmarks() {
 
   contentEl.innerHTML = `
   <div>
-    <div class="sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
+    <div class=" top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
       <div class="flex items-center gap-2">
         <label class="input input-sm h-9 w-32 sm:w-48 shrink-0 items-center gap-2">
           <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -3771,11 +3753,8 @@ function switchView(view) {
     const nav = document.getElementById('appNavChk');
     const navWasOpen = !!(nav && nav.checked);
     closeNav();
-    if (navWasOpen) {
-      window.setTimeout(show, 180);
-    } else {
-      show();
-    }
+    if (navWasOpen) window.setTimeout(show, 180);
+    else show();
   };
 
   const close = () => {
@@ -3800,7 +3779,7 @@ function switchView(view) {
     if (e.key === 'Escape' && drawer.classList.contains('open')) close();
   });
 
-  /* 供菜单中的「标签」入口及其他显式控件调用。 */
+  /* 给右侧边缘手势用（那个脚本在文件末尾，晚于本段执行）*/
   window.openTagDrawer = open;
   window.closeTagDrawer = close;
   window.isTagDrawerOpen = () => drawer.classList.contains('open');
@@ -7411,6 +7390,56 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content .bm-body > div >
   background: color-mix(in oklch, var(--color-base-content) 6%, transparent) !important;
   box-shadow: none !important;
 }
+
+/* ㊵ 筛选栏最终修正：仅去掉外层 .filter-toolbar 方形底框，保留平台/分类药丸。 */
+#content .filter-toolbar {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+#content .filter-toolbar::before,
+#content .filter-toolbar::after {
+  content: none !important;
+  display: none !important;
+}
+/* 明确恢复药丸：不影响未选中、选中、hover 的原有颜色逻辑。 */
+#content .filter-toolbar .hot-tabs > .tag-chip,
+#content .filter-toolbar .bm-cats > .tag-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+  border-width: 1px !important;
+  box-shadow: none !important;
+}
+#content .filter-toolbar .hot-tabs > .tag-chip.badge-ghost,
+#content .filter-toolbar .bm-cats > .tag-chip.badge-ghost {
+  background-color: color-mix(in oklch, var(--color-base-content) 5%, transparent) !important;
+  border-color: color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .hot-tabs > .tag-chip.badge-ghost,
+html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .bm-cats > .tag-chip.badge-ghost {
+  background-color: rgb(255 255 255 / .075) !important;
+  border-color: rgb(255 255 255 / .11) !important;
+}
+#content .filter-toolbar .hot-tabs > .tag-chip:hover,
+#content .filter-toolbar .bm-cats > .tag-chip:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .hot-tabs > .tag-chip:hover,
+html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .bm-cats > .tag-chip:hover {
+  background-color: rgb(255 255 255 / .13) !important;
+}
+/* 列表 hover 不做整行“选中”卡片效果。 */
+#content .hot-body > div > a,#content .bm-body > div > a,#content .hot-body > div > a:hover,#content .bm-body > div > a:hover{border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important}
+#content .hot-body > div > a:hover,#content .bm-body > div > a:hover{background:color-mix(in oklch,var(--color-base-content) 4%,transparent)!important}
+html:is([data-theme="dark"],[data-theme="halloween"]) #content .hot-body > div > a:hover,html:is([data-theme="dark"],[data-theme="halloween"]) #content .bm-body > div > a:hover{background:rgb(255 255 255/.045)!important}
+/* 标签抽屉：仅保留清空与关闭。 */
+.tag-drawer-head{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:15px 18px 8px!important;border-bottom:0!important}.tag-drawer-clear{margin:0!important;padding:6px 8px!important;border-radius:999px!important}.tag-drawer-body{padding-top:4px!important}.tag-drawer-body>.tag-title{display:none!important}
 </style>
 
 <script>
@@ -7703,78 +7732,13 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #content .bm-body > div >
 </script>
 
 <script>
-/* ============================================================
-   手机端单侧边缘手势
-   · 左侧边缘右滑：不触发任何抽屉
-   · 右侧边缘左滑：打开菜单抽屉
-   · 菜单抽屉内点击「标签」后：标签抽屉从网页左侧滑出
-   · 菜单 / 标签抽屉打开后：向左滑可关闭
-   ============================================================ */
+/* 手机端：左侧右滑不触发；右侧左滑打开菜单；菜单中的标签从左侧打开。 */
 (() => {
-  const chk = document.getElementById('appNavChk');
-  const mqMobile = window.matchMedia('(max-width: 1023px)');
-  const EDGE = 30;
-  const OPEN_AT = 44;
-  const CLOSE_AT = 56;
-  const VERT_KILL = 16;
-
-  let sx = 0, sy = 0, active = null;
-  const first = (e) => (e.touches && e.touches[0]) ||
-                       (e.changedTouches && e.changedTouches[0]);
-  const setNav = (open) => {
-    if (!chk || chk.checked === open) return;
-    chk.checked = open;
-    chk.dispatchEvent(new Event('change', { bubbles: true }));
-  };
-  const tagIsOpen = () =>
-    typeof window.isTagDrawerOpen === 'function' && window.isTagDrawerOpen();
-  const tagClose = () => {
-    if (typeof window.closeTagDrawer === 'function') window.closeTagDrawer();
-  };
-
-  document.addEventListener('touchstart', (e) => {
-    active = null;
-    if (!mqMobile.matches || e.touches.length !== 1) return;
-    const t = first(e);
-    if (!t) return;
-
-    if (tagIsOpen()) active = 'tag-close';
-    else if (chk && chk.checked) active = 'nav-close';
-    else if (t.clientX >= innerWidth - EDGE) active = 'nav-open';
-    else return;
-
-    sx = t.clientX;
-    sy = t.clientY;
-  }, { passive: true });
-
-  document.addEventListener('touchmove', (e) => {
-    if (!active) return;
-    const t = first(e);
-    if (!t) return;
-    const dx = t.clientX - sx;
-    const dy = t.clientY - sy;
-
-    if (Math.abs(dy) > VERT_KILL && Math.abs(dy) > Math.abs(dx)) {
-      active = null;
-      return;
-    }
-    if (Math.abs(dy) >= Math.abs(dx)) return;
-
-    if (active === 'nav-open' && dx < -OPEN_AT) {
-      setNav(true);
-      active = null;
-    } else if (active === 'nav-close' && dx < -CLOSE_AT) {
-      setNav(false);
-      active = null;
-    } else if (active === 'tag-close' && dx < -CLOSE_AT) {
-      tagClose();
-      active = null;
-    }
-  }, { passive: true });
-
-  const end = () => { active = null; };
-  document.addEventListener('touchend', end, { passive: true });
-  document.addEventListener('touchcancel', end, { passive: true });
+  const chk=document.getElementById('appNavChk'),mq=window.matchMedia('(max-width:1023px)');const EDGE=30,OPEN=44,CLOSE=56,KILL=16;let sx=0,sy=0,active=null;
+  const point=e=>(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]);const nav=v=>{if(!chk||chk.checked===v)return;chk.checked=v;chk.dispatchEvent(new Event('change',{bubbles:true}));};const tagOpen=()=>typeof window.isTagDrawerOpen==='function'&&window.isTagDrawerOpen();const tagClose=()=>{if(typeof window.closeTagDrawer==='function')window.closeTagDrawer();};
+  document.addEventListener('touchstart',e=>{active=null;if(!mq.matches||e.touches.length!==1)return;const t=point(e);if(!t)return;if(tagOpen())active='tag-close';else if(chk&&chk.checked)active='nav-close';else if(t.clientX>=innerWidth-EDGE)active='nav-open';else return;sx=t.clientX;sy=t.clientY;},{passive:true});
+  document.addEventListener('touchmove',e=>{if(!active)return;const t=point(e);if(!t)return;const dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dy)>KILL&&Math.abs(dy)>Math.abs(dx)){active=null;return;}if(Math.abs(dy)>=Math.abs(dx))return;if(active==='nav-open'&&dx<-OPEN){nav(true);active=null;}else if(active==='nav-close'&&dx<-CLOSE){nav(false);active=null;}else if(active==='tag-close'&&dx<-CLOSE){tagClose();active=null;}},{passive:true});
+  document.addEventListener('touchend',()=>active=null,{passive:true});document.addEventListener('touchcancel',()=>active=null,{passive:true});
 })();
 </script>
 
