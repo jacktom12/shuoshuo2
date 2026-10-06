@@ -9,23 +9,21 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<!-- 浏览器/系统 UI 的颜色（iOS Safari 顶栏与底栏、Android 状态栏）。
-     浅色原本是 #1a1a2e 那个深藏青 —— 老配色遗留，白页面配深蓝栏，
-     正是「跟手机屏幕结合不起来」的元凶。这里给 light 白 / dark #1c1c1e 的兜底值，
-     真正的取值由下面的 syncThemeColor() 按**站点主题**动态写（见 §㉑ 的注释：
-     本站主题存在 localStorage，可以和系统偏好相反，所以不能用 media 写死）。 -->
-<meta name="theme-color" content="#ffffff" id="metaThemeColor" />
+<meta name="theme-color" content="#14151b" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#fbf4e4" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="note" />
     <link rel="manifest" href="/site.webmanifest" />
-     <title>小记 · 说说与光影</title>
+     <title>time</title>
 <meta name="description" content="个人说说与影视记录" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
-<link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
@@ -34,57 +32,63 @@
 <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
 
      <style>
-  :root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+  :root { color-scheme: light; --font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; --font-display: "ZCOOL QingKe HuangYou", "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; --font-num: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-  /* ============ 主题配色（仅浅 / 深两套，跟随系统自动切换） ============ */
+  /* ============ 主题配色：糖果贴纸（浅）/ 暗夜霓虹（深），跟随系统自动切换 ============ */
   :root,
   [data-theme="light"] {
     color-scheme: light;
-    --color-base-100: oklch(97% 0.014 105);
-    --color-base-200: oklch(93.5% 0.022 105);
-    --color-base-300: oklch(88% 0.032 105);
-    --color-base-content: oklch(32% 0.02 130);
-    --color-primary: oklch(52% 0.062 178);
-    --color-primary-content: oklch(97% 0.012 178);
-    --color-secondary: oklch(60% 0.05 160);
-    --color-secondary-content: oklch(97% 0.012 160);
-    --color-accent: oklch(62% 0.085 75);
-    --color-accent-content: oklch(97% 0.012 75);
-    --color-neutral: oklch(38% 0.02 160);
-    --color-neutral-content: oklch(93% 0.015 160);
-    /* 圆角尺度（daisyUI 5 token）：勾选 8px / 控件 12px / 卡片 16px */
-    --radius-selector: 0.5rem;
-    --radius-field: 0.75rem;
-    --radius-box: 1rem;
+    --color-base-100: oklch(97.5% 0.014 95);
+    --color-base-200: oklch(94.5% 0.024 95);
+    --color-base-300: oklch(89% 0.03 95);
+    --color-base-content: oklch(22% 0.015 60);
+    --color-primary: oklch(58% 0.21 258);
+    --color-primary-content: oklch(98% 0.005 258);
+    --color-secondary: oklch(70% 0.21 350);
+    --color-secondary-content: oklch(24% 0.03 350);
+    --color-accent: oklch(86% 0.155 92);
+    --color-accent-content: oklch(25% 0.03 80);
+    --color-neutral: oklch(23% 0.015 60);
+    --color-neutral-content: oklch(97% 0.01 95);
+    --color-info: oklch(72% 0.14 215);
+    --color-info-content: oklch(25% 0.03 215);
+    --color-success: oklch(74% 0.17 155);
+    --color-success-content: oklch(25% 0.04 155);
+    --color-warning: oklch(78% 0.155 65);
+    --color-warning-content: oklch(26% 0.04 60);
+    --color-error: oklch(64% 0.21 25);
+    --color-error-content: oklch(97% 0.01 25);
   }
-  /* 深色：墨绿炭底 + 亮青主色 */
+  /* 深色：墨蓝炭底 + 霓虹糖果色 */
   [data-theme="halloween"],
   [data-theme="dark"] {
     color-scheme: dark;
-    --color-base-100: oklch(22.5% 0.01 190);
-    --color-base-200: oklch(19.5% 0.01 190);
-    --color-base-300: oklch(27% 0.012 190);
-    --color-base-content: oklch(88% 0.012 175);
-    --color-primary: oklch(74% 0.095 175);
-    --color-primary-content: oklch(21% 0.02 175);
-    --color-secondary: oklch(68% 0.045 165);
-    --color-secondary-content: oklch(18% 0.012 165);
-    --color-accent: oklch(76% 0.09 85);
-    --color-accent-content: oklch(20% 0.02 85);
-    --color-neutral: oklch(30% 0.012 190);
-    --color-neutral-content: oklch(88% 0.012 175);
-    /* 圆角尺度（与浅色一致） */
-    --radius-selector: 0.5rem;
-    --radius-field: 0.75rem;
-    --radius-box: 1rem;
+    --color-base-100: oklch(21% 0.016 265);
+    --color-base-200: oklch(18% 0.016 265);
+    --color-base-300: oklch(27% 0.02 265);
+    --color-base-content: oklch(92% 0.01 90);
+    --color-primary: oklch(74% 0.15 255);
+    --color-primary-content: oklch(20% 0.03 255);
+    --color-secondary: oklch(76% 0.17 350);
+    --color-secondary-content: oklch(22% 0.03 350);
+    --color-accent: oklch(88% 0.15 95);
+    --color-accent-content: oklch(24% 0.03 85);
+    --color-neutral: oklch(29% 0.02 265);
+    --color-neutral-content: oklch(92% 0.01 90);
+    --color-info: oklch(78% 0.12 215);
+    --color-info-content: oklch(22% 0.03 215);
+    --color-success: oklch(78% 0.15 155);
+    --color-success-content: oklch(22% 0.04 155);
+    --color-warning: oklch(82% 0.14 65);
+    --color-warning-content: oklch(24% 0.04 60);
+    --color-error: oklch(72% 0.17 25);
+    --color-error-content: oklch(22% 0.03 25);
   }
   [data-theme="dark"], [data-theme="halloween"] { color-scheme: dark; }
   html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
   body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
-  /* ============ 全站圆润化：不再全局清零圆角，各组件用自身声明 / 主题半径 ============ */
-  /* 旧规则（扁平化时期，已废弃）：
-     *, *::before, *::after { border-radius: 0 !important; } */
+  /* ============ 贴纸风：圆角交给组件自己控制（旧主题为全站扁平，已移除全局清零） ============ */
 
   /* 标签徽章：保证 button 上的 badge 继承全局字体 */
   .tag-chip { font-family: inherit; }
@@ -243,11 +247,7 @@
     .poster-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -16px rgb(0 0 0 / .35); }
   }
 
-  /* fade-up 必须用 backwards 填充：
-     both/forwards 会让动画结束时的 `transform:none` 永久生效，
-     从而把元素自己的 :hover 位移整个吃掉（海报卡片上浮曾因此失效）；
-     另外 `to{opacity:1}` 也会一直压着 opacity-60 这类普通声明。 */
-  .fade-up { animation: fadeUp .45s ease backwards; }
+  .fade-up { animation: fadeUp .45s ease both; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
 
   .memo-text { word-break: break-word; overflow-wrap: anywhere; }
@@ -563,7 +563,7 @@
   #content ul.memo-list > li { display: block; width: 100%; margin: 0; padding: 0 0 1.25rem; }
   #content ul.memo-list .memo-card { width: 100%; }
 
-  /* 便签卡：与页面同底色，以描边 + 阴影区分 */
+  /* 便签卡：与页面同底色，以描边 + 阴影 + 左上角和纸胶带（颜色随第一个标签）区分 */
   .memo-card {
     position: relative;
     background: var(--color-base-100);
@@ -572,9 +572,13 @@
     padding: 1.1rem 1.25rem .8rem;
     box-shadow: 0 2px 14px color-mix(in oklch, var(--color-base-content) 7%, transparent);
   }
-  /* 和纸胶带装饰（.memo-card::before）已彻底移除——用户不再需要胶布 UI。
-     注意：骨架屏 skeletonNotes() 用的也是 .memo-card，所以以前刷新首页时
-     骨架卡片上会露出这块胶布（它没有 .memo-tape-date，:has() 那条隐藏规则不生效）。 */
+  .memo-card::before {
+    content: ''; position: absolute; z-index: 2; top: -9px; left: 24px;
+    width: 62px; height: 18px; transform: rotate(-2deg);
+    background: color-mix(in oklch, var(--tape, var(--color-primary)) 26%, transparent);
+    box-shadow: 0 1px 2px rgb(0 0 0 / .07);
+  }
+  .memo-card.plain::before { display: none; }
 
   @media (max-width: 640px) {
     .memo-card { padding: 1rem 1rem .75rem; }
@@ -789,52 +793,83 @@
 
   /* ============ iOS 安全区适配 ============ */
   /* 100vh 在 iOS Safari 里包含地址栏高度，底部内容会被压在工具栏下面；改用动态视口高度（不支持的旧浏览器自动回退 h-screen 的 100vh） */
-  body { height: 100dvh !important; }
+  body { min-height: 100dvh; }
   /* 顶部导航避开状态栏/刘海（viewport-fit=cover 时内容会顶到屏幕物理边缘） */
   #topNav { padding-top: env(safe-area-inset-top, 0px); }
   /* 滚动区底部避开 Home 指示条 */
   #mainScroll { padding-bottom: env(safe-area-inset-bottom, 0px); }
   #toTop { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
 
-  /* ============ 翻页控件：吸底常显 + 加大触控区 ============ */
+  /* ============ 翻页控件：随内容滚动，到底部才出现（无吸底 / 无蒙版） ============ */
   #mediaPager {
-    position: sticky;
-    bottom: 0;
-    z-index: 30;
-      padding: 6px 8px calc(12px + env(safe-area-inset-bottom, 0px));
-      background: linear-gradient(to top, var(--journal-paper, var(--color-base-100)) 70%, transparent);
+    padding: 0 8px calc(16px + env(safe-area-inset-bottom, 0px));
   }
-  #mediaPager .btn {
-  height: 2rem;
-  min-height: 2rem;
-  min-width: 2rem;
-  padding-inline: .6rem;
-  font-size: .85rem;
-}
-#mediaPager .join {
-  box-shadow: none;
-}
-
-#mediaPager .join .btn {
-  background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 6%, transparent);
-  border-color: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 12%, transparent);
-  color: var(--journal-ink, var(--color-base-content));
-  font-weight: 600;
-}
-
-#mediaPager .join .btn:hover:not(.btn-disabled):not(.btn-active) {
-  background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 10%, transparent);
-}
-
-#mediaPager .join .btn-active {
-  background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 18%, transparent);
-  color: var(--journal-ink, var(--color-base-content));
-  border-color: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 22%, transparent);
-}
-
-#mediaPager .join .btn-disabled {
-  opacity: .35;
-}
+  #pagerBtns {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  #pagerBtns .pager-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    color: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 70%, transparent);
+    font: inherit;
+    font-size: .95rem;
+    font-weight: 600;
+    line-height: 1;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 .3rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  #pagerBtns .pager-btn:hover:not(:disabled):not(.is-active) {
+    background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 8%, transparent);
+    color: var(--journal-ink, var(--color-base-content));
+  }
+  #pagerBtns .pager-btn:focus-visible {
+    outline: 2px solid var(--pager-accent, var(--color-primary));
+    outline-offset: 2px;
+  }
+  #pagerBtns .pager-btn.is-active {
+    background: color-mix(in oklch, var(--pager-accent, var(--color-primary)) 15%, transparent);
+    color: var(--pager-accent, var(--color-primary));
+    font-weight: 700;
+    cursor: default;
+  }
+  #pagerBtns .pager-btn:disabled {
+    opacity: .28;
+    cursor: default;
+  }
+  #pagerBtns .pager-btn svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    display: block;
+  }
+  #pagerBtns .pager-gap {
+    min-width: 1.5rem;
+    text-align: center;
+    color: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 45%, transparent);
+    font-size: .95rem;
+    line-height: 1;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  /* 窄屏：压缩单元格宽度，保证 1/2/3/4/5/6/7/…/末页 + 左右箭头一行放得下 */
+  @media (max-width: 400px) {
+    #pagerBtns { gap: 0; }
+    #pagerBtns .pager-btn { min-width: 1.95rem; padding: 0 .18rem; font-size: .9rem; }
+    #pagerBtns .pager-gap { min-width: 1.15rem; }
+  }
   /* ============ 全站快速搜索（Ctrl+K Command Palette） ============ */
   .cmdk-overlay {
     position: fixed; inset: 0; z-index: 90;
@@ -1025,11 +1060,14 @@
   transition: background .18s ease, color .18s ease;
 }
 
-/* hover 只做颜色反馈，不再出现大方块底 */
 .tag-drawer-close:hover {
-  background: transparent !important;
-  box-shadow: none !important;
+  background: rgba(112, 89, 60, .12);
   color: var(--journal-ink);
+}
+
+.tag-drawer-close:hover {
+  background: rgba(104, 82, 57, .09);
+  transform: rotate(3deg);
 }
 
 .tag-drawer-current {
@@ -1260,8 +1298,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-close {
   color: var(--journal-muted);
 }
 html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-close:hover {
-  background: transparent !important;
-  box-shadow: none !important;
+  background: rgba(218, 199, 166, .10);
   color: var(--journal-ink);
 }
 html:is([data-theme="dark"], [data-theme="halloween"]) #tagSelectedSummary,
@@ -1281,161 +1318,113 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 
 </style>
 </head>
-<body class="min-h-screen paper-bg text-base-content lg:h-screen lg:overflow-hidden">
+<body class="min-h-screen paper-bg text-base-content">
 
-<!-- 背景光斑：大到柔和、缓慢漂浮的圆形（浅 / 深各一套配色，见样式表 ⑪ 段） -->
-<div id="bgOrbs" aria-hidden="true">
-  <span></span><span></span><span></span><span></span>
-</div>
+<!-- ============ 顶部悬浮导航：品牌 + 居中菜单 + 功能图标；下滑隐藏，上滑出现 ============ -->
+<header id="topBar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <img src="avatar.webp" alt="头像" />
+      <span class="brand-name">小记</span>
+    </div>
+    <nav class="topbar-nav" aria-label="主导航">
+      <ul class="topbar-menu">
+        <li><a class="tab-btn" data-view="say"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></a></li>
+        <li><a class="tab-btn" data-view="photos"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">图片</span></a></li>
+        <li><a class="tab-btn" data-view="watched"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></a></li>
+        <li><a class="tab-btn" data-view="watchlist"><span class="iconify" data-icon="lucide:star"></span><span class="nav-label">想看</span></a></li>
+        <li><a class="tab-btn" data-view="clips"><span class="iconify" data-icon="lucide:book-open-text"></span><span class="nav-label">标注</span></a></li>
+        <li><a class="tab-btn" data-view="hot"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></a></li>
+        <li><a class="tab-btn" data-view="bookmarks"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></a></li>
+        <li><a class="tab-btn" data-view="worldtime"><span class="iconify" data-icon="lucide:clock"></span><span class="nav-label">世界时间</span></a></li>
+        <li>
+          <button type="button" id="tagDrawerOpen" class="tab-btn" aria-expanded="false" aria-controls="tagBar">
+            <span class="iconify" data-icon="lucide:tags"></span>
+            <span class="nav-label">标签</span>
+            <span id="tagSelectedCount" class="text-xs hidden"></span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+    <div class="topbar-actions">
+      <button type="button" class="cmdk-open btn btn-ghost btn-xs btn-circle" aria-label="快速搜索" title="快速搜索（Ctrl+K）">
+        <span class="iconify text-base" data-icon="lucide:search"></span>
+      </button>
+      <button type="button" class="music-trigger btn btn-ghost btn-xs btn-circle relative" aria-label="音乐" title="音乐">
+        <span class="iconify text-base" data-icon="lucide:music"></span>
+        <span id="musicDot" class="hidden absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary"></span>
+      </button>
+      <button type="button" class="theme-toggle-btn btn btn-ghost btn-xs btn-circle" aria-label="切换明暗" title="切换明暗">
+        <span class="theme-icon-sun iconify text-base" data-icon="lucide:sun"></span>
+        <span class="theme-icon-moon iconify text-base hidden" data-icon="lucide:moon"></span>
+      </button>
+    </div>
+  </div>
+</header>
 
-<!-- ============ 应用框架：daisyUI Drawer —— 大屏左侧固定侧栏，小屏滑出抽屉 ============ -->
-<div class="drawer lg:drawer-open" id="appDrawer">
-  <input id="appNavChk" type="checkbox" class="drawer-toggle" />
+<main id="mainScroll">
+  <div class="page-container">
 
-  <!-- 右侧内容区 -->
-  <div class="drawer-content min-w-0 lg:h-full">
-   <div id="appShell" class="w-full min-h-screen flex flex-col lg:h-full lg:min-h-0">
-
-
-     <header id="topHeader" class="shrink-0 sticky top-0 z-40 lg:relative">
-        <nav class="bg-base-100/90 backdrop-blur border-b border-base-300/50 w-full relative z-40" id="topNav">
-          <div class="flex items-center gap-2 sm:gap-3 min-h-12 py-0 px-3 sm:px-5">
-            <button id="navToggleBtn" class="btn btn-ghost btn-sm btn-circle lg:hidden" aria-label="打开菜单" aria-expanded="false" aria-controls="appSidebar">
-              <span class="iconify text-xl" data-icon="lucide:menu"></span>
-            </button>
-            <span id="viewTitle" class="font-bold text-base sm:text-lg">小记</span>
-          </div>
-        </nav>
-      </header>
-
-     <main id="mainScroll" class="flex-1 lg:overflow-y-auto lg:min-h-0">
-        <div class="max-w-5xl mx-auto w-full">
-
-          <!-- 刊头（仅说说视图）：花镜偈 -->
-          <div id="masthead" class="hidden">
-            <div class="mh-body">
-              <div class="mh-poem">
-                <p>生死去来，棚头傀儡</p>
-                <p>一线断时，落落磊磊</p>
-              </div>
-            </div>
-          </div>
-
-          <div id="content" class="mt-3 px-3 sm:px-5 flex flex-col"></div>
-
-          <div id="sentinel" class="py-6 text-center">
-            <span id="loadingMore" class="loading loading-dots loading-md opacity-60 hidden"></span>
-            <p id="endHint" class="text-xs opacity-40 hidden">— 到底啦 —</p>
-          </div>
-
-          <div id="mediaPager" class="hidden mt-4 flex justify-center">
-            <div class="join shadow-sm" id="pagerBtns"></div>
-          </div>
-
+    <!-- 刊头（仅说说视图）：花镜偈 -->
+    <div id="masthead" class="hidden">
+      <div class="mh-body">
+        <div class="mh-poem">
+          <p>生死去来，棚头傀儡</p>
+          <p>一线断时，落落磊磊</p>
         </div>
-      </main>
+      </div>
+    </div>
+
+    <div id="content" class="mt-3 flex flex-col"></div>
+
+    <div id="sentinel" class="py-6 text-center">
+      <span id="loadingMore" class="loading loading-dots loading-md opacity-60 hidden"></span>
+      <p id="endHint" class="text-xs opacity-40 hidden">— 到底啦 —</p>
+    </div>
+
+    <div id="mediaPager" class="hidden mt-4 flex justify-center">
+      <div id="pagerBtns" role="navigation" aria-label="分页"></div>
+    </div>
+
+  </div>
+</main>
 <button id="toTop" class="btn btn-circle btn-sm shadow-lg fixed bottom-5 right-5 z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" aria-label="回到顶部">
   <span class="iconify text-xl" data-icon="gg:pin-top"></span>
 </button>
-    </div>
-  </div>
-
-  <!-- 左侧边栏：品牌 + 用户 + 菜单 + 热门标签 -->
-  <div class="drawer-side z-[70]">
-    <label for="appNavChk" aria-label="关闭菜单" class="drawer-overlay"></label>
-    <aside id="appSidebar" class="h-full w-64 sm:w-72 paper-bg flex flex-col">
-      <!-- 资料卡：头像 + 名称 + 功能图标（原底部操作行迁移至此） -->
-      <div class="side-profile shrink-0">
-        <img src="avatar.webp" alt="头像" />
-        <div class="min-w-0 side-profile-meta">
-          <div class="name">小记</div>
-          <div class="side-actions">
-            <button type="button" class="cmdk-open btn btn-ghost btn-xs btn-circle" aria-label="快速搜索" title="快速搜索（Ctrl+K）">
-              <span class="iconify text-base" data-icon="lucide:search"></span>
-            </button>
-            <button type="button" class="music-trigger btn btn-ghost btn-xs btn-circle relative" aria-label="音乐" title="音乐">
-              <span class="iconify text-base" data-icon="lucide:music"></span>
-              <span id="musicDot" class="hidden absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary"></span>
-            </button>
-            <button type="button" class="theme-toggle-btn btn btn-ghost btn-xs btn-circle" aria-label="切换明暗" title="切换明暗">
-              <span class="theme-icon-sun iconify text-base" data-icon="lucide:sun"></span>
-              <span class="theme-icon-moon iconify text-base hidden" data-icon="lucide:moon"></span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <!-- 主菜单（固定不随内容滚动；桌面端可收成图标栏） -->
-      <nav class="px-3 pt-2 pb-2 shrink-0" aria-label="主导航">
-        <ul class="menu w-full p-0 gap-0.5 text-[.95rem]">
-          <li><a class="tab-btn" data-view="say"><span class="iconify text-lg opacity-80" data-icon="lucide:house"></span><span class="nav-label">首页</span></a></li>
-          <li><a class="tab-btn" data-view="photos"><span class="iconify text-lg opacity-80" data-icon="lucide:images"></span><span class="nav-label">图片</span></a></li>
-          <li><a class="tab-btn" data-view="watched"><span class="iconify text-lg opacity-80" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></a></li>
-          <li><a class="tab-btn" data-view="watchlist"><span class="iconify text-lg opacity-80" data-icon="lucide:star"></span><span class="nav-label">想看</span></a></li>
-          <li><a class="tab-btn" data-view="clips"><span class="iconify text-lg opacity-80" data-icon="lucide:book-open-text"></span><span class="nav-label">标注</span></a></li>
-          <li><a class="tab-btn" data-view="hot"><span class="iconify text-lg opacity-80" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></a></li>
-          <li><a class="tab-btn" data-view="bookmarks"><span class="iconify text-lg opacity-80" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></a></li>
-          <li><a class="tab-btn" data-view="worldtime"><span class="iconify text-lg opacity-80" data-icon="lucide:clock"></span><span class="nav-label">世界时间</span></a></li>
-          <li>
-            <button type="button" id="tagDrawerOpen" class="tab-btn w-full text-left" aria-expanded="false" aria-controls="tagBar">
-              <span class="iconify text-lg opacity-80" data-icon="lucide:tags"></span>
-              <span class="nav-label">标签</span>
-               <span id="tagSelectedCount" class="ml-auto text-xs opacity-50 hidden"></span>
-
-            </button>
-          </li>
-        </ul>
-      </nav>
-
-    </aside>
-  </div>
-</div>
-
-<!-- ======================= 手机端底部 Dock（≤1023px 才显示，见样式 ⑯ 段） =======================
-     放在 #appDrawer 外面（body 直属子节点）：它是 position:fixed 的悬浮卡，
-     留在抽屉容器里会被那层 overflow 牵连。
-     · 首页 / 热搜 / 时间 → 带 .tab-btn[data-view]，直接复用既有的视图切换逻辑（含选中态）
-     · 音乐             → 带 .music-trigger，复用音乐抽屉的既有绑定
-     · 更多             → 打开左侧抽屉，与原来的面包按钮（#navToggleBtn / #appNavChk）同一逻辑
-     ====================================================================================== -->
-<nav id="mobileDock" class="dock" aria-label="底部导航">
-  <button type="button" class="tab-btn" data-view="say" aria-label="首页">
-    <span class="iconify dock-icon" data-icon="lucide:house"></span>
-    <span class="dock-label">首页</span>
-  </button>
-  <button type="button" class="music-trigger" aria-label="音乐">
-    <span class="iconify dock-icon" data-icon="lucide:music"></span>
-    <span class="dock-label">音乐</span>
-    <span id="dockMusicDot" class="dock-dot hidden" aria-hidden="true"></span>
-  </button>
-  <button type="button" class="tab-btn" data-view="hot" aria-label="热搜">
-    <span class="iconify dock-icon" data-icon="lucide:flame"></span>
-    <span class="dock-label">热搜</span>
-  </button>
-  <button type="button" class="tab-btn" data-view="worldtime" aria-label="时间">
-    <span class="iconify dock-icon" data-icon="lucide:clock"></span>
-    <span class="dock-label">时间</span>
-  </button>
-  <button type="button" id="dockMoreBtn" aria-label="更多" aria-expanded="false" aria-controls="appSidebar">
-    <span class="iconify dock-icon" data-icon="lucide:menu"></span>
-    <span class="dock-label">更多</span>
-  </button>
-</nav>
 
 <!-- ======================= 标签抽屉：左侧滑出，支持组合标签 ======================= -->
 <div id="tagDrawerOverlay" class="tag-drawer-overlay" aria-hidden="true"></div>
 
 <aside id="tagBar" class="tag-drawer hidden" role="dialog" aria-modal="true" aria-label="标签筛选">
   <div class="tag-drawer-head">
-    <button id="clearTagsBtn" type="button" class="tag-drawer-clear hidden" aria-label="清空已选标签">
+    <div class="tag-drawer-heading">
+      <div class="tag-drawer-title">
+        <span class="iconify text-lg" data-icon="mdi:tag-multiple-outline"></span>
+        <span>标签</span>
+      </div>
+      <div class="tag-drawer-subtitle">
+        <span>组合筛选</span>
+       
+      </div>
+    </div>
+    <button type="button" id="tagDrawerClose" class="tag-drawer-close" aria-label="关闭标签" title="关闭">
+  <span class="iconify text-lg" data-icon="lucide:x"></span>
+</button>
+  </div>
+
+  <div class="tag-drawer-current">
+    <div class="tag-drawer-current-label">
+      <span>当前筛选</span>
+      <span id="tagSelectedSummary">未选择标签</span>
+    </div>
+    <button id="clearTagsBtn" type="button" class="tag-drawer-clear hidden">
       <span class="iconify text-sm" data-icon="lucide:x-circle"></span>
       清空
     </button>
-    <button type="button" id="tagDrawerClose" class="tag-drawer-close" aria-label="关闭标签" title="关闭">
-      <span class="iconify text-lg" data-icon="lucide:x"></span>
-    </button>
   </div>
+
   <div class="tag-drawer-body">
-    <span id="tagSelectedSummary" class="sr-only">未选择标签</span>
+    <div class="tag-title">全部标签</div>
     <div id="tagChips" class="tag-drawer-list"></div>
   </div>
 </aside>
@@ -1675,7 +1664,7 @@ const $ = sel => document.querySelector(sel);
 // ========== 滚动管理器（兼容 body 滚动与 #mainScroll 滚动） ==========
 const SCROLL_BREAKPOINT = 1024; // 与 tailwind lg: 对齐
 function isBodyScroll() {
-  return window.innerWidth < SCROLL_BREAKPOINT;
+  return true;   // 顶部悬浮导航布局：全尺寸统一走 window 滚动
 }
 function getScrollPos() {
   if (isBodyScroll()) return window.scrollY;
@@ -2072,6 +2061,23 @@ function tapeTime(rawDate) {
   if (diff >= 0 && diff < 7 * day) return Math.floor(diff / day) + '天前';
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
+
+/* 稳定伪随机：同一条说说每次渲染位置一致，但不同内容自然分散 */
+function tapePlacement(m) {
+  const key = String(m.id || '') + '|' + String(m.rawDate || '') + '|' + String(m.content || '').slice(0, 80);
+  let hash = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const unit = (hash >>> 0) / 4294967295;
+  const unit2 = ((Math.imul(hash ^ 0x9e3779b9, 1103515245) >>> 0) / 4294967295);
+  return {
+    left: (7 + unit * 61).toFixed(2) + '%',
+    rotate: (-3.2 + unit2 * 6.4).toFixed(2) + 'deg'
+  };
+}
+
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = false, rev = false } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
@@ -2104,12 +2110,15 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = 
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
-  // 日期：卡片内部顶部的小号元信息行（胶布 / 随机贴角都已移除，不再需要 --tape）
+  // 胶带颜色随第一个标签；位置由内容生成稳定伪随机值，不按条目序号循环
+  const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
   const dateText = tapeTime(m.rawDate);
+  const placement = tapePlacement(m);
+  const tapeStyle = `left:${placement.left}; transform:rotate(${placement.rotate});`;
   return `
   <li class="fade-up memo-item" style="${anim}">
-    <article class="memo-card">
-      ${dateText ? `<span class="memo-tape-date" aria-label="发布时间">${dateText}</span>` : ''}
+    <article class="memo-card" style="${tape}">
+      ${dateText ? `<span class="memo-tape-date" style="${tapeStyle}" aria-label="发布时间">${dateText}</span>` : ''}
       ${body}
     </article>
   </li>`;
@@ -2117,7 +2126,14 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = 
 
 function skeletonNotes(n = 3) {
   const li = `
-    <li><div class="memo-card"><div class="shimmer h-3 rounded w-40"></div><div class="shimmer h-4 rounded w-3/4 mt-4"></div><div class="shimmer h-44 w-full mt-4"></div><div class="shimmer h-3 rounded w-28 mt-3"></div></div></li>`;
+    <li>
+      <div class="memo-card">
+        <div class="shimmer h-3 rounded w-40"></div>
+        <div class="shimmer h-4 rounded w-3/4 mt-4"></div>
+        <div class="shimmer h-44 w-full mt-4"></div>
+        <div class="shimmer h-3 rounded w-28 mt-3"></div>
+      </div>
+    </li>`;
   return `<ul class="memo-list">${li.repeat(n)}</ul>`;
 }
 
@@ -2591,7 +2607,7 @@ function renderPhotos() {
 
   contentEl.innerHTML = `
     <div>
-      <p class="text-xs opacity-50">共 ${photos.length} 张图片 · 来自所有说说</p>
+      <p class="text-xs opacity-50 mb-3.5">共 ${photos.length} 张图片 · 来自所有说说</p>
       <div id="photoGrid">
         <div class="photo-sizer"></div>${photos.map(p => `
         <div class="photo-item">
@@ -2729,9 +2745,9 @@ async function loadClips() {
 }
 
 const CLIP_TYPE_META = {
-  '标注': { icon: 'lucide:highlighter', cls: 'bg-primary/10 text-primary', fg: 'text-primary' },
-  '笔记': { icon: 'lucide:pencil', cls: 'bg-secondary/10 text-secondary', fg: 'text-secondary' },
-  '书签': { icon: 'lucide:bookmark', cls: 'bg-accent/10 text-accent', fg: 'text-accent' },
+  '标注': { icon: 'lucide:highlighter', cls: 'bg-primary/10 text-primary' },
+  '笔记': { icon: 'lucide:pencil', cls: 'bg-secondary/10 text-secondary' },
+  '书签': { icon: 'lucide:bookmark', cls: 'bg-accent/10 text-accent' },
 };
 
 function renderClips() {
@@ -2749,7 +2765,7 @@ function renderClips() {
         ${books.map((b, i) => `
         <li class="list-row">
           <div class="text-4xl font-thin opacity-30 tabular-nums">${String(i + 1).padStart(2, '0')}</div>
-          <div class="clips-ico size-10 text-primary flex items-center justify-center shrink-0">
+          <div class="size-10 rounded-box bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <span class="iconify text-xl" data-icon="lucide:book-open"></span>
           </div>
           <div class="list-col-grow min-w-0">
@@ -2767,7 +2783,7 @@ function renderClips() {
         clipsListScroll = getScrollPos();
         state.clipsBook = btn.dataset.book;
         renderClips();
-        mainScroll.scrollTop = 0;   // 进入书内页从第一条标注开始，书单位置留在 clipsListScroll 备返回恢复
+        scrollToTop();   // 进入书内页从第一条标注开始，书单位置留在 clipsListScroll 备返回恢复
       };
     });
   } else {
@@ -2790,7 +2806,7 @@ function renderClips() {
           return `
         <li class="list-row">
           <div class="text-4xl font-thin opacity-30 tabular-nums">${String(i + 1).padStart(2, '0')}</div>
-          <div class="clips-ico size-10 ${tm.fg} flex items-center justify-center shrink-0" title="${c.type}">
+          <div class="size-10 rounded-box ${tm.cls} flex items-center justify-center shrink-0" title="${c.type}">
             <span class="iconify text-xl" data-icon="${tm.icon}"></span>
           </div>
           <div class="list-col-grow min-w-0">
@@ -2913,7 +2929,7 @@ function renderHotView() {
   }).join('');
   contentEl.innerHTML = `
   <div>
-    <div class="filter-toolbar flex items-center gap-2  top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
+    <div class="flex items-center gap-2 sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
       <div class="hot-tabs flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5">${tabs}</div>
       <button type="button" class="hot-refresh btn btn-xs btn-ghost btn-circle shrink-0" aria-label="手动刷新" title="手动刷新">
         <span class="iconify text-base" data-icon="lucide:refresh-cw"></span>
@@ -2925,7 +2941,7 @@ function renderHotView() {
   contentEl.querySelectorAll('[data-hot]').forEach(btn => {
     btn.onclick = () => {
       if (state.hotActive === btn.dataset.hot) return;
-      hotScrolls[state.hotActive] = mainScroll.scrollTop;   // 记住当前平台的位置
+      hotScrolls[state.hotActive] = getScrollPos();   // 记住当前平台的位置
       state.hotActive = btn.dataset.hot;
       renderHotView();
       loadHot(state.hotActive);
@@ -3025,7 +3041,7 @@ function renderBookmarks() {
 
   contentEl.innerHTML = `
   <div>
-    <div class=" top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
+    <div class="sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
       <div class="flex items-center gap-2">
         <label class="input input-sm h-9 w-32 sm:w-48 shrink-0 items-center gap-2">
           <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -3127,18 +3143,6 @@ const WC_ZONES = [
   { tz: 'UTC',                name: 'UTC',    region: '协调世界时' },
 ];
 let wcTimer = null;
-/* 这个视图里最细的粒度是"分钟"（列表只显示 HH:MM、日期、昼夜段），
-   只有顶部北京时钟需要秒级刷新。用分钟戳做缓存，别每秒把 14 行全部标脏。 */
-let wcMinuteStamp = null;
-/* 昼夜段图标只有 4 种，而且配色 cls 完全由图标决定
-   （moon→secondary / sunrise·sun→warning / sunset→error）。
-   一次性把 4 个变体都渲染进同一个格子（grid-area 叠放），之后每秒只切 display。
-   原因：原来每秒 innerHTML 重建一个 `<span class="iconify">`，
-   Iconify 得异步重画 SVG —— 实测图标每秒缺 1~2 帧，就是用户看到的"闪一闪"。 */
-const WC_PART_ICONS = ['lucide:moon', 'lucide:sunrise', 'lucide:sun', 'lucide:sunset'];
-const WC_ICON_VARIANTS = WC_PART_ICONS
-  .map(ic => `<span class="iconify text-xl" data-icon="${ic}" data-wc-pv="${ic}" style="grid-area:1/1;display:none"></span>`)
-  .join('');
 
 function wcParts(tz, date = new Date()) {
   const dtf = new Intl.DateTimeFormat('zh-CN', {
@@ -3208,7 +3212,7 @@ function renderWorldClock() {
   const zoneOptions = WC_ZONES.map(z => `<option value="${z.tz}" ${z.tz === 'America/New_York' ? 'selected' : ''}>${z.name} · ${z.region}</option>`).join('');
   const rows = WC_ZONES.map(z => `
     <li class="list-row items-center" data-wc-row="${z.tz}">
-      <div class="size-10 rounded-lg grid place-items-center shrink-0 wc-daybox" data-wc-icon="${z.tz}">${WC_ICON_VARIANTS}</div>
+      <div class="size-10 rounded-lg grid place-items-center shrink-0 wc-daybox" data-wc-icon="${z.tz}"></div>
       <div class="list-col-grow min-w-0">
         <div class="text-sm font-semibold">${z.name}</div>
         <div class="text-xs opacity-50">${z.region}</div>
@@ -3260,7 +3264,6 @@ function renderWorldClock() {
   </div>`;
 
   $('#wcConvert').onclick = wcConvertClick;
-  wcMinuteStamp = null;   // 刚重建过 DOM，缓存作废，强制走一次完整刷新（否则会停在 --:--）
   updateWcTimes();
   startWcTick();
 }
@@ -3268,25 +3271,10 @@ function renderWorldClock() {
 function updateWcTimes() {
   const now = new Date();
   const main = wcParts(WC_BJ, now);
-
-  // ① 顶部北京时钟：唯一需要每秒刷新的东西
   const mainTime = contentEl.querySelector('[data-wc-main-time]');
-  if (mainTime) {
-    const t = `${main.hour}:${main.minute}:${main.second}`;
-    if (mainTime.textContent !== t) mainTime.textContent = t;
-  }
-
-  // ② 其余全是"分钟级"信息，同一分钟内直接跳过。
-  //    这就是"闪一闪"的根治点：原来每秒都要重写 14 行 × 4 个字段，
-  //    还把每行的昼夜图标 innerHTML 拆掉重画，实测每秒 86 次 DOM 变更（新增 72 / 删除 72 个节点），
-  //    图标每秒缺 1~2 帧。
-  const stamp = `${main.year}-${main.month}-${main.day} ${main.hour}:${main.minute}`;
-  if (stamp === wcMinuteStamp) return;
-  wcMinuteStamp = stamp;
-
+  if (mainTime) mainTime.textContent = `${main.hour}:${main.minute}:${main.second}`;
   const mainDate = contentEl.querySelector('[data-wc-main-date]');
   if (mainDate) mainDate.textContent = `${main.year} 年 ${main.month} 月 ${main.day} 日 · ${main.weekday}`;
-
   WC_ZONES.forEach(z => {
     const p = wcParts(z.tz, now);
     const part = wcDayPart(+p.hour);
@@ -3297,24 +3285,14 @@ function updateWcTimes() {
     if (tEl) tEl.textContent = `${p.hour}:${p.minute}`;
     if (dEl) dEl.textContent = `${p.month}-${p.day} ${p.weekday}`;
     if (pEl) pEl.textContent = part.t;
-    if (iEl) {
-      // 只切换 4 个预渲染图标的显隐：不建 DOM、不碰 innerHTML。
-      // 注意：Iconify 会把 `<span class="iconify">` 整个换成 `<svg>`（保留属性），
-      // 所以这里同时兼容自己的 data-wc-pv 和 iconify 自己的 data-icon，避免将来被换掉就失联。
-      iEl.querySelectorAll('[data-wc-pv],[data-icon]').forEach(s => {
-        const ic = s.dataset.wcPv || s.dataset.icon;
-        s.style.display = ic === part.icon ? '' : 'none';
-      });
-      // 外层只负责配色。注意必须保留 wc-daybox —— 原来重写 className 时把它丢了，
-      // 使得末段那条 `#content .wc-root .wc-daybox{...}` 覆盖样式只生效 1 秒。
-      if (iEl.dataset.wcCls !== part.cls) {
-        iEl.dataset.wcCls = part.cls;
-        iEl.className = `size-10 rounded-lg grid place-items-center shrink-0 wc-daybox ${part.cls}`;
-      }
+    // 图标只在昼夜时段变化时重渲染：每秒重写 innerHTML 会让 iconify 反复替换 SVG，肉眼可见地闪
+    if (iEl && iEl.dataset.wcPart !== part.icon) {
+      iEl.dataset.wcPart = part.icon;
+      iEl.className = `size-10 rounded-lg grid place-items-center shrink-0 wc-daybox ${part.cls}`;
+      iEl.innerHTML = `<span class="iconify text-xl" data-icon="${part.icon}"></span>`;
     }
   });
-
-  // ③ 提醒倒计时（文案本身就是"X 小时 Y 分 / X 分钟"，分钟级足够）
+  // 提醒倒计时
   contentEl.querySelectorAll('[data-cd-utc]').forEach(el => {
     const ms = Date.parse(el.dataset.cdUtc) - Date.now();
     el.textContent = ms <= 0 ? '即将开始 / 已开始' : `还有 ${fmtDelta(ms)}`;
@@ -3577,31 +3555,32 @@ function renderMediaPage(view) {
   contentEl.innerHTML = `
     <div>
       ${filterBar}
-      <p class="text-xs opacity-50">${countText}</p>
+      <p class="text-xs opacity-50 mt-3.5 mb-4">${countText}</p>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>
     </div>`;
   bindMediaFilterEvents(view);
   applyRestore(view);
 
   if (pages > 1) {
+    const chevron = dir => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${dir === 'prev' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"></path></svg>`;
     const btns = [];
-    btns.push(`<button class="join-item btn btn-sm ${p === 1 ? 'btn-disabled' : ''}" data-p="${p - 1}">«</button>`);
+    btns.push(`<button type="button" class="pager-btn" data-p="${p - 1}" aria-label="上一页"${p === 1 ? ' disabled' : ''}>${chevron('prev')}</button>`);
     const win = [];
     for (let i = 1; i <= pages; i++) {
       if (i === 1 || i === pages || Math.abs(i - p) <= 2) win.push(i);
     }
     let prev = 0;
     win.forEach(i => {
-      if (i - prev > 1) btns.push('<button class="join-item btn btn-sm btn-disabled">…</button>');
-      btns.push(`<button class="join-item btn btn-sm ${i === p ? 'btn-active' : ''}" data-p="${i}">${i}</button>`);
+      if (i - prev > 1) btns.push('<span class="pager-gap" aria-hidden="true">···</span>');
+      btns.push(`<button type="button" class="pager-btn${i === p ? ' is-active' : ''}" data-p="${i}"${i === p ? ' aria-current="page"' : ''}>${i}</button>`);
       prev = i;
     });
-    btns.push(`<button class="join-item btn btn-sm ${p === pages ? 'btn-disabled' : ''}" data-p="${p + 1}">»</button>`);
+    btns.push(`<button type="button" class="pager-btn" data-p="${p + 1}" aria-label="下一页"${p === pages ? ' disabled' : ''}>${chevron('next')}</button>`);
     const pager = $('#pagerBtns');
     pager.innerHTML = btns.join('');
     pager.querySelectorAll('button[data-p]').forEach(b => {
       b.onclick = () => {
-        if (b.classList.contains('btn-disabled')) return;
+        if (b.disabled || b.classList.contains('is-active')) return;
         state.mediaPage[view] = Number(b.dataset.p);
         renderMediaPage(view);
         scrollToTop({ behavior: 'smooth' });
@@ -3710,21 +3689,6 @@ function switchView(view) {
    - 点击外部或右上角关闭
    - 点击任意标签不会关闭，可连续组合 AND 筛选
 ============================================================ */
-/* ============================================================
-   标签抽屉（2026-09-15 起：**改到屏幕右侧**，从左边缘侧滑的菜单里彻底分家）
-   文哥原话：「这个标签打开抽屉跟右滑出菜单的抽屉逻辑体验有点冲突，
-             把这个标签菜单直接变成在屏幕右侧左滑出标签抽屉，
-             直接把这个标签菜单抽离出来就会好很多。」
-   ------------------------------------------------------------
-   两条进入路径（都通到同一个抽屉，抽屉本身在右边）：
-     · 左菜单里点「标签」→ 菜单收掉，抽屉从右侧滑进来（open()）
-     · 右边缘往左滑 → 直接开（手势脚本在文件末尾，调 window.openTagDrawer）
-   ------------------------------------------------------------
-   上一版那套「记住上次在标签抽屉 → 拉开菜单就自动带出来」的逻辑**整块删掉了**：
-   它正是文哥说的"冲突"来源。现在两边各管各的边，不需要记忆了。
-   注：`chk.dispatchEvent(change)` 那两处保留 —— 那是给 Dock「更多」的 aria 同步用的，
-       顺手修的老毛病（程序化 .checked = true 不触发原生 change），跟本段无关。
-   ============================================================ */
 (function initTagDrawer() {
   const drawer = document.getElementById('tagBar');
   const overlay = document.getElementById('tagDrawerOverlay');
@@ -3733,56 +3697,29 @@ function switchView(view) {
 
   if (!drawer || !overlay || !openBtn || !closeBtn) return;
 
-  const show = () => {
-    // 都挤在右边：歌单抽屉开着就先收掉，别叠一起（它自己那个 IIFE 在 5333 行，晚于本段执行，所以这里能取到）
-    if (typeof window.closeMusicDrawer === 'function') window.closeMusicDrawer();
-    /* ㉞ 配套：遮罩平时 display:none 撤出渲染树（治 iOS 26 URL 玻璃染色，
-       病根见补丁层 ㉞ 段注释）。开前先恢复渲染 + 强制 reflow，
-       这样 opacity 淡入过渡才照常播放（display:none→block 同帧加类不会播过渡）。 */
-    clearTimeout(overlay._hideTimer);
-    overlay.style.display = 'block';
-    void overlay.offsetWidth;
+  const open = () => {
+    closeNav();                        // ← 新增：移动端把左侧菜单先收起来
+
     drawer.classList.add('open');
     overlay.classList.add('open');
     openBtn.setAttribute('aria-expanded', 'true');
     overlay.setAttribute('aria-hidden', 'false');
   };
 
-  /* 菜单抽屉点击「标签」：先收起菜单，再从网页左侧滑出标签抽屉。 */
-  const open = () => {
-    const nav = document.getElementById('appNavChk');
-    const navWasOpen = !!(nav && nav.checked);
-    closeNav();
-    if (navWasOpen) window.setTimeout(show, 180);
-    else show();
-  };
-
   const close = () => {
     drawer.classList.remove('open');
     overlay.classList.remove('open');
-    /* ㉞ 配套：等 opacity 淡出（.28s）播完再把遮罩 display:none 撤出渲染树，
-       让 Safari 重新推导边缘玻璃色；期间若重新打开，show() 的 clearTimeout 会拦下。 */
-    clearTimeout(overlay._hideTimer);
-    overlay._hideTimer = setTimeout(() => {
-      if (!overlay.classList.contains('open')) overlay.style.display = 'none';
-    }, 300);
     openBtn.setAttribute('aria-expanded', 'false');
     overlay.setAttribute('aria-hidden', 'true');
   };
 
   openBtn.onclick = open;
   closeBtn.onclick = close;
-  /* 点抽屉外面（现在是左边那一大片）→ 收掉抽屉，回到内容 */
   overlay.onclick = close;
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && drawer.classList.contains('open')) close();
   });
-
-  /* 给右侧边缘手势用（那个脚本在文件末尾，晚于本段执行）*/
-  window.openTagDrawer = open;
-  window.closeTagDrawer = close;
-  window.isTagDrawerOpen = () => drawer.classList.contains('open');
 })();
 
 function closeNav() {
@@ -3800,9 +3737,6 @@ function closeNav() {
   if (!btn || !chk) return;
   btn.onclick = () => {
     chk.checked = true;
-    // 程序化勾选不会触发原生 change，手动补一次：
-    // Dock「更多」的 aria 同步（第 7249 行那段）监听的就是这个事件
-    chk.dispatchEvent(new Event('change', { bubbles: true }));
     btn.setAttribute('aria-expanded', 'true');
   };
 })();
@@ -3828,21 +3762,9 @@ function updateThemeIcons(theme) {
   document.querySelectorAll('#iconMoon, .theme-icon-moon').forEach(el => el.classList.toggle('hidden', !dark));
 }
 
-/* 浏览器/系统 UI 的颜色跟着**站点主题**走（iOS Safari 顶栏与底栏、Android 状态栏）。
-   为什么不用 `<meta media="(prefers-color-scheme: …)">` 写死：
-   本站主题存在 localStorage['memo-theme']，可以和系统偏好**相反** ——
-   手机是浅色但稿子切成深色时，写死 media 会把顶栏染成白的，又对不上了。
-   取值与 §㉑ 的 html 底色一一对应：浅 #ffffff / 深 #1c1c1e。 */
-function syncThemeColor(theme) {
-  const m = document.getElementById('metaThemeColor');
-  if (!m) return;
-  m.setAttribute('content', isDarkTheme(theme) ? '#1c1c1e' : '#ffffff');
-}
-
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   updateThemeIcons(theme);
-  syncThemeColor(theme);
   try { localStorage.setItem('memo-theme', theme); } catch {}
 }
 
@@ -4164,6 +4086,19 @@ mainScroll.addEventListener('scroll', updateToTop, { passive: true });
 window.addEventListener('resize', updateToTop);
 toTop.onclick = () => scrollToTop({ behavior: 'smooth' });
 
+// ========== 顶部悬浮导航：下滑隐藏，上滑出现 ==========
+(function initAutoHideBar() {
+  const bar = document.getElementById('topBar');
+  if (!bar) return;
+  let lastY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > lastY && y > 140) bar.classList.add('bar-hidden');
+    else bar.classList.remove('bar-hidden');
+    lastY = y;
+  }, { passive: true });
+})();
+
 /* ---------- 启动 ---------- */
 initFancybox();
 switchView('say');
@@ -4243,8 +4178,8 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
         initLyricsFloatDrag();
 
         const ICONS = {
-          play: '<span class="iconify" data-icon="solar:play-bold"></span>',
-          pause: '<span class="iconify" data-icon="solar:pause-bold"></span>',
+          play: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>',
+          pause: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>',
           heart: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.1,18.55L12,18.65L11.89,18.55C7.14,14.24 4,11.39 4,8.5C4,6.5 5.5,5 7.5,5C9.04,5 10.54,6 11.07,7.36H12.93C13.46,6 14.96,5 16.5,5C18.5,5 20,6.5 20,8.5C20,11.39 16.86,14.24 12.1,18.55M16.5,3C14.76,3 13.09,3.81 12,5.08C10.91,3.81 9.24,3 7.5,3C4.42,3 2,5.41 2,8.5C2,12.27 5.4,15.36 10.55,20.03L12,21.35L13.45,20.03C18.6,15.36 22,12.27 22,8.5C22,5.41 19.58,3 16.5,3Z"/></svg>',
           heartFilled: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/></svg>',
           repeat: '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17,17H7V14L3,18L7,22V19H19V13H17M7,7H17V10L21,6L17,2V5H5V11H7V7Z"/></svg>',
@@ -5312,11 +5247,6 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   let mounted = false;
 
   function openDrawer() {
-    /* ㉞ 配套：同标签抽屉 —— 遮罩平时 display:none（治 iOS 26 URL 玻璃染色），
-       开前恢复渲染 + 强制 reflow，opacity 淡入才照常播 */
-    clearTimeout(overlay._hideTimer);
-    overlay.style.display = 'block';
-    void overlay.offsetWidth;
     drawer.classList.add('open');
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -5328,11 +5258,6 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   function closeDrawer() {
     drawer.classList.remove('open');
     overlay.classList.remove('open');
-    /* ㉞ 配套：淡出（.3s）播完再把遮罩撤出渲染树 */
-    clearTimeout(overlay._hideTimer);
-    overlay._hideTimer = setTimeout(() => {
-      if (!overlay.classList.contains('open')) overlay.style.display = 'none';
-    }, 320);
     document.body.style.overflow = '';
   }
 
@@ -5344,9 +5269,6 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   });
   document.getElementById('musicDrawerClose').onclick = closeDrawer;
   overlay.onclick = closeDrawer;
-
-  // 标签抽屉（右边那本）打开时要先把歌单抽屉收掉，所以把关闭函数交出去
-  window.closeMusicDrawer = closeDrawer;
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
@@ -5373,2073 +5295,771 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   }
 
 /* ============================================================
-   书桌手账主题 v1
+   糖果贴纸主题 v2（Neo-Brutalism）
+   粗描边 + 硬阴影 + 荧光糖果色 + 展示字体
    仅覆盖视觉层：不修改 JS / 数据结构 / 交互逻辑
    ============================================================ */
 
 :root {
-  --journal-paper: #f4eedf;
-  --journal-paper-deep: #e9dfca;
-  --journal-ink: #403a32;
-  --journal-muted: #81786a;
-  --journal-line: rgba(80, 68, 52, .16);
-  --journal-wood-a: #b59a7b;
-  --journal-wood-b: #9d8063;
-   --journal-photo-border: #f8f2e5;
-   --journal-photo-paper: #f8f3e8;
+  --nb-bg: #fbf4e4;            /* 页面底色：奶油 */
+  --nb-panel: #fffdf6;         /* 卡片 / 面板 */
+  --nb-panel-deep: #fdf3d8;    /* 侧栏 / 凹槽 */
+  --nb-ink: #211d17;           /* 墨色（文字 / 描边 / 硬阴影） */
+  --nb-border: #211d17;
+  --nb-hard: #211d17;
+  --nb-ink-55: rgba(33, 29, 23, .55);
+  --nb-ink-22: rgba(33, 29, 23, .22);
+  --nb-yellow: #ffc931;
+  --nb-pink: #ff7bac;
+  --nb-blue: #4d8dff;
+  --nb-green: #5fd68a;
+  --nb-purple: #b18cff;
+  --nb-dot: rgba(33, 29, 23, .09);
+  /* 翻页器当前页强调色（参考图中的暖橙） */
+  --pager-accent: #ef7c12;
 }
 
-/* 桌面：不用任何外部壁纸，纯 CSS 做旧木桌
-   ★ 原来这里还叠了一层 repeating-linear-gradient(0deg, ... 0 1px, transparent 1px 5px) 的木纹细横纹。
-     以前 #appShell 是不透明的把它挡住了；现在 #appShell 透明（为了透出 #bgOrbs 光斑），
-     那层 5px 横纹就会在整个页面背景上一横一横地显出来 → 整个删掉，只保留平滑的木色渐变。 */
+html:is([data-theme="dark"], [data-theme="halloween"]) {
+  --nb-bg: #14151b;
+  --nb-panel: #1e2029;
+  --nb-panel-deep: #1a1c24;
+  --nb-ink: #ece8db;
+  --nb-border: rgba(236, 232, 219, .32);
+  --nb-hard: rgba(0, 0, 0, .55);
+  --nb-ink-55: rgba(236, 232, 219, .55);
+  --nb-ink-22: rgba(236, 232, 219, .22);
+  --nb-yellow: #ffd94d;
+  --nb-pink: #ff85b3;
+  --nb-blue: #6da2ff;
+  --nb-green: #6fe09b;
+  --nb-purple: #c0a4ff;
+  --nb-dot: rgba(236, 232, 219, .06);
+  --pager-accent: #ffab4d;
+}
+
+/* ---------- 页面底：奶油底 + 墨点网格 ---------- */
 html,
 body {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--journal-wood-a) 86%, #fff),
-    var(--journal-wood-b) 48%,
-    color-mix(in srgb, var(--journal-wood-a) 88%, #fff)
-  ) !important;
-  color: var(--journal-ink);
+  background-color: var(--nb-bg) !important;
+  background-image: radial-gradient(circle, var(--nb-dot) 1.3px, transparent 1.4px) !important;
+  background-size: 22px 22px !important;
+  color: var(--nb-ink);
 }
 
-/* 大屏：把原来的“APP 面板”改成桌面上的一本摊开的手账 */
-@media (min-width: 1024px) {
-  body {
-    padding: 28px !important;
-  }
+::selection { background: var(--nb-yellow); color: #211d17; }
 
-  #appDrawer {
-    max-width: 1580px !important;
-    height: calc(100dvh - 56px) !important;
-    background: transparent !important;
-    overflow: hidden !important;
-    box-shadow:
-      0 26px 70px rgba(45, 31, 18, .28),
-      0 3px 12px rgba(45, 31, 18, .14) !important;
-  }
-
-  #appSidebar {
-    width: 250px !important;
-    background:
-      linear-gradient(90deg, rgba(87, 64, 41, .05), transparent 18%),
-      var(--journal-paper-deep) !important;
-    color: var(--journal-ink) !important;
-    border-right: 1px solid rgba(83, 68, 48, .18) !important;
-    box-shadow: 8px 0 24px rgba(55, 40, 25, .08) !important;
-    padding: 18px 14px !important;
-  }
-
-  #appShell {
-    background: var(--journal-paper) !important;
-    color: var(--journal-ink) !important;
-    position: relative;
-  }
-
-  /* 中间装订线 */
-  #appShell::before {
-    content: "";
-    position: absolute;
-    z-index: 0;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 18px;
-    pointer-events: none;
-    background:
-      linear-gradient(
-        90deg,
-        rgba(72, 51, 31, .13),
-        rgba(255,255,255,.22) 38%,
-        transparent 100%
-      );
-    opacity: .55;
-  }
-
-  #mainScroll {
-    position: relative;
-    z-index: 1;
-  }
-
-  #mainScroll > .max-w-5xl {
-    max-width: 1050px !important;
-    padding: 0 42px 40px !important;
-  }
-  
-   
-    /* 回到顶部：纸张右下角的幽灵图标，无底无边 */
-  #toTop {
-    position: absolute !important;
-    bottom: 1.5rem !important;
-    right: 1.5rem !important;
-   
-  }
-
- 
+/* ---------- 顶部悬浮导航：下滑隐藏，上滑出现 ---------- */
+#topBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: color-mix(in srgb, var(--nb-panel) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 2.5px solid var(--nb-border);
+  padding-top: env(safe-area-inset-top, 0px);
+  transition: transform .32s cubic-bezier(.22, 1, .36, 1);
 }
 
-  /* 回到顶部：纸张右下角的幽灵图标，无底无边 */
-  #toTop {
-    
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: color-mix(in oklch, var(--journal-ink) 55%, transparent) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    transition: color .2s ease, transform .2s ease !important;
-  }
+#topBar.bar-hidden { transform: translateY(-115%); }
 
-  #toTop:hover {
-    background: transparent !important;
-    color: var(--journal-ink) !important;
-    transform: translateY(-2px);
-  }
-
-  /* 让内层图标本身也有过渡 */
-  #toTop .iconify {
-    font-size: 1.5rem;
-    transition: inherit;
-  }
-
-/* 头像：像贴在笔记本上的照片 */
-.side-profile {
-  padding: .5rem .35rem 1rem !important;
-  border-bottom: 1px dashed var(--journal-line);
-  margin-bottom: .6rem;
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
-/* 头像：圆形外框（去掉原来的方照片 + 旋转） */
-.side-profile img {
-  width: 58px !important;
-  height: 58px !important;
-  border-radius: 50% !important;
-  border: 3px solid var(--journal-photo-border, #f8f2e5) !important;
-  box-shadow:
-    0 2px 8px rgba(45, 32, 19, .20),
-    0 0 0 1px rgba(80, 65, 45, .12) !important;
-  transform: none !important;
+/* 品牌：贴纸小头像 + 站名 */
+.topbar-brand { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+
+.topbar-brand img {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 2px solid var(--nb-border);
+  box-shadow: 2.5px 2.5px 0 var(--nb-hard);
+  transform: rotate(-3deg);
+  transition: transform .2s ease;
 }
 
-.side-profile .name {
-  color: var(--journal-ink) !important;
-  font-size: 1.05rem;
-  letter-spacing: .08em;
+.topbar-brand img:hover { transform: rotate(0deg) scale(1.06); }
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  letter-spacing: .06em;
+  color: var(--nb-ink);
 }
 
-/* 侧栏菜单：从 APP 菜单变成手账索引 */
-#appSidebar .menu {
-  gap: 5px !important;
+/* 菜单：移动端独占一行可横滑，桌面端居中 */
+.topbar-nav { order: 3; width: 100%; }
+
+.topbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 2px 1px 5px;
+  list-style: none;
+  margin: 0;
 }
 
-#appSidebar .menu .tab-btn {
-  border-radius: 5px !important;
-  color: var(--journal-ink) !important;
-  padding: .48rem .62rem !important;
+.topbar-menu .tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: .98rem;
   letter-spacing: .04em;
+  color: var(--nb-ink) !important;
+  padding: .36rem .68rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease;
 }
 
-#appSidebar .menu .tab-btn:hover {
-  background: rgba(104, 82, 57, .08) !important;
+.topbar-menu .tab-btn .iconify { font-size: 1.05rem; }
+
+.topbar-menu .tab-btn:hover {
+  background: var(--nb-panel);
+  border-color: var(--nb-border);
 }
 
-#appSidebar .menu .tab-btn.active {
-  background: rgba(139, 113, 76, .12) !important;
-  color: #765f40 !important;
-  box-shadow: inset 3px 0 0 #9a7d55 !important;
+.topbar-menu .tab-btn.active {
+  background: var(--nb-yellow) !important;
+  color: #211d17 !important;
+  border-color: var(--nb-border);
+  box-shadow: 2.5px 2.5px 0 var(--nb-hard);
 }
 
-#appSidebar .menu > li:has(> .tab-btn.active)::before {
-  display: none !important;
+#tagSelectedCount {
+  border: 1.5px solid var(--nb-border) !important;
+  background: var(--nb-pink) !important;
+  color: #211d17 !important;
+  border-radius: 999px;
+  font-family: var(--font-num);
+  padding: 0 5px;
+  margin-left: 2px;
 }
 
-/* 标签区像书桌上的小索引 */
-.tag-title {
-  color: #665947 !important;
-  border-top: 1px dashed var(--journal-line);
-  margin-top: .75rem;
-  padding-top: .9rem !important;
+/* 功能图标：小贴纸按钮 */
+.topbar-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; flex: 0 0 auto; }
+
+.topbar-actions .btn {
+  border: 2px solid var(--nb-border) !important;
+  border-radius: 10px !important;
+  background: var(--nb-panel) !important;
+  color: var(--nb-ink) !important;
+  box-shadow: 2.5px 2.5px 0 var(--nb-hard) !important;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease !important;
 }
 
-.sidebar-tag {
-  border-radius: 4px !important;
-  color: var(--journal-muted) !important;
+.topbar-actions .btn:hover {
+  background: var(--nb-yellow) !important;
+  color: #211d17 !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0 var(--nb-hard) !important;
 }
 
-.sidebar-tag:hover,
-.sidebar-tag.active {
-  background: rgba(110, 87, 58, .08) !important;
-  color: #765f40 !important;
+.topbar-actions .btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--nb-hard) !important;
 }
 
-/* 刊头：像写在纸页顶部的一句题记 */
-#masthead {
-  padding: 3.8rem 0 1.4rem !important;
-  position: relative;
+@media (min-width: 1024px) {
+  .topbar-inner { flex-wrap: nowrap; padding: 10px 22px; }
+  .topbar-nav { order: 0; width: auto; flex: 1; display: flex; justify-content: center; }
+  .topbar-menu { overflow: visible; padding: 2px 1px; }
+  .topbar-actions { margin-left: 0; }
 }
 
- 
+/* ---------- 居中内容栏 ---------- */
+.page-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 128px 16px 48px;
+}
+
+@media (min-width: 1024px) {
+  .page-container { padding-top: 92px; }
+}
+
+/* 说说列表：窄栏居中，阅读更舒适 */
+#content ul.memo-list { max-width: 720px !important; margin-inline: auto !important; }
+
+/* ---------- 刊头：荧光笔题记 ---------- */
+#masthead { padding: 1.7rem 0 1.2rem !important; }
+
+#masthead .mh-body { position: relative; }
 
 #masthead .mh-poem {
-  color: #4c453b !important;
-  font-size: 1.12rem !important;
-  letter-spacing: .25em !important;
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.45rem, 3.4vw, 2.2rem) !important;
+  line-height: 2.05 !important;
+  letter-spacing: .12em !important;
+  text-indent: .12em !important;
+  color: var(--nb-ink) !important;
 }
 
-/* 时间轴：不再像 UI 时间轴，而像笔记本左侧日期栏 */
-#content ul.timeline {
-  max-width: 900px !important;
+#masthead .mh-poem p {
+  width: fit-content;
+  margin-inline: auto;
+  padding: 0 .3em;
+  background: linear-gradient(transparent 56%, var(--nb-yellow) 56%, var(--nb-yellow) 94%, transparent 94%);
 }
 
-#content ul.timeline.timeline-vertical.timeline-snap-icon > li {
-  grid-template-columns: 0px 62px minmax(0, 1fr) !important;
+#masthead .mh-poem p:last-child {
+  background: linear-gradient(transparent 56%, var(--nb-pink) 56%, var(--nb-pink) 94%, transparent 94%);
 }
 
-#content ul.timeline > li > hr {
-  background: var(--journal-line) !important;
+/* 深色下荧光条压成半透明，保证白字可读 */
+html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p {
+  background: linear-gradient(transparent 56%, color-mix(in srgb, var(--nb-yellow) 62%, transparent) 56%, color-mix(in srgb, var(--nb-yellow) 62%, transparent) 94%, transparent 94%);
 }
 
- .memo-bubble {
-  width: 50px !important;
-  height: 50px !important;
-  border-radius: 3px !important;
-  background: transparent !important;
-  color: #a85a52 !important;
-  border: 2px solid #a85a52 !important;
-  box-shadow: inset 0 0 0 1px #a85a52 !important;
-  transform: rotate(-3deg) !important;
-  opacity: .88;
+html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last-child {
+  background: linear-gradient(transparent 56%, color-mix(in srgb, var(--nb-pink) 62%, transparent) 56%, color-mix(in srgb, var(--nb-pink) 62%, transparent) 94%, transparent 94%);
 }
 
-.memo-bubble b {
-  font-size: 1.05rem !important;
-  font-family: "Courier New", "Courier", monospace !important;
-  letter-spacing: -.05em;
+/* 刊头两侧的小星号装饰 */
+#masthead .mh-body::before,
+#masthead .mh-body::after {
+  position: absolute;
+  top: -.4em;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--nb-blue);
+  transform: rotate(-14deg);
+  pointer-events: none;
 }
 
-.memo-bubble span {
-  color: #a85a52 !important;
-  opacity: .75;
+#masthead .mh-body::before { content: '✦'; left: -2.2em; }
+
+#masthead .mh-body::after {
+  content: '✶';
+  right: -2.2em;
+  top: auto;
+  bottom: -.2em;
+  color: var(--nb-pink);
+  transform: rotate(12deg);
 }
 
-/* 说说卡片：纸页，而不是现代卡片 */
+/* ---------- 说说卡片：贴纸卡 ---------- */
+#content ul.memo-list > li { padding: 0 0 1.6rem !important; }
+
 .memo-card {
-  border-radius: 2px !important;
-  background:
-    /* 左页边红线 */
-    linear-gradient(
-      90deg,
-      transparent 26px,
-      rgba(168, 90, 82, .28) 26px,
-      rgba(168, 90, 82, .28) 27px,
-      transparent 27px
-    ),
-    /* 横向淡格线（32px 一档） */
-    repeating-linear-gradient(
-      0deg,
-      transparent 0,
-      transparent 32px,
-      rgba(80, 68, 52, .06) 32px,
-      rgba(80, 68, 52, .06) 33px
-    ),
-    var(--journal-paper) !important;
-  border: none !important;
-  border-bottom: 1px solid rgba(91, 72, 49, .15) !important;
-  /* 上 / 右 / 下 / 左：左边留出 2.5rem 避让红线 */
-  padding: 1.45rem 1.55rem 1.2rem 2.5rem !important;
-  box-shadow:
-    0 4px 12px rgba(72, 52, 32, .08) !important;
+  background: var(--nb-panel) !important;
+  border: 2.5px solid var(--nb-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 7px 7px 0 var(--nb-hard) !important;
+  padding: 1.35rem 1.5rem 1.05rem !important;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
-/* 和纸胶带装饰已移除（见前面 .memo-card::before 处的说明） */
+@media (hover: hover) {
+  .memo-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 9px 9px 0 var(--nb-hard) !important;
+  }
+}
 
-/* 正文：稍微放松字距，更像手账阅读 */
+/* 旧胶带伪元素彻底关闭，日期一律走 .memo-tape-date 贴纸 */
+.memo-card::before { display: none !important; }
+
 .memo-card .memo-text {
-  color: #494238 !important;
   font-size: 1.02rem !important;
-  line-height: 32px !important;
+  line-height: 1.9 !important;
+  color: var(--nb-ink) !important;
 }
 
-.memo-card .memo-text p {
-  margin: .7em 0 !important;
+/* 日期贴纸：胶囊牌，颜色随第一个标签（淡化保证黑字可读） */
+.memo-tape-date {
+  position: absolute;
+  z-index: 3;
+  top: -13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 2px solid var(--nb-border);
+  background: color-mix(in srgb, var(--tape, var(--nb-yellow)) 62%, #fff);
+  box-shadow: 3px 3px 0 var(--nb-hard);
+  color: #211d17;
+  font-family: var(--font-num);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: none;
+  pointer-events: none;
 }
 
-/* 单图：像照片贴在纸上 */
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
+  background: color-mix(in srgb, var(--tape, var(--nb-yellow)) 55%, var(--nb-panel));
+}
+
+/* ---------- 图片：拍立得贴纸框 ---------- */
 .memo-img-single-wrap {
-  border-radius: 2px !important;
-  padding: 7px !important;
-   background: var(--journal-photo-paper) !important;
-  border: 1px solid rgba(72, 53, 33, .10) !important;
-  box-shadow:
-    0 3px 9px rgba(65, 47, 28, .15) !important;
-  transform: rotate(-.35deg);
+  border-radius: 16px !important;
+  padding: 8px !important;
+  background: var(--nb-panel) !important;
+  border: 2.5px solid var(--nb-border) !important;
+  box-shadow: 5px 5px 0 var(--nb-hard) !important;
+  transform: rotate(-.5deg);
+  transition: transform .2s ease;
 }
 
-.memo-img-single-wrap img {
-  border-radius: 0 !important;
-}
-
-/* 连续单图：照片卡 */
-.memo-split {
-  gap: 28px !important;
-}
+.memo-img-single-wrap:hover { transform: rotate(0deg); }
+.memo-img-single-wrap img { border-radius: 9px !important; }
 
 .split-img {
-  padding: 7px !important;
-   background: var(--journal-photo-paper) !important;
-  box-shadow: 0 4px 10px rgba(65, 47, 28, .14) !important;
+  padding: 8px !important;
+  background: var(--nb-panel) !important;
+  border: 2.5px solid var(--nb-border);
+  border-radius: 16px;
+  box-shadow: 5px 5px 0 var(--nb-hard);
   transform: rotate(-.6deg);
+  transition: transform .2s ease;
 }
 
-.memo-split.rev .split-img {
-  transform: rotate(.7deg);
-}
+.memo-split.rev .split-img { transform: rotate(.6deg); }
+.memo-split .split-img:hover { transform: rotate(0deg); }
+.split-img img { border-radius: 9px !important; height: 235px !important; }
 
-.split-img img {
-  height: 235px !important;
-  border-radius: 0 !important;
-}
-
-/* 多图横条：保留原来的拖拽逻辑，只换成照片排布 */
-.carousel-strip {
-  gap: 14px !important;
-  padding: 8px 4px 12px !important;
-}
+/* 多图横条：一排贴纸照片 */
+.carousel-strip { gap: 14px !important; padding: 8px 4px 14px !important; }
 
 .carousel-strip .strip-item {
   padding: 6px !important;
-    background: var(--journal-photo-paper);
-  box-shadow: 0 3px 9px rgba(65, 47, 28, .12);
+  background: var(--nb-panel);
+  border: 2px solid var(--nb-border);
+  border-radius: 14px !important;
+  box-shadow: 4px 4px 0 var(--nb-hard);
 }
 
-.carousel-strip .strip-item:nth-child(odd) {
-  transform: rotate(-.45deg);
+.carousel-strip .strip-item:nth-child(odd) { transform: rotate(-.5deg); }
+.carousel-strip .strip-item:nth-child(even) { transform: rotate(.5deg); }
+.carousel-strip .strip-item.pressed { transform: scale(.94); }
+.carousel-strip .strip-item img { border-radius: 8px !important; }
+
+/* ---------- 图片墙 ---------- */
+.photo-item a {
+  border-radius: 14px !important;
+  border: 2.5px solid var(--nb-border);
+  background: var(--nb-panel);
+  box-shadow: 5px 5px 0 var(--nb-hard);
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
-.carousel-strip .strip-item:nth-child(even) {
-  transform: rotate(.5deg);
+.photo-item img { border-radius: 11px; }
+
+@media (hover: hover) {
+  .photo-item a:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 var(--nb-hard);
+  }
+  .photo-item:hover img { transform: none; }
 }
 
-.carousel-strip .strip-item img {
-  border-radius: 0 !important;
+/* ---------- 影视海报卡 ---------- */
+.poster-card {
+  border: 2.5px solid var(--nb-border) !important;
+  border-radius: 16px !important;
+  background: var(--nb-panel) !important;
+  box-shadow: 5px 5px 0 var(--nb-hard) !important;
+  transition: transform .18s ease, box-shadow .18s ease !important;
 }
 
-/* 正文里的标题继续保留原本“手写标记”的味道 */
-.memo-text h2::before,
-.memo-text h2::after {
-  filter: blur(4px) !important;
-  opacity: .20 !important;
-}
-
-/* 页面底部：像纸页边缘 */
-#sentinel {
-  color: #887a68;
-}
-
-#endHint {
-  letter-spacing: .16em;
-}
-
-/* 桌面端给页面一点“纸张不完全平整”的细节 */
-@media (min-width: 1024px) {
-  #appShell::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 3;
-    background:
-      radial-gradient(
-        ellipse at 15% 10%,
-        rgba(255,255,255,.22),
-        transparent 35%
-      ),
-      radial-gradient(
-        ellipse at 90% 90%,
-        rgba(105,78,48,.06),
-        transparent 38%
-      );
-    mix-blend-mode: multiply;
-    opacity: .45;
+@media (hover: hover) {
+  .poster-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 var(--nb-hard) !important;
   }
 }
 
-/* 手机端：不做“桌面实景”，保留纸页手账感，避免小屏过度装饰 */
-@media (max-width: 1023px) {
-  body {
-    background: var(--journal-paper) !important;
-  }
-
-  #appSidebar {
-    background: var(--journal-paper-deep) !important;
-  }
-
-  #mainScroll > .max-w-5xl {
-    background: var(--journal-paper) !important;
-  }
-
-  .memo-card {
-    margin-bottom: 1.1rem;
-  }
-}
-
-/* ============================================================
-   深色模式：同一套手账结构，换成夜里的木桌 + 米白纸张
-   ============================================================ */
-
-html:is([data-theme="dark"], [data-theme="halloween"]) body {
-  --journal-paper: #25231f;
-  --journal-paper-deep: #211f1b;
-  --journal-ink: #ddd4c3;
-  --journal-muted: #a79b87;
-  --journal-line: rgba(220, 207, 184, .14);
-  --journal-wood-a: #40372e;
-  --journal-wood-b: #302920;
-  --journal-photo-border: #3a342c;
-  --journal-photo-paper: #3a342c;
-  /* 同上：深色这层 5px 米白横纹也一并去掉，背景只留平滑的暗木色 */
-  background: linear-gradient(
-    90deg,
-    #40362c,
-    #2f2821 48%,
-    #40362c
-  ) !important;
-  color: var(--journal-ink);
-}
-
-/* 深色：#appShell 必须保持透明——否则这块不透明的 #25231f 会把 #bgOrbs 的光斑
-   整个挡在内容面板外面（只看得见外框边缘那一点点）。浅色走的就是 transparent 这条路，
-   这里让深色对齐：深色的「纸面」基调由 #appDrawer 的半透明底色 rgba(35,32,28,.54) 承担。 */
-html:is([data-theme="dark"], [data-theme="halloween"]) #appShell {
-  background: transparent !important;
-  color: var(--journal-ink) !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar {
-  background: var(--journal-paper) !important;
-  color: var(--journal-ink) !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar {
-  background: #211f1b !important;
-  border-right-color: rgba(230, 214, 187, .10) !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) .side-profile .name,
-html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem,
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card .memo-text {
-  color: var(--journal-ink) !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar .menu .tab-btn {
-  color: #c8bdab !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar .menu .tab-btn.active {
-  background: rgba(218, 199, 166, .09) !important;
-  color: #d5bd91 !important;
-  box-shadow: inset 3px 0 0 #aa8b5e !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card {
-  background:
-    /* 深色下红线换成偏亮的赭红 */
-    linear-gradient(
-      90deg,
-      transparent 26px,
-      rgba(192, 116, 104, .32) 26px,
-      rgba(192, 116, 104, .32) 27px,
-      transparent 27px
-    ),
-    /* 深色下的横线用米白，透明度更低 */
-    repeating-linear-gradient(
-      0deg,
-      transparent 0,
-      transparent 32px,
-      rgba(220, 207, 184, .045) 32px,
-      rgba(220, 207, 184, .045) 33px
-    ),
-    #292721 !important;
-  box-shadow: 0 5px 16px rgba(0,0,0,.24) !important;
-}
-
-
- 
-
-/* 胶布已移除，深色下这条透明度规则一并去掉 */
-
-/* 关闭原来的“整站图片压暗”，手账照片要像照片 */
-html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
-  filter: none !important;
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img:hover,
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hover img {
-  filter: brightness(.92) !important;
-}
-
-/* 全局圆角规则来自旧主题，这里只对手账需要的视觉元素恢复轻微纸张圆角 */
-.memo-card,
-.memo-img-single-wrap,
-.split-img,
-.carousel-strip .strip-item {
-  border-radius: 3px !important;
-}
-
-
-/* ============================================================
-   Apple Glass · 终极媒体与书签精修
-   圆角阶梯（2026-09-14 统一）：大面板 16px → 说说卡片 12px。
-   原先外框 28px、.music-drawer 22px，比内部卡片还圆，呈"倒挂"。
-   用户以 12px 说卡片为准，外框收到 16px（与海报磁贴 / .cmdk-panel /
-   .tag-drawer-current 同档），保证"容器不比内容更圆"。
-   移动端 ≤640px 外框仍为 0（全屏贴边），不受此影响。
-   ============================================================ */
-:root{--glass-blur:blur(22px) saturate(145%);--glass-blur-strong:blur(34px) saturate(155%);--glass-radius-xl:16px;--glass-radius-lg:16px}
-html:not([data-theme="dark"]):not([data-theme="halloween"]){--garden-mint-0:#f2faf6;--garden-mint-1:#e3f4ec;--garden-paper:#fff;--garden-ink:#17352d;--garden-muted:#5c746b;--garden-green:#12a67a;--garden-green-deep:#087a5a}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) body{background:linear-gradient(135deg,var(--garden-mint-0),var(--garden-mint-1))!important;color:var(--garden-ink)!important}
-#appDrawer{border-radius:var(--glass-radius-xl)!important;overflow:hidden!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer{background:rgb(255 255 255/.34)!important;border:1px solid rgb(255 255 255/.68)!important;box-shadow:0 28px 70px rgb(24 78 62/.17),inset 0 1px 0 rgb(255 255 255/.74)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #appDrawer{background:rgb(35 32 28/.54)!important;border:1px solid rgb(255 239 210/.09)!important;box-shadow:0 26px 72px rgb(0 0 0/.42),inset 0 1px 0 rgb(255 240 216/.04)!important}
-#appSidebar{-webkit-backdrop-filter:var(--glass-blur-strong);backdrop-filter:var(--glass-blur-strong)}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar{background:linear-gradient(155deg,rgb(255 255 255/.70),rgb(229 247 239/.53))!important;border-right:1px solid rgb(255 255 255/.72)!important;box-shadow:14px 0 36px rgb(24 78 62/.10),inset -1px 0 0 rgb(255 255 255/.52)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #appSidebar{background:linear-gradient(155deg,rgb(47 43 37/.78),rgb(29 27 23/.67))!important;border-right:1px solid rgb(255 239 210/.08)!important;box-shadow:14px 0 36px rgb(0 0 0/.26),inset -1px 0 0 rgb(255 240 216/.04)!important}#appShell,#mainScroll{background:transparent!important}
-#appSidebar .menu .tab-btn,.sidebar-tag,.btn,.badge,.memo-tag,#mediaPager .btn{border-radius:999px!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn{color:var(--garden-muted)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn:hover{background:rgb(255 255 255/.54)!important;color:var(--garden-green-deep)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.72),0 5px 14px rgb(18 166 122/.09)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar .menu .tab-btn.active{background:linear-gradient(110deg,rgb(18 166 122/.25),rgb(47 128 237/.16))!important;color:var(--garden-green-deep)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.70),0 6px 18px rgb(18 166 122/.14)!important}
-/* 说说 */
-#content ul.memo-list{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}#content ul.memo-list>li{width:100%!important;padding:0 0 1.25rem!important}#content ul.memo-list .memo-card{width:100%!important;border-radius:var(--glass-radius-lg)!important;padding:1.45rem 1.55rem 1.2rem!important;border:1px solid transparent!important;transition:box-shadow .22s ease!important}#content ul.memo-list .memo-card:hover{transform:none!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(255 255 255/.76),rgb(255 255 255/.68)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(18 166 122/.038) 32px,rgb(18 166 122/.038) 33px)!important;border-color:rgb(255 255 255/.76)!important;box-shadow:0 13px 30px rgb(24 78 62/.12),inset 0 1px 0 rgb(255 255 255/.84)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) .memo-card .memo-text{color:var(--garden-ink)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content ul.memo-list .memo-card{background:linear-gradient(rgb(47 44 38/.86),rgb(38 36 31/.79)),repeating-linear-gradient(0deg,transparent 0,transparent 32px,rgb(220 207 184/.035) 32px,rgb(220 207 184/.035) 33px)!important;border-color:rgb(255 239 210/.075)!important;box-shadow:0 13px 30px rgb(0 0 0/.25),inset 0 1px 0 rgb(255 240 216/.05)!important}#content ul.memo-list .memo-card::after{content:none!important;display:none!important}
-/* ===== 影视专区：更克制的玻璃画廊，而非过度圆润的泡泡卡片 ===== */
-/* 筛选区域按“工具条”整理，信息统计与海报网格拉开恰当呼吸 */
-#content>div:has(.mf-type){display:flex!important;flex-direction:column!important;gap:14px!important}
-#content>div:has(.mf-type)>p.text-xs{order:2!important;margin:0!important;padding:2px 4px 1px!important;font-size:.76rem!important;letter-spacing:.02em!important}
-#content>div:has(.mf-type)>.grid{order:3!important;margin-top:2px!important;gap:14px!important}
-#content>div:has(.mf-type)>.flex.flex-col.gap-2\.5{order:1!important;padding:13px 14px!important;border-radius:18px!important}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5{background:rgb(255 255 255/.42)!important;border:1px solid rgb(255 255 255/.66)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.72),0 8px 18px rgb(24 78 62/.06)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5{background:rgb(255 245 226/.045)!important;border:1px solid rgb(255 239 210/.07)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.04)!important}
-/* 筛选 chip / 清除动作更精致，保留可点性 */
-#content .mf-type+span,#content .mf-range+span,#content .mf-genre+span{border-radius:999px!important;transition:transform .16s ease,box-shadow .16s ease!important}#content label:has(.mf-type),#content label:has(.mf-range),#content label:has(.mf-genre){border-radius:999px!important}#content label:has(.mf-type):hover,#content label:has(.mf-range):hover,#content label:has(.mf-genre):hover{transform:translateY(-1px)}
-#content .mf-clear{border-radius:999px!important;padding-inline:12px!important;min-height:30px!important}
-/* 海报卡减少圆角到 16px，图片与文本为统一的精致卡片 */
-#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{border-radius:16px!important;overflow:hidden!important;transition:transform .34s cubic-bezier(.22,.61,.36,1),box-shadow .34s ease,border-color .34s ease!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*>img{border-radius:12px!important}/* 看过 / 想看：hover 上浮 */
-#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{transform:translateY(-6px)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(255 255 255/.48)!important;border:1px solid rgb(255 255 255/.74)!important;box-shadow:0 8px 20px rgb(24 78 62/.10),inset 0 1px 0 rgb(255 255 255/.76)!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{border-color:rgb(18 166 122/.30)!important;box-shadow:0 24px 44px -16px rgb(24 78 62/.30),0 10px 22px rgb(24 78 62/.13),inset 0 1px 0 rgb(255 255 255/.95)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*{background:rgb(48 44 38/.62)!important;border:1px solid rgb(255 239 210/.08)!important;box-shadow:0 8px 20px rgb(0 0 0/.24),inset 0 1px 0 rgb(255 240 216/.04)!important}
-/* 暗色原本缺 hover 影子规则，只有位移 → 看着"不优雅"。这里补上浮起来的投影 */
-html:is([data-theme="dark"],[data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:hover{border-color:rgb(255 239 210/.18)!important;box-shadow:0 26px 48px -18px rgb(0 0 0/.58),0 12px 24px rgb(0 0 0/.30),inset 0 1px 0 rgb(255 240 216/.10)!important}
-/* 翻页控件恢复可点击的轻玻璃托盘，消除原本大面积异色底层 */
-#mediaPager{background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;padding:12px 0 calc(14px + env(safe-area-inset-bottom,0px))!important}#mediaPager .join{padding:5px!important;border-radius:999px!important;background:rgb(255 255 255/.42)!important;border:1px solid rgb(255 255 255/.68)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.76),0 7px 16px rgb(24 78 62/.10)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #mediaPager .join{background:rgb(48 44 38/.56)!important;border-color:rgb(255 239 210/.08)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.05),0 7px 16px rgb(0 0 0/.22)!important}#mediaPager .join .btn{min-width:32px!important;background:transparent!important;box-shadow:none!important;border-color:transparent!important}#mediaPager .join .btn:hover:not(.btn-disabled){background:rgb(18 166 122/.10)!important}#mediaPager .join .btn-active{background:rgb(18 166 122/.19)!important;border-color:rgb(18 166 122/.25)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.48)!important}html:is([data-theme="dark"],[data-theme="halloween"]) #mediaPager .join .btn-active{background:rgb(171 130 84/.23)!important;border-color:rgb(255 239 210/.12)!important}
-/* 歌词 */
-.music-drawer .hw-pl-view-lyrics{border:1px solid transparent!important;border-radius:18px!important;overflow:hidden!important;margin:8px 2px 10px!important;padding:7px!important}.music-drawer .hw-lyrics-scroll-full{border-radius:13px!important;padding:8px 10px!important}html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-pl-view-lyrics{background:rgb(255 255 255/.48)!important;border-color:rgb(255 255 255/.72)!important;box-shadow:inset 0 1px 0 rgb(255 255 255/.82),0 6px 15px rgb(24 78 62/.08)!important}html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-pl-view-lyrics{background:rgb(255 245 226/.055)!important;border-color:rgb(255 239 210/.07)!important;box-shadow:inset 0 1px 0 rgb(255 240 216/.05)!important}
-/* 标注/世界时间：直出列表 */
-#content .list.bg-base-100.rounded-box.shadow-md{background:transparent!important;box-shadow:none!important;border-radius:0!important}#content .list.bg-base-100.rounded-box.shadow-md>li{background:transparent!important;border-radius:0!important;border-bottom:1px solid rgb(128 128 128/.17)!important;box-shadow:none!important}#content .list.bg-base-100.rounded-box.shadow-md>li:last-child{border-bottom:none!important}#content .wc-root .rounded-2xl{background:transparent!important;box-shadow:none!important}#content .wc-root .rounded-2xl:not(:first-child){border-color:rgb(128 128 128/.18)!important;border-left:0!important;border-right:0!important;border-radius:0!important}
-/* 浅色模式下最上方的北京时间卡片会露出一圈边框：去掉，跟深色一样直接贴在页面上 */
-#content .wc-root>.rounded-2xl:first-child{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
-/* 书签最终去方块：针对常见图标容器与链接图标的伪元素 */
-#content .bm-body [class*="bg-"],#content .bm-body .avatar,#content .bm-body .mask,#content .bm-body .mask-squircle,#content .bm-body .rounded-box,#content .bm-body .rounded-lg,#content .bm-body .rounded-xl,#content .bm-body .rounded-2xl,#content .bm-body .size-8,#content .bm-body .size-10,#content .bm-body .size-12,#content .bm-body .badge{background:transparent!important;box-shadow:none!important;border-color:transparent!important;border-radius:0!important}#content .bm-body [class*="bg-"]::before,#content .bm-body [class*="bg-"]::after{box-shadow:none!important}#content .bm-body .iconify,#content .bm-body svg{background:transparent!important}#content .bm-body>*,#content .bm-body .list-row{box-shadow:none!important}
-/* 标注页：书本 / 标注类型图标去掉大方框，改成透明样式直接贴背景 */
-#content .clips-ico{background:transparent!important;box-shadow:none!important;border:0!important;border-radius:0!important;width:auto!important;height:auto!important;min-width:0!important;padding:0!important}
-/* 标注、热搜、书签、世界时间内的序号 / icon 均直接贴背景 */
-#content .list-row> :first-child:not(.list-col-grow),#content .hot-body [class*="bg-base"],#content .hot-body [class*="rank"],#content .hot-body [class*="index"],#content .hot-body [class*="num"],#content .hot-body .badge,#content .wc-root .wc-daybox{background:transparent!important;box-shadow:none!important;border-color:transparent!important;border-radius:0!important}#content .list-row> :first-child:not(.list-col-grow){min-width:auto!important;width:auto!important;height:auto!important;padding:0!important;margin-right:.7rem!important}
-/* 时间：卡片内部顶部的小号元信息行（原"胶布"UI 已全部移除） */
-.memo-tape-date{position:static;display:inline-flex;align-items:center;width:auto;height:auto;margin:0 0 .6rem;padding:.2rem .62rem;border-radius:999px!important;background:color-mix(in oklch,var(--tape,var(--color-primary)) 16%,transparent);color:color-mix(in oklch,var(--tape,var(--color-primary)) 78%,var(--color-base-content));font-family:var(--font-family);font-size:.74rem;font-weight:600;letter-spacing:.02em;line-height:1.5;white-space:nowrap;text-shadow:none;box-shadow:none}html:is([data-theme="dark"],[data-theme="halloween"]) .memo-tape-date{background:color-mix(in oklch,var(--tape,var(--color-primary)) 24%,transparent)}
-@media(max-width:640px){#appDrawer{border-radius:0!important}#content ul.memo-list>li{padding-bottom:1rem!important}#content ul.memo-list .memo-card{padding:1.2rem 1rem 1rem!important;border-radius:18px!important}#content>div:has(.mf-type)>.grid{gap:10px!important}#content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>*:not(.poster-card):hover,#content ul.memo-list .memo-card:hover{transform:none!important}}
-
-/* ============================================================
-   标签抽屉 + 歌单抽屉：圆角玻璃化，配色对齐主页侧栏菜单
-   ============================================================ */
-/* ① 从贴边直角长条改为悬浮圆角面板 */
-.tag-drawer,
-.music-drawer{
-  border-width:1px!important;
-  border-style:solid!important;
-  border-radius:var(--glass-radius-lg)!important;
-  overflow:hidden!important;
-  transition:transform .38s cubic-bezier(.22,1,.36,1),box-shadow .3s ease!important;
-}
-.tag-drawer{top:10px!important;bottom:10px!important;left:10px!important;transform:translateX(calc(-100% - 28px))!important}
-.tag-drawer.open{transform:translateX(0)!important}
-.music-drawer{top:10px!important;bottom:10px!important;right:10px!important;height:auto!important;transform:translateX(calc(100% + 28px))!important}
-.music-drawer.open{transform:translateX(0)!important}
-/* 原右侧装饰竖线在圆角面板里多余 */
-.tag-drawer::after{display:none!important}
-
-/* ② 浅色：对齐 Garden 侧栏（白绿玻璃 + 薄白边 + 柔光） */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer,
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer{
-  --panel-accent:var(--garden-green);
-  --panel-accent-deep:var(--garden-green-deep);
-  --panel-ink:var(--garden-ink);
-  --panel-border:rgb(255 255 255/.72);
-  /* 内部原本引用手账配色，这里整体换成 Garden 绿调 */
-  --journal-ink:var(--garden-ink);
-  --journal-muted:var(--garden-muted);
-  --journal-line:rgb(18 166 122/.16);
-  background:linear-gradient(155deg,rgb(255 255 255/.80),rgb(229 247 239/.64))!important;
-  border-color:var(--panel-border)!important;
-  box-shadow:0 24px 60px rgb(24 78 62/.22),inset 0 1px 0 rgb(255 255 255/.80)!important;
-  color:var(--panel-ink)!important;
-  -webkit-backdrop-filter:var(--glass-blur-strong);
-  backdrop-filter:var(--glass-blur-strong);
-}
-/* ③ 深色：对齐手账侧栏（暖炭玻璃 + 米金点缀） */
-html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer,
-html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer{
-  --panel-accent:#d5bd91;
-  --panel-accent-deep:#d5bd91;
-  --panel-ink:var(--journal-ink);
-  --panel-border:rgb(255 239 210/.10);
-  background:linear-gradient(155deg,rgb(47 43 37/.92),rgb(29 27 23/.88))!important;
-  border-color:var(--panel-border)!important;
-  box-shadow:0 24px 60px rgb(0 0 0/.55),inset 0 1px 0 rgb(255 240 216/.05)!important;
-  color:var(--panel-ink)!important;
-  -webkit-backdrop-filter:var(--glass-blur-strong);
-  backdrop-filter:var(--glass-blur-strong);
-}
-
-/* ④ 标签项：胶囊化，hover / 选中态与侧栏菜单同款 */
-.tag-drawer-list .tag-chip{
-  border-radius:999px!important;
-  border-bottom-color:transparent!important;
-}
-.tag-drawer-list .tag-chip:hover{padding-left:10px!important}
-.tag-drawer-close{border-radius:999px!important}
-.tag-drawer-current{border-radius:16px!important;border-left:0!important}
-#tagSelectedCount{border-radius:999px!important}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-list .tag-chip:hover{
-  background:rgb(255 255 255/.60)!important;
-  color:var(--garden-green-deep)!important;
-  box-shadow:inset 0 1px 0 rgb(255 255 255/.72),0 5px 14px rgb(18 166 122/.10)!important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-list .tag-chip.active{
-  background:linear-gradient(110deg,rgb(18 166 122/.26),rgb(47 128 237/.18))!important;
-  border-color:transparent!important;
-  color:var(--garden-green-deep)!important;
-  box-shadow:inset 0 1px 0 rgb(255 255 255/.70),0 6px 18px rgb(18 166 122/.16)!important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-current{
-  background:rgb(255 255 255/.52)!important;
-  box-shadow:inset 0 1px 0 rgb(255 255 255/.72)!important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #tagSelectedSummary,
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-clear:hover,
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-check{
-  color:var(--garden-green-deep)!important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #tagSelectedCount{
-  border-color:rgb(18 166 122/.24)!important;
-  background:rgb(18 166 122/.10)!important;
-  color:var(--garden-green-deep)!important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-list .tag-chip:hover{
-  background:rgba(218,199,166,.09)!important;
-  color:#d5bd91!important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-list .tag-chip.active{
-  background:rgba(218,199,166,.13)!important;
-  border-color:transparent!important;
-  color:#d5bd91!important;
-  box-shadow:inset 0 1px 0 rgba(255,240,216,.06)!important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-current{
-  background:rgba(218,199,166,.07)!important;
-  border-left-color:transparent!important;
-}
-
-/* ⑤ 歌单：圆角组件 + 主题色跟随侧栏 */
-.music-drawer{
-  --accent:var(--panel-accent)!important;
-  --accent-color:var(--panel-accent)!important;
-  --accent-dark:color-mix(in oklch,var(--panel-accent) 82%,black)!important;
-  --text:var(--panel-ink)!important;
-  --text-main:var(--panel-ink)!important;
-  --secondary-text:color-mix(in oklch,var(--panel-ink) 58%,transparent)!important;
-  --text-muted:color-mix(in oklch,var(--panel-ink) 58%,transparent)!important;
-  --border:var(--panel-border)!important;
-  --border-light:var(--panel-border)!important;
-  --bg-player:color-mix(in oklch,var(--panel-ink) 7%,transparent)!important;
-  --dot-normal:color-mix(in oklch,var(--panel-ink) 18%,transparent)!important;
-}
-.music-drawer .hw-pl-cover{border-radius:14px!important}
-.music-drawer .hw-pl-row-thumb{border-radius:10px!important}
-.music-drawer .hw-btn,.music-drawer .hw-play{border-radius:999px!important}
-.music-drawer .hw-pl-row{
-  border-radius:999px!important;
-  padding-left:8px!important;
-  padding-right:8px!important;
-}
-.music-drawer .hw-pl-view-lyrics{
-  border:0!important;
-  border-radius:16px!important;
-  background:color-mix(in oklch,var(--panel-ink) 6%,transparent)!important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-pl-row:hover,
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-btn:not(.hw-play):hover{
-  background:rgb(255 255 255/.60)!important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .music-drawer .hw-pl-row.playing{
-  background:linear-gradient(110deg,rgb(18 166 122/.20),rgb(47 128 237/.12))!important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-pl-row:hover,
-html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-btn:not(.hw-play):hover{
-  background:rgba(218,199,166,.08)!important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) .music-drawer .hw-pl-row.playing{
-  background:rgba(218,199,166,.13)!important;
-}
-/* ⑥ 补齐被全局 border-radius:0 抹掉的圆角（复读徽章 / 进度条 / 歌词浮窗） */
-.music-drawer .hw-repeat-badge{border-radius:999px!important}
-.music-drawer .hw-progress{border-radius:999px!important}
-.hw-lyrics-float{border-radius:18px!important}
-.hw-lyrics-float-close{border-radius:999px!important}
-/* 抽屉顶部虚线分隔也换成主题色 */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .tag-drawer-head{
-  border-bottom-color:rgb(18 166 122/.18)!important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) .tag-drawer-head{
-  border-bottom-color:rgba(255,239,210,.11)!important;
-}
-
-/* ============================================================
-   ⑦ 全局圆润化收尾：把当年为了"扁平"压成 2~3px 的直角组件提上来
-   ============================================================ */
-/* 说说纸页卡片 */
-.memo-card{border-radius:var(--glass-radius-lg)!important}
-/* 照片框：外层与内层圆角同心（外圆角 - 内边距 = 内圆角，视觉上才均匀） */
-.memo-img-single-wrap,
-.split-img,
-.carousel-strip .strip-item{border-radius:22px!important}
-.memo-img-single-wrap img,
-.split-img img{border-radius:15px!important}
-.carousel-strip .strip-item img{border-radius:16px!important}
-/* 图片墙瀑布流 */
-.photo-item a{border-radius:16px!important}
-/* 歌词均衡器小条 */
-.eq i{border-radius:999px!important}
-
-/* ============================================================
-   ⑧ 播放键：改成正圆 + 与其他控制键同尺，修掉 hover 被染白的问题
-   ============================================================ */
-/* 四个控制键统一成 32×32 正方盒，图标 15px */
-.music-drawer .hw-btn{width:32px;height:32px}
-.music-drawer .hw-btn .iconify{font-size:15px;line-height:1}
-/* 播放键：原来 34×30 配 999px 出来是个椭圆，这里收成正圆 */
-.music-drawer .hw-play{
-  width:30px!important;
-  height:30px!important;
-  border-radius:999px!important;
-  background:var(--panel-accent)!important;
-  color:var(--color-primary-content,#fff)!important;
-  box-shadow:0 4px 12px -3px color-mix(in oklch,var(--panel-accent) 55%,transparent)!important;
-}
-.music-drawer .hw-play .iconify{font-size:14px}
-.music-drawer .hw-play:hover{
-  background:var(--accent-dark)!important;
-  box-shadow:0 6px 16px -4px color-mix(in oklch,var(--panel-accent) 70%,transparent)!important;
-}
-
-/* ============================================================
-   ⑨ 修复：小屏（<1024px）整页无法向下滚动
-   原因：#appDrawer 被 Apple Glass 段无差别加了 overflow:hidden!important，
-        而小屏下 #mainScroll 没有 overflow-y:auto（那是 lg: 前缀，只在桌面生效）。
-        结果 100dvh 的框把 4000px 的内容直接裁掉，且页面里没有任何滚动容器。
-   修法：小屏恢复文件原本设计的「由 body 滚动」（#mainScroll 在手机端不是滚动容器，
-        与底部无限滚动的 IntersectionObserver root:null 也是一致的）。
-   ============================================================ */
-@media (max-width: 1023px) {
-  #appDrawer {
-    height: auto !important;
-    min-height: 100dvh !important;
-    overflow: visible !important;
-    border-radius: 0 !important;
-  }
-  #appDrawer > .drawer-content { height: auto !important; }
-}
-
-/* ============================================================
-   ⑪ 背景光斑：柔和大圆 + 极缓慢的漂浮 / 呼吸
-   说明：浅色/深色都必须让 #appShell 保持透明（见上面 #appShell 那条深色规则），
-        光斑才能透过 #appDrawer(半透明玻璃) 显进内容面板；只透外框是不够的。
-   层次：html 木纹底 → body 底色渐变 → #bgOrbs(本层) → #appDrawer → #appShell(透明) → 内容。
-   用 z-index:0 而不是负值——body 底色是不透明的，负值会被压在它下面看不见。
-   深色光斑透明度比浅色高一档：它要额外穿过 #appDrawer 的 rgba(35,32,28/.54)。
-   ============================================================ */
-#bgOrbs {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-#bgOrbs span {
-  position: absolute;
-  display: block;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle closest-side,
-    var(--orb-c) 0%,
-    color-mix(in srgb, var(--orb-c) 58%, transparent) 60%,
-    transparent 100%
-  );
-  will-change: transform;
-  animation: orbDrift var(--orb-t, 34s) ease-in-out infinite alternate;
-  animation-delay: var(--orb-d, 0s);
-}
-/* 四颗光斑：尺寸 / 位置 / 周期 / 漂移幅度各不相同，避免看出同频 */
-#bgOrbs span:nth-child(1) { width: 54vmax; height: 54vmax; top: -16vmax; left: -12vmax; --orb-t: 42s; --orb-x: 7vmax; --orb-y: 5vmax; --orb-s: 1.16; }
-#bgOrbs span:nth-child(2) { width: 46vmax; height: 46vmax; right: -10vmax; bottom: -16vmax; --orb-t: 36s; --orb-d: -6s; --orb-x: -6vmax; --orb-y: -5vmax; --orb-s: 1.12; }
-#bgOrbs span:nth-child(3) { width: 34vmax; height: 34vmax; top: 38%; left: 42%; --orb-t: 48s; --orb-d: -14s; --orb-x: 9vmax; --orb-y: -4vmax; --orb-s: 1.2; }
-#bgOrbs span:nth-child(4) { width: 26vmax; height: 26vmax; left: 6%; bottom: 8%; --orb-t: 30s; --orb-d: -20s; --orb-x: -5vmax; --orb-y: 6vmax; --orb-s: 1.1; }
-
-@keyframes orbDrift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to   { transform: translate3d(var(--orb-x, 5vmax), var(--orb-y, -4vmax), 0) scale(var(--orb-s, 1.12)); }
-}
-
-/* 浅色：薄荷 / 薰衣草 / 天蓝 / 暖杏，通透 */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(1) { --orb-c: rgb(139 114 246/.34); }
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(2) { --orb-c: rgb(18 166 122/.32); }
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(3) { --orb-c: rgb(47 128 237/.20); }
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #bgOrbs span:nth-child(4) { --orb-c: rgb(255 206 138/.30); }
-/* 深色：暖金 / 青瓷 / 琥珀 / 冷灰，压暗后像落在桌面上的光 */
-html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(1) { --orb-c: rgb(213 189 145/.26); }
-html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(2) { --orb-c: rgb(122 178 168/.23); }
-html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(3) { --orb-c: rgb(196 138 84/.20); }
-html:is([data-theme="dark"], [data-theme="halloween"]) #bgOrbs span:nth-child(4) { --orb-c: rgb(154 165 180/.17); }
-
-/* 尊重系统的"减少动态效果" */
-@media (prefers-reduced-motion: reduce) {
-  #bgOrbs span { animation: none; }
-}
-
-/* ============================================================
-   ⑬ 说说卡片：圆角收紧 + 顶部日期改成「小号灰字元信息行」
-   参考站实测（用户给的截图，1x）：卡片宽 558px、圆角约 6px → 圆角/卡宽 ≈ 1.1%；
-   我们的卡片宽约 1026px，按同一比例取 12px（原为 22px，用户反馈"太圆润"）。
-   文字布局也对齐参考站：最上方单独一行放小号、低对比的日期（原来是个彩色胶囊），
-   往下才是正文与标签（标签本来就跟在正文尾部）——节奏与参考站一致。
-   照片瓦片（.carousel-strip .strip-item / 内层 img）按用户"图片保留自己的"要求未改动。
-   ============================================================ */
-#content ul.memo-list .memo-card { border-radius: 12px !important; }
-
-#content ul.memo-list .memo-card .memo-tape-date {
-  display: block;
-  width: auto;
-  height: auto;
-  margin: 0 0 .5rem;
-  padding: 0;
-  border-radius: 0 !important;
-  background: none !important;
-  box-shadow: none !important;
-  font-family: var(--font-family);
-  font-size: .76rem;
+/* 影视筛选 chips */
+#content .btn.btn-xs {
+  border: 1.5px solid var(--nb-border) !important;
+  box-shadow: 2.5px 2.5px 0 var(--nb-hard);
   font-weight: 500;
-  letter-spacing: .035em;
-  line-height: 1.5;
-  text-shadow: none !important;
-  color: color-mix(in oklch, var(--color-base-content) 48%, transparent);
 }
 
-/* ============================================================
-   ⑭ 图片计数徽章（1 / N）：补上浅色 / 深色两套外观
-   原来 markup 里是 Tailwind 写死的 `bg-black/55 text-white`，
-   不论什么主题都是同一块深灰底 + 白字，浅色下很突兀（贴在照片上尤其跳）。
-   做法：做成"磨砂玻璃药丸"，底色/文字/描边/投影分主题给值，
-   用 !important 压过 Tailwind 的 bg-black/55、text-white 与 daisyUI .badge 的默认色。
-   注意：徽章永远压在照片上，所以不能只靠页面底色——两套都要自带足够对比。
-   ============================================================ */
-.strip-count {
-  background: rgb(255 255 255 / .78) !important;
-  color: rgb(38 34 28 / .92) !important;
-  border: 1px solid rgb(255 255 255 / .90) !important;
-  /* 最外面那圈极淡的 0 0 0 1px 很关键：白玻璃贴在亮照片上时，
-     光靠白色描边会糊成一片，这圈淡暗描边负责把徽章的轮廓勾出来 */
-  box-shadow:
-    0 0 0 1px rgb(48 40 30 / .07),
-    0 4px 12px rgb(24 78 62 / .20),
-    inset 0 1px 0 rgb(255 255 255 / .95) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(1.6);
-  backdrop-filter: blur(12px) saturate(1.6);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: .05em;
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) .strip-count {
-  background: rgb(22 19 16 / .70) !important;
-  color: rgb(255 240 216 / .94) !important;
-  border-color: rgb(255 239 210 / .20) !important;
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / .25),
-    0 5px 14px rgb(0 0 0 / .48),
-    inset 0 1px 0 rgb(255 240 216 / .12) !important;
+#content .btn.btn-xs:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--nb-hard); }
+
+/* ---------- 列表（标注 / 世界时间等 daisyUI list） ---------- */
+#content ul.list {
+  background: var(--nb-panel) !important;
+  border: 2.5px solid var(--nb-border);
+  border-radius: 16px !important;
+  box-shadow: 6px 6px 0 var(--nb-hard) !important;
+  overflow: hidden;
 }
 
-/* ============================================================
-   ⑮ 刊头偈语「化灰」特效
-   「生死去来，棚头傀儡 / 一线断时，落落磊磊」四个层次叠出"烧剩的灰"：
-     ① 字底下那团还没熄的暖光（#masthead::before）—— 让灰有个来源
-     ② 每个字灰化程度不一 + 明灭不定（.mh-ch 的 --o1 静态底 + mh-ember-breathe）
-     ③ 字面不断有细灰剥落、上浮、游移（.mh-em + mh-ash-rise）
-     ④ 字迹外蹭开的一圈极淡"尘晕"（text-shadow）
-
-   性能取舍（关键）：全程**只动 opacity / transform**——
-   这两个属性由合成器接管，不触发重排重绘，而这页到处是 backdrop-filter，
-   一旦掉进重绘就会被放大成卡顿。所以：
-     · 不用 canvas、不跑 requestAnimationFrame（省一条常驻主线程循环）
-     · 粒子的"热→冷"烘死在 radial-gradient 里，靠 scale 变大时冷边占比升高来体现冷却，
-       而不是动画 background-color（那会每帧重绘）
-     · 每粒灰只有 2px，DOM 一次性播种完就让 CSS 自己无限循环
-   #masthead 带 .hidden(display:none) 时浏览器根本不渲染这些动画，
-   切到图片/剪藏等视图零开销；两个主题全靠 CSS 变量，切主题不需要 JS 参与。
-   ============================================================ */
-#masthead{
-  /* 浅色（Garden：浅绿纸 + 深墨字）：灰要用偏深的暖褐——
-     浅底上如果灰太浅，肉眼会读成"噪点"而不是"灰烬"，所以冷灰压深、alpha 抬高一档 */
-  --mh-ash-hot-rgb: 206 104 34;
-  --mh-ash-cold-rgb: 112 98 80;
-  --mh-ash-dust: rgb(140 122 98 / .20);
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) #masthead{
-  /* 深色（手账：深褐纸 + 米白字）：灰是暖白，余烬可以亮一档 */
-  --mh-ash-hot-rgb: 255 178 98;
-  --mh-ash-cold-rgb: 238 226 204;
-  --mh-ash-dust: rgb(255 226 180 / .12);
+/* 热搜 / 书签行 hover：荧光黄打底 */
+.hot-body a:hover,
+.bm-body a:hover {
+  background: color-mix(in srgb, var(--nb-yellow) 26%, transparent) !important;
 }
 
-/* ① 字底下那团余温 */
-#masthead::before{
-  content: '';
-  position: absolute;
-  left: 50%; top: 50%;
-  width: min(440px, 76vw);
-  height: 8.4rem;
-  transform: translate(-50%, -42%);
-  background: radial-gradient(ellipse at center,
-    rgb(var(--mh-ash-hot-rgb) / .11),
-    rgb(var(--mh-ash-hot-rgb) / 0) 72%);
-  pointer-events: none;
-  z-index: 0;
-}
-#masthead .mh-body{ position: relative; z-index: 1; }
-
-/* ④ 尘晕：像字迹旁边蹭开的灰。很淡，只负责"毛边" */
-#masthead .mh-poem p{
-  text-shadow:
-    0 0 2px   var(--mh-ash-dust),
-    0 0 7px   var(--mh-ash-dust),
-    0 -1px 14px var(--mh-ash-dust);
+/* 书签分类 chips */
+.bm-cats .tag-chip {
+  border: 1.5px solid var(--nb-border) !important;
+  border-radius: 999px !important;
+  box-shadow: 2px 2px 0 var(--nb-hard);
 }
 
-/* ② 单字：既是粒子的定位上下文，也承载自己的灰化程度与明灭相位 */
-.mh-ch{
-  position: relative;
-  display: inline-block;
-  opacity: var(--o1, 1);   /* 静态底（reduced-motion 下就是最终色），也是动画的基准 */
+.bm-cats .tag-chip:active { transform: translate(1px, 1px); box-shadow: none; }
+
+/* 世界时间 */
+.wc-daybox {
+  border: 2px solid var(--nb-border);
+  border-radius: 12px !important;
+  background: var(--nb-panel);
+  box-shadow: 3px 3px 0 var(--nb-hard);
 }
 
-/* ③ 一粒灰：热→冷烘死在渐变里，整个生命周期只需 transform / opacity */
-.mh-em{
-  position: absolute;
-  left: var(--x, 50%);
-  top: var(--y, 50%);
-  width: var(--s, 2px);
-  height: var(--s, 2px);
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    rgb(var(--mh-ash-hot-rgb) / .95) 0%,
-    rgb(var(--mh-ash-cold-rgb) / .48) 46%,
-    rgb(var(--mh-ash-cold-rgb) / 0) 100%);
-  opacity: 0;
-  pointer-events: none;
-  animation: mh-ash-rise var(--dur, 7s) linear var(--delay, 0s) infinite;
+[data-wc-main-time] { font-family: var(--font-num) !important; letter-spacing: .03em; }
+
+/* 输入框 / 下拉：贴纸凹槽 */
+#content .input,
+#content .select {
+  border: 2px solid var(--nb-border) !important;
+  border-radius: 10px !important;
+  background: var(--nb-panel) !important;
+  box-shadow: 3px 3px 0 var(--nb-hard);
 }
 
-/* 出生 → 亮一下 → 一路变淡、变大、飘走 */
-@keyframes mh-ash-rise{
-  0%   { transform: translate(-50%, -50%) scale(.5); opacity: 0; }
-  13%  { opacity: var(--peak, .6); }
-  58%  { opacity: calc(var(--peak, .6) * .78); }
-  100% { transform: translate(calc(-50% + var(--dx, 6px)), calc(-50% + var(--dy, -36px))) scale(1.12); opacity: 0; }
-}
-
-/* 余烬明灭：幅度刻意压小（只在 20% 以内），像暗下去又亮一下，不是闪 */
-@keyframes mh-ember-breathe{
-  0%, 100% { opacity: var(--o1, 1); }
-  37%      { opacity: calc(var(--o1, 1) * .80); }
-  63%      { opacity: calc(var(--o1, 1) * .93); }
-}
-
-@media (prefers-reduced-motion: no-preference){
-  .mh-ch{ animation: mh-ember-breathe var(--br-dur, 6.5s) ease-in-out var(--br-delay, 0s) infinite; }
-}
-/* 系统开了"减少动态效果"：一粒灰都不撒，只留安静的字 + 极淡尘晕 */
-@media (prefers-reduced-motion: reduce){
-  #masthead::before{ display: none; }
-  .mh-em{ display: none; }
-}
-
-/* ============================================================
-   ⑫ 移动端「单层纸面」修正（2026-09-15）
-   ------------------------------------------------------------
-   现象：小屏浅色下，首页正常，但切到「想看 / 看过」等菜单后，白色顶栏下方
-        会连出一大片近白色区域（筛选工具条），整页像好几层纸叠在一起；
-        海报磁贴也透着底，能看到"卡片下面还有背景"。
-   成因：小屏同时叠了 4 层底色，而且冷暖深浅各不相同——
-        ① body 的薄荷渐变（Garden 主题，2026-09-14 那版留下的）
-        ② #appDrawer 的玻璃白纱 rgb(255 255 255/.34) + 白描边 + 内高光
-        ③ #mainScroll>.max-w-5xl 的米色纸（手账主题遗留，第 5682 段）
-        ④ 内容里的近白玻璃（筛选工具条 42% 白、海报磁贴 48% 白）
-       关键：#topNav 是 base-100/90 ≈ #f5f4ec，而 ④ 的 42% 白压在米色纸上
-        ≈ #f9f5ec，两者几乎同色 → 顶栏和工具条连成一整块白，米色纸反而
-        "退"到下面才露出来，于是首页没问题、其他菜单就分层。
-   修法：小屏只留一层底色（纸色），卡片一律换成不透明白卡（与首页说说卡同款）。
-   ============================================================ */
-@media (max-width: 1023px) {
-  /* ① 全屏时不需要"桌面上的玻璃面板"这层白纱，去掉白纱/白描边/内高光/外投影 */
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer,
-  html:is([data-theme="dark"], [data-theme="halloween"]) #appDrawer {
-    background: transparent !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
-
-  /* ② 底色只由 body 一处提供：整页就是一张纸，和首页内容列完全同色 */
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) body,
-  html:is([data-theme="dark"], [data-theme="halloween"]) body {
-    background: var(--journal-paper) !important;
-  }
-
-  /* ③ 光斑在小屏没有舞台（上面那层纸是不透明的），关掉更省电，也少一层 */
-  #bgOrbs { display: none !important; }
-
-  /* ④ 筛选工具条：换成首页说说卡那种"实心白卡"，不再半透地跟顶栏糊成一片 */
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5 {
-    background: linear-gradient(rgb(255 255 255/.78), rgb(255 255 255/.70)) !important;
-    border: 1px solid rgb(255 255 255/.80) !important;
-    box-shadow: 0 10px 26px rgb(24 78 62/.10), inset 0 1px 0 rgb(255 255 255/.86) !important;
-  }
-  html:is([data-theme="dark"], [data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5 {
-    background: linear-gradient(rgb(47 44 38/.90), rgb(38 36 31/.84)) !important;
-    border: 1px solid rgb(255 239 210/.10) !important;
-    box-shadow: 0 10px 26px rgb(0 0 0/.22), inset 0 1px 0 rgb(255 240 216/.05) !important;
-  }
-
-  /* ⑤ 热搜 / 书签的吸顶工具条：换成纸色（仍不透明，吸顶时照样盖住滚动内容） */
-  #content > div > div.sticky {
-    background: var(--journal-paper) !important;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
-
-  /* ⑥ 海报磁贴同样换成实心白卡，和说说卡共用一套材质 */
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>* {
-    background: linear-gradient(rgb(255 255 255/.78), rgb(255 255 255/.70)) !important;
-    border-color: rgb(255 255 255/.80) !important;
-    box-shadow: 0 6px 16px rgb(24 78 62/.10), inset 0 1px 0 rgb(255 255 255/.86) !important;
-  }
-  html:is([data-theme="dark"], [data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>* {
-    background: linear-gradient(rgb(47 44 38/.90), rgb(38 36 31/.84)) !important;
-    border-color: rgb(255 239 210/.10) !important;
-  }
-}
-
-/* ============================================================
-   ⑬ 小屏菜单抽屉：从"贴边扁平长条"改成"浮起来的圆角玻璃卡"
-   对齐 PC 上标签抽屉（.tag-drawer，见第 5852 段）的那套规格：
-   四周留 10px、圆角 16px（--glass-radius-xl）、
-   玻璃底 + 1px 白描边 + 大投影 + 单侧滑入，遮罩用同一层灰。
-   注意：背景/描边必须用和 Apple Glass 段（5815）**同样的选择器形状**才能压过它，
-   因为两边都带 !important，这时候靠的是 specificity 而不是源码顺序。
-   ============================================================ */
-@media (max-width: 1023px) {
-  /* ① 关闭态要多推出去 24px：面板左边留了 10px 边距，
-        只推 -100% 的话圆角还会露出细细一条 */
-  #appDrawer > .drawer-toggle ~ .drawer-side > #appSidebar {
-    translate: calc(-100% - 24px) 0 !important;
-  }
-  #appDrawer > .drawer-toggle:checked ~ .drawer-side > #appSidebar {
-    translate: 0 0 !important;
-  }
-
-  /* ② 面板几何：四周留边 + 圆角 + 裁剪。
-        高度写死成「视口高 - 上下各 10px」而不是靠 stretch——
-        daisyUI 的 .drawer-side 是 grid 容器，grid item 给 height:100% 会连
-        margin 一起算进去而溢出（被 .drawer-side 的 overflow:hidden 裁掉底边）。 */
-  #appSidebar {
-    width: min(304px, 84vw) !important;
-    height: calc(100dvh - 20px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) !important;
-    margin: calc(10px + env(safe-area-inset-top, 0px)) 0 calc(10px + env(safe-area-inset-bottom, 0px)) 10px !important;
-    padding: 10px 12px 14px !important;
-    border-radius: var(--glass-radius-xl) !important;
-    overflow: hidden auto !important;
-    transition: translate .38s cubic-bezier(.22, 1, .36, 1) !important;
-  }
-
-  /* ③ 浅色：Garden 白绿玻璃，和标签抽屉逐字一致 */
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appSidebar {
-    background: linear-gradient(155deg, rgb(255 255 255/.80), rgb(229 247 239/.64)) !important;
-    border: 1px solid rgb(255 255 255/.72) !important;
-    box-shadow: 0 24px 60px rgb(24 78 62/.22), inset 0 1px 0 rgb(255 255 255/.80) !important;
-    -webkit-backdrop-filter: var(--glass-blur-strong);
-    backdrop-filter: var(--glass-blur-strong);
-  }
-  /* ④ 深色：暖炭玻璃，同样对齐标签抽屉 */
-  html:is([data-theme="dark"], [data-theme="halloween"]) #appSidebar {
-    background: linear-gradient(155deg, rgb(47 43 37/.92), rgb(29 27 23/.88)) !important;
-    border: 1px solid rgb(255 239 210/.10) !important;
-    box-shadow: 0 24px 60px rgb(0 0 0/.55), inset 0 1px 0 rgb(255 240 216/.05) !important;
-    -webkit-backdrop-filter: var(--glass-blur-strong);
-    backdrop-filter: var(--glass-blur-strong);
-  }
-
-  /* ⑤ 遮罩换成标签抽屉那层灰（原来是 daisyUI 默认的半透 base-100，偏白） */
-  #appDrawer > .drawer-toggle ~ .drawer-side > .drawer-overlay {
-    background: rgba(35, 27, 19, .24) !important;
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
-  }
-}
-
-/* ============================================================
-   ⑭ 图片页：张数统计与瀑布流之间补一点呼吸
-   （原来那句「共 N 张图片 · 来自所有说说」是个 margin:0 的 <p>，
-     紧接着就是 Masonry 容器，文字几乎贴在第一排照片上。
-      18px 是为了明显大于照片之间 5+5=10px 的内间距，
-     让"一句话 + 一堵墙"读起来是两段，而不是糊在一起。）
-   ============================================================ */
-#photoGrid {
-  margin-top: 18px;
-}
-
-/* ============================================================
-   ⑯ 手机端布局改版（2026-09-15）：撤掉置顶横幅 → 换到底部 Dock
-   ------------------------------------------------------------
-   动机：≤1023px 时顶部只有「面包按钮 + 小记」一条横幅，占掉一整条高度，
-        却不携带任何信息；同时屏幕下方是完全空着的。
-   改法：
-     ① 整条顶栏 #topHeader 在 ≤1023px 下 display:none（桌面端照旧）。
-     ② 底部换成 daisyUI 的 .dock，5 项：首页 / 音乐 / 热搜 / 时间 / 更多。
-        「更多」= 打开左侧抽屉（勾选 #appNavChk），与原来的面包按钮完全同一条逻辑。
-     ③ Dock 做成"悬浮磨砂玻璃卡"：四周留 10px + 16px 圆角 + 强模糊，
-        与标签抽屉 / 歌单抽屉 / 小屏菜单抽屉（第 5852 段、⑬ 段）同一套规格。
-     ④ 连带让位：内容底部留白、#toTop、歌词药丸、#mediaPager 全部抬高 --dock-space，
-        否则会被 Dock 压住；顶部再补回刘海/状态栏安全距离
-        （原来由 #topNav 的 padding-top 负责，顶栏撤了就得自己补）。
-   ------------------------------------------------------------
-   注：本补丁层的编号此前重复过一次（6120 段与 6285 段各有一套 ⑫⑬⑭），
-      这里取 ⑯ 保证唯一。
-   ============================================================ */
-
-/* 桌面端（≥1024px）不存在 Dock。放在全局是为了压掉 daisyUI .dock 的 display:flex */
-#mobileDock { display: none; }
-
-@media (max-width: 1023px) {
-  :root {
-    --dock-gap: 10px;      /* 悬浮卡四周留边，与三个抽屉一致 */
-    --dock-h: 58px;        /* Dock 本体高度 */
-    /* Dock 从视口底部往上占掉的总高度：本体 + 上下留边 + Home 指示条 */
-    --dock-space: calc(var(--dock-h) + var(--dock-gap) * 2 + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* ① 顶栏整条撤掉，把这条高度让给内容 */
-  #topHeader { display: none !important; }
-
-  /* ② 内容顶端补回刘海 / 状态栏的安全距离；
-        内容里的吸顶工具条（热搜 / 书签）的 top 也要跟着让位，否则会钻到状态栏下面 */
-  #content { padding-top: calc(.75rem + env(safe-area-inset-top, 0px)); }
-  #content > div > div.sticky { top: env(safe-area-inset-top, 0px); }
-
-  /* ③ Dock 本体：悬浮磨砂玻璃卡 */
-  #mobileDock {
-    display: flex !important;
-    position: fixed !important;
-    left: var(--dock-gap) !important;
-    right: var(--dock-gap) !important;
-    bottom: calc(var(--dock-gap) + env(safe-area-inset-bottom, 0px)) !important;
-    width: auto !important;
-    height: var(--dock-h) !important;
-    padding: 6px 4px !important;
-    border: 1px solid transparent !important;   /* 描边颜色交给下面两套主题 */
-    border-radius: var(--glass-radius-xl) !important;
-    z-index: 55 !important;                     /* 低于抽屉（60/70/80），高于内容与翻页条 */
-    overflow: hidden;
-    -webkit-backdrop-filter: var(--glass-blur-strong) !important;
-    backdrop-filter: var(--glass-blur-strong) !important;
-  }
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #mobileDock {
-    background: linear-gradient(155deg, rgb(255 255 255/.84), rgb(229 247 239/.70)) !important;
-    border-color: rgb(255 255 255/.88) !important;
-    box-shadow: 0 16px 40px rgb(24 78 62/.22), inset 0 1px 0 rgb(255 255 255/.90) !important;
-  }
-  /* 深色：比抽屉那套稍实一点。抽屉背后永远是一层满屏遮罩，Dock 背后却是
-     随时在滚的内容，所以底色要更沉、描边要更亮，才能"浮"在手账纸面上
-     （#25231f）而不是糊成一片。 */
-  html:is([data-theme="dark"], [data-theme="halloween"]) #mobileDock {
-    background: linear-gradient(155deg, rgb(46 42 35/.95), rgb(24 22 19/.95)) !important;
-    border-color: rgb(255 239 210/.15) !important;
-    box-shadow: 0 18px 46px rgb(0 0 0/.60), 0 0 0 1px rgb(0 0 0/.30), inset 0 1px 0 rgb(255 240 216/.07) !important;
-  }
-
-  /* ④ Dock 里的每一项 */
-  #mobileDock > button {
-    margin-bottom: 0 !important;   /* daisyUI 默认给子项留了 .5rem 下边距 */
-    height: 100% !important;
-    gap: 2px !important;
-    border-radius: 12px !important;
-    background: transparent !important;
-    color: var(--journal-muted);
-    -webkit-tap-highlight-color: transparent;
-    transition: background-color .18s ease, color .18s ease, opacity .18s ease;
-  }
-  #mobileDock > button:active { opacity: .62; }
-  #mobileDock .dock-icon { font-size: 1.28rem; line-height: 1; }
-  #mobileDock .dock-label { font-size: .68rem; letter-spacing: .02em; }
-
-  /* ⑤ 选中态：柔色药丸底（比 daisyUI 默认那根小横杠更贴这套纸感 UI）。
-        选择器比 ④ 多一个 .active / .dock-more-on——两边都带 !important 时靠 specificity 决胜。 */
-  #mobileDock > .tab-btn.active,
-  #mobileDock > .dock-more-on {
-    background: color-mix(in oklch, var(--color-primary) 16%, transparent) !important;
-    color: var(--color-primary) !important;
-  }
-  /* daisyUI 给每个 dock 子项都挂了 ::after（一条透明小横杠），选中时会显形。
-     这套 UI 用上面的药丸就够了，横杠统一关掉 */
-  #mobileDock > button::after { display: none !important; }
-
-  /* ⑥ 音乐项右上角的"正在播放"小点（侧栏那个是单 id 的 #musicDot，这里另起一个） */
-  #mobileDock .dock-dot {
-    position: absolute;
-    top: 3px;
-    left: 50%;
-    width: 6px;
-    height: 6px;
-    margin-left: 6px;
-    border-radius: 999px;
-    background: var(--color-primary);
-    box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-primary) 26%, transparent);
-  }
-
-  /* ⑦ 让位：所有吸底 / 悬浮元素都要抬到 Dock 上方 */
-  #mainScroll { padding-bottom: calc(var(--dock-space) + 10px) !important; }
-  #toTop { bottom: calc(var(--dock-space) + 8px) !important; }
-  #headerLyricsBar:not(.hidden) { bottom: calc(var(--dock-space) + 6px) !important; }
-  /* 翻页条本身就是"吸底托盘"（自带一层纸色渐变）：
-     直接把 Dock 的高度算进它自己的下内边距，按钮就自然落在 Dock 上方，
-     中间那段渐变也不会漏出滚动内容 */
-  #mediaPager {
-    bottom: 0 !important;
-    padding-bottom: calc(var(--dock-space) + 6px) !important;
-  }
-}
-
-/* ============================================================
-   ⑰ 手机端 Dock「上滑收起 / 下滑弹出」（2026-09-15）
-   ------------------------------------------------------------
-   行为：内容往下滚（手指上滑）→ Dock 滑出屏幕外收走；
-        往回滚（手指下滑）→ 立刻滑回来。
-        三个例外永远保持显示：距顶部 90px 内、距页面底部 96px 内、
-        以及页面根本不可滚动时（判据见脚本里的 SHOW_ZONE / BOTTOM_ZONE）。
-   ------------------------------------------------------------
-   实现：只挂一个状态类 `body.dock-asleep`，由脚本按滚动方向开关。
-   为什么 #toTop / 歌词药丸要一起收：
-        它们都靠 --dock-space 悬在 Dock 正上方（第 ⑯ 段 ⑦），
-        Dock 走了它们还杵在半空会很奇怪，所以整排"底部家具"一起下移，
-        落回它们本来该在的位置（1.25rem / 18px）。
-   #mediaPager 例外，不动：
-        它是吸底托盘，让位靠的是自己的 padding-bottom，
-        改 padding 就等于改元素高度 → 会引起内容跳动；
-        而它只在页面底部出现，那个时候 Dock 按上面的规则本来就是显示的。
-   ============================================================ */
-@media (max-width: 1023px) {
-  #mobileDock {
-    transition: translate .34s cubic-bezier(.22, 1, .36, 1), opacity .26s ease;
-    will-change: translate;
-  }
-  body.dock-asleep #mobileDock {
-    /* 100% 是 Dock 自己的高 58px；加上它离底的 10px + Home 指示条 + 8px 余量，
-       正好整条落到视口外 */
-    translate: 0 calc(100% + var(--dock-gap) + env(safe-area-inset-bottom, 0px) + 8px);
-    opacity: 0;
-    pointer-events: none;   /* 别让"收走途中"的误触点了音乐/更多 */
-  }
-
-  /* 回到顶部：跟 Dock 同进同出（两个 !important 之间，靠 body.dock-asleep 这档 specificity 取胜） */
-  #toTop {
-    transition: bottom .34s cubic-bezier(.22, 1, .36, 1), opacity .3s ease,
-                color .2s ease, transform .2s ease !important;
-  }
-  body.dock-asleep #toTop {
-    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  /* 歌词药丸：同理 */
-  #headerLyricsBar:not(.hidden) {
-    transition: bottom .34s cubic-bezier(.22, 1, .36, 1);
-  }
-  body.dock-asleep #headerLyricsBar:not(.hidden) {
-    bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-}
-
-/* 尊重系统的"减少动态效果"：不做位移过渡，直接切 */
-@media (prefers-reduced-motion: reduce) {
-  #mobileDock,
-  #toTop,
-  #headerLyricsBar:not(.hidden) { transition: none !important; }
-}
-
-/* ============================================================
-   ⑱ 修：小屏页面底部露出一条「木桌」色带（2026-09-15）
-   ------------------------------------------------------------
-   现象：手机端滚到页面最底部，最后 88px 是一块偏棕/偏灰的色带，
-        跟纸色明显不是一家。
-   成因：第 ⑫ 段当时说"小屏只允许一层底色"，但只改了 body，漏了 html：
-     ① html 背着桌面那张木桌渐变（第 5309 行 `html, body {background:
-        linear-gradient(...)}`）；
-     ② html 自己有背景时，它会被提升成 canvas 背景，body 的背景
-        就**只画自己那个盒子**了——而 body 是 `height:100dvh`，
-        只够盖住文档的第一屏；
-     ③ 小屏真正的"纸"其实是 .max-w-5xl（第 5722 行），
-        凡是在它**外面**的东西都没有底：
-            · #mainScroll 的 padding-bottom（第 ⑯ 段为 Dock 让位的 88px）
-            · #appDrawer / #appShell / .drawer-content 全是透明的
-        → 一路漏到 canvas，也就是那张木桌。
-   实测（Playwright 390×844，拉到真正的底部）：最后 89px = #b19f86（木色），
-        往上才是 #e9e6d7（纸色）；层级栈最后一环正是 html(+IMG)。
-   修法：小屏把 html 也刷成纸色，让"只留一层底色"真正闭环。
-        比"再给某几个容器补背景"稳——以后无论谁在 .max-w-5xl 外面留白，
-        露出来的都是纸，不是木头。
-        桌面端不动：那张木桌是"桌上一本手账"的底，要留着。
-   ============================================================ */
-@media (max-width: 1023px) {
-  /* 浅色：:root 里的 --journal-paper 就是纸色，直接用 */
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) {
-    background: var(--journal-paper, #f4eedf) !important;
-  }
-  /* 深色：--journal-paper 被重定义在 body 上（见上面深色段），html 这边取不到，
-     所以写死同一个值。改深色纸色时两处要一起改。 */
-  html:is([data-theme="dark"], [data-theme="halloween"]) {
-    background: #25231f !important;
-  }
-}
-
-/* ============================================================
-   ⑲ 背景回归本源：整站只留「一张 Endless Clouds 壁纸」（2026-09-15）
-   ★ v2（同日 09:35 修订）。v1 有两个错，都是我的：
-     ① **图案抄错了**。v1 从一篇博客里抄的 data URI 是 `100×18` 的另一款图案
-        （那篇博客标题写着 Endless Clouds，其实不是），所以用户"没看到云朵"。
-        heropatterns 真正的 Endless Clouds 是 **56×28 的鳞片状小云**
-        （用户截图里能看到 `viewBox='0 0 56 28'`）。
-        → 换成正确 path，取自 npm 包 `@danielfgray/tw-heropatterns` 的 `endlessClouds`。
-     ② **顺手把桌面端的「浮动圆角面板」也拆了**（#appDrawer 透明 + 去阴影 +
-        侧栏换薄玻璃），结果侧栏变成一块从顶到底的直角长条、整个版面观感全变。
-        用户原话：「布局改了啊」「左边菜单恢复圆润啊，你现在都成扁平啦」。
-      → v2 严格只做「换壁纸」这一件事：面板 / 侧栏 / 装订线 / 暗角全部还原。
-   ------------------------------------------------------------
-   壁纸（唯一保留的改动）：
-     · 浅色 = 白底 + 薄荷绿云朵   （白底好跟手机浅色浏览器的白 chrome 融成一体）
-     · 深色 = 暗木底 + 薄荷绿云朵 （同图案，亮度压低一档，与手账深色调同族）
-   铺在 `html` 上：根元素背景 = 浏览器 canvas 背景，且不随滚动移动 —— 天然就是"壁纸"，
-   正好对上用户要的"别再来会动的那种"。
-   ★ 卡片上的薄荷色（格线 / 描边 / 投影）一个都没删。
-   ------------------------------------------------------------
-   被本段覆盖的旧规则（只覆盖、不回改原文，方便回滚）：
-     · 5340  html, body 木桌渐变
-     · 5714  小屏 body 纸色（⑫ ②）
-     · 5722  小屏 #mainScroll>.max-w-5xl 纸色
-     · 5746  深色 body 暗木渐变
-     · 5844  body 的 Garden 薄荷渐变（Apple Glass 段，specificity 0,2,2，必须同名压）
-     · 6102  #bgOrbs 四颗浮动光斑
-     · 6343  小屏 body 纸色（⑫ ② 小屏版）
-     · 6364  小屏吸顶条纸色（⑫ ⑤）
-     · 6652  小屏 html 纸色（⑱）
-   ============================================================ */
-
-/* ① 唯一的壁纸。浅色：白底 + 薄荷绿鳞片云
-      （浓淡就是 data URI 里那个 `fill-opacity`；深色在 ②） */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) {
-  background-color: #ffffff !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 28' width='56' height='28'%3E%3Cpath fill='%2312A67A' fill-opacity='0.15' d='M56 26v2h-7.75c2.3-1.27 4.94-2 7.75-2zm-26 2a2 2 0 1 0-4 0h-4.09A25.98 25.98 0 0 0 0 16v-2c.67 0 1.34.02 2 .07V14a2 2 0 0 0-2-2v-2a4 4 0 0 1 3.98 3.6 28.09 28.09 0 0 1 2.8-3.86A8 8 0 0 0 0 6V4a9.99 9.99 0 0 1 8.17 4.23c.94-.95 1.96-1.83 3.03-2.63A13.98 13.98 0 0 0 0 0h7.75c2 1.1 3.73 2.63 5.1 4.45 1.12-.72 2.3-1.37 3.53-1.93A20.1 20.1 0 0 0 14.28 0h2.7c.45.56.88 1.14 1.29 1.74 1.3-.48 2.63-.87 4-1.15-.11-.2-.23-.4-.36-.59H26v.07a28.4 28.4 0 0 1 4 0V0h4.09l-.37.59c1.38.28 2.72.67 4.01 1.15.4-.6.84-1.18 1.3-1.74h2.69a20.1 20.1 0 0 0-2.1 2.52c1.23.56 2.41 1.2 3.54 1.93A16.08 16.08 0 0 1 48.25 0H56c-4.58 0-8.65 2.2-11.2 5.6 1.07.8 2.09 1.68 3.03 2.63A9.99 9.99 0 0 1 56 4v2a8 8 0 0 0-6.77 3.74c1.03 1.2 1.97 2.5 2.79 3.86A4 4 0 0 1 56 10v2a2 2 0 0 0-2 2.07 28.4 28.4 0 0 1 2-.07v2c-9.2 0-17.3 4.78-21.91 12H30zM7.75 28H0v-2c2.81 0 5.46.73 7.75 2zM56 20v2c-5.6 0-10.65 2.3-14.28 6h-2.7c4.04-4.89 10.15-8 16.98-8zm-39.03 8h-2.69C10.65 24.3 5.6 22 0 22v-2c6.83 0 12.94 3.11 16.97 8zm15.01-.4a28.09 28.09 0 0 1 2.8-3.86 8 8 0 0 0-13.55 0c1.03 1.2 1.97 2.5 2.79 3.86a4 4 0 0 1 7.96 0zm14.29-11.86c1.3-.48 2.63-.87 4-1.15a25.99 25.99 0 0 0-44.55 0c1.38.28 2.72.67 4.01 1.15a21.98 21.98 0 0 1 36.54 0zm-5.43 2.71c1.13-.72 2.3-1.37 3.54-1.93a19.98 19.98 0 0 0-32.76 0c1.23.56 2.41 1.2 3.54 1.93a15.98 15.98 0 0 1 25.68 0zm-4.67 3.78c.94-.95 1.96-1.83 3.03-2.63a13.98 13.98 0 0 0-22.4 0c1.07.8 2.09 1.68 3.03 2.63a9.99 9.99 0 0 1 16.34 0z'/%3E%3C/svg%3E") !important;
-}
-/* ② 深色：暗木底 + 同款薄荷云，亮度压低一档 */
-html:is([data-theme="dark"], [data-theme="halloween"]) {
-  background-color: #25231f !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 28' width='56' height='28'%3E%3Cpath fill='%2312A67A' fill-opacity='0.10' d='M56 26v2h-7.75c2.3-1.27 4.94-2 7.75-2zm-26 2a2 2 0 1 0-4 0h-4.09A25.98 25.98 0 0 0 0 16v-2c.67 0 1.34.02 2 .07V14a2 2 0 0 0-2-2v-2a4 4 0 0 1 3.98 3.6 28.09 28.09 0 0 1 2.8-3.86A8 8 0 0 0 0 6V4a9.99 9.99 0 0 1 8.17 4.23c.94-.95 1.96-1.83 3.03-2.63A13.98 13.98 0 0 0 0 0h7.75c2 1.1 3.73 2.63 5.1 4.45 1.12-.72 2.3-1.37 3.53-1.93A20.1 20.1 0 0 0 14.28 0h2.7c.45.56.88 1.14 1.29 1.74 1.3-.48 2.63-.87 4-1.15-.11-.2-.23-.4-.36-.59H26v.07a28.4 28.4 0 0 1 4 0V0h4.09l-.37.59c1.38.28 2.72.67 4.01 1.15.4-.6.84-1.18 1.3-1.74h2.69a20.1 20.1 0 0 0-2.1 2.52c1.23.56 2.41 1.2 3.54 1.93A16.08 16.08 0 0 1 48.25 0H56c-4.58 0-8.65 2.2-11.2 5.6 1.07.8 2.09 1.68 3.03 2.63A9.99 9.99 0 0 1 56 4v2a8 8 0 0 0-6.77 3.74c1.03 1.2 1.97 2.5 2.79 3.86A4 4 0 0 1 56 10v2a2 2 0 0 0-2 2.07 28.4 28.4 0 0 1 2-.07v2c-9.2 0-17.3 4.78-21.91 12H30zM7.75 28H0v-2c2.81 0 5.46.73 7.75 2zM56 20v2c-5.6 0-10.65 2.3-14.28 6h-2.7c4.04-4.89 10.15-8 16.98-8zm-39.03 8h-2.69C10.65 24.3 5.6 22 0 22v-2c6.83 0 12.94 3.11 16.97 8zm15.01-.4a28.09 28.09 0 0 1 2.8-3.86 8 8 0 0 0-13.55 0c1.03 1.2 1.97 2.5 2.79 3.86a4 4 0 0 1 7.96 0zm14.29-11.86c1.3-.48 2.63-.87 4-1.15a25.99 25.99 0 0 0-44.55 0c1.38.28 2.72.67 4.01 1.15a21.98 21.98 0 0 1 36.54 0zm-5.43 2.71c1.13-.72 2.3-1.37 3.54-1.93a19.98 19.98 0 0 0-32.76 0c1.23.56 2.41 1.2 3.54 1.93a15.98 15.98 0 0 1 25.68 0zm-4.67 3.78c.94-.95 1.96-1.83 3.03-2.63a13.98 13.98 0 0 0-22.4 0c1.07.8 2.09 1.68 3.03 2.63a9.99 9.99 0 0 1 16.34 0z'/%3E%3C/svg%3E") !important;
-}
-/* ③ 平铺参数。原生 56×28 在大屏上偏细密，放大 1.5 倍。
-      ⚠️ 必须写成和 ①② 同一个选择器形状：§⑱ 那条 `html:not():not(){background: …}`
-         是 shorthand + !important（specificity 0,2,1），会把**窄选择器**里的
-         `background-size` 一起重置回 `auto` —— v1 就栽在这，手机端平铺参数静默失效。
-      不带 attachment：根元素的背景本来就铺满 canvas 且不随滚动移动，天然是壁纸。 */
-html:not([data-theme="dark"]):not([data-theme="halloween"]),
-html:is([data-theme="dark"], [data-theme="halloween"]) {
-  background-repeat: repeat !important;
-  background-size: 84px 42px !important;
-  background-position: 0 0 !important;
-}
-
-/* ④ 中间层透明：壁纸一路透到底，不再有任何中间底色。
-      **故意不含 #appDrawer** —— 那块浮动面板在桌面要留着（见 ⑤）。
-      小屏要的"面板全透明"交给 §⑫ 段（那边选择器更强：0,2,1，且带 !important）。
-      ⚠️ body 这两条也必须带 `html:not():not()` / `html:is()` 前缀：
-         §⑫ 的 `html:not():not() body{background: var(--journal-paper)}`（0,2,2）
-         和 Apple Glass 段 body 那条薄荷渐变（0,2,2）都比我写成裸 `body{}` 强，
-         否则手机端第一屏会是一块米色纸盖在壁纸上（v2 第一版就漏了这个）。 */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) body,
-html:is([data-theme="dark"], [data-theme="halloween"]) body,
-#appShell,
-#mainScroll,
-#mainScroll > .max-w-5xl {
+/* ---------- 翻页器：扁平极简（无描边 / 无硬阴影 / 无吸底蒙版） ---------- */
+#pagerBtns .pager-btn {
   background: transparent !important;
-  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--nb-ink-55) !important;
+  font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: .01em;
 }
 
-/* ⑤ 桌面：恢复「桌上一本手账」那块浮动圆角面板——现在它是"浮在云上的一张纸"。
-      圆角 + 投影就是"圆润"的来源：没有一层看得见的面板底，
-      侧栏（250px 直角竖条）就只是块直板，整个版面立刻显平。
-      ⚠️ 只写在 min-width:1024px 里：小屏必须保持全透明（§⑫ 段），
-         若写在全局，本条 specificity 0,2,1 会反压 §⑫ 那条同样 0,2,1 的透明规则。
-      特意**不用 backdrop-filter**——用户要的就是"去掉那层模糊玻璃"。 */
-@media (min-width: 1024px) {
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer {
-    background: rgb(255 255 255/.62) !important;
-    border: 1px solid rgb(255 255 255/.72) !important;
-    box-shadow: 0 28px 70px rgb(24 78 62/.17), inset 0 1px 0 rgb(255 255 255/.74) !important;
-  }
-  html:is([data-theme="dark"], [data-theme="halloween"]) #appDrawer {
-    background: rgb(35 32 28/.56) !important;
-    border: 1px solid rgb(255 239 210/.10) !important;
-    box-shadow: 0 26px 72px rgb(0 0 0/.42), inset 0 1px 0 rgb(255 240 216/.04) !important;
-  }
+#pagerBtns .pager-btn:hover:not(:disabled):not(.is-active) {
+  background: color-mix(in srgb, var(--nb-ink) 8%, transparent) !important;
+  color: var(--nb-ink) !important;
 }
 
-/* ⑥ 浮动光斑下岗（第 ⑪ / ⑫ 段那四颗漂移圆斑）——这就是用户说的
-      "复杂的、会动的、模糊的背景"。DOM 留着，只是不画。 */
-#bgOrbs {
-  display: none !important;
+#pagerBtns .pager-btn.is-active {
+  background: color-mix(in srgb, var(--pager-accent) 15%, transparent) !important;
+  color: var(--pager-accent) !important;
+  box-shadow: none !important;
 }
 
-/* ⑦ 小屏吸顶工具条：原来是纸色，现在壁纸是白的 → 换白底
-      （够不透明，吸顶时才压得住滚过去的内容；不用模糊） */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #content > div > div.sticky {
-  background: rgb(255 255 255/.92) !important;
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) #content > div > div.sticky {
-  background: rgb(28 27 23/.92) !important;
+#pagerBtns .pager-btn:disabled { opacity: .28 !important; }
+
+#pagerBtns .pager-gap { color: var(--nb-ink-55) !important; }
+
+/* ---------- 回到顶部 ---------- */
+#toTop {
+  background: var(--nb-panel) !important;
+  border: 2.5px solid var(--nb-border) !important;
+  border-radius: 50% !important;
+  box-shadow: 4px 4px 0 var(--nb-hard) !important;
+  color: var(--nb-ink) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .3s ease !important;
 }
 
-/* ⑧ 浅色下卡片「提实」：壁纸底色是白的，原来那几档半透明白玻璃（.42 ~ .76）
-      压在白底上等于隐形，卡片会糊成一片。这里把白量提到接近实心，
-      改用「薄荷色发丝边 + 薄荷投影」来界定边界。
-      ★ 薄荷色一个都没少：格线 / 描边 / 投影全是 rgb(18 166 122) 那一系。
-      深色侧一律不动——暗底上原来的暗色玻璃本来就分得开。
-      选择器形状必须和上面 Apple Glass 段（5849 / 5856 / 5862 / 5866）一一对应：
-      那边全是 !important，同 specificity 时靠源码顺序取胜。 */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #content ul.memo-list .memo-card {
-  /* 只有一层白渐变 —— 原来那层 32px 横向淡格线（模拟笔记本横线）已在 ⑩ 段删掉 */
-  background: linear-gradient(rgb(255 255 255/.93), rgb(255 255 255/.87)) !important;
-  border-color: rgb(18 166 122/.16) !important;
-  box-shadow: 0 12px 28px rgb(24 78 62/.11), inset 0 1px 0 rgb(255 255 255/.95) !important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4>* {
-  background: rgb(255 255 255/.86) !important;
-  border-color: rgb(18 166 122/.14) !important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #content>div:has(.mf-type)>.flex.flex-col.gap-2\.5 {
-  background: rgb(255 255 255/.80) !important;
-  border-color: rgb(18 166 122/.12) !important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #mediaPager .join {
-  background: rgb(255 255 255/.78) !important;
-  border-color: rgb(18 166 122/.14) !important;
+#toTop:hover {
+  background: var(--nb-yellow) !important;
+  color: #211d17 !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--nb-hard) !important;
 }
 
-/* ⑨ 底部 Dock：浅色描边原来是纯白，压在白壁纸上等于没有 →
-      换成薄荷发丝边（深色那边加一点点冷光，跟云纹呼应）。
-      选择器形状对齐第 6490 段那两条。 */
-html:not([data-theme="dark"]):not([data-theme="halloween"]) #mobileDock {
-  border-color: rgb(18 166 122/.18) !important;
-  box-shadow: 0 16px 40px rgb(24 78 62/.20), inset 0 1px 0 rgb(255 255 255/.90) !important;
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) #mobileDock {
-  border-color: rgb(18 166 122/.22) !important;
+/* ---------- 底部提示 ---------- */
+#endHint {
+  font-family: var(--font-display);
+  letter-spacing: .22em !important;
+  color: var(--nb-ink-55) !important;
 }
 
-/* ⑩ 说说卡片上的「笔记本横线」全部去掉（2026-09-15）
-      用户原话：「说说卡片有这种横线啊，去掉吧。没必要模拟那种笔记本的横线，没意思」。
-      横向 32px 淡格线在这个文件里有三处生效点：
-        · 5586 段  手账底座 .memo-card 的格线（早就被 5849 段的 Apple Glass 覆盖，不用管）
-        · 5849 段  浅色 rgb(18 166 122/.038) —— 被上面 ⑧ 那层白渐变盖住了
-        · 5849 段  深色 rgb(220 207 184/.035) —— **还有效**，所以要单独压一条（下面这条）
-      压完以后卡片背景只剩一层白 / 暗底渐变，没有任何纹理，也就没有"横线"了。
-      选择器形状照抄 5849 段（那边全是 !important，同 specificity 时靠源码顺序取胜）。
-      用户只提了浅色，深色这条是同一种"笔记本横线"的同一个毛病，一并删掉；想留就说一声。 */
-html:is([data-theme="dark"], [data-theme="halloween"]) #content ul.memo-list .memo-card {
-  background: linear-gradient(rgb(47 44 38/.86), rgb(38 36 31/.79)) !important;
-}
-
-/* ⑪ 世界时间：相邻两块面板之间挨着的「两条线」合成一条（2026-09-15）
-      用户原话：「世界时间这里，转换时间下面 2 条线，我觉得有一条线就可以了」。
-      成因：5870 段最后那条
-        `#content .wc-root .rounded-2xl:not(:first-child){border-color:…;
-         border-left:0;border-right:0;border-radius:0}`
-      只去了**左右**两条边和圆角，上下两条都留着；而每块面板本来就带
-      `border border-base-300/70`。于是相邻两块 = 「上一块的下边」+「下一块的上边」
-      = 两条线，中间还夹着 `.wc-root` 的 `gap-4`(16px)，看着就是上下两条细线。
-      修法：用**相邻兄弟选择器**，只打「紧跟在另一块 .rounded-2xl 后面」的那块，
-            去掉它的**上边**。这样：
-              · 世界城市时间 → 时间转换   不受影响（前者是普通 div，本来就只有一条）
-              · 时间转换 → 我的播放提醒   只剩「时间转换的下边」这一条  ✅
-      选择器形状对齐 5870 段（那边全是 !important，同 specificity 靠源码顺序取胜）。 */
-#content .wc-root .rounded-2xl + .rounded-2xl {
-  border-top: 0 !important;
-}
-
-/* ⑳ 桌面端：右侧内容区补上「跟左侧菜单同一套」的磨砂玻璃（2026-09-15）
-      文哥原话：「把右侧这个区域也加上左侧一样的玻璃效果，现在的我感觉太透了」
-      现状：桌面 #appDrawer 只铺了一层 rgb(255 255 255/.62) 的白纱（⑲ 段 ⑤），
-            面板内部其他层全是 transparent（⑲ 段 ④）→ 云纹是"清晰但很淡"地透出来，
-            没有模糊也没有冷调，读起来就是"太透"。
-            左侧 #appSidebar 之所以显得更实，是因为它在同一层白纱之上**又多叠了一层**
-            Apple Glass 的玻璃：`linear-gradient(155deg,…)` + `backdrop-filter`
-            （第 5846 行，`--glass-blur-strong` = blur(34px) saturate(155%)）。
-      改法：给右侧那一列 `#appDrawer > .drawer-content` 铺**逐字相同**的一套值。
-            实测范围 [x 279, w 1132, h 842] = 正好是 250px 侧栏之后的整列、铺满面板高度，
-            跟 #appSidebar 是同级的两个 grid 列，所以叠出来的层次完全对称：
-              左 = 白纱@.62 + 侧栏玻璃   /   右 = 白纱@.62 + 本段这层玻璃
-            合起来通透度落到 ~.82，就是一块正经毛玻璃，不再是"淡云纸"。
-      ⚠️ 只写在 `min-width:1024px` 里：小屏 #appDrawer 是 `overflow:visible` 的整页流
-         （第 ⑨ 段），没有面板可言，不该挂面板玻璃；小屏观感由 ⑫ / ⑯ 段各自管。
-      ⚠️ **不碰 #appSidebar 本身**——⑲ 段 v1 就是因为顺手改了左侧把版面搞"扁"，
-         用户明确要求过"左边菜单恢复圆润"。这次只加右侧，左侧一个字不动。
-      ⚠️ 圆角不用自己管：#appDrawer 有 `overflow:hidden` + `radius 16px`（第 5845 行），
-         会把这一层的四角裁好。
-      ⚠️ 不给本层加 border：`.drawer-content` 左边界 x=279 与 #appSidebar 右边界是同一条线，
-         侧栏那边已经有 `border-right + inset 高光` 当了分隔，再加 `border-left` 会变成 2px。
-      想调通透度：改下面两个渐变的**端点 alpha**（.70/.53 与 .78/.67），数越大越实。
-      想退回"太透"的原样：删掉本段整块即可。 */
-@media (min-width: 1024px) {
-  /* 模糊只写一次（浅/深通用），值直接取左侧那套变量，保证两边完全一致 */
-  #appDrawer > .drawer-content {
-    -webkit-backdrop-filter: var(--glass-blur-strong);
-    backdrop-filter: var(--glass-blur-strong);
-  }
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #appDrawer > .drawer-content {
-    background: linear-gradient(155deg, rgb(255 255 255/.70), rgb(229 247 239/.53)) !important;
-  }
-  html:is([data-theme="dark"], [data-theme="halloween"]) #appDrawer > .drawer-content {
-    background: linear-gradient(155deg, rgb(47 43 37/.78), rgb(29 27 23/.67)) !important;
-  }
-}
-
-/* ㉑ 去掉云朵壁纸：浅色纯白 / 深色用 iOS 系统深灰（2026-09-15）
-      文哥原话：「去掉这个云朵壁纸，直接浅色就是纯白色，暗色就是纯灰色还是黑色来着，
-                 你觉得呢？苹果系统一般的暗黑模式是啥颜色你就用那种颜色吧」
-      真正的动机（原话）：手机上「iOS 自带的浏览器都无法好好跟手机屏幕结合起来」。
-      ------------------------------------------------------------
-      配色取值（Apple HIG · Dark Mode 的系统色）：
-        · systemBackground          = #000000   ← 纯黑，OLED 上最"黑"
-        · secondarySystemBackground = #1C1C1E   ← 取这个
-        · tertiarySystemBackground  = #2C2C2E
-      iOS 深色界面的"灰底"（设置里的分组行、Safari 自己的深色工具栏）用的就是 #1C1C1E。
-      页面要跟手机自己的 UI **融成一体**，用这个比纯黑更贴（纯黑反而会跟工具栏差一档）。
-      → 想换纯黑：只改下面 dark 那条的 `#1c1c1e` 为 `#000000`，一处。
-      ------------------------------------------------------------
-      ⚠️ 选择器形状必须和 ⑲ 段 ①② **一模一样**：那边是
-         `html:not([data-theme="dark"]):not([data-theme="halloween"])`（0,2,1）
-         配 `background-color` + `background-image` 两条 !important，
-         同形状 + 源码顺序靠后才是本段赢（光靠 !important 不够）。
-      ⚠️ 只把 background-image 压掉，**不动 ⑲ 段那两条 data URI 本身**。
-         想恢复云朵壁纸：删掉本段整块就回去了（那两条还在，不会丢）。
-      ------------------------------------------------------------
-      同一件事另外还改了两处（都是老配色遗留，一并纠正）：
-        · <head> 的 theme-color：浅色原本是 **#1a1a2e 深藏青** —— 页面是白的、
-          Safari 顶栏却被染成深蓝，这才是"跟手机屏幕结合不起来"的真凶。
-        · site.webmanifest 的 theme_color / background_color：原本 **#0a0e18**。
-      ------------------------------------------------------------
-      旁注（没有改，仅记录）：壁纸一去，⑳ 段那层玻璃的 `backdrop-filter` 就没东西可模糊了，
-      但它的**渐变**仍然有效 —— 桌面面板会从纯白渐到极淡的薄荷（rgb(241,251,247)），
-      配合面板投影，依旧读得出"浮在桌面的一张纸"。手机端的磨砂（Dock / 抽屉 / 吸顶条）
-      同理：模糊失效，白色不透明度照旧。视觉上没有副作用。 */
-html:not([data-theme="dark"]):not([data-theme="halloween"]),
-html:is([data-theme="dark"], [data-theme="halloween"]) {
-  background-image: none !important;
-  background-repeat: no-repeat !important;
-}
-html:not([data-theme="dark"]):not([data-theme="halloween"]) {
-  background-color: #ffffff !important;
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) {
-  background-color: #1c1c1e !important;
-}
-
-/* ㉒ 手机端撤掉底部 Dock，改成「左边缘往右滑」唤出左侧菜单抽屉（2026-09-15）
-      文哥原话：「上面确实跟浏览器完美融合了，下方还是无法做到，我想可能是我们网页上有
-                 dock 的缘故…去掉 dock 改成在网页上往右边侧滑，出现抽屉吧。」
-      ------------------------------------------------------------
-      为什么 Dock 会挡住融合：Dock 是 position:fixed 的磨砂玻璃卡，悬在视口底部，
-      iOS Safari 自己的底栏又紧贴在它下面 —— 两层 chrome 叠着，中间必然出现一道缝。
-      撤掉之后，页面自己的白底一路铺到最底，跟 Safari 的底栏就成了一片。
-      ------------------------------------------------------------
-      ① **藏** Dock（不是删 DOM）。⑯ 段的绑定（更多按钮 / 音乐小点 / MutationObserver）
-         和 ⑰ 段的上滑收起脚本都留着不碍事；想找回 Dock，删掉本段即可。
-         注：Dock 那 5 项在左侧抽屉里一个都没少 ——
-         首页 / 热搜 / 时间 / 标签 是菜单项，音乐在侧栏资料卡那排小图标里。
-      ② 把 ⑯ 段 ④⑦ 为 Dock 让位而加的间距**还原成 Dock 出现之前的值**
-         （原值就在本文件里：`#mainScroll` 796 行、`#toTop` 797 行、
-          `#mediaPager` 801 行 / 5882 行、`#headerLyricsBar` 225 行）。
-         不还原的话，页面底部会白白空掉 88px。
-      ③ 顺手一个巧合：⑰ 段「收起态」的目标值本来就等于这些原始值
-         （toTop `1.25rem`、歌词 `18px`）→ 还原之后 ⑰ 段自动退化成无害的空操作，
-         **不用去改它**。
-      ⚠️ 覆盖 ⑯ 段 ⑦ 那几条，选择器形状必须跟它一样（都是 id 级 + !important），
-         靠"源码顺序在后来"取胜。 */
-#mobileDock { display: none !important; }
-
-@media (max-width: 1023px) {
-  #mainScroll { padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
-  #toTop { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)) !important; }
-  #headerLyricsBar:not(.hidden) {
-    bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  #mediaPager { padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
-}
-
-/* ㉓ 手机端翻页控件不再「吸底」，跟着列表末尾走（2026-09-15）
-      文哥原话：「首页下拉底部 URL 会变小，很原生；但看过/想看的页面下拉 URL 不缩小，
-                 底部还一片白，除非拉到最底部才缩小。是翻页控件的原因还是筛选卡片？」
-      ------------------------------------------------------------
-      **答案：是翻页控件。筛选卡片完全无辜。**
-      实测（500px 探针，滚到 55% 位置）：
-        · 筛选卡片 `#content > div > .flex.flex-col` → `position: static`，
-          rect.top 已到 -1188px，**它是普通文档流，跟着内容一起滚走了**，
-          根本不可能影响浏览器 chrome。
-        · `#mediaPager` → `position: sticky; bottom: 0; z-index: 30`，
-          rect 的 bottom **正好等于视口高度**（805 / vh=805），高度 71px，
-          而且是**整宽、紧贴底边**的一条带。
-        · 对照首页（说说）：底部 150px 内 elementFromPoint 全是 `img`，
-          **没有任何元素被钉在底边**。
-        · 两页的 scrollingElement 都是 `html`、都没有内部滚动容器 → 滚动结构一致，
-          不是"滚动容器不同"的问题。
-      ------------------------------------------------------------
-      为什么"吸血底那一条"会拦住 Safari 底栏收起：
-      Apple WWDC「Design for Safari 15」原文——Safari 的底部标签栏是**随主框架滚动方向
-      自动收起/展开**的，收起后只剩一行域名贴在屏幕最底。而 iOS 对"从视口最底那条带
-      开始的触摸"有特殊处理（认为是想去够浏览器自己的工具栏 → 把工具栏重新展开）。
-      ⑯ 段给翻页控件写的是「吸底常显」（801 行 `position: sticky; bottom: 0`），
-      等于**我们用自己的一条带，常年占着 Safari 底栏要落的那块地方**。
-      ------------------------------------------------------------
-      修法：手机端把 `position` 从 `sticky` 改回 `static` → 它就变成列表末尾的普通一块，
-      页面底边跟首页一样是"纯内容"。**这一步的全部意义就是让两页的底边结构等价**
-      （首页 = 已知能融合的对照样本），所以好验证、也好回滚。
-      · 只改 ≤1023px；桌面端保持吸底（那边没有浏览器 chrome 要避让）。
-      · 顺手补一点下边距，不用再替 Dock 留位（㉒ 段已经把 ⑯ 段那 88px 还原了）。
-      ⚠️ 覆盖 801 行那条：id 级 + !important + 源码在后，稳赢。
-      ⚠️ 翻页后的体验没有损失：`renderMediaPage()` 里本来就 `scrollToTop()`，
-        点了页码会自动回到顶部，不需要抬手就能再翻。 */
-@media (max-width: 1023px) {
-  #mediaPager {
-    position: static !important;
-    bottom: auto !important;
-    padding: 18px 0 calc(26px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-}
-
-/* ㉔ 小屏标签抽屉收窄，跟「左侧菜单抽屉」同宽（2026-09-15）
-      文哥原话：「把点击标签出来的抽屉宽度改成首页右滑出来的菜单抽屉一样款吧。
-                 这样点击不会感觉突然变大的抽屉，而且我也好方便单手点击完标签后，
-                 可以自己点去页面其他部分好关闭这个抽屉。毕竟这个抽屉的标签是组合查询，
-                 逻辑功能上我是不能让它点一下标签就自动关闭抽屉的。」
-      ------------------------------------------------------------
-      ⚠️ 关键前提：**标签抽屉不能改成"点标签就自动关"**。
-      它是组合查询（类型 / 年代 / 题材可多选叠加），点一个标签只是改条件，
-      抽屉必须留在原地让人接着点第二个。→ 所以唯一的解法是**把它变窄**，
-      让右边露出足够宽的遮罩，单手拇指能直接点到抽屉外面去关。
-      ------------------------------------------------------------
-      实测差距（390×844）：
-        · 左侧菜单抽屉 `#appSidebar`：`width: min(304px, 84vw)` + `left:10px`
-          → 占 10+304 = 314px，右边露出 76px 遮罩（好点）
-        · 标签抽屉 `.tag-drawer`：`width: min(390px, 92vw)`（1201 行）+ `left:10px`
-          → 占 10+359 = 369px，右边只剩 21px 遮罩（基本点不到）
-      差 55px，就是文哥说的"突然变大"。
-      ------------------------------------------------------------
-      ① 宽度：`.tag-drawer` 改成跟 `#appSidebar` **逐字一致** `min(304px, 84vw)`。
-         ⚠️ 要覆盖两处，而且两处的压法不一样：
-            · 1201 行（小屏 width）——**没有** !important，我用 !important 直接压掉；
-            · 5911 行（top/bottom/left）——**有** !important，这就要靠
-              "同样的 (0,1,0) 选择器形状 + 源码顺序在后"（同特异性下后写的赢）。
-              别想着用 id 级去提权，`#tagBar` 那个 id 在当前 DOM 上不好接。
-      ② 顺手修一个真毛病：5911 段把抽屉写死成 `top:10px; bottom:10px`，
-         **没有加 `env(safe-area-inset-*)`**。而 `viewport-fit=cover` 是开着的（第 7 行），
-         所以这两个 10px 是量到**屏幕物理边**的 —— 在刘海里抽屉顶边会钻到状态栏底下、
-         底边会压到 Home 指示条。⑬ 段给 `#appSidebar` 就是加了 safe-area 的，
-         这里补齐，两个抽屉的上下边距才真的一致。
-      ------------------------------------------------------------
-      ③ **不动桌面端宽度**（≥1024px 仍是 390px）。桌面用鼠标、也没有刘海挤压。
-         （抽屉的**站位**在 ㉖ 段里改成右侧了；本段只管宽度和上下安全区，仍然有效。）
-      ④ 也不动 `#tagBar` 的名字 —— 是 id="tagBar"，类名才是 `.tag-drawer`，
-         别被这俩不一致搞混。 */
-@media (max-width: 1023px) {
-  .tag-drawer {
-    width: min(304px, 84vw) !important;
-    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-}
-
-/* ㉖ 标签抽屉改到**屏幕右侧**，由「右边缘往左滑」唤出（2026-09-15）
-      文哥原话：「这个标签打开抽屉跟右滑出菜单的抽屉逻辑体验有点冲突，
-                 把这个标签菜单直接变成在屏幕右侧左滑出标签抽屉，
-                 直接把这个标签菜单抽离出来就会好很多。」
-      ------------------------------------------------------------
-      病根：左右两个抽屉都从**左边**出来、都靠左边缘那一带触发、关闭手势还都在左边
-      （菜单"往左滑关"），一重叠起来人根本分不清现在滑的是哪一个。
-      上上版为了绕开这个还搞了一套"记住上次在标签抽屉"的逻辑，
-      等于在冲突之上又加了一层状态 —— 现在整块删掉，两边各管各的边。
-      ------------------------------------------------------------
-      改法：把 `.tag-drawer` 的锚点从 left 换成 right，滑出方向取反。
-      这几条要覆盖 5911 行那套（必须同 (0,1,0) 形状 + !important + 源码在后）：
-        5911 → `.tag-drawer{top:10px;bottom:10px;left:10px;
-                              transform:translateX(calc(-100% - 28px))}`
-        这里 → right:10px / left:auto / translateX(calc(100% + 28px))
-      `.tag-drawer.open{transform:translateX(0)}` 在 5912 行，值一样，不用重写。
-      ------------------------------------------------------------
-      现在三对"左右对称"，一眼能记住：
-        · 左菜单：左边缘**往右滑**开，开着时往左滑关
-        · 标签本：右边缘**往左滑**开，开着时往右滑关
-        · 关不掉的兜底：点抽屉外面那片遮罩（标签本现在剩左边 76px 可点，见 ㉔ 段）
-      ------------------------------------------------------------
-      ⚠️ 宽度（304px）和上下 safe-area 仍由 ㉔ 段负责，本段只管"站哪边、往哪滑"。
-      ⚠️ 歌单抽屉本来就在右边（`right:10px` / `translateX(calc(100% + 28px))`）——
-         `initTagDrawer` 里开标签抽屉时会先调 `window.closeMusicDrawer()`，两者不叠加。
-      ⚠️ 桌面端（≥1024px）**也一起改成右侧**了：左菜单在桌面是常驻侧栏，
-         标签抽屉原来会盖在它上面；挪到右边就不打架了。 */
+/* ---------- 标签抽屉 ---------- */
 .tag-drawer {
-  right: 10px !important;
-  left: auto !important;
-  transform: translateX(calc(100% + 28px)) !important;
+  background: var(--nb-bg) !important;
+  color: var(--nb-ink) !important;
+  border-right: 3px solid var(--nb-border) !important;
+  box-shadow: 14px 0 34px rgba(0, 0, 0, .18) !important;
 }
 
-/* ㉗ 小屏：`body` / `#appShell` 的 `min-height` 从 `100vh` 换成 `100dvh`
-      （2026-09-15，修文哥报的「标签筛选后下滑，URL 缩起来了却泡在一段白色区块里」）
-      ------------------------------------------------------------
-      病根：`min-h-screen` 是 `min-height: 100vh`，而 iOS Safari 的 `100vh`
-           取的是**最大视口 = lvh**（工具栏收起时的高度），不是当前可视高度。
-            工具栏展开时可视高度只有 `svh` ≈ `lvh - 60~90px`
-            → **不管内容多长，页面永远比可视区高 60~90px**。
-      于是：筛选后列表变短（多选标签 AND 甚至为空），屏幕底下本来就是一片
-            **没有任何内容的纯白**；你手指一划，滚的根本不是内容、而是这段"空气"，
-            iOS 照样判定"页面在滚"→ 收起工具栏 → 收起后可视视口变高、可滚距离
-            归零、位置弹回顶端，而工具栏那一带底下正好是那段空白
-            → 就是你看到的「URL 缩小了，却泡在一段白色区块里」。
-            首页内容 4202px 高，滚到哪工具栏底下都是卡片，所以看不出来。
-      ------------------------------------------------------------
-      实测（390×844，Playwright + Chrome）：
-        · 首页                    docScrollH 4202 / maxScroll 3358
-        · 选中 1 个标签（7 张卡）  docScrollH 2144 / maxScroll 1300
-        · 多选标签（交集为空）     docScrollH  846 / maxScroll    2 ← 底下全是白
-        三种状态页面结构**完全一致**（无新增吸顶/吸底件、根滚动仍是 body、
-        html 背景白、theme-color 白）→ 唯一的变量就是"内容长度"。
-      ------------------------------------------------------------
-      改法：只改小屏这两个 `100vh`。`100dvh` 跟着**当前可视视口**走：
-        · 内容长 → `min-height` 是空操作，一切照旧；
-        · 内容短 → 页面高度正好等于可视高度（不再多出那 60~90px），
-                   滚不动 → iOS 不会莫名收起工具栏 → 白块消失。
-      ⚠️ 这与 ⑨ 段给 `#appDrawer` 写的 `min-height: 100dvh`（6136 行）现在**对齐了**，
-         当初就是漏了 body / #appShell 这两个 `100vh`。
-      ⚠️ 只写在小屏 `@media (max-width:1023px)` 里：桌面端 `body` 是
-         `lg:h-screen lg:overflow-hidden` + `#appDrawer` 固定高，不归这条管。
-      🔙 想回滚：整块删掉即可，等于恢复 `100vh` 的老行为。
-      ⚠️ 如果哪天还看到"底部一条白缝"，优先怀疑的还是任何 `vh` 单位
-         （Tailwind 的 `h-screen` / `min-h-screen` / `max-h-screen` 全是 `vh`）。 */
-@media (max-width: 1023px) {
-  body.min-h-screen,
-  #appShell.min-h-screen {
-    min-height: 100dvh !important;
-  }
+.tag-drawer::after { display: none !important; }
+
+.tag-drawer-head {
+  border-bottom: 2px dashed var(--nb-ink-22) !important;
+  padding: 26px 24px 18px !important;
 }
 
-/* ㉘ ⚠️ 原方案已作废、CSS 已整块删除（2026-09-15 当天推翻）—— 只留这段记录，别再走一遍
-      ------------------------------------------------------------
-      原方案：把 `html` + `body` 都铺成 #f1f3f4（浅）/ #2c2c2e（深），
-              指望"底部地址栏采样到比纯白深一档的颜色"，好让 URL 控件有个边界感。
-      真机实测（文哥 IMG_4813 改动后 vs IMG_4809 改动前，同一位置取像素）：
-        · 顶部状态栏那一带    255,255,255 → 241,242,244   ★ 被染灰了
-          文哥原话：「第一次进入首页，最上方都是灰色的了？我网页背景不是白色的吗？
-                   之前还能很好地融合呢，现在直接分层了。」
-        · 底部那一带          253,253,253 → 253,253,253   —— 一个像素都没动
-          → "底部那块白"根本不是 html / body 的颜色决定的。
-             改它 = 治不了底、还把顶弄脏。
-      ------------------------------------------------------------
-      ⚠️ 由此得到的定论（重要，比这一段本身值钱）：
-        屏幕的**上边和下边是两条独立的边**，各自只认**自己那条边上的贴边元素**，
-        不是一个全局色管上下两头。所以**绝不要在 `html` / `body` 上铺全局色**去修某一条边。
-      🔙 这一段现在**没有任何 CSS**（已整块删除，正文回到 ④ 段的 `body 透明` + ㉑ 段的 `html 白`）。
-         顶部因此回到改动前的白、与状态栏重新融合。 */
-
-/* ㉙ ⚠️ 原方案已作废、CSS 已整块删除（2026-09-15 文哥 IMG_4814 推翻）—— 只留这段记录
-      ------------------------------------------------------------
-      原方案：给**底边**塞一条 6px 满宽浅灰 `#safariBottomTint` 贴边取色条，
-              想让底部地址栏"有个边界感"。
-      ❌ 文哥原话打脸：「我要的是没有边界感的URL……URL这一套控件是透明的底色。
-              你改得更严重了，以前不筛选所有页面都完美的。」
-      → 我**把意图理解反了**：他要的不是"加一道更深色的边界"，而是
-        "URL 控件透明、跟白页融为一体、上滑能缩小、没有边界感"。
-        在白页上，iOS 26 玻璃工具栏本就呈现白 = 无边界；我加灰条反而制造了
-        一条可见灰带、还压不住原本的白边。
-      ------------------------------------------------------------
-      ⚠️ 由此得到的定论（比这一段本身值钱）：
-        文哥要的是"透明无边界"，不是"加深色边界"。任何给 URL / 地址栏加**实色**
-        贴边条（灰/深色都算）的方案都走反了方向——白页上只有"白"才等于"无边界"，
-        加任何非白实色都会变成一条可见的带。
-      ⚠️ 真正该守的基线（回到 ④ 段 body 透明 + ㉑ 段 html 白）：
-        白页 → 工具栏玻璃透出白 → 看着就是页面的一部分 = 无边界；
-        短内容（筛选后）底部若是纯白，工具栏自然也是白，本就该"融"进去，
-        不要为了制造边界而去垫色。
-      🔙 HTML 里那个 `#safariBottomTint` 空 div（原 1293 行附近）也一并删了，共两处。 */
-
-/* ㉚ 暗色模式：所有图片降到 70% 亮度（2026-09-15 文哥要求）
-     范围：看过/想看影视剧封面、图床(灯箱)大图、图片菜单、瀑布流图片——
-           它们都是 <img>，直接全局作用于暗色主题的 img 即可。
-     只限暗色（light 主题保持原亮度）；UI 图标多为 inline <svg>/icon font，不吃这条。 */
-html:is([data-theme="dark"], [data-theme="halloween"]) img {
-  filter: brightness(.7);
+.tag-drawer-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem !important;
+  letter-spacing: .08em !important;
+  color: var(--nb-ink);
 }
 
-/* ㉜ 暗色：统一"所有图片"70% 亮度（2026-09-15 文哥明确要求，旧决定作废）
-     病根：5866 行 `html:is(dark) #content img{filter:none!important}` 是早先
-           "手账照片要像照片、不压暗"的旧决定，用 !important 把 ㉚ 的 .7 全压没了，
-           导致 #content 内（含影视封面 / 手账照片）仍是原亮度，strip-item 也被它
-           一并打到 none（探针实测 firstImgs 全 filter:none）。
-     文哥原话："暗色模式下所有图片亮度为70%亮度，包括看过想看里的影视剧封面的亮度、
-           点击图片的图床里的亮度、点击图片菜单、瀑布流图片的亮度。" —— 即"所有图片"都要 .7。
-     改法：同选择器形状(#content img) + 源码靠后 + !important，反压 5866 的 none!important；
-           非 #content 的图片（灯箱/Fancybox 挂在 body、图片菜单 cmdk、瀑布流若在外层）仍由
-           ㉚ 全局 `html:is(dark) img` 兜住 = .7。
-           悬停提亮(5869 `.strip-item img:hover`/.92!important)特异性(0,2,2)高于本段(0,2,1) → 保留。
-     实测：探针强制 dark 后 #content 内 img / strip-item img 均应读到 brightness(0.7)。
-     🔙 回滚：删本段即恢复 5866 的"不压暗"（会回到文哥否掉的旧态）。 */
-html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
+.tag-drawer-subtitle { color: var(--nb-ink-55) !important; }
+
+.tag-drawer-close {
+  border: 2px solid var(--nb-border) !important;
+  border-radius: 10px !important;
+  background: var(--nb-panel) !important;
+  color: var(--nb-ink) !important;
+  box-shadow: 2.5px 2.5px 0 var(--nb-hard);
+}
+
+.tag-drawer-close:hover {
+  background: var(--nb-pink) !important;
+  color: #211d17 !important;
+  transform: none !important;
+}
+
+.tag-drawer-current {
+  background: var(--nb-panel) !important;
+  border: 2px solid var(--nb-border) !important;
+  border-left: 2px solid var(--nb-border) !important;
+  border-radius: 12px !important;
+  box-shadow: 3px 3px 0 var(--nb-hard);
+}
+
+.tag-drawer-current-label > span:first-child { color: var(--nb-ink-55) !important; }
+#tagSelectedSummary { color: var(--nb-ink) !important; }
+
+.tag-drawer-clear {
+  color: var(--nb-ink) !important;
+  border: 2px solid var(--nb-border);
+  border-radius: 999px;
+  padding: 4px 10px !important;
+  background: var(--nb-panel);
+  box-shadow: 2px 2px 0 var(--nb-hard);
+}
+
+.tag-drawer-clear:hover { background: var(--nb-pink); color: #211d17 !important; }
+
+.tag-drawer-body .tag-title {
+  color: var(--nb-ink-55) !important;
+  font-family: var(--font-display);
+  letter-spacing: .14em !important;
+}
+
+.tag-drawer-list .tag-chip {
+  border: 2px solid var(--nb-border) !important;
+  border-radius: 12px !important;
+  background: var(--nb-panel) !important;
+  color: var(--nb-ink) !important;
+  min-height: 44px;
+  transition: transform .14s ease, box-shadow .14s ease, background .14s ease !important;
+}
+
+.tag-drawer-list .tag-chip:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 3px 3px 0 var(--nb-hard);
+  padding-left: 10px !important;
+}
+
+.tag-drawer-list .tag-chip.active {
+  background: var(--nb-yellow) !important;
+  border-color: var(--nb-border) !important;
+  color: #211d17 !important;
+  box-shadow: 3px 3px 0 var(--nb-hard) !important;
+}
+
+.tag-drawer-list .tag-chip.active .tag-count { color: #211d17; opacity: .7; }
+.tag-drawer-list .tag-chip.active .tag-drawer-check { color: #211d17 !important; }
+
+/* ---------- 音乐抽屉 ---------- */
+.music-drawer {
+  background: var(--nb-panel) !important;
+  border-left: 3px solid var(--nb-border) !important;
+  box-shadow: -10px 0 0 var(--nb-hard) !important;
+}
+
+.music-drawer .drawer-header { border-bottom: 2px dashed var(--nb-ink-22) !important; }
+
+.music-drawer .drawer-title {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  letter-spacing: .06em;
+}
+
+.music-drawer .drawer-close {
+  border: 2px solid var(--nb-border);
+  border-radius: 10px;
+  background: var(--nb-panel);
+  box-shadow: 2.5px 2.5px 0 var(--nb-hard);
+  width: 30px;
+  height: 30px;
+  color: var(--nb-ink);
+}
+
+.music-drawer .drawer-close:hover { background: var(--nb-pink); color: #211d17; }
+
+.music-drawer .hw-pl-cover {
+  border: 2px solid var(--nb-border) !important;
+  border-radius: 12px !important;
+  box-shadow: 3px 3px 0 var(--nb-hard);
+}
+
+.music-drawer .hw-pl-title { font-family: var(--font-display); letter-spacing: .04em; font-size: 1rem; }
+
+.music-drawer .hw-btn { border-radius: 9px !important; }
+
+.music-drawer .hw-play {
+  border: 2px solid var(--nb-border) !important;
+  border-radius: 10px !important;
+  background: var(--color-primary) !important;
+  color: var(--color-primary-content) !important;
+  box-shadow: 3px 3px 0 var(--nb-hard);
+}
+
+.music-drawer .hw-play:hover {
+  background: var(--color-primary) !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--nb-hard);
+}
+
+.music-drawer .hw-progress {
+  height: 8px !important;
+  border: 2px solid var(--nb-border) !important;
+  border-radius: 999px !important;
+  background: var(--nb-panel-deep) !important;
+}
+
+.music-drawer .hw-progress::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--nb-border);
+  background: var(--nb-yellow);
+  border-radius: 50%;
+}
+
+.music-drawer .hw-progress::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--nb-border);
+  background: var(--nb-yellow);
+  border-radius: 50%;
+}
+
+.music-drawer .hw-pl-row { border-radius: 10px !important; }
+.music-drawer .hw-pl-row:hover { background: color-mix(in srgb, var(--nb-ink) 7%, transparent) !important; }
+.music-drawer .hw-pl-row.playing { background: color-mix(in srgb, var(--nb-yellow) 32%, transparent) !important; }
+
+.music-drawer .hw-pl-row-thumb {
+  border: 1.5px solid var(--nb-border) !important;
+  border-radius: 8px !important;
+}
+
+.music-drawer .hw-pl-list { border-top: 2px dashed var(--nb-ink-22) !important; }
+.music-drawer .hw-pl-view-lyrics { border-top: 2px dashed var(--nb-ink-22); border-bottom: 2px dashed var(--nb-ink-22); }
+
+/* ---------- 悬浮歌词窗 ---------- */
+.hw-lyrics-float {
+  border: 2.5px solid var(--nb-border) !important;
+  border-radius: 16px !important;
+  box-shadow: 6px 6px 0 var(--nb-hard) !important;
+}
+
+.hw-lyrics-float-bar { border-bottom: 2px dashed var(--nb-ink-22) !important; }
+
+/* ---------- 底部歌词药丸 ---------- */
+#headerLyricsBar > div {
+  border: 2.5px solid var(--nb-border) !important;
+  background: var(--nb-panel) !important;
+  box-shadow: 4px 4px 0 var(--nb-hard) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ---------- Ctrl+K 搜索 ---------- */
+.cmdk-panel {
+  background: var(--nb-panel) !important;
+  border: 3px solid var(--nb-border) !important;
+  border-radius: 20px !important;
+  box-shadow: 10px 10px 0 var(--nb-hard) !important;
+}
+
+.cmdk-input-row,
+.cmdk-memo-bar { border-bottom: 2px solid var(--nb-ink-22) !important; }
+
+.cmdk-item { border-radius: 12px !important; }
+
+.cmdk-item.active { background: var(--nb-yellow) !important; color: #211d17; }
+.cmdk-item.active mark { background: rgba(33, 29, 23, .2) !important; }
+.cmdk-item mark { background: color-mix(in srgb, var(--nb-pink) 45%, transparent) !important; }
+
+.cmdk-footer { border-top: 2px solid var(--nb-ink-22) !important; }
+
+.cmdk-footer .kbd {
+  border: 1.5px solid var(--nb-border) !important;
+  background: var(--nb-panel) !important;
+  box-shadow: 2px 2px 0 var(--nb-hard) !important;
+  border-radius: 6px;
+}
+
+/* ---------- toast ---------- */
+.wc-toast {
+  border: 2px solid var(--nb-border);
+  border-radius: 999px;
+  box-shadow: 4px 4px 0 var(--nb-hard);
+  font-weight: 600;
+}
+
+/* ---------- 深色图片亮度：所有内容图片统一 70% ---------- */
+/*
+ * 这里必须使用 !important：
+ * 页面前面的 #content img 规则，以及图片 hover 规则会互相覆盖。
+ * 统一在样式表最后明确指定，确保动态渲染出来的图片也遵循同一规则。
+ */
+html:is([data-theme="dark"], [data-theme="halloween"]) #content img,
+html:is([data-theme="dark"], [data-theme="halloween"]) #content img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-entry img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-entry img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-text img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-text img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-split img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-split img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .carousel-strip img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .carousel-strip img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .photo-item img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .photo-item img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .poster-card img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .poster-card img:hover {
   filter: brightness(.7) !important;
 }
 
-/* ㉛ 小屏·浅色：筛选后短列表底部白块的缓解（2026-09-15）
-     ------------------------------------------------------------
-     病根：iOS 26 工具栏是玻璃，展开态泡在"纯白"上会显出一块硬边白砖；
-           收起态泡在白上反而融（文哥原话"拉到底部就完美"）。
-           未筛选列表长 → URL 底下压着卡片(带图) → 玻璃模糊出颜色 → 融；
-           筛选后列表短 → URL 底下是一段 bare-white → 硬边白砖。
-     ------------------------------------------------------------
-     改法：给 .memo-list 垫一层"纸面"占位（::after，卡片同款近白+薄荷软投影），
-           列表短时 flex 撑满视口底部，URL 玻璃模糊时跟上面卡片同色 → 无白砖；
-           列表长时 flex:1 无多余空间 → 高度塌成 0，末尾不会多出空卡。
-     ⚠️ 只限浅色：深色下工具栏采样 #1c1c1e 本就融，占位层留透明(不可见)即可。
-     ⚠️ 这是缓解：极短纯文字列表展开态仍可能留一丝硬边（iOS 26 玻璃本身限制，
-           CSS 改不了"强制收起工具栏"）；收起态/滚动后均已完美。 */
-@media (max-width: 1023px) {
-  #content ul.memo-list {
-    display: flex;
-    flex-direction: column;
-    min-height: 100dvh;
-  }
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) #content ul.memo-list::after {
-    content: "";
-    flex: 1 1 auto;
-    min-height: 0;
-    background: linear-gradient(rgb(255 255 255/.93), rgb(255 255 255/.87));
-    border-radius: 16px;
-    margin: 0 2px;
-    box-shadow: 0 12px 28px rgb(24 78 62/.11);
-  }
+/* 点击图床 / Fancybox 灯箱中的原图同样保持 70% */
+html:is([data-theme="dark"], [data-theme="halloween"]) .fancybox__container img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .fancybox__content img {
+  filter: brightness(.7) !important;
 }
 
-/* ㉝ 小屏·深色：筛选后短列表的 URL 玻璃砖（2026-09-15，文哥截图 IMG_4818）
-     ------------------------------------------------------------
-     病根：跟 ㉛ 是同一个病，只是发生在深色 ——
-           未筛选列表长 → URL 玻璃底下压着卡片(带图) → 模糊出卡片色 → 融（IMG_4819 完美）；
-           筛选后列表短 → 玻璃底下只剩 bare #1c1c1e → iOS 26 展开态玻璃在纯净色上
-           显出一块可见的长方形边界（IMG_4818 的"方块包围 URL"）。
-           ㉛ 当时假设"深色采样 #1c1c1e 本就融"，被 IMG_4818 推翻（当时只验了浅色）。
-     改法：把 ㉛ 的"纸面"占位 ::after 补一个深色版 —— 深色卡片同款渐层
-           (6862 段 memo-card 的 rgb(47 44 38/.86)→rgb(38 36 31/.79))，
-           列表短时 flex 垫满视口底 → 玻璃模糊纸面色 = 纸面色 → 无边界；
-           列表长时 flex:1 无多余空间 → 高度塌成 0，末尾不会多出空卡。
-     ⚠️ 本机复现不了 iOS 玻璃（Chrome 里 100dvh==viewport）→ 待文哥复检，
-           验证路径同 ㉛：小屏深色、点标签筛选到只剩一两条、看底部 URL 栏。
-     🔙 回滚：删本段即可（㉛ 浅色段不受影响）。 */
-@media (max-width: 1023px) {
-  html:is([data-theme="dark"], [data-theme="halloween"]) #content ul.memo-list::after {
-    content: "";
-    flex: 1 1 auto;
-    min-height: 0;
-    background: linear-gradient(rgb(47 44 38/.86), rgb(38 36 31/.79));
-    border-radius: 16px;
-    margin: 0 2px;
-    box-shadow: 0 12px 28px rgb(0 0 0/.30);
-  }
-}
-
-/* ㉞ 抽屉遮罩关闭时撤出渲染树：治「开过标签抽屉后 URL 被方块包围」（2026-09-15 晚，文哥二刷 IMG_4818/4819）
-     ------------------------------------------------------------
-     文哥复现路径（推翻了 ㉝ 的"短列表纯色砖"诊断）：
-       只要**打开过标签抽屉**（PC 点「标签」菜单 / 手机右缘左滑），URL 玻璃立刻出方块；
-       跟筛不筛选无关；再右滑开菜单点「首页」（= SPA 重渲染，非浏览器刷新）→ 方块消失。
-     ------------------------------------------------------------
-     真凶：`.tag-drawer-overlay` / `.music-drawer-overlay` 是 fixed inset:0 **满屏贴边**
-       （距底 0px、宽 100%、高 100%），还带 backdrop-filter: blur(2px) + 暖/暗 tint ——
-       正是 iOS 26 边缘玻璃推导顺序①"贴视口边缘的 fixed 元素"的合格采样源。
-       抽屉一开（opacity 0→1）→ 底部玻璃把这层采进去 → URL 染色出边界；
-       关掉时旧代码只把 opacity 收回 0，**display 仍 block**（opacity:0 不会被采样器跳过），
-       而纯 opacity 过渡不触发 Safari 重新推导 → 染色一直挂着；
-       点「首页」触发 #content 重渲染（真·渲染变更）→ Safari 才重新推导、回根背景。
-       全新首屏没事 = 遮罩从没亮过、还没"案底"。（memory 里早标过这条隐患："若哪天
-       开过抽屉后工具栏变暗，先查这两条，药方：关闭时 display:none" —— 就是今天。）
-     ------------------------------------------------------------
-     改法（JS + 本段配合）：
-       · 本段：两个遮罩默认 display:none —— 首屏就不进渲染树；
-       · initTagDrawer show()/close()、音乐抽屉 openDrawer()/closeDrawer()：
-         开时 inline display:block + 强制 reflow 再加 .open（淡入照常）；
-         关时先摘 .open（淡出照播），300/320ms 后再 display:none。
-         display 变更本身是渲染树变更 → 触发 Safari 重新推导边缘色 → 染色当场清掉。
-       · display:none 是实测确认会被采样器跳过的状态（区别于 opacity:0）。
-     ⚠️ 抽屉面板本身清白：top/bottom/right 各留 10px(+safe-area) > 3px 采样门槛，不背锅。
-     ⚠️ 本机复现不了 iOS 玻璃 → 待文哥复检：开抽屉→关掉，看 URL 栏方块是否当场消失。
-     ⚠️ 若"抽屉开着的那几秒"玻璃染色仍在（开着时遮罩本就亮着，属合理），关后应立刻干净；
-        还嫌开着时碍眼，下一步才把遮罩底边抬 4px（bottom:4px 破"距边≤3px"门槛）。
-     🔙 回滚：删本段 + 把 initTagDrawer show()/close() 和音乐抽屉 openDrawer()/closeDrawer()
-        里四处「㉞ 配套」代码块删掉（恢复原函数体即可）。㉝ 深色纸面保留（跟本病无关）。 */
-.tag-drawer-overlay,
-.music-drawer-overlay {
-  display: none;
-}
-
-/* ㉟ 三层遮罩全透明化：撤掉"蒙版"本身，只留"点外面关门"的点击区（2026-09-15 晚，文哥原话：
-     「为啥要加个蒙版呢？干脆蒙版取消不就是了」）
-     ------------------------------------------------------------
-     ㉞ 修好后实测：抽屉一开 URL 玻璃立刻染出方块、关上就消 —— 证明开着的那几秒，
-       玻璃采的就是这层**看得见的**遮罩（半透明 tint + backdrop-filter 满屏贴边）。
-     蒙版为什么不能直接删 DOM：它是「点抽屉外面就关上」的点击区
-       （手机上抽屉 min(304px,84vw)，露出那 76px 就靠它接点击；overlay.onclick = close）。
-       删了 → 点外面会戳到下面的卡片/链接，抽屉还关不掉。
-     ------------------------------------------------------------
-     改法：三处遮罩的 background / backdrop-filter 全部撤掉（transparent + none），
-       点击区原样保留（pointer-events 开关、㉞ 的 display:none 机制都不动）：
-       · .tag-drawer-overlay      —— 压 917 基线 rgba(35,27,19,.24) 和 1256 深色 rgba(0,0,0,.38)
-       · .music-drawer-overlay    —— 压 622 基线 rgb(0 0 0/.35)
-       · 左菜单 daisyUI .drawer-overlay —— 压 6503（那边带 !important，
-         这里同选择器形状 + !important + 源码靠后取胜；桌面端它本来就 display:none(406)，无害）
-     效果：抽屉开着时 Safari 玻璃底下什么都采不到 → URL 不再染色；
-       代价是开抽屉时页面不再压暗（抽屉自己有玻璃卡背景 + 投影，照样分得开）。
-     🔙 回滚：删本段即恢复三层灰纱 + 模糊。 */
-.tag-drawer-overlay,
-.music-drawer-overlay {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-#appDrawer > .drawer-toggle ~ .drawer-side > .drawer-overlay {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* ㊱ 左菜单 .drawer-side：别开滚动容器 + 抬离底边 4px（2026-09-15 深夜，治「右滑出菜单还有蒙版」）
-     ------------------------------------------------------------
-     ㉟ 之后实测：标签/歌单抽屉全好了，唯独左菜单（daisyUI）开着时 URL 玻璃仍染色。
-     探针（禁过渡后开态实测）：底条上 daisyUI 比另两个抽屉多一个 `.drawer-side` ——
-       fixed 满视口（距底 0px、宽 100%、高 100dvh）、z-70、开着时 daisyUI 还给它
-       `overflow-y:auto`（= 一个满屏滚动容器）。它本身透明，但结构上是
-       「贴在底边上的满屏滚动层」——怀疑 iOS 26 玻璃推导把这层当成了"当前页面"，
-       读到透明背景 → 回退系统默认色 → 跟页面 #1c1c1e 之间显出边界（待复检的假设，
-       本机复现不了 iOS 玻璃；标签/歌单的遮罩只是满屏 fixed，不是滚动容器，所以没事）。
-     ------------------------------------------------------------
-     改法（双管齐下，都只碰 .drawer-side 这个容器，#appSidebar 面板一个字没动）：
-       ① overflow: hidden —— 摘掉 daisyUI 开态给的 overflow-y:auto，
-          不再当滚动容器（菜单列表滚动靠 #appSidebar 自己的 overflow:hidden auto(6481)，不受影响）；
-       ② height 100dvh → calc(100dvh - 4px) —— 整层抬离底边 4px，
-          破掉采样门槛"距边 ≤3px"。里面的遮罩是 sticky stretch、跟着矮 4px ——
-          底边那 4px 本来就被工具栏/Home 条挡着，点外面关门不受影响。
-     🔙 回滚：删本段。若这版还不行，下一步要文哥一张开菜单的截图逐像素量染色区。 */
-@media (max-width: 1023px) {
-  #appDrawer > .drawer-toggle ~ .drawer-side {
-    overflow: hidden !important;
-    height: calc(100dvh - 4px) !important;
-  }
-}
-
-
-/* Final mobile drawer and dark-view cleanup */
-@media (max-width: 1023px) {
-  #content ul.memo-list { min-height: 0 !important; }
-  #content ul.memo-list::after { content: none !important; display: none !important; }
-  #tagDrawerOverlay, #musicDrawerOverlay, #cmdkOverlay, #cmdkMemoModal {
-    background: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-  #tagDrawerOverlay, #musicDrawerOverlay {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 74 !important;
-  }
-  #tagBar, #musicDrawer {
-    z-index: 75 !important;
-    max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-  }
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) #content .hot-body > div > a,
-html:is([data-theme="dark"], [data-theme="halloween"]) #content .bm-body > div > a {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-html:is([data-theme="dark"], [data-theme="halloween"]) #content .hot-body > div > a:hover,
-html:is([data-theme="dark"], [data-theme="halloween"]) #content .bm-body > div > a:hover {
-  background: color-mix(in oklch, var(--color-base-content) 6%, transparent) !important;
-  box-shadow: none !important;
-}
-
-/* ㊵ 筛选栏最终修正：仅去掉外层 .filter-toolbar 方形底框，保留平台/分类药丸。 */
-#content .filter-toolbar {
-  background: transparent !important;
-  background-color: transparent !important;
-  border: 0 !important;
-  border-color: transparent !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-#content .filter-toolbar::before,
-#content .filter-toolbar::after {
-  content: none !important;
-  display: none !important;
-}
-/* 明确恢复药丸：不影响未选中、选中、hover 的原有颜色逻辑。 */
-#content .filter-toolbar .hot-tabs > .tag-chip,
-#content .filter-toolbar .bm-cats > .tag-chip {
-  display: inline-flex !important;
-  align-items: center !important;
-  border-radius: 999px !important;
-  border-width: 1px !important;
-  box-shadow: none !important;
-}
-#content .filter-toolbar .hot-tabs > .tag-chip.badge-ghost,
-#content .filter-toolbar .bm-cats > .tag-chip.badge-ghost {
-  background-color: color-mix(in oklch, var(--color-base-content) 5%, transparent) !important;
-  border-color: color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .hot-tabs > .tag-chip.badge-ghost,
-html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .bm-cats > .tag-chip.badge-ghost {
-  background-color: rgb(255 255 255 / .075) !important;
-  border-color: rgb(255 255 255 / .11) !important;
-}
-#content .filter-toolbar .hot-tabs > .tag-chip:hover,
-#content .filter-toolbar .bm-cats > .tag-chip:hover {
-  background-color: color-mix(in oklch, var(--color-base-content) 10%, transparent) !important;
-}
-html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .hot-tabs > .tag-chip:hover,
-html:is([data-theme="dark"],[data-theme="halloween"]) #content .filter-toolbar .bm-cats > .tag-chip:hover {
-  background-color: rgb(255 255 255 / .13) !important;
-}
-/* 列表 hover 不做整行“选中”卡片效果。 */
-#content .hot-body > div > a,#content .bm-body > div > a,#content .hot-body > div > a:hover,#content .bm-body > div > a:hover{border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important}
-#content .hot-body > div > a:hover,#content .bm-body > div > a:hover{background:color-mix(in oklch,var(--color-base-content) 4%,transparent)!important}
-html:is([data-theme="dark"],[data-theme="halloween"]) #content .hot-body > div > a:hover,html:is([data-theme="dark"],[data-theme="halloween"]) #content .bm-body > div > a:hover{background:rgb(255 255 255/.045)!important}
-/* 标签抽屉：仅保留清空与关闭。 */
-.tag-drawer-head{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:15px 18px 8px!important;border-bottom:0!important}.tag-drawer-clear{margin:0!important;padding:6px 8px!important;border-radius:999px!important}.tag-drawer-body{padding-top:4px!important}.tag-drawer-body>.tag-title{display:none!important}
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-overlay { background: rgba(0, 0, 0, .45); }
 </style>
 
 <script>
@@ -7570,175 +6190,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #content .hot-body > div >
     }
     renderLine(d.position, meta);
   });
-})();
-</script>
-
-<script>
-/* 刊头偈语「化灰」：把每个字包一层 span，再往字面撒几粒灰。
-   与 ⑮ 样式区配套。这里只做"一次性播种"——随机值写进内联自定义属性，
-   之后动画全部交给 CSS 无限循环，不再占用主线程（不跑 rAF）。
-   #masthead 初始是 .hidden，但这里不量尺寸、只按百分比定位，所以隐藏状态下播种也没问题。 */
-(() => {
-  const poem = document.querySelector('#masthead .mh-poem');
-  if (!poem || poem.dataset.ashReady) return;
-
-  const rnd = (a, b) => a + Math.random() * (b - a);
-  const perChar = window.matchMedia('(max-width: 640px)').matches ? 3 : 5; // 手机上别烧太旺
-  const PUNCT = '，。、；：！？…—「」『』（）《》,.;:!? ';  // 标点不撒灰
-
-  const chars = [];
-  poem.querySelectorAll('p').forEach((p) => {
-    const text = p.textContent;
-    p.textContent = '';
-    for (const ch of text) {
-      const s = document.createElement('span');
-      s.className = 'mh-ch';
-      s.textContent = ch;
-      // 每个字自己的灰化程度 + 明灭节奏，避免一整块同步呼吸（那会像闪烁）
-      s.style.setProperty('--o1', rnd(.78, 1).toFixed(3));
-      s.style.setProperty('--br-dur', rnd(5.2, 8.8).toFixed(2) + 's');
-      s.style.setProperty('--br-delay', (-rnd(0, 8.8)).toFixed(2) + 's');
-      p.appendChild(s);
-      chars.push(s);
-    }
-  });
-
-  chars.forEach((s) => {
-    if (PUNCT.includes(s.textContent)) return;
-    const n = perChar + (Math.random() < .45 ? 1 : 0);
-    for (let i = 0; i < n; i++) {
-      const em = document.createElement('i');
-      em.className = 'mh-em';
-      em.setAttribute('aria-hidden', 'true');
-      em.style.setProperty('--x', rnd(12, 88).toFixed(1) + '%');   // 出生点在字面之内
-      em.style.setProperty('--y', rnd(8, 92).toFixed(1) + '%');
-      em.style.setProperty('--s', rnd(1.5, 2.9).toFixed(2) + 'px');
-      em.style.setProperty('--dx', rnd(-11, 11).toFixed(1) + 'px');
-      // 大多数随热气流上浮，少数是慢慢沉落的冷灰（全往上飘会很假）
-      const down = Math.random() < .25;
-      em.style.setProperty('--dy', (down ? rnd(4, 18) : -rnd(24, 54)).toFixed(1) + 'px');
-      em.style.setProperty('--dur', rnd(5.5, 10.5).toFixed(2) + 's');
-      em.style.setProperty('--delay', (-rnd(0, 10.5)).toFixed(2) + 's'); // 负延迟 → 首屏就有灰在飘，不用等
-      em.style.setProperty('--peak', rnd(.42, .76).toFixed(3));
-      s.appendChild(em);
-    }
-  });
-
-  poem.dataset.ashReady = '1';
-})();
-</script>
-
-<script>
-/* ============================================================
-   手机端底部 Dock（样式见 ⑯ 段）
-   1) 「更多」= 打开左侧抽屉，和原来的面包按钮走同一条路（勾选 #appNavChk）
-   2) 音乐项的"正在播放"小点：侧栏那个是单 id 的 #musicDot，这里另起一个监听
-   3) 「更多」的选中态：当前视图不在 Dock 的 4 个 tab 里
-      （图片 / 看过 / 想看 / 标注 / 书签）时点亮，
-      用 MutationObserver 盯 dock 内 tab 的 class，不侵入 switchView
-   ============================================================ */
-(() => {
-  const dock = document.getElementById('mobileDock');
-  if (!dock) return;
-
-  const chk = document.getElementById('appNavChk');
-  const navBtn = document.getElementById('navToggleBtn');
-  const moreBtn = document.getElementById('dockMoreBtn');
-
-  /* ---------- 1) 更多 = 打开左侧抽屉 ---------- */
-  if (chk && moreBtn) {
-    moreBtn.addEventListener('click', () => {
-      chk.checked = true;
-      // 程序化勾选不触发原生 change → 手动补（initTagDrawer 的"直接带出标签抽屉"靠它）
-      chk.dispatchEvent(new Event('change', { bubbles: true }));
-      moreBtn.setAttribute('aria-expanded', 'true');
-      if (navBtn) navBtn.setAttribute('aria-expanded', 'true');
-    });
-    // 抽屉被遮罩 / 菜单项关掉时，把「更多」的 aria 状态同步回来
-    chk.addEventListener('change', () => moreBtn.setAttribute('aria-expanded', String(chk.checked)));
-  }
-
-  /* ---------- 2) 音乐播放小点 ---------- */
-  const dot = document.getElementById('dockMusicDot');
-  if (dot) {
-    document.addEventListener('hwplayer:update', (e) => {
-      dot.classList.toggle('hidden', !(e.detail && e.detail.isPlaying));
-    });
-  }
-
-  /* ---------- 3) 「更多」选中态 ---------- */
-  if (moreBtn) {
-    const items = [...dock.querySelectorAll('.tab-btn[data-view]')];
-    const syncMore = () => {
-      const anyActive = items.some((b) => b.classList.contains('active'));
-      moreBtn.classList.toggle('dock-more-on', !anyActive);
-    };
-    syncMore();
-    const mo = new MutationObserver(syncMore);
-    // 只盯 dock 内这几项：moreBtn 自己的 class 不在观察范围，不会自激
-    items.forEach((b) => mo.observe(b, { attributes: true, attributeFilter: ['class'] }));
-  }
-
-  /* ---------- 4) 上滑收起 / 下滑弹出（样式见 ⑰ 段） ----------
-     只挂一个 body 状态类，Dock / 回到顶部 / 歌词药丸一起动。
-     阈值 MIN_DELTA 是必须的：`scroll` 事件里同一方向的微小抖动会被误判成反向。 */
-  const mqMobile = window.matchMedia('(max-width: 1023px)');
-  const SHOW_ZONE  = 90;   // 距顶部这么近 → 永远显示
-  const BOTTOM_ZONE = 96;  // 距底部这么近 → 永远显示（#mainScroll 底部留白是 88px）
-  const MIN_DELTA  = 8;    // 方向判定门槛
-  let lastY = getScrollPos();
-  let asleep = false;
-
-  const setAsleep = (v) => {
-    if (v === asleep) return;
-    asleep = v;
-    document.body.classList.toggle('dock-asleep', v);
-  };
-
-  const onScroll = () => {
-    if (!mqMobile.matches) { setAsleep(false); return; }   // 桌面端不存在 Dock
-    const cur = getScrollPos();
-    if (cur <= SHOW_ZONE) {                 // 顶部这段永远显示（也省掉一次 scrollHeight 读取）
-      lastY = cur;
-      setAsleep(false);
-      return;
-    }
-    const d = cur - lastY;
-    if (d > MIN_DELTA) {
-      lastY = cur;
-      /* 只在"往下滚"这一支去读 scrollHeight —— 它会触发一次强制布局，
-         能少读就少读。到底部时强制显示：不然翻页条上方会空出一块。 */
-      const max = isBodyScroll()
-        ? document.documentElement.scrollHeight - window.innerHeight
-        : Math.max(0, mainScroll.scrollHeight - mainScroll.clientHeight);
-      setAsleep(cur < max - BOTTOM_ZONE);
-    } else if (d < -MIN_DELTA) {
-      lastY = cur;
-      setAsleep(false);
-    }
-  };
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  mainScroll.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', () => {
-    lastY = getScrollPos();
-    if (!mqMobile.matches) setAsleep(false);
-  });
-  mqMobile.addEventListener('change', () => {
-    lastY = getScrollPos();
-    setAsleep(false);
-  });
-})();
-</script>
-
-<script>
-/* 手机端：左侧右滑不触发；右侧左滑打开菜单；菜单中的标签从左侧打开。 */
-(() => {
-  const chk=document.getElementById('appNavChk'),mq=window.matchMedia('(max-width:1023px)');const EDGE=30,OPEN=44,CLOSE=56,KILL=16;let sx=0,sy=0,active=null;
-  const point=e=>(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]);const nav=v=>{if(!chk||chk.checked===v)return;chk.checked=v;chk.dispatchEvent(new Event('change',{bubbles:true}));};const tagOpen=()=>typeof window.isTagDrawerOpen==='function'&&window.isTagDrawerOpen();const tagClose=()=>{if(typeof window.closeTagDrawer==='function')window.closeTagDrawer();};
-  document.addEventListener('touchstart',e=>{active=null;if(!mq.matches||e.touches.length!==1)return;const t=point(e);if(!t)return;if(tagOpen())active='tag-close';else if(chk&&chk.checked)active='nav-close';else if(t.clientX>=innerWidth-EDGE)active='nav-open';else return;sx=t.clientX;sy=t.clientY;},{passive:true});
-  document.addEventListener('touchmove',e=>{if(!active)return;const t=point(e);if(!t)return;const dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dy)>KILL&&Math.abs(dy)>Math.abs(dx)){active=null;return;}if(Math.abs(dy)>=Math.abs(dx))return;if(active==='nav-open'&&dx<-OPEN){nav(true);active=null;}else if(active==='nav-close'&&dx<-CLOSE){nav(false);active=null;}else if(active==='tag-close'&&dx<-CLOSE){tagClose();active=null;}},{passive:true});
-  document.addEventListener('touchend',()=>active=null,{passive:true});document.addEventListener('touchcancel',()=>active=null,{passive:true});
 })();
 </script>
 
