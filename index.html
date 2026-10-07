@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#14151b" media="(prefers-color-scheme: dark)" />
-<meta name="theme-color" content="#fbf4e4" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -33,6 +33,12 @@
 
      <style>
   :root { color-scheme: light; --font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; --font-display: "ZCOOL QingKe HuangYou", "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; --font-num: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  /* 盒模型兜底：Tailwind CDN（@tailwindcss/browser）加载失败或很慢时 preflight 缺失，
+     .memo-card 这类「width:100% + 内边距 + 描边」的卡片会按 content-box 计算，
+     直接向右侧撑出容器、贴上甚至超出屏幕右边缘。这里显式声明与 Tailwind 一致的规则，
+     让版式不再依赖 CDN。 */
+  *, *::before, *::after { box-sizing: border-box; }
 
   /* ============ 主题配色：糖果贴纸（浅）/ 暗夜霓虹（深），跟随系统自动切换 ============ */
   :root,
@@ -653,14 +659,15 @@
     width: 85%; max-width: 400px; z-index: 70;
     background: var(--bg); color: var(--text);
     border-left: 1px solid var(--border-light);
-    box-shadow: -4px 0 24px rgb(0 0 0 / .12);
+    /* 关闭时无投影，避免在屏幕右缘留下一条竖边（见文末主题里的同名说明） */
+    box-shadow: none;
     transform: translateX(100%);
     transition: transform .35s cubic-bezier(.22, 1, .36, 1);
     display: flex; flex-direction: column;
     padding: calc(16px + env(safe-area-inset-top, 0px)) 12px calc(20px + env(safe-area-inset-bottom, 0px));
     overflow: hidden;
   }
-  .music-drawer.open { transform: translateX(0); }
+  .music-drawer.open { transform: translateX(0); box-shadow: -4px 0 24px rgb(0 0 0 / .12); }
   html:is([data-theme="dark"], [data-theme="halloween"]) .music-drawer {
     --img-brightness: .7;
     box-shadow: -4px 0 24px rgb(0 0 0 / .5);
@@ -980,9 +987,8 @@
     var(--journal-paper);
   color: var(--journal-ink);
   border-right: 1px solid rgba(83, 68, 48, .18);
-  box-shadow:
-    14px 0 36px rgba(48, 35, 22, .18),
-    2px 0 8px rgba(48, 35, 22, .08);
+  /* 关闭时无投影：抽屉在屏幕左侧之外，阴影会渗进左边留白 */
+  box-shadow: none;
   transform: translateX(-104%);
   transition: transform .38s cubic-bezier(.22, 1, .36, 1);
   overflow: hidden;
@@ -994,6 +1000,9 @@
 
 .tag-drawer.open {
   transform: translateX(0);
+  box-shadow:
+    14px 0 36px rgba(48, 35, 22, .18),
+    2px 0 8px rgba(48, 35, 22, .08);
 }
 
 .tag-drawer::after {
@@ -5304,6 +5313,8 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   --nb-bg: #fbf4e4;            /* 页面底色：奶油 */
   --nb-panel: #fffdf6;         /* 卡片 / 面板 */
   --nb-panel-deep: #fdf3d8;    /* 侧栏 / 凹槽 */
+  /* 顶栏单独用纯白：跟 iOS 浅色模式的状态栏 / 地址栏融成一片（不跟随页面奶油底） */
+  --nb-nav-bg: #ffffff;
   --nb-ink: #211d17;           /* 墨色（文字 / 描边 / 硬阴影） */
   --nb-border: #211d17;
   --nb-hard: #211d17;
@@ -5323,6 +5334,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   --nb-bg: #14151b;
   --nb-panel: #1e2029;
   --nb-panel-deep: #1a1c24;
+  --nb-nav-bg: #14151b;        /* 深色下顶栏仍与页面同色 */
   --nb-ink: #ece8db;
   --nb-border: rgba(236, 232, 219, .32);
   --nb-hard: rgba(0, 0, 0, .55);
@@ -5355,10 +5367,13 @@ body {
   left: 0;
   right: 0;
   z-index: 60;
-  background: color-mix(in srgb, var(--nb-panel) 88%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 2.5px solid var(--nb-border);
+  /* 顶栏底色走 --nb-nav-bg：浅色下固定纯白，跟 iOS 的状态栏 / 地址栏融成一片（页面本身仍是奶油底）；
+     不用半透明+高斯模糊，避免顶栏偏色出一条色带。 */
+  background-color: var(--nb-nav-bg);
+  background-image: radial-gradient(circle, var(--nb-dot) 1.3px, transparent 1.4px);
+  background-size: 22px 22px;
+  /* 只留一根发丝线做分隔，不再是 2.5px 墨色粗描边 */
+  border-bottom: 1px solid color-mix(in srgb, var(--nb-ink) 12%, transparent);
   padding-top: env(safe-area-inset-top, 0px);
   transition: transform .32s cubic-bezier(.22, 1, .36, 1);
 }
@@ -5575,6 +5590,13 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last
 /* 旧胶带伪元素彻底关闭，日期一律走 .memo-tape-date 贴纸 */
 .memo-card::before { display: none !important; }
 
+/* ---------- 硬阴影的右侧留白补偿 ----------
+   贴纸卡/海报卡的硬阴影统一朝右下偏移（卡片 7px、海报卡 5px），
+   而页面左右留白是对称的 16px —— 于是「卡片 + 阴影」的视觉重心整体右偏，
+   窄屏上尤其明显（卡片右侧像贴住了屏幕边）。这里把内容区右侧补回同样的偏移，
+   让含阴影在内的整块视觉重新居中；左侧留白、卡片宽度以外的排版均不变。 */
+#content { padding-right: 7px; }
+
 .memo-card .memo-text {
   font-size: 1.02rem !important;
   line-height: 1.9 !important;
@@ -5611,49 +5633,52 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   background: color-mix(in srgb, var(--tape, var(--nb-yellow)) 55%, var(--nb-panel));
 }
 
-/* ---------- 图片：拍立得贴纸框 ---------- */
+/* ---------- 图片：卡内图片扁平处理（一个容器里只留一层贴纸） ----------
+   卡片本身已经有 2.5px 墨线 + 硬阴影，图片再包一层等重描边就是「框套框」；
+   加上很多图（截图/地图/海报）自带边界，所以卡内图片只保留圆角，
+   贴纸感交给卡片、日期贴纸和标题笔触。图片页的照片墙不受影响。 */
 .memo-img-single-wrap {
-  border-radius: 16px !important;
-  padding: 8px !important;
-  background: var(--nb-panel) !important;
-  border: 2.5px solid var(--nb-border) !important;
-  box-shadow: 5px 5px 0 var(--nb-hard) !important;
-  transform: rotate(-.5deg);
-  transition: transform .2s ease;
+  border-radius: 12px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  overflow: hidden;
 }
 
-.memo-img-single-wrap:hover { transform: rotate(0deg); }
-.memo-img-single-wrap img { border-radius: 9px !important; }
+.memo-img-single-wrap img { border-radius: 12px !important; }
 
 .split-img {
-  padding: 8px !important;
-  background: var(--nb-panel) !important;
-  border: 2.5px solid var(--nb-border);
-  border-radius: 16px;
-  box-shadow: 5px 5px 0 var(--nb-hard);
-  transform: rotate(-.6deg);
-  transition: transform .2s ease;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  overflow: hidden;
 }
 
-.memo-split.rev .split-img { transform: rotate(.6deg); }
-.memo-split .split-img:hover { transform: rotate(0deg); }
-.split-img img { border-radius: 9px !important; height: 235px !important; }
+.memo-split.rev .split-img,
+.memo-split .split-img:hover { transform: none !important; }
+.split-img img { border-radius: 12px !important; height: 235px !important; }
 
-/* 多图横条：一排贴纸照片 */
-.carousel-strip { gap: 14px !important; padding: 8px 4px 14px !important; }
+/* 多图横条：同样扁平，只留圆角与间距 */
+.carousel-strip { gap: 10px !important; padding: 2px 4px 10px !important; }
 
 .carousel-strip .strip-item {
-  padding: 6px !important;
-  background: var(--nb-panel);
-  border: 2px solid var(--nb-border);
-  border-radius: 14px !important;
-  box-shadow: 4px 4px 0 var(--nb-hard);
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  overflow: hidden;
 }
 
-.carousel-strip .strip-item:nth-child(odd) { transform: rotate(-.5deg); }
-.carousel-strip .strip-item:nth-child(even) { transform: rotate(.5deg); }
+.carousel-strip .strip-item:nth-child(odd),
+.carousel-strip .strip-item:nth-child(even) { transform: none; }
 .carousel-strip .strip-item.pressed { transform: scale(.94); }
-.carousel-strip .strip-item img { border-radius: 8px !important; }
+.carousel-strip .strip-item img { border-radius: 12px !important; }
 
 /* ---------- 图片墙 ---------- */
 .photo-item a {
@@ -5800,8 +5825,12 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   background: var(--nb-bg) !important;
   color: var(--nb-ink) !important;
   border-right: 3px solid var(--nb-border) !important;
-  box-shadow: 14px 0 34px rgba(0, 0, 0, .18) !important;
+  /* 关闭时不留投影：抽屉是 translateX(-104%) 移到屏幕左侧之外，阴影不会被裁掉，
+     会在屏幕最左边糊出一条竖着的灰边。投影只在打开时给。 */
+  box-shadow: none !important;
 }
+
+.tag-drawer.open { box-shadow: 14px 0 34px rgba(0, 0, 0, .18) !important; }
 
 .tag-drawer::after { display: none !important; }
 
@@ -5889,9 +5918,15 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 /* ---------- 音乐抽屉 ---------- */
 .music-drawer {
   background: var(--nb-panel) !important;
-  border-left: 3px solid var(--nb-border) !important;
-  box-shadow: -10px 0 0 var(--nb-hard) !important;
+  /* 原来是 3px 墨色描边 + 打开时 -10px 的硬阴影，在左侧屏幕上就是一条厚厚的黑边；
+     改成发丝线 + 与标签抽屉一致的柔和投影，看着更像原生浮层。 */
+  border-left: 1px solid color-mix(in srgb, var(--nb-ink) 16%, transparent) !important;
+  /* 关闭时不留投影：抽屉是 translateX(100%) 移到屏幕右侧之外，但它自己的阴影不会被裁掉，
+     会在屏幕最右边永久留下一条整屏高的竖边。投影只在打开时给。 */
+  box-shadow: none !important;
 }
+
+.music-drawer.open { box-shadow: -14px 0 34px rgba(0, 0, 0, .18) !important; }
 
 .music-drawer .drawer-header { border-bottom: 2px dashed var(--nb-ink-22) !important; }
 
