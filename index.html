@@ -176,7 +176,27 @@
   }
   .strip-end { flex-shrink: 0; }
   @media (hover: hover) { .strip-item img:hover { filter: brightness(1.06); } }
-  .strip-count { position: absolute; top: 8px; right: 8px; z-index: 2; pointer-events: none; }
+  /* 多图指示圆点：当前张拉长成胶囊，其余为小圆点 */
+  .strip-dots {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    user-select: none;
+  }
+  .strip-dots.on { display: flex; }
+  .strip-dot {
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-base-content) 24%, transparent);
+    cursor: pointer;
+    transition: width .35s cubic-bezier(.34, 1.3, .64, 1), background-color .3s ease;
+  }
+  @media (hover: hover) { .strip-dot:hover { background: color-mix(in srgb, var(--color-base-content) 45%, transparent); } }
+  .strip-dot.active {
+    width: 22px;
+    background: var(--accent, var(--color-base-content));
+  }
   /* 手机端：多图条改为两列栅格铺满卡片宽度（PC 保持横向滑动） */
   @media (max-width: 640px) {
     .carousel-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; overflow: hidden; cursor: default; }
@@ -188,7 +208,7 @@
     }
     /* 最多展示 9 格，超出折叠；全部可见时无需计数徽章 */
     .carousel-strip .strip-item:nth-child(n + 10) { display: none; }
-    .strip-wrap .strip-count { display: none; }
+    .strip-dots { display: none !important; }  /* 手机端多图改九宫格全部可见，无需指示点 */
     /* 第 9 格 +N 覆盖层（N = 未展示张数），点击仍打开灯箱查看全部 */
     .carousel-strip .strip-item[data-more] { position: relative; cursor: pointer; }
     .carousel-strip .strip-item[data-more]::after {
@@ -1867,11 +1887,11 @@ function initFancybox() {
 
   return `
   <div class="strip-wrap mt-3">
+    <div class="strip-dots">${images.map((_, i) => `<span class="strip-dot" data-i="${i}"></span>`).join('')}</div>
     <div class="carousel-strip">
       ${items}
       <div class="strip-end w-1"></div>
     </div>
-    ${images.length > 2 ? `<span class="strip-count badge badge-sm bg-black/55 text-white border-none backdrop-blur-sm">1 / ${images.length}</span>` : ''}
   </div>`;
 }
    
@@ -1882,22 +1902,40 @@ function initCarousels(root) {
     strip.dataset.carouselInit = '1';
 
     const wrap = strip.closest('.strip-wrap');
-    const badge = wrap && wrap.querySelector('.strip-count');
+    const dotsWrap = wrap && wrap.querySelector('.strip-dots');
+    const dots = dotsWrap ? Array.from(dotsWrap.children) : [];
     const maxScroll = () => Math.max(0, strip.scrollWidth - strip.clientWidth);
     const itemW = () => {
       const first = strip.querySelector('.strip-item');
       return first ? first.getBoundingClientRect().width + 8 : strip.clientWidth * 0.72;
     };
 
-    if (badge) {
+    // 指示圆点：滚动到第几张，对应圆点拉长为胶囊；点击圆点滑到对应图
+    if (dotsWrap) {
       const update = () => {
-        const total = strip.querySelectorAll('.strip-item').length;
+        const total = dots.length;
+        if (!total) return;
+        const scrollable = strip.scrollWidth > strip.clientWidth + 4;
+        dotsWrap.classList.toggle('on', scrollable);
+        if (!scrollable) return;
         const i = strip.scrollLeft >= maxScroll() - 2
           ? total - 1
-          : Math.round(strip.scrollLeft / itemW());
-        badge.textContent = `${Math.min(Math.max(i + 1, 1), total)} / ${total}`;
+          : Math.min(total - 1, Math.max(0, Math.round(strip.scrollLeft / itemW())));
+        dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
       };
       strip.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+      window.addEventListener('resize', update);
+      strip.querySelectorAll('img').forEach(img => {
+        img.addEventListener('load', update);
+        img.addEventListener('error', update);
+      });
+      dotsWrap.addEventListener('click', e => {
+        const dot = e.target.closest('.strip-dot');
+        if (!dot) return;
+        const i = Number(dot.dataset.i) || 0;
+        glideTo(i >= dots.length - 1 ? maxScroll() : i * itemW());
+      });
+      update();
     }
 
     let down = false, startX = 0, startL = 0, moved = 0;
@@ -5326,6 +5364,8 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   --nb-green: #5fd68a;
   --nb-purple: #b18cff;
   --nb-dot: rgba(33, 29, 23, .09);
+  /* 页面壁纸：浅色模式（外部图床代理） */
+  --nb-wallpaper: url('https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperlight.png');
   /* 翻页器当前页强调色（参考图中的暖橙） */
   --pager-accent: #ef7c12;
 }
@@ -5346,15 +5386,22 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   --nb-green: #6fe09b;
   --nb-purple: #c0a4ff;
   --nb-dot: rgba(236, 232, 219, .06);
+  /* 页面壁纸：暗色模式（外部图床代理） */
+  --nb-wallpaper: url('https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperdark.png');
   --pager-accent: #ffab4d;
 }
 
-/* ---------- 页面底：奶油底 + 墨点网格 ---------- */
+/* ---------- 页面底：主题壁纸（浅色/暗色各一张，专为横向无缝循环设计） ---------- */
 html,
 body {
+  /* 壁纸未加载 / 加载失败时的兜底底色（浅色奶油 / 暗色墨黑） */
   background-color: var(--nb-bg) !important;
-  background-image: radial-gradient(circle, var(--nb-dot) 1.3px, transparent 1.4px) !important;
-  background-size: 22px 22px !important;
+  background-image: var(--nb-wallpaper) !important;
+  background-size: auto 100vh !important;      /* 高度撑满屏幕，宽度等比例缩放 */
+  background-size: auto 100dvh !important;      /* 支持动态视口高的浏览器（手机地址栏收展不跳变） */
+  background-repeat: repeat-x !important;       /* 高度已满，只在横向（x 轴）无缝重复平铺 */
+  background-attachment: fixed !important;      /* 滚动时背景固定不动，类似桌布效果 */
+  background-position: center top !important;   /* 居中对齐 */
   color: var(--nb-ink);
 }
 
