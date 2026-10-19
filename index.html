@@ -42,6 +42,16 @@
 *::before,
 *::after { box-sizing: border-box; }
 
+  /* .hidden 兜底：Tailwind 的 .hidden 是浏览器运行时 JS 现生成的，手机弱网下脚本
+     加载失败时它整个失效——明暗切换按钮的太阳/月亮会同时显示、底部歌词条（带跳动的
+     均衡器）会窜到页面顶部、音乐红点常驻。这里按 Tailwind 原定义兜底，不再依赖 CDN。 */
+  .hidden { display: none !important; }
+
+  /* 明暗图标双保险：不依赖 .hidden 类，直接由 data-theme 属性决定太阳/月亮谁显示，
+     就算 CDN 挂掉、类丢失也绝不同时出现两个图标（JS 未执行时默认只显示太阳）。 */
+  html:is([data-theme="dark"], [data-theme="halloween"]) .theme-icon-sun { display: none !important; }
+  html:not([data-theme="dark"]):not([data-theme="halloween"]) .theme-icon-moon { display: none !important; }
+
   /* ============ 主题配色：糖果贴纸（浅）/ 暗夜霓虹（深），跟随系统自动切换 ============ */
   :root,
 [data-theme="light"] {
