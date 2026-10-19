@@ -23,7 +23,7 @@
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
@@ -32,17 +32,19 @@
 <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
 
      <style>
-  :root { color-scheme: light; --font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; --font-display: "ZCOOL QingKe HuangYou", "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; --font-num: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  :root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; --font-display: var(--font-family); --font-num: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
 
   /* 盒模型兜底：Tailwind CDN（@tailwindcss/browser）加载失败或很慢时 preflight 缺失，
      .memo-card 这类「width:100% + 内边距 + 描边」的卡片会按 content-box 计算，
      直接向右侧撑出容器、贴上甚至超出屏幕右边缘。这里显式声明与 Tailwind 一致的规则，
      让版式不再依赖 CDN。 */
-  *, *::before, *::after { box-sizing: border-box; }
+  *,
+*::before,
+*::after { box-sizing: border-box; }
 
   /* ============ 主题配色：糖果贴纸（浅）/ 暗夜霓虹（深），跟随系统自动切换 ============ */
   :root,
-  [data-theme="light"] {
+[data-theme="light"] {
     color-scheme: light;
     --color-base-100: oklch(97.5% 0.014 95);
     --color-base-200: oklch(94.5% 0.024 95);
@@ -67,7 +69,7 @@
   }
   /* 深色：墨蓝炭底 + 霓虹糖果色 */
   [data-theme="halloween"],
-  [data-theme="dark"] {
+[data-theme="dark"] {
     color-scheme: dark;
     --color-base-100: oklch(21% 0.016 265);
     --color-base-200: oklch(18% 0.016 265);
@@ -90,7 +92,8 @@
     --color-error: oklch(72% 0.17 25);
     --color-error-content: oklch(22% 0.03 25);
   }
-  [data-theme="dark"], [data-theme="halloween"] { color-scheme: dark; }
+  [data-theme="dark"],
+[data-theme="halloween"] { color-scheme: dark; }
   html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
   body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
@@ -101,12 +104,12 @@
 
   /* ============ 图片墙（Masonry.js 瀑布流） ============ */
   .photo-sizer,
-  .photo-item {
+.photo-item {
     width: 33.3333%;
   }
   @media (max-width: 640px) {
     .photo-sizer,
-    .photo-item {
+.photo-item {
       width: 50%;
     }
   }
@@ -131,19 +134,10 @@
 
   /* ============ Threads 风格横向图片条 ============ */
   .strip-wrap { position: relative; }
-  .carousel-strip {
-    display: flex;
-    align-items: center;   /* 各图按自身高度自适应，垂直居中，避免拉伸出留白 */
-    gap: 8px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    cursor: grab;
-  }
-  .carousel-strip::-webkit-scrollbar { display: none; }
-  .carousel-strip.dragging { cursor: grabbing; }
-  .carousel-strip.dragging img { pointer-events: none; }
+  
+  
+  
+  
   /* Threads 风格：各图按原始比例完整显示，只限制最大尺寸；盒子随图自适应，不会出现上下留白 */
   .strip-item {
     position: relative;
@@ -174,50 +168,26 @@
     transform: scale(.94);
     transition: transform .12s ease-out;
   }
-  .strip-end { flex-shrink: 0; }
+  
   @media (hover: hover) { .strip-item img:hover { filter: brightness(1.06); } }
   /* 多图指示圆点：当前张拉长成胶囊，其余为小圆点 */
-  .strip-dots {
-    display: none;
-    align-items: center;
-    gap: 6px;
-    margin: 0 0 8px;
-    user-select: none;
-  }
-  .strip-dots.on { display: flex; }
-  .strip-dot {
-    width: 6px; height: 6px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--color-base-content) 24%, transparent);
-    cursor: pointer;
-    transition: width .35s cubic-bezier(.34, 1.3, .64, 1), background-color .3s ease;
-  }
-  @media (hover: hover) { .strip-dot:hover { background: color-mix(in srgb, var(--color-base-content) 45%, transparent); } }
-  .strip-dot.active {
-    width: 22px;
-    background: var(--accent, var(--color-base-content));
-  }
+  
+  
+  
+  
+  
   /* 手机端：多图条改为两列栅格铺满卡片宽度（PC 保持横向滑动） */
   @media (max-width: 640px) {
-    .carousel-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; overflow: hidden; cursor: default; }
-    .carousel-strip .strip-end { display: none; }
-    .carousel-strip .strip-item { min-width: 0; min-height: 0; }
-    .carousel-strip .strip-item img {
-      width: 100%; height: auto; max-height: none;
-      aspect-ratio: 4 / 3; object-fit: cover;
-    }
+    
+    
+    
+    
     /* 最多展示 9 格，超出折叠；全部可见时无需计数徽章 */
-    .carousel-strip .strip-item:nth-child(n + 10) { display: none; }
-    .strip-dots { display: none !important; }  /* 手机端多图改九宫格全部可见，无需指示点 */
+    
+      /* 手机端多图改九宫格全部可见，无需指示点 */
     /* 第 9 格 +N 覆盖层（N = 未展示张数），点击仍打开灯箱查看全部 */
-    .carousel-strip .strip-item[data-more] { position: relative; cursor: pointer; }
-    .carousel-strip .strip-item[data-more]::after {
-      content: '+' attr(data-more);
-      position: absolute; inset: 0; z-index: 2;
-      display: flex; align-items: center; justify-content: center;
-      background: rgb(0 0 0 / .45); color: #fff;
-      font-size: 1.4rem; font-weight: 700;
-    }
+    
+    
   }
   .hw-lyrics-float {
     position: fixed; z-index: 80;
@@ -292,14 +262,19 @@
     background: color-mix(in oklch, var(--color-primary) 22%, transparent);
   }
   .memo-text a::after {
-    content: '↗';
+    content: "↗";
     font-size: .78em;
     margin-left: 1px;
     opacity: .55;
   }
 
   /* ============ Markdown 渲染样式 ============ */
-  .memo-text h1, .memo-text h2, .memo-text h3, .memo-text h4, .memo-text h5, .memo-text h6 {
+  .memo-text h1,
+.memo-text h2,
+.memo-text h3,
+.memo-text h4,
+.memo-text h5,
+.memo-text h6 {
     font-weight: 700; line-height: 1.4; margin: 0.9em 0 0.45em;
   }
   .memo-text h1 { font-size: 1.45em; }
@@ -313,8 +288,8 @@
     padding: .1em .45em .16em .5em;
   }
   .memo-text h2::before,
-  .memo-text h2::after {
-    content: '';
+.memo-text h2::after {
+    content: "";
     position: absolute;
     z-index: -1;
     filter: blur(5px);
@@ -343,7 +318,9 @@
     text-underline-offset: 5px;
   }
 
-  .memo-text h4, .memo-text h5, .memo-text h6 { font-size: 1.05em; }
+  .memo-text h4,
+.memo-text h5,
+.memo-text h6 { font-size: 1.05em; }
   /* #### 波浪线 */
   .memo-text h4 {
     text-decoration: underline wavy var(--color-accent);
@@ -351,7 +328,8 @@
     text-underline-offset: 5px;
   }
   .memo-text p { margin: 0.5em 0; }
-  .memo-text ul, .memo-text ol { margin: 0.5em 0; padding-left: 1.4em; }
+  .memo-text ul,
+.memo-text ol { margin: 0.5em 0; padding-left: 1.4em; }
   .memo-text ul { list-style: disc; }
   .memo-text ol { list-style: decimal; }
   .memo-text li { margin: 0.2em 0; }
@@ -370,7 +348,8 @@
   }
   .memo-text pre code { background: transparent; padding: 0; border-radius: 0; font-size: .86em; line-height: 1.6; }
   .memo-text table { border-collapse: collapse; margin: 0.7em 0; width: 100%; font-size: .95em; }
-  .memo-text th, .memo-text td { border: 1px solid rgb(128 128 128 / .35); padding: 0.4em 0.7em; text-align: left; }
+  .memo-text th,
+.memo-text td { border: 1px solid rgb(128 128 128 / .35); padding: 0.4em 0.7em; text-align: left; }
   .memo-text th { background: rgb(128 128 128 / .12); font-weight: 600; }
   .memo-text hr { border: none; border-top: 1px solid rgb(128 128 128 / .35); margin: 1em 0; }
   .memo-text img { max-width: 100%; border-radius: 10px; }
@@ -435,9 +414,9 @@
 
   /* 侧栏菜单项（参考图样式：圆角行 + 主题色高亮 + 左侧指示条） */
   #appSidebar .menu li > a,
-  #appSidebar .menu li > summary,
-  #appSidebar .menu li > button,
-  #appSidebar .menu li > label {
+#appSidebar .menu li > summary,
+#appSidebar .menu li > button,
+#appSidebar .menu li > label {
     border-radius: .75rem;
     font-weight: 500;
     padding-block: .4375rem;
@@ -448,7 +427,7 @@
   }
   #appSidebar .menu > li { position: relative; }
   #appSidebar .menu > li:has(> .tab-btn.active)::before {
-    content: '';
+    content: "";
     position: absolute;
     left: -.75rem;
     top: 50%;
@@ -542,7 +521,7 @@
   #appSidebar .menu > li { position: relative; }
   /* 激活项左侧竖条指示（圆角短棒，骑在条目左缘） */
   #appSidebar .menu > li:has(> .tab-btn.active)::before {
-    content: '';
+    content: "";
     position: absolute;
     left: -10px;
     top: 50%;
@@ -599,7 +578,7 @@
     box-shadow: 0 2px 14px color-mix(in oklch, var(--color-base-content) 7%, transparent);
   }
   .memo-card::before {
-    content: ''; position: absolute; z-index: 2; top: -9px; left: 24px;
+    content: ""; position: absolute; z-index: 2; top: -9px; left: 24px;
     width: 62px; height: 18px; transform: rotate(-2deg);
     background: color-mix(in oklch, var(--tape, var(--color-primary)) 26%, transparent);
     box-shadow: 0 1px 2px rgb(0 0 0 / .07);
@@ -611,23 +590,20 @@
   }
 
   /* 单图说说：图文左右分栏（按条目稳定随机左右），标签跟在文字下方 */
-  .memo-split { display: grid; grid-template-columns: 5fr 7fr; gap: 22px; align-items: center; }
-  .memo-split.rev { grid-template-columns: 7fr 5fr; }
-  .memo-split.rev .split-img { order: 2; }
-  .memo-split.rev .split-text { order: 1; }
-  .split-img img { width: 100%; height: 230px; object-fit: cover; cursor: zoom-in; display: block; }
-  .memo-split .split-text .memo-text { font-size: 1.02rem; }
-  @media (max-width: 640px) {
-    .memo-split, .memo-split.rev { grid-template-columns: 1fr; gap: 12px; }
-    .memo-split.rev .split-img { order: 0; }
-    .split-img img { height: auto; }
-  }
+  
+  
+  
+  
+  
+  
+  
 
   /* 弹窗里的单条说说（无时间线轨道） */
   .memo-entry { max-width: 760px; margin: 0 auto; }
 
   @media (max-width: 640px) {
-    .memo-bubble, .sk-bubble { width: 42px; height: 42px; }
+    .memo-bubble,
+.sk-bubble { width: 42px; height: 42px; }
   }
 
   /* ====== 刊头「花镜」偈（仅说说视图） ====== */
@@ -759,8 +735,12 @@
   .music-drawer .hw-btn svg { display: block; }
   .music-drawer .hw-play { width: 34px; height: 30px; border-radius: 6px; background: var(--accent); color: var(--color-primary-content, #fff); }
   .music-drawer .hw-play:hover { background: var(--accent-dark); }
-  .music-drawer .hw-pl-shuffle, .music-drawer .hw-pl-repeat, .music-drawer .hw-pl-lyrics-toggle { color: var(--text-muted); }
-  .music-drawer .hw-pl-shuffle.active, .music-drawer .hw-pl-repeat.active, .music-drawer .hw-pl-lyrics-toggle.active { color: var(--accent); }
+  .music-drawer .hw-pl-shuffle,
+.music-drawer .hw-pl-repeat,
+.music-drawer .hw-pl-lyrics-toggle { color: var(--text-muted); }
+  .music-drawer .hw-pl-shuffle.active,
+.music-drawer .hw-pl-repeat.active,
+.music-drawer .hw-pl-lyrics-toggle.active { color: var(--accent); }
   .music-drawer .hw-repeat-badge {
     position: absolute; bottom: -2px; right: -2px;
     width: 14px; height: 14px; border-radius: 50%;
@@ -787,7 +767,8 @@
   .music-drawer .hw-pl-row-artist { font-size: .68rem; color: var(--secondary-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .music-drawer .hw-pl-row-playicon { flex: 0 0 14px; text-align: center; color: var(--accent); opacity: 0; }
   .music-drawer .hw-pl-row.playing .hw-pl-row-playicon { opacity: 1; }
-  .music-drawer .hw-pl-loading, .music-drawer .hw-pl-error { text-align: center; padding: 16px 8px; color: var(--secondary-text); font-size: .82rem; margin: auto; }
+  .music-drawer .hw-pl-loading,
+.music-drawer .hw-pl-error { text-align: center; padding: 16px 8px; color: var(--secondary-text); font-size: .82rem; margin: auto; }
   .music-drawer .hw-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(var(--img-brightness)); }
 
   @media (max-width: 640px) {
@@ -798,25 +779,9 @@
   }
 
   /* ============ 单图等比显示（参考 Threads：按原始比例呈现，不强行拉满容器宽度） ============ */
-  .memo-img-single-wrap {
-    display: inline-block;
-    max-width: 100%;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid rgb(128 128 128 / .12);
-    background: rgb(128 128 128 / .08);
-    box-shadow: 0 1px 4px rgb(0 0 0 / .06);
-  }
-  .memo-img-single-wrap img {
-    display: block;
-    width: auto; height: auto;
-    max-width: 100%;
-    max-height: min(62vh, 480px);
-    cursor: zoom-in;
-  }
-  html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hover img {
-    filter: brightness(.85);
-  }
+  
+  
+  
 
   /* ============ iOS 安全区适配 ============ */
   /* 100vh 在 iOS Safari 里包含地址栏高度，底部内容会被压在工具栏下面；改用动态视口高度（不支持的旧浏览器自动回退 h-screen 的 100vh） */
@@ -1346,10 +1311,16 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 }
 
 </style>
+<link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" />
 </head>
 <body class="min-h-screen paper-bg text-base-content">
 
-<!-- ============ 顶部悬浮导航：品牌 + 居中菜单 + 功能图标；下滑隐藏，上滑出现 ============ -->
+
+
+<main id="mainScroll">
+  <div class="page-container">
+
+    <!-- ============ 顶部悬浮导航：品牌 + 居中菜单 + 功能图标；下滑隐藏，上滑出现 ============ -->
 <header id="topBar">
   <div class="topbar-inner">
     <div class="topbar-brand">
@@ -1391,8 +1362,6 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   </div>
 </header>
 
-<main id="mainScroll">
-  <div class="page-container">
 
     <!-- 刊头（仅说说视图）：花镜偈 -->
     <div id="masthead" class="hidden">
@@ -1693,7 +1662,7 @@ const $ = sel => document.querySelector(sel);
 // ========== 滚动管理器（兼容 body 滚动与 #mainScroll 滚动） ==========
 const SCROLL_BREAKPOINT = 1024; // 与 tailwind lg: 对齐
 function isBodyScroll() {
-  return true;   // 顶部悬浮导航布局：全尺寸统一走 window 滚动
+  return false;   // 猎魔人档案布局：全尺寸统一在固定外框 #mainScroll 内滚动
 }
 function getScrollPos() {
   if (isBodyScroll()) return window.scrollY;
@@ -1843,7 +1812,6 @@ function initFancybox() {
     const group = trigger.getAttribute('data-fancybox') || 'gallery';
     // 排除手机端 +N 覆盖格（div），它只是灯箱入口，本身不算一页
     const items = [...document.querySelectorAll(`[data-fancybox="${group}"]`)]
-      .filter(a => !a.classList.contains('strip-item'))
       .map(a => ({
         src: a.getAttribute('href') || a.getAttribute('data-src') || '',
         caption: a.getAttribute('data-caption') || '',
@@ -1860,155 +1828,12 @@ function initFancybox() {
 ============================================================ */
    function renderImages(images, group) {
   if (!images.length) return '';
-  const g = group || 'gallery';
-
-  if (images.length === 1) {
-    const img = images[0];
-    return `
-    <div class="memo-img-single-wrap mt-3">
-      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy" decoding="async"
-           data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
-           data-caption="${escapeHtml(img.alt || '')}" />
-    </div>`;
-  }
-
+  const g = escapeHtml(String(group || 'gallery'));
   const items = images.map((img, i) => {
-    // 手机端九宫格：超过 9 张时第 9 格标记 +N（N 为未展示数）；格子自带灯箱属性，点击可查看全部
-    const more = images.length > 9 && i === 8
-      ? ` data-more="${images.length - 8}" data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}"`
-      : '';
-    return `
-    <div class="strip-item rounded-xl overflow-hidden bg-base-300/50"${more}>
-      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
-           data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
-           data-caption="${escapeHtml(img.alt || '')}" />
-    </div>`;
+    const more = images.length > 9 && i === 8 ? ` data-more="${images.length - 9}"` : '';
+    return `<div class="strip-item"${more}><img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async" data-fancybox="${g}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}" /></div>`;
   }).join('');
-
-  return `
-  <div class="strip-wrap mt-3">
-    <div class="strip-dots">${images.map((_, i) => `<span class="strip-dot" data-i="${i}"></span>`).join('')}</div>
-    <div class="carousel-strip">
-      ${items}
-      <div class="strip-end w-1"></div>
-    </div>
-  </div>`;
-}
-   
-   
-function initCarousels(root) {
-  root.querySelectorAll('.carousel-strip').forEach(strip => {
-    if (strip.dataset.carouselInit) return;
-    strip.dataset.carouselInit = '1';
-
-    const wrap = strip.closest('.strip-wrap');
-    const dotsWrap = wrap && wrap.querySelector('.strip-dots');
-    const dots = dotsWrap ? Array.from(dotsWrap.children) : [];
-    const maxScroll = () => Math.max(0, strip.scrollWidth - strip.clientWidth);
-    const itemW = () => {
-      const first = strip.querySelector('.strip-item');
-      return first ? first.getBoundingClientRect().width + 8 : strip.clientWidth * 0.72;
-    };
-
-    // 指示圆点：滚动到第几张，对应圆点拉长为胶囊；点击圆点滑到对应图
-    if (dotsWrap) {
-      const update = () => {
-        const total = dots.length;
-        if (!total) return;
-        const scrollable = strip.scrollWidth > strip.clientWidth + 4;
-        dotsWrap.classList.toggle('on', scrollable);
-        if (!scrollable) return;
-        const i = strip.scrollLeft >= maxScroll() - 2
-          ? total - 1
-          : Math.min(total - 1, Math.max(0, Math.round(strip.scrollLeft / itemW())));
-        dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
-      };
-      strip.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
-      window.addEventListener('resize', update);
-      strip.querySelectorAll('img').forEach(img => {
-        img.addEventListener('load', update);
-        img.addEventListener('error', update);
-      });
-      dotsWrap.addEventListener('click', e => {
-        const dot = e.target.closest('.strip-dot');
-        if (!dot) return;
-        const i = Number(dot.dataset.i) || 0;
-        glideTo(i >= dots.length - 1 ? maxScroll() : i * itemW());
-      });
-      update();
-    }
-
-    let down = false, startX = 0, startL = 0, moved = 0;
-    let samples = [];
-    let cancelGlide = null;
-    let pressedItem = null;
-
-    const releasePress = () => {
-      if (pressedItem) {
-        pressedItem.classList.remove('pressed');
-        pressedItem = null;
-      }
-    };
-
-    const glideTo = target => {
-      const to = Math.max(0, Math.min(target, maxScroll()));
-      const from = strip.scrollLeft;
-      const dist = Math.abs(to - from);
-      if (dist < 1) return;
-      if (cancelGlide) cancelGlide();
-      const duration = Math.min(200 + dist * 0.55, 550);
-      cancelGlide = animateValue(from, to, duration, v => { strip.scrollLeft = v; }, () => {
-        cancelGlide = null;
-      });
-    };
-
-    strip.addEventListener('pointerdown', e => {
-      pressedItem = e.target.closest('.strip-item');
-      if (pressedItem) pressedItem.classList.add('pressed');
-
-      if (e.pointerType === 'touch') return;
-      if (cancelGlide) { cancelGlide(); cancelGlide = null; }
-      down = true; moved = 0;
-      startX = e.clientX; startL = strip.scrollLeft;
-      samples = [{ x: e.clientX, t: performance.now() }];
-    });
-    strip.addEventListener('pointermove', e => {
-      if (!down) return;
-      const dx = e.clientX - startX;
-      moved = Math.max(moved, Math.abs(dx));
-      if (moved > 4) {
-        strip.classList.add('dragging');
-        try { strip.setPointerCapture(e.pointerId); } catch {}
-      }
-      strip.scrollLeft = startL - dx;
-      samples.push({ x: e.clientX, t: performance.now() });
-      if (samples.length > 6) samples.shift();
-    });
-    const up = () => {
-      releasePress();
-      if (!down) return;
-      down = false;
-      strip.classList.remove('dragging');
-      if (moved > 8) strip.dataset.justDragged = '1';
-      let v = 0;
-      if (samples.length >= 2) {
-        const a = samples[0], b = samples[samples.length - 1];
-        const dt = b.t - a.t;
-        if (dt > 0) v = (b.x - a.x) / dt;
-      }
-      glideTo(strip.scrollLeft - v * 220);
-    };
-    strip.addEventListener('pointerup', up);
-    strip.addEventListener('pointercancel', up);
-    strip.addEventListener('pointerleave', up);
-    strip.addEventListener('click', e => {
-      if (strip.dataset.justDragged) {
-        delete strip.dataset.justDragged;
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }, true);
-  });
+  return `<div class="strip-wrap mt-3"><div class="memo-image-grid" data-count="${images.length}">${items}</div></div>`;
 }
 
 // 横向拖拽滚动（PC 端鼠标拖拽，移动端走原生触摸滚动）
@@ -2125,7 +1950,7 @@ function tapePlacement(m) {
   };
 }
 
-function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = false, rev = false } = {}) {
+function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
   let images = imgs;
@@ -2137,22 +1962,8 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = 
   const anim = `animation-delay:${Math.min(idx * 40, 400)}ms`;
   const textDiv = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>`;
 
-  let body;
-  if (single) {
-    // 单图：图文左右分栏（连续单图左右交替，方向由 loadSayPage 传入）
-    const img = images[0];
-    body = `
-    <div class="memo-split${rev ? ' rev' : ''}">
-      <div class="split-img">
-        <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async"
-             data-fancybox="${escapeHtml(String(m.id || 'gallery'))}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}" />
-      </div>
-      <div class="split-text">${textDiv}</div>
-    </div>`;
-  } else {
-    body = `${textDiv}
-    ${renderImages(images, m.id)}`;
-  }
+  const body = `${textDiv}
+${renderImages(images, m.id)}`;
 
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
@@ -2529,7 +2340,6 @@ $('#clearTagsBtn').onclick = () => {
 /* ---------- 说说：加载与无限滚动 ---------- */
 function bindCardInteractions() {
   contentEl.querySelectorAll('.memo-tag').forEach(el => { el.onclick = () => toggleTag(el.dataset.tag); });
-  initCarousels(contentEl);
 }
 
 function resetSay() {
@@ -2542,13 +2352,11 @@ function resetSay() {
 }
 
 // 单图分栏方向：每渲染一张单图就翻转一次，保证连续的单图说说左右交替
-let splitFlip = 0;
 const MEMO_LIST_UL = '<ul class="memo-list">';
 
 async function loadSayPage(page, { replace = false } = {}) {
   if (state.loading) return;
   state.loading = true;
-  if (replace) { splitFlip = 0; }
   if (!replace) $('#loadingMore').classList.remove('hidden');
 
   try {
@@ -2566,9 +2374,8 @@ async function loadSayPage(page, { replace = false } = {}) {
       const imgs = parsed.images.length ? parsed.images
         : (Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : []);
       // 连续单图说说：左右交替（计数器只在单图时翻转）
-      const single = imgs.length === 1;
-      const rev = single ? (splitFlip++ % 2 === 1) : false;
-      return memoCard(m, i, { parsed, imgs, single, rev });
+
+      return memoCard(m, i, { parsed, imgs });
     }).join('');
     if (replace) {
       const hasData = res.data && res.data.length;
@@ -2606,7 +2413,7 @@ const observer = new IntersectionObserver(entries => {
 /* root 用视口（null）：桌面端 mainScroll 是内部滚动容器、手机端由 body 滚动，
    两种模式下哨兵相对视口的位置都会随滚动变化，观察器都能正确触发；
    若 root 固定为 mainScroll，手机端它不是滚动容器、永远包含哨兵，交叉状态不变导致下拉加载失效 */
-}, { rootMargin: '400px' });
+}, { root: mainScroll, rootMargin: '400px' });
 observer.observe($('#sentinel'));
 
 /* ---------- 图片墙：聚合所有说说的图片 ---------- */
@@ -4037,7 +3844,6 @@ function cmdkExec(idx) {
     if (!m) return;
     const body = $('#cmdkMemoBody');
     body.innerHTML = `<div class="px-2">${memoCard(m, 0, { plain: true })}</div>`;
-    initCarousels(body);   // 弹窗内的多图条需要单独初始化拖拽与计数
     $('#cmdkMemoModal').classList.add('open');
     body.scrollTop = 0;
   } else if (it.url) {
@@ -4128,22 +3934,15 @@ function updateToTop() {
   toTop.style.opacity = show ? '1' : '0';
   toTop.style.pointerEvents = show ? 'auto' : 'none';
 }
-window.addEventListener('scroll', updateToTop, { passive: true });
 mainScroll.addEventListener('scroll', updateToTop, { passive: true });
 window.addEventListener('resize', updateToTop);
 toTop.onclick = () => scrollToTop({ behavior: 'smooth' });
 
-// ========== 顶部悬浮导航：下滑隐藏，上滑出现 ==========
-(function initAutoHideBar() {
+// ========== 顶部悬浮导航：保持稳定，不再根据滚动方向反复隐藏/显示 ==========
+(function initStableBar() {
   const bar = document.getElementById('topBar');
   if (!bar) return;
-  let lastY = window.scrollY;
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    if (y > lastY && y > 140) bar.classList.add('bar-hidden');
-    else bar.classList.remove('bar-hidden');
-    lastY = y;
-  }, { passive: true });
+  bar.classList.remove('bar-hidden');
 })();
 
 /* ---------- 启动 ---------- */
@@ -5365,7 +5164,7 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   --nb-purple: #b18cff;
   --nb-dot: rgba(33, 29, 23, .09);
   /* 页面壁纸：浅色模式（外部图床代理） */
-  --nb-wallpaper: url('https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperlight.png');
+  --nb-wallpaper: url("https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperlight.png");
   /* 翻页器当前页强调色（参考图中的暖橙） */
   --pager-accent: #ef7c12;
 }
@@ -5387,7 +5186,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   --nb-purple: #c0a4ff;
   --nb-dot: rgba(236, 232, 219, .06);
   /* 页面壁纸：暗色模式（外部图床代理） */
-  --nb-wallpaper: url('https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperdark.png');
+  --nb-wallpaper: url("https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperdark.png");
   --pager-accent: #ffab4d;
 }
 
@@ -5489,7 +5288,10 @@ body {
   transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease;
 }
 
-.topbar-menu .tab-btn .iconify { font-size: 1.05rem; }
+.topbar-menu .tab-btn { flex-direction:column; gap:3px; min-width:52px; padding:.3rem .3rem .35rem; }
+.topbar-menu .tab-btn .iconify { font-size:1.42rem; line-height:1; }
+.topbar-menu .tab-btn .nav-label { font-size:.72rem; line-height:1.2; }
+.topbar-menu .tab-btn.active { border-color:var(--nb-border); }
 
 .topbar-menu .tab-btn:hover {
   background: var(--nb-panel);
@@ -5604,10 +5406,10 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last
   pointer-events: none;
 }
 
-#masthead .mh-body::before { content: '✦'; left: -2.2em; }
+#masthead .mh-body::before { content: "✦"; left: -2.2em; }
 
 #masthead .mh-body::after {
-  content: '✶';
+  content: "✶";
   right: -2.2em;
   top: auto;
   bottom: -.2em;
@@ -5684,48 +5486,23 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
    卡片本身已经有 2.5px 墨线 + 硬阴影，图片再包一层等重描边就是「框套框」；
    加上很多图（截图/地图/海报）自带边界，所以卡内图片只保留圆角，
    贴纸感交给卡片、日期贴纸和标题笔触。图片页的照片墙不受影响。 */
-.memo-img-single-wrap {
-  border-radius: 12px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
-  overflow: hidden;
-}
 
-.memo-img-single-wrap img { border-radius: 12px !important; }
 
-.split-img {
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 12px !important;
-  box-shadow: none !important;
-  transform: none !important;
-  overflow: hidden;
-}
 
-.memo-split.rev .split-img,
-.memo-split .split-img:hover { transform: none !important; }
-.split-img img { border-radius: 12px !important; height: 235px !important; }
+
+
+
+
+
 
 /* 多图横条：同样扁平，只留圆角与间距 */
-.carousel-strip { gap: 10px !important; padding: 2px 4px 10px !important; }
 
-.carousel-strip .strip-item {
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 12px !important;
-  box-shadow: none !important;
-  overflow: hidden;
-}
 
-.carousel-strip .strip-item:nth-child(odd),
-.carousel-strip .strip-item:nth-child(even) { transform: none; }
-.carousel-strip .strip-item.pressed { transform: scale(.94); }
-.carousel-strip .strip-item img { border-radius: 12px !important; }
+
+
+
+
+
 
 /* ---------- 图片墙 ---------- */
 .photo-item a {
@@ -5786,7 +5563,10 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   background: color-mix(in srgb, var(--nb-yellow) 26%, transparent) !important;
 }
 
-/* 书签分类 chips */
+/* 书签分类：横向胶囊按钮，与原导航风格一致 */
+.bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; }
+.bm-cats .tag-chip .iconify { font-size:1.05rem; }
+.bm-cats .tag-chip.active { border-color:var(--nb-border); }
 .bm-cats .tag-chip {
   border: 1.5px solid var(--nb-border) !important;
   border-radius: 999px !important;
@@ -6120,12 +5900,6 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-entry img,
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-entry img:hover,
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-text img,
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-text img:hover,
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-split img,
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-split img:hover,
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap img,
-html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap img:hover,
-html:is([data-theme="dark"], [data-theme="halloween"]) .carousel-strip img,
-html:is([data-theme="dark"], [data-theme="halloween"]) .carousel-strip img:hover,
 html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img,
 html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img:hover,
 html:is([data-theme="dark"], [data-theme="halloween"]) .photo-item img,
@@ -6275,5 +6049,826 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-overlay { bac
 })();
 </script>
 
-  </body>
+
+<style id="witcher-flat-category-redesign">
+/* 书签分类：横向胶囊按钮，沿用原导航风格 */
+.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
+
+
+.bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; }
+.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; } .bm-cats::-webkit-scrollbar { display:none; }
+.bm-cats .tag-chip { border-radius:999px!important; }
+
+
+.bm-cats .tag-chip.active { border-color:var(--nb-border); }
+
+/* 全站扁平化：移除卡片、贴纸、投影，保留内容层级 */
+.memo-card,
+#content .poster-card,
+#content ul.list,
+.wc-daybox,
+#content .input,
+#content .select,
+.bm-cats .tag-chip {
+  border-radius:0!important; box-shadow:none!important;
+}
+.memo-card { background:transparent!important; border:0!important; padding:1.15rem 0 1.35rem!important; transition:none!important; }
+.memo-card:hover { transform:none!important; box-shadow:none!important; }
+#content ul.memo-list { max-width:720px!important; }
+#content ul.memo-list > li { padding:0!important; border-bottom:1px solid color-mix(in oklch,var(--color-base-content) 24%,transparent); }
+#content ul.memo-list > li:last-child { border-bottom:0; }
+#content ul.memo-list .memo-card::before { display:none!important; }
+#content .poster-card { box-shadow:none!important; }
+#content ul.list { border:0!important; background:transparent!important; }
+#content .input,
+#content .select { box-shadow:none!important; border-width:1px!important; }
+.bm-cats .tag-chip { box-shadow:none!important; border-radius:999px!important; }
+@media(max-width:640px) {
+  .bm-cats::-webkit-scrollbar { display:none; }
+  .bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
+  
+  .memo-card { padding:1rem 0 1.15rem!important; }
+}
+</style>
+
+
+<script id="bookmark-navigation-chips">
+/* 书签分类：横向胶囊按钮，沿用原导航风格 */
+function renderBookmarkChips(cats) {
+  const wrap = contentEl.querySelector('.bm-cats');
+  if (!wrap) return;
+  wrap.innerHTML = cats.map(c => `<button type="button" class="tag-chip${c === state.bookmarksCat ? ' active' : ''}" data-bmcat="${escapeHtml(c)}" aria-pressed="${c === state.bookmarksCat}">${escapeHtml(c)}</button>`).join('');
+  wrap.querySelectorAll('[data-bmcat]').forEach(btn => btn.onclick = () => {
+    if (state.bookmarksCat === btn.dataset.bmcat) return;
+    bmScrolls[state.bookmarksCat] = getScrollPos();
+    state.bookmarksCat = btn.dataset.bmcat;
+    renderBookmarkChips(cats);
+    renderBookmarkList();
+    setScrollPos(bmScrolls[state.bookmarksCat] || 0);
+  });
+}
+</script>
+
+
+<style id="witcher-3-full-replica">
+/* Witcher 3 letter/inventory mood: smoked-black panel, aged brass lines, muted parchment typography */
+:root,
+[data-theme="light"],
+[data-theme="dark"],
+[data-theme="halloween"] {
+  --witcher-ink: #d4c8ad;
+  --witcher-muted: #988b73;
+  --witcher-brass: #82745a;
+  --witcher-brass-soft: rgba(173, 153, 116, .32);
+  --witcher-panel: rgba(13, 12, 10, .96);
+  --witcher-panel-deep: #090908;
+}
+html,
+body { background: #100d0a !important; }
+body { color: var(--witcher-ink) !important; }
+/* Main content becomes the framed parchment-window from the reference */
+#appShell,
+#appDrawer,
+#mainScroll,
+#content { background: transparent !important; }
+#appShell { color: var(--witcher-ink) !important; }
+#mainScroll { padding-inline: clamp(12px, 2.4vw, 30px) !important; }
+#content {
+  position: relative;
+  isolation: isolate;
+  color: var(--witcher-ink) !important;
+  background: var(--witcher-panel) !important;
+  border: 1px solid rgba(155, 139, 108, .62) !important;
+  outline: 1px solid rgba(155, 139, 108, .20);
+  outline-offset: -5px;
+  padding: clamp(18px, 3vw, 34px) clamp(16px, 3vw, 36px) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+#content::before {
+  content: ""; position: absolute; inset: 4px; z-index: -1; pointer-events: none;
+  border: 1px solid rgba(155, 139, 108, .16);
+}
+/* Aged metal rather than modern bright accent colours */
+#content a,
+#content button { -webkit-tap-highlight-color: transparent; }
+#content .memo-text,
+#content .memo-text p,
+#content .memo-text li,
+#content .memo-card,
+#content .memo-entry { color: var(--witcher-ink) !important; }
+#content .memo-text a { color: #c1a979 !important; background: transparent !important; padding: 0 !important; border-radius: 0 !important; text-decoration: underline; text-decoration-color: rgba(193,169,121,.45); text-underline-offset: 3px; }
+#content .memo-text a::after { display: none; }
+#content .memo-text h1,
+#content .memo-text h2,
+#content .memo-text h3,
+#content .memo-text h4,
+#content .memo-text h5,
+#content .memo-text h6 { color: #d4c4a2 !important; text-decoration: none !important; }
+#content .memo-text h2::before,
+#content .memo-text h2::after { display:none!important; }
+#content .memo-text blockquote { border-left: 2px solid var(--witcher-brass) !important; }
+/* Categories: inventory slots with a fine square selection frame */
+.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
+
+
+
+.bm-cats::-webkit-scrollbar { display:none; }
+.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; } .bm-cats::-webkit-scrollbar { display:none; }
+.bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
+
+
+.bm-cats .tag-chip.active { border-color:var(--nb-border); }
+
+
+
+/* A small game-like page counter, kept in the header line */
+
+/* Solid, understated separators between entries; no cards, tape, gradients or shadows */
+#content ul.memo-list { width:100%!important; max-width:850px!important; margin:0 auto!important; padding:0!important; }
+#content ul.memo-list > li { padding:0!important; margin:0!important; border-bottom:1px solid rgba(169,151,117,.42)!important; }
+#content ul.memo-list > li:last-child { border-bottom:0!important; }
+#content ul.memo-list .memo-card,
+.memo-card {
+  background:transparent!important; border:0!important; border-radius:0!important;
+  box-shadow:none!important; padding:22px 0 24px!important; margin:0!important;
+}
+#content ul.memo-list .memo-card::before,
+.memo-card::before { display:none!important; }
+#content .memo-card:hover,
+#content .poster-card:hover { transform:none!important; box-shadow:none!important; }
+
+#content .strip-item img { border-radius:0!important; }
+#content .tag-chip,
+#content .memo-tag { border-radius:0!important; box-shadow:none!important; }
+/* Flatten controls while retaining legibility and keyboard focus */
+#content .input,
+#content .select,
+#content textarea,
+#content input,
+#content .btn,
+#content .badge { border-radius:0!important; box-shadow:none!important; }
+#content .btn { border-color:rgba(169,151,117,.45)!important; }
+#content :focus-visible { outline:1px solid #c3aa79!important; outline-offset:3px; }
+/* Make any app heading resemble the restrained, centered uppercase game heading */
+#content .section-title,
+#content .view-title,
+#content h1.page-title {
+  color:#b9a98a!important; font-family:var(--font-display,serif)!important;
+  font-weight:400!important; letter-spacing:.045em; text-transform:uppercase;
+}
+@media(max-width:640px) {
+  #mainScroll { padding-inline:8px!important; }
+  #content { padding:14px 12px!important; }
+  .bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
+  
+  .bm-cats::-webkit-scrollbar { display:none; }
+  .bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
+  
+  
+  #content ul.memo-list .memo-card,
+.memo-card { padding:17px 0 19px!important; }
+}
+</style>
+
+
+
+
+<style id="witcher-integrated-frame-final">
+/* 整个说说页面是一块统一的猎魔人档案面板：导航、题记、内容共用同一组旧铜色边框 */
+:root {
+  --witcher-ink: #d4c8ad;
+  --witcher-muted: #988b73;
+  --witcher-brass: #82745a;
+  --witcher-brass-soft: rgba(173,153,116,.32);
+  --witcher-panel: rgba(13,12,10,.97);
+}
+html,
+body { background:#100d0a!important; }
+#mainScroll { padding-inline: clamp(10px,2vw,24px)!important; }
+.page-container {
+  position:relative;
+  max-width:1260px!important;
+  margin:12px auto 30px!important;
+  padding:0 clamp(14px,2.2vw,30px) 32px!important;
+  background:var(--witcher-panel)!important;
+  border:1px solid rgba(155,139,108,.68)!important;
+  outline:1px solid rgba(155,139,108,.22);
+  outline-offset:-5px;
+  color:var(--witcher-ink)!important;
+}
+.page-container::before {
+  content:""; position:absolute; inset:4px; z-index:0; pointer-events:none;
+  border:1px solid rgba(155,139,108,.18);
+}
+.page-container > * { position:relative; z-index:1; }
+/* 导航现在嵌在主面板顶部，不再是独立的一条网页横幅 */
+#topBar {
+  position:sticky!important; top:0!important; left:auto!important; right:auto!important;
+  z-index:60!important; width:calc(100% + clamp(28px,4.4vw,60px))!important;
+  margin:0 calc(clamp(14px,2.2vw,30px) * -1)!important;
+  padding-top:env(safe-area-inset-top,0px)!important;
+  background:rgba(9,9,8,.98)!important;
+  background-image:none!important;
+  border:0!important;
+  border-bottom:1px solid rgba(173,153,116,.48)!important;
+  box-shadow:none!important;
+  transform:none!important;
+  transition:none!important;
+}
+#topBar.bar-hidden { transform:none!important; }
+.topbar-inner {
+  max-width:none!important; min-height:58px; flex-wrap:nowrap!important;
+  padding:8px clamp(10px,1.8vw,24px)!important; gap:clamp(8px,1.2vw,18px)!important;
+}
+.topbar-brand img {
+  border:1px solid rgba(203,187,151,.65)!important; border-radius:3px!important;
+  box-shadow:none!important; transform:none!important;
+}
+.brand-name { color:#d4c4a2!important; letter-spacing:.08em!important; }
+.topbar-nav { order:0!important; width:auto!important; min-width:0; flex:1!important; display:flex!important; justify-content:center!important; }
+.topbar-menu { gap:clamp(1px,.35vw,6px)!important; overflow-x:auto!important; padding:2px!important; }
+.topbar-menu .tab-btn {
+  border:1px solid transparent!important; border-radius:0!important;
+  box-shadow:none!important; background:transparent!important;
+  color:#b9ad96!important; padding:.42rem clamp(.3rem,.65vw,.72rem)!important;
+  font-size:clamp(.72rem,.9vw,.92rem)!important; letter-spacing:.025em!important;
+}
+.topbar-menu .tab-btn:hover { color:#e1d2b3!important; border-color:rgba(203,187,151,.3)!important; background:rgba(203,187,151,.05)!important; }
+.topbar-menu .tab-btn.active {
+  color:#e1d2b3!important; border:1px solid rgba(203,187,151,.82)!important;
+  outline:1px solid rgba(203,187,151,.28)!important; outline-offset:1px;
+  background:rgba(203,187,151,.07)!important; box-shadow:none!important;
+}
+.topbar-actions { gap:5px!important; margin-left:0!important; }
+.topbar-actions .btn {
+  width:30px!important; height:30px!important; min-height:30px!important;
+  border:1px solid rgba(169,151,117,.55)!important; border-radius:0!important;
+  background:transparent!important; color:#c8b895!important; box-shadow:none!important;
+}
+.topbar-actions .btn:hover { background:rgba(203,187,151,.1)!important; transform:none!important; box-shadow:none!important; }
+/* 題記由兩行收束成一行，保留原來的兩段文字與低調的旧金色底纹 */
+#masthead { padding:clamp(24px,3vw,42px) 0 22px!important; }
+#masthead .mh-body { width:100%!important; max-width:100%!important; }
+#masthead .mh-poem {
+  display:flex!important; align-items:baseline!important; justify-content:center!important;
+  flex-wrap:nowrap!important; gap:clamp(10px,2vw,30px)!important;
+  white-space:nowrap!important; font-family:var(--font-display,serif)!important;
+  font-size:clamp(1rem,2.15vw,1.8rem)!important; line-height:1.6!important;
+  letter-spacing:.07em!important; text-indent:0!important; color:#d4c8ad!important;
+}
+#masthead .mh-poem p,
+html:is([data-theme="dark"],[data-theme="halloween"]) #masthead .mh-poem p,
+html:is([data-theme="dark"],[data-theme="halloween"]) #masthead .mh-poem p:last-child {
+  flex:0 1 auto!important; width:auto!important; max-width:100%!important;
+  margin:0!important; padding:0 .12em .08em!important;
+  background:linear-gradient(transparent 72%,rgba(130,116,90,.65) 72%,rgba(130,116,90,.65) 96%,transparent 96%)!important;
+}
+#masthead .mh-body::before { left:clamp(2px,8vw,100px)!important; top:0!important; color:#b7a582!important; }
+#masthead .mh-body::after { right:clamp(2px,8vw,100px)!important; bottom:-.1em!important; color:#b7a582!important; }
+/* 内容区与外框融为一体，避免出现第二个独立框；列表仍用实线逐条分隔 */
+#content {
+  max-width:none!important; width:100%!important; margin:0 auto!important;
+  background:transparent!important; border:0!important; outline:0!important;
+  box-shadow:none!important; border-radius:0!important;
+  padding:clamp(12px,2vw,24px) clamp(0px,1.2vw,14px)!important;
+}
+#content::before { display:none!important; }
+#content ul.memo-list { max-width:100%!important; }
+#content ul.memo-list > li { border-bottom:1px solid rgba(169,151,117,.42)!important; }
+#content ul.memo-list .memo-card,
+#content .memo-card { padding:20px 0 23px!important; }
+@media(max-width:760px) {
+  .page-container { margin:6px 6px 18px!important; padding:0 12px 22px!important; }
+  #topBar { width:calc(100% + 24px)!important; margin:0 -12px!important; }
+  .topbar-inner { flex-wrap:wrap!important; justify-content:space-between; padding:8px 10px!important; }
+  .topbar-brand { gap:6px!important; }
+  .topbar-brand img { width:29px!important; height:29px!important; }
+  .brand-name { font-size:1rem!important; }
+  .topbar-nav { order:3!important; flex:0 0 100%!important; width:100%!important; justify-content:flex-start!important; }
+  .topbar-menu { justify-content:flex-start!important; }
+  .topbar-menu .tab-btn { font-size:.78rem!important; padding:.35rem .48rem!important; }
+  .topbar-actions { margin-left:auto!important; }
+  #masthead { padding:23px 0 15px!important; }
+  #masthead .mh-poem { gap:8px!important; font-size:clamp(.78rem,3.15vw,1.15rem)!important; letter-spacing:.015em!important; }
+  #masthead .mh-body::before { left:0!important; font-size:1rem!important; }
+  #masthead .mh-body::after { right:0!important; font-size:1rem!important; }
+  #content { padding:8px 2px 16px!important; }
+}
+@media(max-width:360px) {
+  #masthead .mh-poem { font-size:.72rem!important; gap:5px!important; }
+  .topbar-menu .tab-btn { padding:.32rem .38rem!important; }
+}
+</style>
+
+
+<style id="witcher-frame-gap-and-light-palette">
+/* 固定导航时仍留出空气感：导航停在视口上方内缩位置，不再贴着浏览器边缘 */
+#topBar { top: 12px !important; }
+@media (max-width:760px) { #topBar { top: 8px !important; } }
+
+/* 浅色猎魔人档案：羊皮纸、旧墨水、褪色铜线。默认深色主题不受影响。 */
+html[data-theme="light"] {
+  --witcher-ink: #393126;
+  --witcher-muted: #756954;
+  --witcher-brass: #8c7650;
+  --witcher-brass-soft: rgba(116, 91, 51, .30);
+  --witcher-panel: rgba(241, 233, 216, .98);
+  --witcher-panel-deep: #e6dac0;
+}
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background: #d8cfbb !important;
+  color: #393126 !important;
+}
+html[data-theme="light"] #appShell,
+html[data-theme="light"] #appDrawer,
+html[data-theme="light"] #mainScroll,
+html[data-theme="light"] #content { background: transparent !important; }
+html[data-theme="light"] .page-container {
+  background: var(--witcher-panel) !important;
+  color: var(--witcher-ink) !important;
+  border-color: rgba(116, 91, 51, .62) !important;
+  outline-color: rgba(116, 91, 51, .24) !important;
+}
+html[data-theme="light"] .page-container::before { border-color: rgba(116, 91, 51, .20) !important; }
+html[data-theme="light"] #topBar {
+  background: rgba(232, 222, 201, .98) !important;
+  border-bottom-color: rgba(116, 91, 51, .48) !important;
+}
+html[data-theme="light"] .brand-name,
+html[data-theme="light"] .topbar-menu .tab-btn,
+html[data-theme="light"] .topbar-actions .btn { color: #554832 !important; }
+html[data-theme="light"] .topbar-menu .tab-btn:hover {
+  color: #30271b !important;
+  border-color: rgba(116, 91, 51, .35) !important;
+  background: rgba(116, 91, 51, .07) !important;
+}
+html[data-theme="light"] .topbar-menu .tab-btn.active {
+  color: #30271b !important;
+  border-color: rgba(116, 91, 51, .78) !important;
+  outline-color: rgba(116, 91, 51, .24) !important;
+  background: rgba(116, 91, 51, .09) !important;
+}
+html[data-theme="light"] .topbar-actions .btn { border-color: rgba(116, 91, 51, .52) !important; }
+html[data-theme="light"] .topbar-actions .btn:hover { background: rgba(116, 91, 51, .10) !important; }
+html[data-theme="light"] #masthead .mh-poem { color: #393126 !important; }
+html[data-theme="light"] #masthead .mh-poem p,
+html[data-theme="light"] #masthead .mh-poem p:last-child {
+  background: linear-gradient(transparent 72%, rgba(171, 145, 91, .48) 72%, rgba(171, 145, 91, .48) 96%, transparent 96%) !important;
+}
+html[data-theme="light"] #masthead .mh-body::before,
+html[data-theme="light"] #masthead .mh-body::after { color: #8c7650 !important; }
+html[data-theme="light"] #content,
+html[data-theme="light"] #content .memo-text,
+html[data-theme="light"] #content .memo-text p,
+html[data-theme="light"] #content .memo-text li,
+html[data-theme="light"] #content .memo-card,
+html[data-theme="light"] #content .memo-entry { color: #393126 !important; }
+html[data-theme="light"] #content .memo-text h1,
+html[data-theme="light"] #content .memo-text h2,
+html[data-theme="light"] #content .memo-text h3,
+html[data-theme="light"] #content .memo-text h4,
+html[data-theme="light"] #content .memo-text h5,
+html[data-theme="light"] #content .memo-text h6 { color: #493a25 !important; }
+html[data-theme="light"] #content .memo-text a { color: #785d30 !important; text-decoration-color: rgba(120, 93, 48, .48) !important; }
+html[data-theme="light"] #content ul.memo-list > li { border-bottom-color: rgba(116, 91, 51, .38) !important; }
+html[data-theme="light"] .bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
+html[data-theme="light"] 
+html[data-theme="light"] 
+html[data-theme="light"] .bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
+html[data-theme="light"] .bm-cats .tag-chip.active { border-color:var(--nb-border); }
+html[data-theme="light"] 
+html[data-theme="light"] #content .btn,
+html[data-theme="light"] #content .input,
+html[data-theme="light"] #content .select,
+html[data-theme="light"] #content textarea,
+html[data-theme="light"] #content input { color: #393126 !important; border-color: rgba(116, 91, 51, .45) !important; background-color: rgba(255,255,255,.20) !important; }
+html[data-theme="light"] #content :focus-visible { outline-color: #8c7650 !important; }
+html[data-theme="light"] .tag-drawer,
+html[data-theme="light"] .music-drawer,
+html[data-theme="light"] .cmdk-panel { background: #eee5d2 !important; color: #393126 !important; }
+html[data-theme="light"] .tag-drawer,
+html[data-theme="light"] .music-drawer,
+html[data-theme="light"] .cmdk-panel { border-color: rgba(116, 91, 51, .42) !important; }
+</style>
+
+  
+
+<style id="witcher-polish-flat-scroll-date">
+/* 稳定的猎魔人档案栏：固定背景向上延伸，滚动内容从横幅背后经过，不露出顶部缝隙 */
+#topBar {
+  top: 12px !important;
+  z-index: 100 !important;
+  isolation: isolate !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: auto !important;
+  animation: none !important;
+}
+#topBar::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  top: -14px;
+  bottom: 0;
+  pointer-events: none;
+  background: #090908;
+}
+#topBar.bar-hidden { transform: none !important; visibility: visible !important; }
+html[data-theme="light"] #topBar::before { background: #e8dec9; }
+@media (max-width:760px) {
+  #topBar { top: 8px !important; }
+  #topBar::before { top: -10px; }
+}
+
+/* 发布时间：恢复朴素左对齐，放在每条说说正文上方，不再像胶囊贴纸 */
+#content .memo-card { display: block !important; }
+#content .memo-tape-date {
+  position: static !important;
+  display: block !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  height: auto !important;
+  margin: 0 0 9px 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: var(--witcher-muted, #988b73) !important;
+  font-family: var(--font-num, ui-monospace, monospace) !important;
+  font-size: .76rem !important;
+  font-weight: 500 !important;
+  letter-spacing: .025em !important;
+  line-height: 1.5 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] #content .memo-tape-date { color: #756954 !important; }
+
+/* 全站彻底扁平化：所有页面、菜单、搜索面板、播放器抽屉与图片均取消圆角和圆润阴影 */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+img,
+video,
+canvas,
+iframe,
+picture,
+.photo-item a,
+.photo-item img,
+#content img,
+.strip-item img,
+.topbar-brand img,
+.side-profile img,
+.hw-pl-cover,
+.hw-pl-row-thumb {
+  border-radius: 0 !important;
+}
+.memo-card,
+.memo-entry,
+.poster-card,
+.cmdk-panel,
+.cmdk-item,
+.cmdk-ico,
+.cmdk-input-row,
+.cmdk-results,
+.tag-drawer,
+.tag-drawer-current,
+.music-drawer,
+.music-drawer .hw-pl-cover,
+.music-drawer .hw-pl-row,
+.music-drawer .hw-pl-row-thumb,
+.music-drawer .hw-btn,
+#content .btn,
+#content .badge,
+#content input,
+#content textarea,
+#content select,
+#content .input,
+#content .select,
+#appSidebar,
+#appShell,
+.wc-toast,
+.hw-lyrics-float,
+.hw-lyrics-float-bar,
+.hw-lyrics-float-close {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/* 抽屉与搜索框仍保留清晰的细线边界，但不使用圆角或漂浮阴影 */
+.cmdk-panel,
+.tag-drawer,
+.music-drawer,
+.hw-lyrics-float {
+  box-shadow: none !important;
+}
+.cmdk-item:hover,
+.cmdk-item.active,
+.tag-drawer .sidebar-tag:hover,
+.music-drawer .hw-pl-row:hover,
+.music-drawer .hw-pl-row.playing {
+  border-radius: 0 !important;
+}
+/* 图片不做放大、圆角或卡片式装饰，维持游戏菜单般干净的硬边 */
+
+#content .strip-item,
+#content .strip-item img { transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  #topBar,
+#topBar * { transition: none !important; animation: none !important; }
+}
+</style>
+
+
+<style id="witcher-sticky-frame-and-drawer-fix">
+/* 置顶导航始终与视口顶部留出猎魔人面板的呼吸空间；滚动时补出连续的上框线 */
+#topBar {
+  top: max(12px, env(safe-area-inset-top, 0px)) !important;
+  border-top: 1px solid rgba(173,153,116,.48) !important;
+  outline: 1px solid rgba(155,139,108,.22) !important;
+  outline-offset: -5px !important;
+  box-sizing: border-box !important;
+  background-clip: padding-box !important;
+}
+/* 窄屏同样保留顶部空隙；不让安全区与固定间距叠加成过大的留白 */
+@media (max-width: 760px) {
+  #topBar { top: max(8px, env(safe-area-inset-top, 0px)) !important; }
+}
+/* 播放器及遮罩必须位于置顶导航之上。导航仍可正常置顶，但不能压住抽屉标题和关闭按钮。 */
+#musicDrawerOverlay {
+  z-index: 10000 !important;
+}
+#musicDrawer {
+  position: fixed !important;
+  z-index: 10001 !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  isolation: isolate;
+}
+/* 抽屉打开时优先显示完整面板，不受主面板的层叠顺序影响 */
+#musicDrawer.open { z-index: 10001 !important; }
+</style>
+
+
+
+<style id="witcher-fixed-frame-internal-scroll">
+/* 外层是固定在桌布上的档案框；滚动只发生在框内，铜色外边线永远不移动。 */
+html,
+body {
+  width:100%; height:100%; min-height:100%;
+  overflow:hidden !important;
+  overscroll-behavior:none;
+}
+body { padding:0 !important; }
+#mainScroll {
+  position:fixed !important;
+  inset:12px !important;
+  width:auto !important; height:auto !important;
+  max-height:none !important;
+  margin:0 auto !important;
+  padding:0 clamp(10px,2vw,24px) 18px !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  scrollbar-width:none !important;
+  border:1px solid rgba(155,139,108,.68) !important;
+  outline:1px solid rgba(155,139,108,.22) !important;
+  outline-offset:-5px !important;
+  background:rgb(13,12,10) !important;
+  background-color:rgb(13,12,10) !important;
+  background-image:none !important;
+  background-clip:padding-box !important;
+  isolation:isolate;
+  -webkit-overflow-scrolling:touch;
+}
+#mainScroll::before {
+  content:""; position:fixed; pointer-events:none; z-index:110;
+  inset:16px; border:1px solid rgba(155,139,108,.18);
+}
+.page-container {
+  width:100% !important; max-width:1260px !important;
+  min-height:100% !important; height:auto !important;
+  margin:0 auto !important; padding:0 clamp(14px,2.2vw,30px) 32px !important;
+  border:0 !important; outline:0 !important; box-shadow:none !important;
+  background:transparent !important; overflow:visible !important;
+}
+.page-container::before { display:none !important; }
+/* 导航在内部滚动视口的顶部吸附，始终留在外框之内，不再浮到浏览器窗口上。 */
+#topBar {
+  position:sticky !important; top:0 !important; z-index:100 !important;
+  transform:none !important; transition:none !important; margin-top:0 !important;
+  border-top:0 !important;
+  border-bottom:0 !important;
+  outline:0 !important;
+  /* 与内部主面板使用完全相同的不透明底色；不再叠加透明度或旧背景纹理。 */
+  background:rgb(13,12,10) !important;
+  background-color:rgb(13,12,10) !important;
+  background-image:none !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+#topBar::before {
+  top:0 !important; z-index:-1 !important;
+  background:transparent !important;
+  background-color:transparent !important;
+  background-image:none !important;
+  box-shadow:none !important;
+}
+#topBar.bar-hidden { transform:none !important; visibility:visible !important; }
+/* 回到顶部按钮视觉上放在框内，滚动值来自内部滚动容器。 */
+#toTop { z-index:120 !important; right:30px !important; bottom:30px !important; }
+/* 音乐、标签、搜索等浮层需要高于固定框和置顶导航。 */
+#musicDrawerOverlay,
+#tagDrawerOverlay,
+.cmdk-overlay { z-index:10000 !important; }
+#musicDrawer,
+.tag-drawer,
+.cmdk-panel { z-index:10001 !important; }
+html[data-theme="light"] #mainScroll {
+  background:rgb(241,233,216) !important;
+  background-color:rgb(241,233,216) !important;
+  background-image:none !important;
+  border-color:rgba(116,91,51,.56) !important;
+  outline-color:rgba(116,91,51,.20) !important;
+}
+html[data-theme="light"] #mainScroll::before { border-color:rgba(116,91,51,.18); }
+html[data-theme="light"] #topBar::before {
+  background:transparent !important;
+  background-color:transparent !important;
+  background-image:none !important;
+}
+html[data-theme="light"] #topBar {
+  background:rgb(241,233,216) !important;
+  background-color:rgb(241,233,216) !important;
+  background-image:none !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+@media (max-width:760px) {
+  #mainScroll { inset:6px !important; padding:0 8px 12px !important; }
+  #mainScroll::before { inset:10px; }
+  .page-container { padding:0 12px 22px !important; }
+  #topBar { top:0 !important; }
+  #toTop { right:18px !important; bottom:18px !important; }
+}
+</style>
+
+
+<style id="unified-grid-and-wenkai">
+html body .strip-wrap .memo-image-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;max-width:540px;padding:0;overflow:hidden;}
+html body .strip-wrap .memo-image-grid[data-count="1"] {grid-template-columns:minmax(0,1fr);max-width:260px;}
+html body .strip-wrap .memo-image-grid[data-count="2"],html body .strip-wrap .memo-image-grid[data-count="4"] {grid-template-columns:repeat(2,minmax(0,1fr));max-width:360px;}
+html body .strip-wrap .memo-image-grid .strip-item {display:block;position:relative;width:100%;min-width:0;min-height:0;aspect-ratio:1/1;padding:0!important;margin:0!important;overflow:hidden;border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important;cursor:zoom-in;background:rgb(128 128 128 / .10)!important;}
+html body .strip-wrap .memo-image-grid .strip-item img {display:block;width:100%!important;height:100%!important;max-width:100%;max-height:none!important;aspect-ratio:1/1;object-fit:cover;border-radius:0!important;transform:none!important;}
+html body .strip-wrap .memo-image-grid .strip-item:nth-child(n+10) {display:none;}
+html body .strip-wrap .memo-image-grid .strip-item[data-more]::after {content:'+' attr(data-more);position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgb(0 0 0 / .52);color:#fff;font-family:var(--font-num);font-size:clamp(22px,4vw,38px);font-weight:600;line-height:1;pointer-events:none;border-radius:0!important;}
+html body .photo-item a,html body .photo-item img {border-radius:0!important;}
+body,button,input,textarea,select,optgroup {font-family:var(--font-family);}
+code,pre,kbd,samp {font-family:var(--font-num);}
+@media(max-width:640px) {html body .strip-wrap .memo-image-grid {gap:4px;}}
+</style>
+
+<style id="dsh-selection-filter-drawer-polish">
+/* ============================================================
+   视觉微调（2026-10）：深色选中高亮 / 影视筛选选中态 / 标签抽屉扁平化
+   全部放在文档末尾，靠后文 + 同级特异性压过前面的主题层
+============================================================ */
+
+/* ---------- 说说文本选中的高亮：深色模式不再用亮黄 ----------
+   原来两种模式都走 --nb-yellow（深色下是 #ffd94d 亮黄配墨字），在暗底上太刺眼；
+   深色改为低饱和的旧铜色半透明，文字保持浅墨不变。浅色维持荧光笔黄不动。 */
+html:is([data-theme="dark"], [data-theme="halloween"]) ::selection {
+  background: rgba(203, 187, 151, .35);
+  color: var(--nb-ink);
+}
+
+/* ---------- 看过 / 想看筛选 chips：选中态跟随深浅主题 ----------
+   原来选中是 daisyUI btn-primary，深浅都是同一支蓝。改为与全站一致的语言：
+   浅色 = 墨块填充 + 米白字；深色 = 铜线描边 + 淡铜底 + 铜字（与导航选中页签同源）。 */
+#content .btn.btn-xs.btn-primary {
+  background-color: #393126 !important;
+  border-color: #393126 !important;
+  color: #f1e9d8 !important;
+  box-shadow: none !important;
+}
+
+#content .btn.btn-xs.btn-primary:hover {
+  background-color: #30271b !important;
+}
+
+#content .btn.btn-xs.btn-primary .badge {
+  background-color: rgba(241, 233, 216, .16) !important;
+  border-color: rgba(241, 233, 216, .35) !important;
+  color: #f1e9d8 !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) #content .btn.btn-xs.btn-primary {
+  background-color: rgba(203, 187, 151, .16) !important;
+  border-color: rgba(203, 187, 151, .78) !important;
+  color: #e1d2b3 !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) #content .btn.btn-xs.btn-primary:hover {
+  background-color: rgba(203, 187, 151, .24) !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) #content .btn.btn-xs.btn-primary .badge {
+  background-color: rgba(203, 187, 151, .20) !important;
+  border-color: rgba(203, 187, 151, .32) !important;
+  color: #e1d2b3 !important;
+}
+
+/* ---------- 标签抽屉：关闭 / 清空按钮 —— 扁平统一 ----------
+   去掉贴纸描边、硬阴影、圆角和粉色 hover，与顶栏图标按钮同一套细线风格。 */
+.tag-drawer-close,
+.tag-drawer-clear {
+  border: 1px solid rgba(169, 151, 116, .55) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #c8b895 !important;
+  box-shadow: none !important;
+}
+
+.tag-drawer-close:hover,
+.tag-drawer-clear:hover {
+  background: rgba(203, 187, 151, .10) !important;
+  color: #e1d2b3 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .tag-drawer-close,
+html[data-theme="light"] .tag-drawer-clear {
+  border-color: rgba(116, 91, 51, .52) !important;
+  color: #554832 !important;
+}
+
+html[data-theme="light"] .tag-drawer-close:hover,
+html[data-theme="light"] .tag-drawer-clear:hover {
+  background: rgba(116, 91, 51, .10) !important;
+  color: #30271b !important;
+}
+
+/* ---------- 标签抽屉：标签胶囊 —— 扁平索引行 ----------
+   去掉圆角描边、硬阴影和荧光黄选中底，改成细线分隔的索引行；
+   hover 淡淡一层底，选中 = 淡底 + 加深文字（浅色墨调 / 深色铜调）。 */
+.tag-drawer-list .tag-chip {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(116, 91, 51, .22) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #554832 !important;
+}
+
+.tag-drawer-list .tag-chip:hover {
+  background: rgba(116, 91, 51, .08) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.tag-drawer-list .tag-chip.active {
+  background: rgba(116, 91, 51, .12) !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(116, 91, 51, .34) !important;
+  color: #30271b !important;
+  box-shadow: none !important;
+}
+
+.tag-drawer-list .tag-chip.active .tag-count { color: inherit !important; }
+.tag-drawer-list .tag-chip.active .tag-drawer-check { color: #30271b !important; }
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip {
+  border-bottom: 1px solid rgba(169, 151, 116, .22) !important;
+  color: #b9ad96 !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip:hover {
+  background: rgba(203, 187, 151, .09) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active {
+  background: rgba(203, 187, 151, .16) !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(169, 151, 116, .36) !important;
+  color: #e1d2b3 !important;
+  box-shadow: none !important;
+}
+
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active .tag-count { color: inherit !important; }
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active .tag-drawer-check { color: #e1d2b3 !important; }
+html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip .tag-count { color: rgba(185, 173, 150, .72) !important; }
+</style>
+
+</body>
 </html>
