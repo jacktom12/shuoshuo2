@@ -23,7 +23,7 @@
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
@@ -32,21 +32,17 @@
 <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
 
      <style>
-  :root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; --font-display: var(--font-family); --font-num: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  :root { color-scheme: light; --font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; --font-display: "ZCOOL QingKe HuangYou", "Noto Sans SC", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; --font-num: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-  /* 盒模型兜底 */
-  *,
-*::before,
-*::after { box-sizing: border-box; }
+  /* 盒模型兜底：Tailwind CDN（@tailwindcss/browser）加载失败或很慢时 preflight 缺失，
+     .memo-card 这类「width:100% + 内边距 + 描边」的卡片会按 content-box 计算，
+     直接向右侧撑出容器、贴上甚至超出屏幕右边缘。这里显式声明与 Tailwind 一致的规则，
+     让版式不再依赖 CDN。 */
+  *, *::before, *::after { box-sizing: border-box; }
 
-  .hidden { display: none !important; }
-
-  html:is([data-theme="dark"], [data-theme="halloween"]) .theme-icon-sun { display: none !important; }
-  html:not([data-theme="dark"]):not([data-theme="halloween"]) .theme-icon-moon { display: none !important; }
-
-  /* ============ 主题配色 ============ */
+  /* ============ 主题配色：糖果贴纸（浅）/ 暗夜霓虹（深），跟随系统自动切换 ============ */
   :root,
-[data-theme="light"] {
+  [data-theme="light"] {
     color-scheme: light;
     --color-base-100: oklch(97.5% 0.014 95);
     --color-base-200: oklch(94.5% 0.024 95);
@@ -69,8 +65,9 @@
     --color-error: oklch(64% 0.21 25);
     --color-error-content: oklch(97% 0.01 25);
   }
+  /* 深色：墨蓝炭底 + 霓虹糖果色 */
   [data-theme="halloween"],
-[data-theme="dark"] {
+  [data-theme="dark"] {
     color-scheme: dark;
     --color-base-100: oklch(21% 0.016 265);
     --color-base-200: oklch(18% 0.016 265);
@@ -93,21 +90,23 @@
     --color-error: oklch(72% 0.17 25);
     --color-error-content: oklch(22% 0.03 25);
   }
-  [data-theme="dark"],
-[data-theme="halloween"] { color-scheme: dark; }
+  [data-theme="dark"], [data-theme="halloween"] { color-scheme: dark; }
   html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
   body { -webkit-tap-highlight-color: transparent; font-family: var(--font-family); }
 
+  /* ============ 贴纸风：圆角交给组件自己控制（旧主题为全站扁平，已移除全局清零） ============ */
+
+  /* 标签徽章：保证 button 上的 badge 继承全局字体 */
   .tag-chip { font-family: inherit; }
 
-  /* ============ 图片墙 ============ */
+  /* ============ 图片墙（Masonry.js 瀑布流） ============ */
   .photo-sizer,
-.photo-item {
+  .photo-item {
     width: 33.3333%;
   }
   @media (max-width: 640px) {
     .photo-sizer,
-.photo-item {
+    .photo-item {
       width: 50%;
     }
   }
@@ -130,8 +129,22 @@
   .photo-item img { width: 100%; height: auto; display: block; transition: transform .35s ease; }
   @media (hover: hover) { .photo-item:hover img { transform: scale(1.03); } }
 
+  /* ============ Threads 风格横向图片条 ============ */
   .strip-wrap { position: relative; }
-
+  .carousel-strip {
+    display: flex;
+    align-items: center;   /* 各图按自身高度自适应，垂直居中，避免拉伸出留白 */
+    gap: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+  }
+  .carousel-strip::-webkit-scrollbar { display: none; }
+  .carousel-strip.dragging { cursor: grabbing; }
+  .carousel-strip.dragging img { pointer-events: none; }
+  /* Threads 风格：各图按原始比例完整显示，只限制最大尺寸；盒子随图自适应，不会出现上下留白 */
   .strip-item {
     position: relative;
     flex: 0 0 auto;
@@ -161,11 +174,50 @@
     transform: scale(.94);
     transition: transform .12s ease-out;
   }
-
+  .strip-end { flex-shrink: 0; }
   @media (hover: hover) { .strip-item img:hover { filter: brightness(1.06); } }
-
+  /* 多图指示圆点：当前张拉长成胶囊，其余为小圆点 */
+  .strip-dots {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    user-select: none;
+  }
+  .strip-dots.on { display: flex; }
+  .strip-dot {
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-base-content) 24%, transparent);
+    cursor: pointer;
+    transition: width .35s cubic-bezier(.34, 1.3, .64, 1), background-color .3s ease;
+  }
+  @media (hover: hover) { .strip-dot:hover { background: color-mix(in srgb, var(--color-base-content) 45%, transparent); } }
+  .strip-dot.active {
+    width: 22px;
+    background: var(--accent, var(--color-base-content));
+  }
+  /* 手机端：多图条改为两列栅格铺满卡片宽度（PC 保持横向滑动） */
   @media (max-width: 640px) {
-
+    .carousel-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; overflow: hidden; cursor: default; }
+    .carousel-strip .strip-end { display: none; }
+    .carousel-strip .strip-item { min-width: 0; min-height: 0; }
+    .carousel-strip .strip-item img {
+      width: 100%; height: auto; max-height: none;
+      aspect-ratio: 4 / 3; object-fit: cover;
+    }
+    /* 最多展示 9 格，超出折叠；全部可见时无需计数徽章 */
+    .carousel-strip .strip-item:nth-child(n + 10) { display: none; }
+    .strip-dots { display: none !important; }  /* 手机端多图改九宫格全部可见，无需指示点 */
+    /* 第 9 格 +N 覆盖层（N = 未展示张数），点击仍打开灯箱查看全部 */
+    .carousel-strip .strip-item[data-more] { position: relative; cursor: pointer; }
+    .carousel-strip .strip-item[data-more]::after {
+      content: '+' attr(data-more);
+      position: absolute; inset: 0; z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      background: rgb(0 0 0 / .45); color: #fff;
+      font-size: 1.4rem; font-weight: 700;
+    }
   }
   .hw-lyrics-float {
     position: fixed; z-index: 80;
@@ -197,6 +249,7 @@
   .hw-lyrics-float .hw-lyrics-line.active { color: var(--color-primary); font-weight: 700; font-size: .95rem; }
   .hw-lyrics-float .hw-lyrics-empty { margin: auto; text-align: center; opacity: .5; font-size: .82rem; padding: 16px; }
   #headerLyricsBar { user-select: none; }
+  /* 底部悬浮歌词药丸栏（自顶栏迁移）：居中悬浮，避开右下角回到顶部按钮 */
   #headerLyricsBar:not(.hidden) {
     position: fixed; z-index: 50;
     bottom: calc(18px + env(safe-area-inset-bottom, 0px));
@@ -204,6 +257,8 @@
     width: min(520px, calc(100vw - 104px));
   }
 
+
+  /* 骨架屏 */
   .shimmer {
     background: linear-gradient(90deg,
       rgb(128 128 128 / .10) 25%, rgb(128 128 128 / .22) 37%, rgb(128 128 128 / .10) 63%);
@@ -212,6 +267,7 @@
   }
   @keyframes shimmer { 0% { background-position: 100% 0 } 100% { background-position: -100% 0 } }
 
+  /* 海报卡片 */
   .poster-card { transition: transform .25s ease, box-shadow .25s ease; }
   @media (hover: hover) {
     .poster-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px -16px rgb(0 0 0 / .35); }
@@ -221,6 +277,7 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
 
   .memo-text { word-break: break-word; overflow-wrap: anywhere; }
+  /* 正文链接：主题色药丸底，换行时每个片段保留圆角，带外链箭头提示 */
   .memo-text a {
     color: var(--color-primary);
     background: color-mix(in oklch, var(--color-primary) 10%, transparent);
@@ -235,23 +292,19 @@
     background: color-mix(in oklch, var(--color-primary) 22%, transparent);
   }
   .memo-text a::after {
-    content: "↗";
+    content: '↗';
     font-size: .78em;
     margin-left: 1px;
     opacity: .55;
   }
 
-  /* ============ Markdown ============ */
-  .memo-text h1,
-.memo-text h2,
-.memo-text h3,
-.memo-text h4,
-.memo-text h5,
-.memo-text h6 {
+  /* ============ Markdown 渲染样式 ============ */
+  .memo-text h1, .memo-text h2, .memo-text h3, .memo-text h4, .memo-text h5, .memo-text h6 {
     font-weight: 700; line-height: 1.4; margin: 0.9em 0 0.45em;
   }
   .memo-text h1 { font-size: 1.45em; }
 
+  /* ## 水彩笔涂划：双层柔化色块模拟水彩笔刷过的痕迹（主题色、低透明度保证文字可读） */
   .memo-text h2 {
     font-size: 1.32em;
     width: fit-content;
@@ -260,8 +313,8 @@
     padding: .1em .45em .16em .5em;
   }
   .memo-text h2::before,
-.memo-text h2::after {
-    content: "";
+  .memo-text h2::after {
+    content: '';
     position: absolute;
     z-index: -1;
     filter: blur(5px);
@@ -281,6 +334,7 @@
     transform: rotate(1deg) skewX(-8deg);
   }
 
+  /* ### 下划线 */
   .memo-text h3 {
     font-size: 1.18em;
     text-decoration: underline;
@@ -289,17 +343,15 @@
     text-underline-offset: 5px;
   }
 
-  .memo-text h4,
-.memo-text h5,
-.memo-text h6 { font-size: 1.05em; }
+  .memo-text h4, .memo-text h5, .memo-text h6 { font-size: 1.05em; }
+  /* #### 波浪线 */
   .memo-text h4 {
     text-decoration: underline wavy var(--color-accent);
     text-decoration-thickness: 1.5px;
     text-underline-offset: 5px;
   }
   .memo-text p { margin: 0.5em 0; }
-  .memo-text ul,
-.memo-text ol { margin: 0.5em 0; padding-left: 1.4em; }
+  .memo-text ul, .memo-text ol { margin: 0.5em 0; padding-left: 1.4em; }
   .memo-text ul { list-style: disc; }
   .memo-text ol { list-style: decimal; }
   .memo-text li { margin: 0.2em 0; }
@@ -318,15 +370,15 @@
   }
   .memo-text pre code { background: transparent; padding: 0; border-radius: 0; font-size: .86em; line-height: 1.6; }
   .memo-text table { border-collapse: collapse; margin: 0.7em 0; width: 100%; font-size: .95em; }
-  .memo-text th,
-.memo-text td { border: 1px solid rgb(128 128 128 / .35); padding: 0.4em 0.7em; text-align: left; }
+  .memo-text th, .memo-text td { border: 1px solid rgb(128 128 128 / .35); padding: 0.4em 0.7em; text-align: left; }
   .memo-text th { background: rgb(128 128 128 / .12); font-weight: 600; }
   .memo-text hr { border: none; border-top: 1px solid rgb(128 128 128 / .35); margin: 1em 0; }
   .memo-text img { max-width: 100%; border-radius: 10px; }
 
+  /* 隐藏所有滚动条（保留滚动功能，营造系统 APP 无滚动条体验） */
   * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    scrollbar-width: none;           /* Firefox */
+    -ms-overflow-style: none;        /* IE/Edge */
   }
   *::-webkit-scrollbar {
     display: none;
@@ -334,7 +386,7 @@
     height: 0;
   }
 
-  /* ============ 歌词均衡器 ============ */
+  /* ============ 歌词均衡器动画 ============ */
   .eq {
     display: flex; align-items: flex-end;
     gap: 2.5px; height: 16px; flex-shrink: 0;
@@ -351,6 +403,7 @@
   .eq i:nth-child(4) { height: 80%; animation-delay: .54s; }
   @keyframes eq-bounce { 50% { transform: scaleY(.35); } }
 
+  /* ============ 深色主题下内容图片降亮度（避免刺眼） ============ */
   html:is([data-theme="dark"], [data-theme="halloween"]) #content img {
     filter: brightness(.75);
   }
@@ -358,9 +411,10 @@
     filter: brightness(.85);
   }
 
-  /* ============ 应用框架 ============ */
+  /* ============ 应用框架：侧边栏布局（daisyUI Drawer） ============ */
   #appDrawer { height: 100dvh; }
   #appDrawer > .drawer-content { height: 100dvh; }
+  /* daisyUI 静态 CSS 不含响应式 open 变体：大屏按官方 drawer-open 规则常驻显示侧栏 */
   @media (min-width: 1024px) {
     #appDrawer > .drawer-toggle { display: none; }
     #appDrawer > .drawer-toggle ~ .drawer-side {
@@ -379,10 +433,11 @@
     #appDrawer > .drawer-toggle ~ .drawer-side > :not(.drawer-overlay) { translate: 0%; will-change: auto; }
   }
 
+  /* 侧栏菜单项（参考图样式：圆角行 + 主题色高亮 + 左侧指示条） */
   #appSidebar .menu li > a,
-#appSidebar .menu li > summary,
-#appSidebar .menu li > button,
-#appSidebar .menu li > label {
+  #appSidebar .menu li > summary,
+  #appSidebar .menu li > button,
+  #appSidebar .menu li > label {
     border-radius: .75rem;
     font-weight: 500;
     padding-block: .4375rem;
@@ -393,7 +448,7 @@
   }
   #appSidebar .menu > li { position: relative; }
   #appSidebar .menu > li:has(> .tab-btn.active)::before {
-    content: "";
+    content: '';
     position: absolute;
     left: -.75rem;
     top: 50%;
@@ -403,8 +458,10 @@
     border-radius: 999px;
     background: var(--color-primary);
   }
+  /* 子项激活时父级“标记”同步着色 */
   #appSidebar details:has(> ul .tab-btn.active) > summary { color: var(--color-primary); }
 
+  /* 热门标签列表（参考图样式：彩点 + 名称 + 数量） */
   .sidebar-tag {
     display: flex;
     align-items: center;
@@ -438,16 +495,22 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ============ 手账时间轴主题 ============ */
+  /* ============================================================
+     手账时间轴主题（概念 B）
+  ============================================================ */
+  /* 全站隐藏滚动条：保留滚动能力，视觉上像原生 APP */
   * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
   *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
 
+  /* 页面底色：全站统一单一底色（无多层背景色带） */
   .paper-bg {
     background-color: var(--color-base-100);
   }
   #topNav { border-bottom-color: color-mix(in oklch, var(--color-base-content) 10%, transparent); }
+  /* 标签区标题（替代原分隔横线，标示下方为标签列表） */
   .tag-title { font-size: 1.02rem; font-weight: 700; padding: .4rem .25rem .45rem; letter-spacing: .1em; }
 
+  /* 侧栏资料卡 */
   .side-profile { display: flex; align-items: center; gap: .8rem; padding: .95rem .95rem .4rem; }
   .side-profile img {
     width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: 0 0 auto;
@@ -455,8 +518,10 @@
     box-shadow: 0 2px 10px color-mix(in oklch, var(--color-base-content) 18%, transparent);
   }
   .side-profile .name { font-weight: 700; line-height: 1.25; }
+  /* 资料卡功能图标行（原 bio 位置） */
   .side-actions { display: flex; align-items: center; gap: 2px; margin-top: 3px; }
 
+  /* 侧栏激活项：淡底 + 左侧竖条指示 */
   #appSidebar .menu .tab-btn.active {
     background: color-mix(in oklch, var(--color-base-content) 7%, transparent);
     color: var(--color-primary);
@@ -464,6 +529,7 @@
     box-shadow: none;
   }
 
+  /* 侧栏菜单：一行一项 */
   #appSidebar .menu { gap: 2px; }
   #appSidebar .menu .tab-btn {
     padding: .45rem .55rem;
@@ -474,8 +540,9 @@
   }
   #appSidebar .menu .tab-btn .iconify { font-size: 1.15rem; }
   #appSidebar .menu > li { position: relative; }
+  /* 激活项左侧竖条指示（圆角短棒，骑在条目左缘） */
   #appSidebar .menu > li:has(> .tab-btn.active)::before {
-    content: "";
+    content: '';
     position: absolute;
     left: -10px;
     top: 50%;
@@ -486,7 +553,9 @@
     background: var(--color-primary);
   }
 
+  /* 桌面端：侧栏 + 主区合并为一个居中的宽屏面板（C 杂志风：纯色、无边框、无阴影） */
   @media (min-width: 1024px) {
+    /* body 自身 padding 撑出边距，避免与面板 margin 塌陷露出 html 白底 */
     body { padding: 16px; }
     #appDrawer {
       height: calc(100dvh - 32px);
@@ -497,9 +566,12 @@
     }
     #appDrawer > .drawer-content { height: 100%; }
     #appDrawer > .drawer-toggle ~ .drawer-side { height: 100%; }
+    /* 关键：把 grid 行高钉死为 1fr，否则 100% 高度链会退化为内容高度，面板内无法内部滚动 */
     #appDrawer { grid-template-rows: minmax(0, 1fr); }
     #appShell { height: 100%; background: transparent; border: none; box-shadow: none; border-radius: 0; overflow: hidden; }
+    /* 顶栏（汉堡 + 标题）只在移动端存在 */
     #appShell > header { display: none; }
+    /* 侧栏是面板内的透明分区，与主区之间无分隔线 */
     #appSidebar {
       height: 100%;
       margin: 0; border-radius: 0;
@@ -510,11 +582,14 @@
     }
   }
 
+  
+
   /* ====== 说说：无时间线轨道，卡片占满主内容区 ====== */
   #content ul.memo-list { width: 100%; max-width: none; margin: 0; padding: 0; list-style: none; }
   #content ul.memo-list > li { display: block; width: 100%; margin: 0; padding: 0 0 1.25rem; }
   #content ul.memo-list .memo-card { width: 100%; }
 
+  /* 便签卡：与页面同底色，以描边 + 阴影 + 左上角和纸胶带（颜色随第一个标签）区分 */
   .memo-card {
     position: relative;
     background: var(--color-base-100);
@@ -524,7 +599,7 @@
     box-shadow: 0 2px 14px color-mix(in oklch, var(--color-base-content) 7%, transparent);
   }
   .memo-card::before {
-    content: ""; position: absolute; z-index: 2; top: -9px; left: 24px;
+    content: ''; position: absolute; z-index: 2; top: -9px; left: 24px;
     width: 62px; height: 18px; transform: rotate(-2deg);
     background: color-mix(in oklch, var(--tape, var(--color-primary)) 26%, transparent);
     box-shadow: 0 1px 2px rgb(0 0 0 / .07);
@@ -535,14 +610,27 @@
     .memo-card { padding: 1rem 1rem .75rem; }
   }
 
+  /* 单图说说：图文左右分栏（按条目稳定随机左右），标签跟在文字下方 */
+  .memo-split { display: grid; grid-template-columns: 5fr 7fr; gap: 22px; align-items: center; }
+  .memo-split.rev { grid-template-columns: 7fr 5fr; }
+  .memo-split.rev .split-img { order: 2; }
+  .memo-split.rev .split-text { order: 1; }
+  .split-img img { width: 100%; height: 230px; object-fit: cover; cursor: zoom-in; display: block; }
+  .memo-split .split-text .memo-text { font-size: 1.02rem; }
+  @media (max-width: 640px) {
+    .memo-split, .memo-split.rev { grid-template-columns: 1fr; gap: 12px; }
+    .memo-split.rev .split-img { order: 0; }
+    .split-img img { height: auto; }
+  }
+
+  /* 弹窗里的单条说说（无时间线轨道） */
   .memo-entry { max-width: 760px; margin: 0 auto; }
 
   @media (max-width: 640px) {
-    .memo-bubble,
-.sk-bubble { width: 42px; height: 42px; }
+    .memo-bubble, .sk-bubble { width: 42px; height: 42px; }
   }
 
-  /* ====== 刊头「花镜」偈 ====== */
+  /* ====== 刊头「花镜」偈（仅说说视图） ====== */
   #masthead { text-align: center; padding: 3rem 0 .6rem; }
   #masthead .mh-body { width: fit-content; margin: 0 auto; }
   #masthead .mh-poem {
@@ -560,7 +648,7 @@
     .memo-entry { padding: 1.3rem 0 1.2rem; }
   }
 
-  /* ============ 音乐抽屉 ============ */
+  /* ============ 音乐抽屉（右侧滑出播放器） ============ */
   .music-drawer-overlay {
     position: fixed; inset: 0; z-index: 60;
     background: rgb(0 0 0 / .35);
@@ -591,6 +679,7 @@
     width: 85%; max-width: 400px; z-index: 70;
     background: var(--bg); color: var(--text);
     border-left: 1px solid var(--border-light);
+    /* 关闭时无投影，避免在屏幕右缘留下一条竖边（见文末主题里的同名说明） */
     box-shadow: none;
     transform: translateX(100%);
     transition: transform .35s cubic-bezier(.22, 1, .36, 1);
@@ -620,6 +709,7 @@
   .music-drawer .drawer-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
   .music-drawer .hw-playlist-mount { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 
+  /* —— 播放器组件（迁移自参考站 HWPlayer） —— */
   .music-drawer .hw-playlist {
     position: relative; width: 100%; height: 100%;
     margin: 0; padding: 0;
@@ -669,12 +759,8 @@
   .music-drawer .hw-btn svg { display: block; }
   .music-drawer .hw-play { width: 34px; height: 30px; border-radius: 6px; background: var(--accent); color: var(--color-primary-content, #fff); }
   .music-drawer .hw-play:hover { background: var(--accent-dark); }
-  .music-drawer .hw-pl-shuffle,
-.music-drawer .hw-pl-repeat,
-.music-drawer .hw-pl-lyrics-toggle { color: var(--text-muted); }
-  .music-drawer .hw-pl-shuffle.active,
-.music-drawer .hw-pl-repeat.active,
-.music-drawer .hw-pl-lyrics-toggle.active { color: var(--accent); }
+  .music-drawer .hw-pl-shuffle, .music-drawer .hw-pl-repeat, .music-drawer .hw-pl-lyrics-toggle { color: var(--text-muted); }
+  .music-drawer .hw-pl-shuffle.active, .music-drawer .hw-pl-repeat.active, .music-drawer .hw-pl-lyrics-toggle.active { color: var(--accent); }
   .music-drawer .hw-repeat-badge {
     position: absolute; bottom: -2px; right: -2px;
     width: 14px; height: 14px; border-radius: 50%;
@@ -701,8 +787,7 @@
   .music-drawer .hw-pl-row-artist { font-size: .68rem; color: var(--secondary-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .music-drawer .hw-pl-row-playicon { flex: 0 0 14px; text-align: center; color: var(--accent); opacity: 0; }
   .music-drawer .hw-pl-row.playing .hw-pl-row-playicon { opacity: 1; }
-  .music-drawer .hw-pl-loading,
-.music-drawer .hw-pl-error { text-align: center; padding: 16px 8px; color: var(--secondary-text); font-size: .82rem; margin: auto; }
+  .music-drawer .hw-pl-loading, .music-drawer .hw-pl-error { text-align: center; padding: 16px 8px; color: var(--secondary-text); font-size: .82rem; margin: auto; }
   .music-drawer .hw-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(var(--img-brightness)); }
 
   @media (max-width: 640px) {
@@ -712,13 +797,37 @@
     .music-drawer { width: 92%; }
   }
 
-  /* ============ iOS 安全区 ============ */
+  /* ============ 单图等比显示（参考 Threads：按原始比例呈现，不强行拉满容器宽度） ============ */
+  .memo-img-single-wrap {
+    display: inline-block;
+    max-width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgb(128 128 128 / .12);
+    background: rgb(128 128 128 / .08);
+    box-shadow: 0 1px 4px rgb(0 0 0 / .06);
+  }
+  .memo-img-single-wrap img {
+    display: block;
+    width: auto; height: auto;
+    max-width: 100%;
+    max-height: min(62vh, 480px);
+    cursor: zoom-in;
+  }
+  html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap:hover img {
+    filter: brightness(.85);
+  }
+
+  /* ============ iOS 安全区适配 ============ */
+  /* 100vh 在 iOS Safari 里包含地址栏高度，底部内容会被压在工具栏下面；改用动态视口高度（不支持的旧浏览器自动回退 h-screen 的 100vh） */
   body { min-height: 100dvh; }
+  /* 顶部导航避开状态栏/刘海（viewport-fit=cover 时内容会顶到屏幕物理边缘） */
   #topNav { padding-top: env(safe-area-inset-top, 0px); }
+  /* 滚动区底部避开 Home 指示条 */
   #mainScroll { padding-bottom: env(safe-area-inset-bottom, 0px); }
   #toTop { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
 
-  /* ============ 翻页控件 ============ */
+  /* ============ 翻页控件：随内容滚动，到底部才出现（无吸底 / 无蒙版） ============ */
   #mediaPager {
     padding: 0 8px calc(16px + env(safe-area-inset-bottom, 0px));
   }
@@ -782,12 +891,13 @@
     user-select: none;
     -webkit-user-select: none;
   }
+  /* 窄屏：压缩单元格宽度，保证 1/2/3/4/5/6/7/…/末页 + 左右箭头一行放得下 */
   @media (max-width: 400px) {
     #pagerBtns { gap: 0; }
     #pagerBtns .pager-btn { min-width: 1.95rem; padding: 0 .18rem; font-size: .9rem; }
     #pagerBtns .pager-gap { min-width: 1.15rem; }
   }
-  /* ============ 全站快速搜索 ============ */
+  /* ============ 全站快速搜索（Ctrl+K Command Palette） ============ */
   .cmdk-overlay {
     position: fixed; inset: 0; z-index: 90;
     background: rgb(0 0 0 / .45);
@@ -810,6 +920,7 @@
     animation: fadeUp .18s ease both;
   }
   .cmdk-memo-panel { max-height: 80vh; }
+  /* 弹窗空间有限：内嵌多图条限高，避免单图撑满弹窗 */
   .cmdk-memo-panel .strip-item img { max-height: min(38vh, 300px); }
   .cmdk-input-row {
     display: flex; align-items: center; gap: 10px;
@@ -862,7 +973,7 @@
   .wc-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* ============================================================
-   标签抽屉
+   标签抽屉 v1：像音乐歌单一样的左侧纸页抽屉
    ============================================================ */
 
 .tag-drawer-overlay {
@@ -896,6 +1007,7 @@
     var(--journal-paper);
   color: var(--journal-ink);
   border-right: 1px solid rgba(83, 68, 48, .18);
+  /* 关闭时无投影：抽屉在屏幕左侧之外，阴影会渗进左边留白 */
   box-shadow: none;
   transform: translateX(-104%);
   transition: transform .38s cubic-bezier(.22, 1, .36, 1);
@@ -1143,13 +1255,15 @@
 #tagSelectedCount.hidden {
   display: none !important;
 }
+/* 桌面端：标签抽屉盖在手账和侧栏之上，像一本从书架抽出的标签索引 */
 @media (min-width: 1024px) {
   .tag-drawer {
     width: 390px;
   }
 }
 
- @media (max-width: 1023px) {
+ /* 移动端：抽屉加宽、内边距收紧，避免拥挤 */
+@media (max-width: 1023px) {
   .tag-drawer {
     width: min(390px, 92vw);
   }
@@ -1232,14 +1346,10 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 }
 
 </style>
-<link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" />
 </head>
 <body class="min-h-screen paper-bg text-base-content">
 
-<main id="mainScroll">
-  <div class="page-container">
-
-    <!-- ============ 顶部悬浮导航 ============ -->
+<!-- ============ 顶部悬浮导航：品牌 + 居中菜单 + 功能图标；下滑隐藏，上滑出现 ============ -->
 <header id="topBar">
   <div class="topbar-inner">
     <div class="topbar-brand">
@@ -1281,6 +1391,8 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   </div>
 </header>
 
+<main id="mainScroll">
+  <div class="page-container">
 
     <!-- 刊头（仅说说视图）：花镜偈 -->
     <div id="masthead" class="hidden">
@@ -1309,7 +1421,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   <span class="iconify text-xl" data-icon="gg:pin-top"></span>
 </button>
 
-<!-- ======================= 标签抽屉 ======================= -->
+<!-- ======================= 标签抽屉：左侧滑出，支持组合标签 ======================= -->
 <div id="tagDrawerOverlay" class="tag-drawer-overlay" aria-hidden="true"></div>
 
 <aside id="tagBar" class="tag-drawer hidden" role="dialog" aria-modal="true" aria-label="标签筛选">
@@ -1348,7 +1460,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 
 
 
-<!-- 底部悬浮歌词药丸栏 -->
+<!-- 底部悬浮歌词药丸栏：播放时显示，歌词过长左右滚动 -->
 <div id="headerLyricsBar" class="hidden">
   <div class="flex items-center gap-2 rounded-full border border-base-100/60 shadow-lg px-3.5 py-2 w-full min-w-0 bg-base-100/70 backdrop-blur-md">
     <span class="eq shrink-0" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
@@ -1360,7 +1472,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
 
 
 
-<!-- ======================= 音乐抽屉 ======================= -->
+<!-- ======================= 音乐抽屉（右侧滑出） ======================= -->
 <div id="musicDrawerOverlay" class="music-drawer-overlay"></div>
 <aside id="musicDrawer" class="music-drawer" role="dialog" aria-label="音乐播放器">
   <div class="drawer-header">
@@ -1389,7 +1501,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   </div>
 </div>
 
-<!-- ======================= 全站快速搜索 ======================= -->
+<!-- ======================= 全站快速搜索（Ctrl+K） ======================= -->
 <div id="cmdkOverlay" class="cmdk-overlay">
   <div class="cmdk-panel" role="dialog" aria-label="全站搜索">
     <div class="cmdk-input-row">
@@ -1435,7 +1547,7 @@ const hostIsProd = location.hostname === PROD_HOST || location.hostname === 'www
 const USE_MOCK = forcedMode ? forcedMode === 'mock' : !hostIsProd;
 
 /* ============================================================
-   TMDB 题材映射
+   TMDB 题材映射（电影/剧集各自的题材集合，用于类型联动）
 ============================================================ */
 const GENRE_MAP = {
   28:'动作', 12:'冒险', 16:'动画', 35:'喜剧', 80:'犯罪', 99:'纪录片', 18:'剧情',
@@ -1447,6 +1559,7 @@ const GENRE_MAP = {
 const MOVIE_GENRES = new Set([28,12,16,35,80,99,18,10751,14,36,27,10402,9648,10749,878,10770,53,10752,37]);
 const TV_GENRES    = new Set([10759,16,35,80,99,18,10751,10762,9648,10763,10764,10765,10766,10767,10768,37]);
 
+/* 上映年代区间（多选 OR） */
 const RELEASE_RANGES = [
   { id: '90s',  name: '90年代', test: y => y >= 1990 && y < 2000 },
   { id: '00s',  name: '00年代', test: y => y >= 2000 && y < 2010 },
@@ -1507,6 +1620,7 @@ const MOCK_MEMOS = (() => {
 })();
 
 const MOCK_MEDIA = (() => {
+  // [标题, 原名, 类型, 上映日期, 评分, 几天前加入, 题材id数组]
   const watched = [
     ['流浪地球2','The Wandering Earth II','movie','2023-01-22',7.9,580,[878,12,18]],
     ['长安三万里','Chang An','movie','2023-07-08',8.2,540,[16,36,18]],
@@ -1576,9 +1690,10 @@ const MOCK_BOOKMARKS = [
    工具函数
 ============================================================ */
 const $ = sel => document.querySelector(sel);
-const SCROLL_BREAKPOINT = 1024;
+// ========== 滚动管理器（兼容 body 滚动与 #mainScroll 滚动） ==========
+const SCROLL_BREAKPOINT = 1024; // 与 tailwind lg: 对齐
 function isBodyScroll() {
-  return false;
+  return true;   // 顶部悬浮导航布局：全尺寸统一走 window 滚动
 }
 function getScrollPos() {
   if (isBodyScroll()) return window.scrollY;
@@ -1648,6 +1763,7 @@ function parseContent(raw) {
       .replace(/\n/g, '<br>');
   }
 
+  // 正文里的所有链接统一在新标签页打开
   html = html.replace(/<a\s+/gi, '<a target="_blank" rel="noopener noreferrer" ');
 
   return { html, images };
@@ -1716,7 +1832,7 @@ async function fetchData({ view, page = 1, tags = [] }) {
 }
 
 /* ============================================================
-   图片灯箱
+   图片灯箱：Fancybox（委托打开，兼容动态渲染内容）
 ============================================================ */
 function initFancybox() {
   if (!window.Fancybox) return;
@@ -1725,7 +1841,9 @@ function initFancybox() {
     if (!trigger) return;
     e.preventDefault();
     const group = trigger.getAttribute('data-fancybox') || 'gallery';
+    // 排除手机端 +N 覆盖格（div），它只是灯箱入口，本身不算一页
     const items = [...document.querySelectorAll(`[data-fancybox="${group}"]`)]
+      .filter(a => !a.classList.contains('strip-item'))
       .map(a => ({
         src: a.getAttribute('href') || a.getAttribute('data-src') || '',
         caption: a.getAttribute('data-caption') || '',
@@ -1738,18 +1856,162 @@ function initFancybox() {
 }
 
 /* ============================================================
-   图片条
+   Threads 风格横向图片条
 ============================================================ */
    function renderImages(images, group) {
   if (!images.length) return '';
-  const g = escapeHtml(String(group || 'gallery'));
+  const g = group || 'gallery';
+
+  if (images.length === 1) {
+    const img = images[0];
+    return `
+    <div class="memo-img-single-wrap mt-3">
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy" decoding="async"
+           data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
+           data-caption="${escapeHtml(img.alt || '')}" />
+    </div>`;
+  }
+
   const items = images.map((img, i) => {
-    const more = images.length > 9 && i === 8 ? ` data-more="${images.length - 9}"` : '';
-    return `<div class="strip-item"${more}><img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async" data-fancybox="${g}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}" /></div>`;
+    // 手机端九宫格：超过 9 张时第 9 格标记 +N（N 为未展示数）；格子自带灯箱属性，点击可查看全部
+    const more = images.length > 9 && i === 8
+      ? ` data-more="${images.length - 8}" data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}"`
+      : '';
+    return `
+    <div class="strip-item rounded-xl overflow-hidden bg-base-300/50"${more}>
+      <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt)}" loading="lazy"
+           data-fancybox="${escapeHtml(g)}" data-src="${escapeHtml(img.url)}"
+           data-caption="${escapeHtml(img.alt || '')}" />
+    </div>`;
   }).join('');
-  return `<div class="strip-wrap mt-3"><div class="memo-image-grid" data-count="${images.length}">${items}</div></div>`;
+
+  return `
+  <div class="strip-wrap mt-3">
+    <div class="strip-dots">${images.map((_, i) => `<span class="strip-dot" data-i="${i}"></span>`).join('')}</div>
+    <div class="carousel-strip">
+      ${items}
+      <div class="strip-end w-1"></div>
+    </div>
+  </div>`;
+}
+   
+   
+function initCarousels(root) {
+  root.querySelectorAll('.carousel-strip').forEach(strip => {
+    if (strip.dataset.carouselInit) return;
+    strip.dataset.carouselInit = '1';
+
+    const wrap = strip.closest('.strip-wrap');
+    const dotsWrap = wrap && wrap.querySelector('.strip-dots');
+    const dots = dotsWrap ? Array.from(dotsWrap.children) : [];
+    const maxScroll = () => Math.max(0, strip.scrollWidth - strip.clientWidth);
+    const itemW = () => {
+      const first = strip.querySelector('.strip-item');
+      return first ? first.getBoundingClientRect().width + 8 : strip.clientWidth * 0.72;
+    };
+
+    // 指示圆点：滚动到第几张，对应圆点拉长为胶囊；点击圆点滑到对应图
+    if (dotsWrap) {
+      const update = () => {
+        const total = dots.length;
+        if (!total) return;
+        const scrollable = strip.scrollWidth > strip.clientWidth + 4;
+        dotsWrap.classList.toggle('on', scrollable);
+        if (!scrollable) return;
+        const i = strip.scrollLeft >= maxScroll() - 2
+          ? total - 1
+          : Math.min(total - 1, Math.max(0, Math.round(strip.scrollLeft / itemW())));
+        dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
+      };
+      strip.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+      window.addEventListener('resize', update);
+      strip.querySelectorAll('img').forEach(img => {
+        img.addEventListener('load', update);
+        img.addEventListener('error', update);
+      });
+      dotsWrap.addEventListener('click', e => {
+        const dot = e.target.closest('.strip-dot');
+        if (!dot) return;
+        const i = Number(dot.dataset.i) || 0;
+        glideTo(i >= dots.length - 1 ? maxScroll() : i * itemW());
+      });
+      update();
+    }
+
+    let down = false, startX = 0, startL = 0, moved = 0;
+    let samples = [];
+    let cancelGlide = null;
+    let pressedItem = null;
+
+    const releasePress = () => {
+      if (pressedItem) {
+        pressedItem.classList.remove('pressed');
+        pressedItem = null;
+      }
+    };
+
+    const glideTo = target => {
+      const to = Math.max(0, Math.min(target, maxScroll()));
+      const from = strip.scrollLeft;
+      const dist = Math.abs(to - from);
+      if (dist < 1) return;
+      if (cancelGlide) cancelGlide();
+      const duration = Math.min(200 + dist * 0.55, 550);
+      cancelGlide = animateValue(from, to, duration, v => { strip.scrollLeft = v; }, () => {
+        cancelGlide = null;
+      });
+    };
+
+    strip.addEventListener('pointerdown', e => {
+      pressedItem = e.target.closest('.strip-item');
+      if (pressedItem) pressedItem.classList.add('pressed');
+
+      if (e.pointerType === 'touch') return;
+      if (cancelGlide) { cancelGlide(); cancelGlide = null; }
+      down = true; moved = 0;
+      startX = e.clientX; startL = strip.scrollLeft;
+      samples = [{ x: e.clientX, t: performance.now() }];
+    });
+    strip.addEventListener('pointermove', e => {
+      if (!down) return;
+      const dx = e.clientX - startX;
+      moved = Math.max(moved, Math.abs(dx));
+      if (moved > 4) {
+        strip.classList.add('dragging');
+        try { strip.setPointerCapture(e.pointerId); } catch {}
+      }
+      strip.scrollLeft = startL - dx;
+      samples.push({ x: e.clientX, t: performance.now() });
+      if (samples.length > 6) samples.shift();
+    });
+    const up = () => {
+      releasePress();
+      if (!down) return;
+      down = false;
+      strip.classList.remove('dragging');
+      if (moved > 8) strip.dataset.justDragged = '1';
+      let v = 0;
+      if (samples.length >= 2) {
+        const a = samples[0], b = samples[samples.length - 1];
+        const dt = b.t - a.t;
+        if (dt > 0) v = (b.x - a.x) / dt;
+      }
+      glideTo(strip.scrollLeft - v * 220);
+    };
+    strip.addEventListener('pointerup', up);
+    strip.addEventListener('pointercancel', up);
+    strip.addEventListener('pointerleave', up);
+    strip.addEventListener('click', e => {
+      if (strip.dataset.justDragged) {
+        delete strip.dataset.justDragged;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  });
 }
 
+// 横向拖拽滚动（PC 端鼠标拖拽，移动端走原生触摸滚动）
 function initDragScroll(el) {
   if (!el || el.dataset.dragScroll) return;
   el.dataset.dragScroll = '1';
@@ -1771,7 +2033,7 @@ function initDragScroll(el) {
   };
 
   el.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch') return;   // 移动端交给原生触摸滚动
     if (cancelGlide) { cancelGlide(); cancelGlide = null; }
     down = true; moved = 0;
     startX = e.clientX; startL = el.scrollLeft;
@@ -1809,6 +2071,7 @@ function initDragScroll(el) {
   el.addEventListener('pointercancel', up);
   el.addEventListener('pointerleave', up);
 
+  // 拖拽后阻止 click（避免误触标签切换）
   el.addEventListener('click', e => {
     if (el.dataset.justDragged) {
       delete el.dataset.justDragged;
@@ -1825,6 +2088,7 @@ let tagNameMap = new Map();
 
 const TAG_COLORS = ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error'];
 
+// 根据标签 id 生成稳定颜色（同一标签始终同色，不同标签颜色分散）
 function tagColor(id) {
   let h = 0;
   const s = String(id);
@@ -1832,6 +2096,7 @@ function tagColor(id) {
   return TAG_COLORS[h % TAG_COLORS.length];
 }
 
+// 解析 rawDate（"YYYY-MM-DD HH:mm:00"）为日期牌所需信息（含年份，不同年份同月日不会合并）；解析失败返回 null
 function tapeTime(rawDate) {
   const t = new Date(String(rawDate || '').replace(' ', 'T'));
   if (!Number.isFinite(t.getTime())) return '';
@@ -1844,6 +2109,7 @@ function tapeTime(rawDate) {
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
 
+/* 稳定伪随机：同一条说说每次渲染位置一致，但不同内容自然分散 */
 function tapePlacement(m) {
   const key = String(m.id || '') + '|' + String(m.rawDate || '') + '|' + String(m.content || '').slice(0, 80);
   let hash = 2166136261;
@@ -1859,7 +2125,8 @@ function tapePlacement(m) {
   };
 }
 
-function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
+function memoCard(m, idx, { plain = false, parsed = null, imgs = null, single = false, rev = false } = {}) {
+  // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
   let images = imgs;
   if (!images) {
@@ -1870,18 +2137,35 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   const anim = `animation-delay:${Math.min(idx * 40, 400)}ms`;
   const textDiv = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>`;
 
-  const body = `${textDiv}
-${renderImages(images, m.id)}`;
+  let body;
+  if (single) {
+    // 单图：图文左右分栏（连续单图左右交替，方向由 loadSayPage 传入）
+    const img = images[0];
+    body = `
+    <div class="memo-split${rev ? ' rev' : ''}">
+      <div class="split-img">
+        <img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async"
+             data-fancybox="${escapeHtml(String(m.id || 'gallery'))}" data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}" />
+      </div>
+      <div class="split-text">${textDiv}</div>
+    </div>`;
+  } else {
+    body = `${textDiv}
+    ${renderImages(images, m.id)}`;
+  }
 
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
+  // 胶带颜色随第一个标签；位置由内容生成稳定伪随机值，不按条目序号循环
   const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
   const dateText = tapeTime(m.rawDate);
+  const placement = tapePlacement(m);
+  const tapeStyle = `left:${placement.left}; transform:rotate(${placement.rotate});`;
   return `
   <li class="fade-up memo-item" style="${anim}">
     <article class="memo-card" style="${tape}">
-      ${dateText ? `<span class="memo-tape-date" aria-label="发布时间">${dateText}</span>` : ''}
+      ${dateText ? `<span class="memo-tape-date" style="${tapeStyle}" aria-label="发布时间">${dateText}</span>` : ''}
       ${body}
     </article>
   </li>`;
@@ -1957,7 +2241,8 @@ function mediaCard(m, idx) {
 }
 
 /* ============================================================
-   影视筛选
+   影视筛选（迁移自参考站：类型单选 / 年代多选 OR / 题材多选 AND）
+   全程操作前端缓存，不重新请求 API
 ============================================================ */
 function mediaFiltersActive(view) {
   const f = state.mediaFilter[view];
@@ -1991,9 +2276,11 @@ function getFilteredMedia(view) {
   });
 }
 
+/* 可选题材：从当前视图缓存中统计，且与类型、年代联动（电影→电影题材，剧集→剧集题材，选年代后题材数量即时刷新） */
 function availableGenres(view) {
   const f = state.mediaFilter[view];
   const list = state.mediaCache[view] || [];
+  // 题材数量 = 当前「类型 + 年代」条件下各题材的独立数量（不考虑已选题材的 AND 约束）
   const pool = list.filter(m => {
     if (f.type !== 'all' && m.media_type !== f.type) return false;
     if (f.ranges.size) {
@@ -2022,6 +2309,7 @@ function availableGenres(view) {
 
 function mediaFilterBarHtml(view) {
   const f = state.mediaFilter[view];
+  // checkbox 按钮组（daisyUI btn 风格）：label 包裹 hidden checkbox，选中态用 btn-primary 高亮
   const chipLabel = on => 'btn btn-xs rounded-full cursor-pointer transition-all ' + (on ? 'btn-primary' : 'btn-ghost bg-base-100 border border-base-300');
 
   const typeRow = [['all','全部'],['movie','电影'],['tv','剧集']]
@@ -2070,7 +2358,7 @@ function bindMediaFilterEvents(view) {
     const v = cb.dataset.v;
     if (f.type === v) return;
     f.type = v;
-    f.genres.clear();
+    f.genres.clear();   // 切类型时清空题材（参考站逻辑）
     state.mediaPage[view] = 1;
     renderMediaPage(view);
   }));
@@ -2091,7 +2379,7 @@ function bindMediaFilterEvents(view) {
 }
 
 /* ============================================================
-   应用状态
+   应用状态 & 控制器
 ============================================================ */
 const state = {
   view: 'say',
@@ -2102,16 +2390,17 @@ const state = {
   tagsLoaded: false,
   mediaCache: { watched: null, watchlist: null },
   photosCache: null,
-  clipsCache: null,
-  clipsBook: null,
-  hotCache: {},
-  hotActive: 'weibo',
-  bookmarksCache: null,
-  bookmarksCat: '全部',
-  bookmarksQuery: '',
-  searchMemosCache: null,
-  remindersCache: null,
+  clipsCache: null,     // Kindle 标注：解析后的书单（首次点击加载进内存）
+  clipsBook: null,      // 当前展开的书（null = 书单页）
+  hotCache: {},         // 热搜：各平台数据缓存 { [id]: { data, ts } }
+  hotActive: 'weibo',   // 当前热搜平台
+  bookmarksCache: null, // 书签：全量缓存（首次进入拉取，筛选全在前端）
+  bookmarksCat: '全部', // 当前书签分类
+  bookmarksQuery: '',   // 当前书签搜索词
+  searchMemosCache: null, // 快速搜索：说说全量缓存（首次打开面板拉取）
+  remindersCache: null, // 世界时间：提醒列表缓存
   mediaPage: { watched: 1, watchlist: 1 },
+  // 筛选条件按视图独立保存：切换菜单再切回来时原样恢复
   mediaFilter: {
     watched: { type: 'all', ranges: new Set(), genres: new Set() },
     watchlist: { type: 'all', ranges: new Set(), genres: new Set() },
@@ -2128,7 +2417,7 @@ let tagsPromise = null;
 
 function loadTags({ force = false } = {}) {
   if (!force) {
-    if (tagsPromise) return tagsPromise;
+    if (tagsPromise) return tagsPromise;   // 有进行中的拉取（含强制刷新）则共用结果
     if (state.tagsLoaded) return Promise.resolve();
   }
   tagsPromise = (async () => {
@@ -2152,6 +2441,7 @@ function renderTagChips(tags) {
   const selected = [...state.selectedTags];
   const unselected = (tags || []).filter(t => !state.selectedTags.has(t.id));
 
+  // 标签现在由左侧抽屉承载；数据和筛选状态仍然沿用原来的 state.selectedTags。
   if (!tags.length && !selected.length) {
     bar.classList.add('hidden');
   } else {
@@ -2168,6 +2458,7 @@ function renderTagChips(tags) {
     ? `${selected.length} 个标签 · AND`
     : '未选择标签';
 
+  // 选中的标签永远置顶，方便组合筛选时连续点击。
   const chip = (id, { active = false, count = null } = {}) => {
     const name = tagNameMap.get(id) || String(id).replace(/^tag_/, '');
     const color = tagColor(id);
@@ -2196,6 +2487,7 @@ function toggleTag(id) {
   const wasSelected = state.selectedTags.has(id);
   const wasEmpty = state.selectedTags.size === 0;
 
+  // 从无筛选切到有筛选时，保存无筛选时的滚动位置和加载页数
   if (wasEmpty) {
     saveCurrentScroll();
     sayUnfilteredScroll = viewScrollPos.say;
@@ -2203,18 +2495,21 @@ function toggleTag(id) {
   }
 
   wasSelected ? state.selectedTags.delete(id) : state.selectedTags.add(id);
-  renderTagChips(cachedTags);
+  renderTagChips(cachedTags);   // 重新渲染：选中标签移到最前面
 
   if (state.view !== 'say') {
+    // 在其他视图点标签：切回说说视图（switchView 会同步菜单高亮/标题并带筛选加载）
     restoreTarget = null;
     switchView('say');
   } else if (!wasEmpty && state.selectedTags.size === 0) {
+    // 从有筛选回到无筛选时，恢复之前无筛选的滚动位置（含加载页数）；否则回顶部
     restoreTarget = { view: 'say', pos: sayUnfilteredScroll, page: sayUnfilteredPage };
     resetSay();
   } else {
     restoreTarget = null;
     resetSay();
   }
+  // 标签抽屉故意保持打开：可以连续选择多个标签组成 AND 筛选。
 }
 
 $('#clearTagsBtn').onclick = () => {
@@ -2224,33 +2519,40 @@ $('#clearTagsBtn').onclick = () => {
     restoreTarget = null;
     switchView('say');
   } else {
+    // 清空筛选：恢复之前无筛选时的滚动位置（含加载页数）
     restoreTarget = { view: 'say', pos: sayUnfilteredScroll, page: sayUnfilteredPage };
     resetSay();
   }
+  // 清空后也保持标签抽屉打开，方便重新组合。
 };
 
 /* ---------- 说说：加载与无限滚动 ---------- */
 function bindCardInteractions() {
   contentEl.querySelectorAll('.memo-tag').forEach(el => { el.onclick = () => toggleTag(el.dataset.tag); });
+  initCarousels(contentEl);
 }
 
 function resetSay() {
   state.sayPage = 1;
   state.sayTotalPages = 1;
-  scrollToTop();
+  scrollToTop(); // 先回顶部（视图切换渲染后恢复位置，筛选保持顶部）
   contentEl.innerHTML = skeletonNotes(3);
   $('#endHint').classList.add('hidden');
   loadSayPage(1, { replace: true });
 }
 
+// 单图分栏方向：每渲染一张单图就翻转一次，保证连续的单图说说左右交替
+let splitFlip = 0;
 const MEMO_LIST_UL = '<ul class="memo-list">';
 
 async function loadSayPage(page, { replace = false } = {}) {
   if (state.loading) return;
   state.loading = true;
+  if (replace) { splitFlip = 0; }
   if (!replace) $('#loadingMore').classList.remove('hidden');
 
   try {
+    // 并行：确保标签名加载 + 拉取说说数据，渲染前等待标签名就绪（避免卡片标签显示 id）
     const tagsReady = loadTags();
     const res = await fetchData({ view: 'say', page, tags: [...state.selectedTags] });
     await tagsReady;
@@ -2259,16 +2561,21 @@ async function loadSayPage(page, { replace = false } = {}) {
     state.sayTotal = res.total;
 
     const html = (res.data || []).map((m, i) => {
+      // 合并正文图片与 m.images 附件（生产数据图片在附件数组里），再判断是否单图
       const parsed = parseContent(m.content);
       const imgs = parsed.images.length ? parsed.images
         : (Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : []);
-      return memoCard(m, i, { parsed, imgs });
+      // 连续单图说说：左右交替（计数器只在单图时翻转）
+      const single = imgs.length === 1;
+      const rev = single ? (splitFlip++ % 2 === 1) : false;
+      return memoCard(m, i, { parsed, imgs, single, rev });
     }).join('');
     if (replace) {
       const hasData = res.data && res.data.length;
       contentEl.innerHTML = hasData ? MEMO_LIST_UL + html + '</ul>'
         : emptyState(state.selectedTags.size ? '这些标签的交集下暂时没有说说，试试少选几个？' : '还没有说说，去写第一条吧。');
     } else if (html) {
+      // 翻页：追加到时间线 ul 内部
       let ul = contentEl.querySelector('ul.memo-list');
       if (!ul) { contentEl.insertAdjacentHTML('beforeend', MEMO_LIST_UL); ul = contentEl.querySelector('ul.memo-list'); }
       ul.insertAdjacentHTML('beforeend', html);
@@ -2296,14 +2603,18 @@ const observer = new IntersectionObserver(entries => {
   if (state.view === 'say' && state.sayPage < state.sayTotalPages && !state.loading) {
     loadSayPage(state.sayPage + 1);
   }
-}, { root: mainScroll, rootMargin: '400px' });
+/* root 用视口（null）：桌面端 mainScroll 是内部滚动容器、手机端由 body 滚动，
+   两种模式下哨兵相对视口的位置都会随滚动变化，观察器都能正确触发；
+   若 root 固定为 mainScroll，手机端它不是滚动容器、永远包含哨兵，交叉状态不变导致下拉加载失效 */
+}, { rootMargin: '400px' });
 observer.observe($('#sentinel'));
 
-/* ---------- 图片墙 ---------- */
+/* ---------- 图片墙：聚合所有说说的图片 ---------- */
 async function loadPhotos() {
   contentEl.innerHTML = skeletonCards(2);
   try {
     if (!state.photosCache) {
+      // 拉取全部说说分页，提取其中的图片（与普通说说同一图片来源）
       const first = await fetchData({ view: 'say', page: 1, tags: [] });
       const all = [...(first.data || [])];
       const totalPages = first.totalPages || 1;
@@ -2335,6 +2646,7 @@ function renderPhotos() {
   const photos = state.photosCache || [];
   if (!photos.length) { contentEl.innerHTML = emptyState('说说里还没有图片。'); applyRestore('photos'); return; }
 
+  // 需要恢复滚动位置时图片改为立即加载：lazy 模式下视口外的图片不加载、瀑布流高度不足，位置永远恢复不到位
   const restoring = !!(restoreTarget && restoreTarget.view === 'photos' && restoreTarget.pos > 1);
   const pos = restoring ? restoreTarget.pos : 0;
   if (restoring) restoreTarget = null;
@@ -2358,6 +2670,7 @@ function renderPhotos() {
   else applyRestore('photos');
 }
 
+/* 图片墙恢复滚动：瀑布流高度随图片加载逐渐增长，需反复把滚动条钉到目标位置，直到够高或超时 */
  function restorePhotosScroll(pos) {
   const start = performance.now();
   const tick = () => {
@@ -2388,6 +2701,7 @@ function initPhotoGrid() {
   });
   photoGridInstance = grid;
 
+  // 图片加载完成后重新布局（防抖，避免抖动）
   let raf = null;
   const scheduleLayout = () => {
     if (raf) return;
@@ -2405,9 +2719,10 @@ function initPhotoGrid() {
   grid.layout();
 }
 
-/* ---------- Kindle 标注 ---------- */
-let clipsListScroll = 0;
+/* ---------- Kindle 标注（My Clippings.txt） ---------- */
+let clipsListScroll = 0;   // 进入某本书前的书单滚动位置，返回时恢复
 
+/* 解码：Kindle 老设备导出 UTF-16（带 BOM），新设备 UTF-8，按 BOM 自适应 */
 function decodeClippings(buf) {
   const b = new Uint8Array(buf);
   if (b[0] === 0xFF && b[1] === 0xFE) return new TextDecoder('utf-16le').decode(buf);
@@ -2415,6 +2730,7 @@ function decodeClippings(buf) {
   return new TextDecoder('utf-8').decode(buf);
 }
 
+/* 解析 My Clippings.txt：按 ========== 分块，每块 = 标题行 + 元信息行 + 正文 */
 function parseClippings(text) {
   const blocks = [];
   let cur = [];
@@ -2434,10 +2750,12 @@ function parseClippings(text) {
     const content = blockLines.slice(2).join('\n').trim();
     if (!titleLine || !content) return;
 
+    // 标题行："书名 (作者名)"
     const tm = titleLine.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
     const title = tm ? tm[1].trim() : titleLine;
     const author = tm ? tm[2].trim() : '';
 
+    // 元信息：类型 / 页码 / 位置 / 添加时间（兼容中英文 Kindle 格式）
     let type = '标注';
     if (/笔记|note/i.test(metaLine)) type = '笔记';
     else if (/书签|bookmark/i.test(metaLine)) type = '书签';
@@ -2484,6 +2802,7 @@ function renderClips() {
   const book = state.clipsBook ? books.find(b => b.key === state.clipsBook) : null;
 
   if (!book) {
+    // 书单页：按标注数排序的书籍列表
     if (!books.length) { contentEl.innerHTML = emptyState('没有解析到标注内容，检查一下 My Clippings.txt 的格式。'); applyRestore('clips'); return; }
     const total = books.reduce((s, b) => s + b.count, 0);
     contentEl.innerHTML = `
@@ -2511,10 +2830,11 @@ function renderClips() {
         clipsListScroll = getScrollPos();
         state.clipsBook = btn.dataset.book;
         renderClips();
-        scrollToTop();
+        scrollToTop();   // 进入书内页从第一条标注开始，书单位置留在 clipsListScroll 备返回恢复
       };
     });
   } else {
+    // 书内页：这本书的全部标注，复用同样的 List 控件
     const back = `<button class="btn btn-sm btn-ghost gap-1 mb-2 clips-back">
         <span class="iconify" data-icon="lucide:arrow-left"></span>返回书单
       </button>`;
@@ -2551,7 +2871,7 @@ function renderClips() {
     if (backBtn) backBtn.onclick = () => {
       state.clipsBook = null;
       renderClips();
-      setScrollPos(clipsListScroll);
+      setScrollPos(clipsListScroll);   // 回到书单时恢复离开时的位置
     };
     contentEl.querySelectorAll('.clips-copy').forEach(btn => {
       btn.onclick = async () => {
@@ -2570,7 +2890,7 @@ function renderClips() {
   applyRestore('clips');
 }
 
-/* ---------- 热搜聚合 ---------- */
+/* ---------- 热搜聚合（uapis hotboard，多平台，自动+手动刷新） ---------- */
 const HOT_SITES = [
   { id: 'weibo',    name: '微博' },
   { id: 'zhihu',    name: '知乎' },
@@ -2587,10 +2907,10 @@ const HOT_SITES = [
   { id: 'weread',   name: '微信读书' },
 ];
 const HOT_API = 'https://uapis.cn/api/v1/misc/hotboard?type=';
-const HOT_TTL = 2 * 60 * 1000;
-const HOT_AUTO_MS = 3 * 60 * 1000;
+const HOT_TTL = 2 * 60 * 1000;        // 平台缓存有效期
+const HOT_AUTO_MS = 3 * 60 * 1000;    // 自动刷新间隔
 let hotTimer = null;
-const hotScrolls = {};
+const hotScrolls = {};                // 各平台独立的滚动位置
 
 function hotSite(id) { return HOT_SITES.find(s => s.id === id) || { id, name: id }; }
 
@@ -2612,6 +2932,7 @@ async function loadHot(platform, force = false) {
     if (!body) return;
     const box = errorState(msg, () => loadHot(platform, true));
     if (cached) {
+      // 有旧数据：列表保留，错误提示追加在下方
       box.classList.add('mx-4', 'sm:mx-5', 'mt-3');
       const old = body.querySelector('.hot-error');
       if (old) old.remove();
@@ -2626,6 +2947,7 @@ async function loadHot(platform, force = false) {
 
   contentEl.querySelector('.hot-refresh')?.classList.add('loading');
   if (!cached) {
+    // 首次加载该平台：列表区显示骨架
     const body = contentEl.querySelector('.hot-body');
     if (body) body.innerHTML = `<div class="pt-1">${skeletonCards(3)}</div>`;
   }
@@ -2638,7 +2960,7 @@ async function loadHot(platform, force = false) {
     state.hotCache[platform] = { data: list, ts: Date.now() };
     renderList(list, Date.now());
   } catch (err) {
-    if (cached) renderList(cached.data, cached.ts);
+    if (cached) renderList(cached.data, cached.ts);   // 有旧数据则先显示旧数据
     showError(`「${hotSite(platform).name}」热搜获取失败：${err.message}`);
   } finally {
     contentEl.querySelector('.hot-refresh')?.classList.remove('loading');
@@ -2666,22 +2988,22 @@ function renderHotView() {
   contentEl.querySelectorAll('[data-hot]').forEach(btn => {
     btn.onclick = () => {
       if (state.hotActive === btn.dataset.hot) return;
-      hotScrolls[state.hotActive] = getScrollPos();
+      hotScrolls[state.hotActive] = getScrollPos();   // 记住当前平台的位置
       state.hotActive = btn.dataset.hot;
       renderHotView();
       loadHot(state.hotActive);
-      setScrollPos(hotScrolls[state.hotActive] || 0);
+      setScrollPos(hotScrolls[state.hotActive] || 0);   // 恢复目标平台位置（首次为顶部）
     };
   });
   const refreshBtn = contentEl.querySelector('.hot-refresh');
   refreshBtn.onclick = () => loadHot(state.hotActive, true);
-  initDragScroll(contentEl.querySelector('.hot-tabs'));
+  initDragScroll(contentEl.querySelector('.hot-tabs'));   // PC 端鼠标拖拽滚动平台条
   loadHot(active);
 }
 
 function renderHotList(platform, list, ts) {
   const active = state.hotActive;
-  if (platform !== active) return;
+  if (platform !== active) return;   // 用户已切到别的平台，丢弃过期渲染
   const time = new Date(ts).toTimeString().slice(0, 5);
   const rankCls = i => i === 0 ? 'bg-error/15 text-error' : i === 1 ? 'bg-warning/15 text-warning' : i === 2 ? 'bg-success/15 text-success' : 'bg-base-200/70 opacity-70';
   const rows = list.slice(0, 50).map((it, i) => {
@@ -2709,8 +3031,8 @@ function loadHotView() {
   applyRestore('hot');
 }
 
-/* ---------- 书签收藏 ---------- */
-const bmScrolls = {};
+/* ---------- 书签收藏（/api/bookmarks，一次拉全量，搜索/分类全前端筛选） ---------- */
+const bmScrolls = {};   // 各分类独立的滚动位置
 let bmSearchTimer = null;
 
 async function loadBookmarks() {
@@ -2723,11 +3045,12 @@ async function loadBookmarks() {
       await sleep(300);
       list = MOCK_BOOKMARKS;
     } else {
+      // 注意：API_BASE 已含 /api/public-memos 路径，书签走同一端点的 view 参数，避免拼出双重路径
       const res = await fetch(API_BASE + '?view=bookmarks');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       list = Array.isArray(json.data) ? json.data : [];
-      list = list.filter(b => b && b.title && b.url);
+      list = list.filter(b => b && b.title && b.url);   // 数据形状防御：过滤异常条目
     }
     state.bookmarksCache = list;
     renderBookmarks();
@@ -2746,6 +3069,7 @@ function bookmarkFiltered() {
       return false;
     }
     if (!q) return true;
+    // 搜索：title OR desc OR tags（大小写不敏感）
     return String(b.title || '').toLowerCase().includes(q)
       || String(b.desc || '').toLowerCase().includes(q)
       || (b.tags || []).some(t => String(t).toLowerCase().includes(q));
@@ -2756,6 +3080,7 @@ function renderBookmarks() {
   const all = state.bookmarksCache || [];
   if (!all.length) { contentEl.innerHTML = emptyState('书签还是空的。'); applyRestore('bookmarks'); return; }
 
+  // 分类聚合（按数量降序）；收藏作为特殊分类固定在"全部"后面
   const catMap = new Map();
   all.forEach(b => catMap.set(b.category, (catMap.get(b.category) || 0) + 1));
   const favCount = all.filter(b => b.favorite).length;
@@ -2782,7 +3107,7 @@ function renderBookmarks() {
 
     renderBookmarkChips(cats);
     renderBookmarkList();
-    initDragScroll(contentEl.querySelector('.bm-cats'));
+    initDragScroll(contentEl.querySelector('.bm-cats'));   // PC 端鼠标拖拽滚动分类条
 
     const search = contentEl.querySelector('.bm-search');
   search.value = state.bookmarksQuery;
@@ -2807,11 +3132,11 @@ function renderBookmarkChips(cats) {
   wrap.querySelectorAll('[data-bmcat]').forEach(btn => {
     btn.onclick = () => {
       if (state.bookmarksCat === btn.dataset.bmcat) return;
-      bmScrolls[state.bookmarksCat] = getScrollPos();
+      bmScrolls[state.bookmarksCat] = getScrollPos();  // 记住当前分类的位置
       state.bookmarksCat = btn.dataset.bmcat;
       renderBookmarkChips(cats);
       renderBookmarkList();
-      setScrollPos(bmScrolls[state.bookmarksCat] || 0);
+      setScrollPos(bmScrolls[state.bookmarksCat] || 0);   // 恢复目标分类位置（首次为顶部）
     };
   });
 }
@@ -2846,7 +3171,7 @@ function renderBookmarkList() {
     <div class="flex flex-col gap-0.5">${list.length ? rows : `<div class="py-10">${emptyState('没有匹配的书签，换个关键词试试。')}</div>`}</div>`;
 }
 
-/* ---------- 世界时间 ---------- */
+/* ---------- 世界时间 & 播放提醒 ---------- */
 const WC_BJ = 'Asia/Shanghai';
 const WC_ZONES = [
   { tz: 'Asia/Shanghai',      name: '北京',   region: '中国标准时间' },
@@ -2884,6 +3209,7 @@ function wcOffsetMs(tz, date) {
   for (const x of dtf.formatToParts(date)) p[x.type] = x.value;
   return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - date.getTime();
 }
+/* 把"某时区的墙上时间"换算成 UTC 毫秒（两次逼近处理夏令时边界） */
 function wallToUtcMs(wall, tz) {
   const naive = Date.parse(wall.length === 16 ? wall + ':00Z' : wall + 'Z');
   if (!Number.isFinite(naive)) return NaN;
@@ -3006,12 +3332,14 @@ function updateWcTimes() {
     if (tEl) tEl.textContent = `${p.hour}:${p.minute}`;
     if (dEl) dEl.textContent = `${p.month}-${p.day} ${p.weekday}`;
     if (pEl) pEl.textContent = part.t;
+    // 图标只在昼夜时段变化时重渲染：每秒重写 innerHTML 会让 iconify 反复替换 SVG，肉眼可见地闪
     if (iEl && iEl.dataset.wcPart !== part.icon) {
       iEl.dataset.wcPart = part.icon;
       iEl.className = `size-10 rounded-lg grid place-items-center shrink-0 wc-daybox ${part.cls}`;
       iEl.innerHTML = `<span class="iconify text-xl" data-icon="${part.icon}"></span>`;
     }
   });
+  // 提醒倒计时
   contentEl.querySelectorAll('[data-cd-utc]').forEach(el => {
     const ms = Date.parse(el.dataset.cdUtc) - Date.now();
     el.textContent = ms <= 0 ? '即将开始 / 已开始' : `还有 ${fmtDelta(ms)}`;
@@ -3057,6 +3385,7 @@ function wcConvertClick() {
   };
 }
 
+/* 提醒数据：生产走 API，本地开发用 localStorage 模拟 */
 async function loadReminders() {
   if (USE_MOCK) {
     state.remindersCache = JSON.parse(localStorage.getItem('mock-reminders') || '[]');
@@ -3137,6 +3466,7 @@ function wcToast(msg) {
   wcToastTimer = setTimeout(() => el.classList.remove('show'), 2400);
 }
 
+/* 首页提醒横幅：每次刷新提示最近的提醒倒计时 */
 async function showReminderBanner() {
   try { await loadReminders(); } catch { return; }
   const up = (state.remindersCache || []).filter(r => Date.parse(r.utc) > Date.now()).sort((a, b) => Date.parse(a.utc) - Date.parse(b.utc));
@@ -3172,6 +3502,7 @@ async function showReminderBanner() {
   updateCd();
 }
 
+/* 提醒监视器：页面打开期间实时弹 toast（右上角），不依赖刷新 */
 const reminderFired = new Set();
 let reminderRefreshTimer = null;
 function startReminderWatch() {
@@ -3185,6 +3516,7 @@ function checkDueReminders() {
   const list = state.remindersCache || [];
   for (const r of list) {
     const ms = Date.parse(r.utc) - Date.now();
+    // 到点（或刚刚到 1 分钟内，覆盖刷新页面的情况）且没弹过
     if (ms <= 0 && ms > -60 * 1000 && !reminderFired.has(r.id)) {
       reminderFired.add(r.id);
       showReminderToast(r);
@@ -3217,7 +3549,7 @@ function showReminderToast(r) {
   };
   el.onclick = rm;
   box.appendChild(el);
-  setTimeout(rm, 15 * 60 * 1000);
+  setTimeout(rm, 15 * 60 * 1000);   // 直播提醒留久一点：15 分钟后自动消失
 }
 
 /* ---------- 影视 ---------- */
@@ -3227,9 +3559,9 @@ async function loadMedia(view) {
   $('#endHint').classList.add('hidden');
   try {
     if (!state.mediaCache[view]) {
-      const res = await fetchData({ view });
+      const res = await fetchData({ view });   // 每个视图只拉一次，之后筛选翻页全在前端
       state.mediaCache[view] = res.data || [];
-      state.mediaPage[view] = 1;
+      state.mediaPage[view] = 1;   // 首次加载才重置页码
     }
     renderMediaPage(view);
   } catch (err) {
@@ -3307,12 +3639,12 @@ function renderMediaPage(view) {
   }
 }
 
-/* ---------- 滚动位置管理 ---------- */
+/* ---------- 滚动位置管理（各视图独立保存/恢复） ---------- */
 const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0, hot: 0, bookmarks: 0, worldtime: 0 };
-let sayUnfilteredScroll = 0;
-let sayUnfilteredPage = 1;
-let sayLoadedPage = 1;
-let restoreTarget = null;
+let sayUnfilteredScroll = 0;   // 说说无筛选时保存的滚动位置
+let sayUnfilteredPage = 1;     // 说说无筛选时保存的已加载页数
+let sayLoadedPage = 1;         // 说说当前已加载到的页码
+let restoreTarget = null;      // { view, pos, page } 渲染完成后恢复
 
 function saveCurrentScroll() {
   if (mainScroll && state.view) {
@@ -3326,6 +3658,7 @@ function applyRestore(view) {
   const { pos, page } = restoreTarget;
   restoreTarget = null;
   if (view === 'say' && page > 1) {
+    // 延迟到当前 loadSayPage 结束后（state.loading 复位）再补加载
     setTimeout(() => loadSayToPage(page, pos), 0);
   } else {
     setScrollPos(pos);
@@ -3343,13 +3676,18 @@ async function loadSayToPage(targetPage, pos) {
 const VIEW_TITLES = { say: '小记', photos: '图片', watched: '看过', watchlist: '想看', clips: '标注', hot: '热搜', bookmarks: '书签', worldtime: '世界时间' };
 
 function switchView(view) {
+  // 保存当前视图滚动位置
   saveCurrentScroll();
+  // 从说说切走且无筛选时，同步保存无筛选位置
   if (state.view === 'say' && state.selectedTags.size === 0) {
     sayUnfilteredScroll = viewScrollPos.say;
   }
 
+  // 筛选条件按视图独立保存（mediaFilter[view]），切换菜单不再重置，切回时原样恢复
   state.view = view;
+  // 热搜自动刷新：仅在热搜页运行
   if (view === 'hot') startHotAutoRefresh(); else stopHotAutoRefresh();
+  // 世界时钟秒针：仅在世界时间页运行
   if (view === 'worldtime') startWcTick(); else stopWcTick();
  document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
   const on = t.dataset.view === view;
@@ -3364,11 +3702,12 @@ function switchView(view) {
   $('#mediaPager').classList.add('hidden');
   $('#endHint').classList.add('hidden');
 
+  // 立即回顶部，避免旧视图滚动位置残留
   scrollToTop();
 
   if (view === 'say') {
     restoreTarget = { view: 'say', pos: viewScrollPos.say, page: sayLoadedPage };
-    loadTags({ force: true });
+    loadTags({ force: true });   // 每次切到说说都重新拉取标签，与后台的删除/改动保持同步
     resetSay();
   } else if (view === 'photos') {
     restoreTarget = { view: 'photos', pos: viewScrollPos.photos };
@@ -3392,7 +3731,10 @@ function switchView(view) {
 }
 
 /* ============================================================
-   标签抽屉
+   标签抽屉：左侧滑出
+   - 点击菜单按钮打开
+   - 点击外部或右上角关闭
+   - 点击任意标签不会关闭，可连续组合 AND 筛选
 ============================================================ */
 (function initTagDrawer() {
   const drawer = document.getElementById('tagBar');
@@ -3403,7 +3745,7 @@ function switchView(view) {
   if (!drawer || !overlay || !openBtn || !closeBtn) return;
 
   const open = () => {
-    closeNav();
+    closeNav();                        // ← 新增：移动端把左侧菜单先收起来
 
     drawer.classList.add('open');
     overlay.classList.add('open');
@@ -3429,7 +3771,7 @@ function switchView(view) {
 
 function closeNav() {
   const chk = document.getElementById('appNavChk');
-  if (!chk || !chk.checked) return;
+  if (!chk || !chk.checked) return;   // 桌面端侧栏常驻，仅在移动端抽屉打开时收起
   chk.checked = false;
   const btn = document.getElementById('navToggleBtn');
   if (btn) btn.setAttribute('aria-expanded', 'false');
@@ -3446,6 +3788,7 @@ function closeNav() {
   };
 })();
 
+// 只绑定真正代表视图的菜单项；标签抽屉按钮没有 data-view，交给 initTagDrawer 自己处理
 document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
   t.addEventListener('click', () => {
     if (state.view !== t.dataset.view) switchView(t.dataset.view);
@@ -3454,7 +3797,7 @@ document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
 });
 
 /* ============================================================
-   主题系统
+   主题系统：仅浅色 / 深色两套，默认跟随系统，可手动切换
 ============================================================ */
 const DARK_THEMES = new Set(['dark', 'halloween']);
 
@@ -3486,6 +3829,7 @@ document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
 (function initTheme() {
   let saved = null;
   try { saved = localStorage.getItem('memo-theme'); } catch {}
+  // 兼容旧版多主题偏好：只认 light / dark，其余（含 caramellatte 等）一律跟随系统
   const theme = saved === 'light' || saved === 'dark'
     ? saved
     : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -3498,13 +3842,15 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
   if (saved !== 'light' && saved !== 'dark') applyTheme(e.matches ? 'dark' : 'light');
 });
 
-/* ---------- 全站快速搜索 ---------- */
+/* ---------- 全站快速搜索（Ctrl+K） ---------- */
 const cmdk = { open: false, query: '', flat: [], active: -1, memosLoading: false, tagView: null };
 const cmdkOverlay = $('#cmdkOverlay');
 const cmdkResults = $('#cmdkResults');
 const cmdkInput = $('#cmdkInput');
 
+/* 首次打开面板时并行补齐三份数据（都写入全局缓存，与各页面共享） */
 function cmdkEnsureData() {
+  // 说说全量（独立标志，不与说说页翻页互斥）
   if (!state.searchMemosCache && !cmdk.memosLoading) {
     cmdk.memosLoading = true;
     (async () => {
@@ -3525,6 +3871,7 @@ function cmdkEnsureData() {
       } catch {} finally { cmdk.memosLoading = false; if (cmdk.open) cmdkRender(); }
     })();
   }
+  // 书签全量（与书签页共享缓存）
   if (!state.bookmarksCache) {
     (async () => {
       try {
@@ -3539,6 +3886,7 @@ function cmdkEnsureData() {
       } catch {} finally { if (cmdk.open) cmdkRender(); }
     })();
   }
+  // 影视两列表（与看过/想看页共享缓存）
   ['watched', 'watchlist'].forEach(v => {
     if (state.mediaCache[v]) return;
     fetchData({ view: v }).then(r => {
@@ -3546,7 +3894,7 @@ function cmdkEnsureData() {
       if (cmdk.open) cmdkRender();
     }).catch(() => {});
   });
-  loadTags();
+  loadTags();   // 标签名映射（详情里点标签跳转标签视图时显示名称）
 }
 
 function cmdkHi(text, q) {
@@ -3557,6 +3905,7 @@ function cmdkHi(text, q) {
   return escapeHtml(s.slice(0, i)) + '<mark>' + escapeHtml(s.slice(i, i + q.length)) + '</mark>' + escapeHtml(s.slice(i + q.length));
 }
 
+/* 内存筛选三组数据，返回 [{type, title, sub, url?, memoId?}] */
 function cmdkMatch(q) {
   const kw = q.trim().toLowerCase();
   const hit = s => String(s || '').toLowerCase().includes(kw);
@@ -3623,6 +3972,7 @@ function cmdkRender() {
   cmdkScrollActive();
 }
 
+/* 标签视图：列出某标签下的全部说说（搜索面板内浏览，不跳页） */
 function cmdkRenderTagView() {
   const tagId = cmdk.tagView;
   const name = tagNameMap.get(tagId) || String(tagId).replace(/^tag_/, '');
@@ -3682,23 +4032,26 @@ function cmdkExec(idx) {
   const it = cmdk.flat[idx];
   if (!it) return;
   if (it.type === 'memo') {
+    // 说说：弹出全文详情（复用 memoCard 渲染，图片支持灯箱）
     const m = (state.searchMemosCache || []).find(x => x.id === it.memoId);
     if (!m) return;
     const body = $('#cmdkMemoBody');
     body.innerHTML = `<div class="px-2">${memoCard(m, 0, { plain: true })}</div>`;
+    initCarousels(body);   // 弹窗内的多图条需要单独初始化拖拽与计数
     $('#cmdkMemoModal').classList.add('open');
     body.scrollTop = 0;
   } else if (it.url) {
-    window.open(it.url, '_blank', 'noopener');
+    window.open(it.url, '_blank', 'noopener');   // 面板保持打开，不打断搜索
   }
 }
 
 cmdkInput.addEventListener('input', () => {
-  cmdk.tagView = null;
+  cmdk.tagView = null;   // 输入即退出标签视图，回到普通搜索
   cmdk.query = cmdkInput.value;
   cmdk.active = 0;
   cmdkRender();
 });
+// 详情弹窗内点击标签徽章：面板切到该标签的说说列表（不关面板）
 $('#cmdkMemoBody').addEventListener('click', e => {
   const tag = e.target.closest('.memo-tag');
   if (!tag || !tag.dataset.tag) return;
@@ -3708,20 +4061,24 @@ $('#cmdkMemoBody').addEventListener('click', e => {
   cmdkRender();
 });
 
+// 委托挂 document：搜索面板和详情弹窗是两个平级 overlay，挂在其中一个上收不到另一个的点击
 document.addEventListener('click', e => {
   const memoModal = $('#cmdkMemoModal');
   const memoOpen = memoModal.classList.contains('open');
   const backFocus = () => setTimeout(() => cmdkInput.focus(), 30);
+  // 详情弹窗的 ✕：只关详情，回到搜索列表
   if (e.target.closest('.cmdk-memo-close')) {
     memoModal.classList.remove('open');
     backFocus();
     return;
   }
+  // 详情开着时点遮罩（任一层）：先回列表
   if (memoOpen && (e.target === memoModal || e.target === cmdkOverlay)) {
     memoModal.classList.remove('open');
     backFocus();
     return;
   }
+  // 搜索面板遮罩 / 面板的 ✕：关闭整个面板
   if (e.target === cmdkOverlay || e.target.closest('.cmdk-close')) cmdkClose();
 });
 document.querySelectorAll('.cmdk-open').forEach(b => b.addEventListener('click', () => { closeNav(); cmdkOpen(); }));
@@ -3733,6 +4090,7 @@ document.addEventListener('keydown', e => {
   }
   if (!cmdk.open) return;
   if (e.key === 'Escape') {
+    // 层级关闭：详情弹窗 → 标签视图 → 整个面板
     if ($('#cmdkMemoModal').classList.contains('open')) {
       $('#cmdkMemoModal').classList.remove('open');
       setTimeout(() => cmdkInput.focus(), 30);
@@ -3746,7 +4104,7 @@ document.addEventListener('keydown', e => {
     cmdkClose();
     return;
   }
-  if ($('#cmdkMemoModal').classList.contains('open')) return;
+  if ($('#cmdkMemoModal').classList.contains('open')) return;   // 详情弹窗内不响应列表导航
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault();
     if (!cmdk.flat.length) return;
@@ -3763,30 +4121,39 @@ document.addEventListener('keydown', e => {
 
 /* ---------- 回到顶部 ---------- */
 const toTop = $('#toTop');
+// 移动端滚动的是 body、桌面端滚动的是 #mainScroll：用 getScrollPos() 统一取值，
+// 两个容器都挂监听，任一滚动都触发，跨断点缩放时也能即时同步
 function updateToTop() {
   const show = getScrollPos() > 500;
   toTop.style.opacity = show ? '1' : '0';
   toTop.style.pointerEvents = show ? 'auto' : 'none';
 }
+window.addEventListener('scroll', updateToTop, { passive: true });
 mainScroll.addEventListener('scroll', updateToTop, { passive: true });
 window.addEventListener('resize', updateToTop);
 toTop.onclick = () => scrollToTop({ behavior: 'smooth' });
 
-// ========== 顶部悬浮导航 ==========
-(function initStableBar() {
+// ========== 顶部悬浮导航：下滑隐藏，上滑出现 ==========
+(function initAutoHideBar() {
   const bar = document.getElementById('topBar');
   if (!bar) return;
-  bar.classList.remove('bar-hidden');
+  let lastY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > lastY && y > 140) bar.classList.add('bar-hidden');
+    else bar.classList.remove('bar-hidden');
+    lastY = y;
+  }, { passive: true });
 })();
 
 /* ---------- 启动 ---------- */
 initFancybox();
 switchView('say');
-startReminderWatch();
-setTimeout(showReminderBanner, 1800);
+startReminderWatch();                    // 提醒监视器：到点实时弹右上角 toast
+setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
 </script>
 
-<!-- ========== 音乐播放器 ========== -->
+<!-- ========== 音乐播放器（迁移自参考站 HWPlayer） ========== -->
 <script>
       (function () {
         const NETEASE_SONG_INFO_API = (id) =>
@@ -3886,6 +4253,7 @@ setTimeout(showReminderBanner, 1800);
         let audioEl = null;
         let audioLoadedTrackId = null;
         let loadGeneration = 0;
+        // ===== Media Session（系统媒体条：歌名/歌手/封面）=====
         function updateMediaSession(meta) {
           if (!("mediaSession" in navigator)) return;
           try {
@@ -4042,6 +4410,7 @@ setTimeout(showReminderBanner, 1800);
             state.duration = (audioEl.duration || 0) * 1000;
             state.position = (audioEl.currentTime || 0) * 1000;
             broadcast();
+            // 进度同步节流，大约每秒一次
             const now = Date.now();
             if (now - _posThrottle > 1000) {
               _posThrottle = now;
@@ -4527,6 +4896,28 @@ setTimeout(showReminderBanner, 1800);
           syncLyricsScroll(cardEl && cardEl.querySelector(".hw-lyrics-scroll-full"), positionMs);
           syncLyricsScroll(document.getElementById("hwLyricsFloatScroll"), positionMs);
           return;
+          const scroll = cardEl.querySelector(".hw-lyrics-scroll-full");
+          if (!scroll) return;
+          const lineEls = scroll.querySelectorAll(".hw-lyrics-line");
+          if (!lineEls.length) return;
+          let activeIdx = -1;
+          lineEls.forEach((el, i) => {
+            if (Number(el.dataset.time) <= positionMs) activeIdx = i;
+          });
+          lineEls.forEach((el, i) =>
+            el.classList.toggle("active", i === activeIdx)
+          );
+          if (activeIdx >= 0) {
+            const activeEl = lineEls[activeIdx];
+            const targetTop =
+              activeEl.offsetTop -
+              scroll.clientHeight / 2 +
+              activeEl.clientHeight / 2;
+            scroll.scrollTo({
+              top: Math.max(0, targetTop),
+              behavior: "smooth",
+            });
+          }
         }
 
         function bindCard(cardEl, meta) {
@@ -4930,6 +5321,7 @@ setTimeout(showReminderBanner, 1800);
     if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
   });
 
+  // 播放状态指示点
   document.addEventListener('hwplayer:update', e => {
     const dot = document.getElementById('musicDot');
     if (dot) dot.classList.toggle('hidden', !(e.detail && e.detail.isPlaying));
@@ -4951,14 +5343,17 @@ setTimeout(showReminderBanner, 1800);
 
 /* ============================================================
    糖果贴纸主题 v2（Neo-Brutalism）
+   粗描边 + 硬阴影 + 荧光糖果色 + 展示字体
+   仅覆盖视觉层：不修改 JS / 数据结构 / 交互逻辑
    ============================================================ */
 
 :root {
-  --nb-bg: #fbf4e4;
-  --nb-panel: #fffdf6;
-  --nb-panel-deep: #fdf3d8;
+  --nb-bg: #fbf4e4;            /* 页面底色：奶油 */
+  --nb-panel: #fffdf6;         /* 卡片 / 面板 */
+  --nb-panel-deep: #fdf3d8;    /* 侧栏 / 凹槽 */
+  /* 顶栏单独用纯白：跟 iOS 浅色模式的状态栏 / 地址栏融成一片（不跟随页面奶油底） */
   --nb-nav-bg: #ffffff;
-  --nb-ink: #211d17;
+  --nb-ink: #211d17;           /* 墨色（文字 / 描边 / 硬阴影） */
   --nb-border: #211d17;
   --nb-hard: #211d17;
   --nb-ink-55: rgba(33, 29, 23, .55);
@@ -4969,7 +5364,9 @@ setTimeout(showReminderBanner, 1800);
   --nb-green: #5fd68a;
   --nb-purple: #b18cff;
   --nb-dot: rgba(33, 29, 23, .09);
-  --nb-wallpaper: url("https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperlight.png");
+  /* 页面壁纸：浅色模式（外部图床代理） */
+  --nb-wallpaper: url('https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperlight.png');
+  /* 翻页器当前页强调色（参考图中的暖橙） */
   --pager-accent: #ef7c12;
 }
 
@@ -4977,7 +5374,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   --nb-bg: #14151b;
   --nb-panel: #1e2029;
   --nb-panel-deep: #1a1c24;
-  --nb-nav-bg: #14151b;
+  --nb-nav-bg: #14151b;        /* 深色下顶栏仍与页面同色 */
   --nb-ink: #ece8db;
   --nb-border: rgba(236, 232, 219, .32);
   --nb-hard: rgba(0, 0, 0, .55);
@@ -4989,33 +5386,40 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   --nb-green: #6fe09b;
   --nb-purple: #c0a4ff;
   --nb-dot: rgba(236, 232, 219, .06);
-  --nb-wallpaper: url("https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperdark.png");
+  /* 页面壁纸：暗色模式（外部图床代理） */
+  --nb-wallpaper: url('https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperdark.png');
   --pager-accent: #ffab4d;
 }
 
+/* ---------- 页面底：主题壁纸（浅色/暗色各一张，专为横向无缝循环设计） ---------- */
 html,
 body {
+  /* 壁纸未加载 / 加载失败时的兜底底色（浅色奶油 / 暗色墨黑） */
   background-color: var(--nb-bg) !important;
   background-image: var(--nb-wallpaper) !important;
-  background-size: auto 100vh !important;
-  background-size: auto 100dvh !important;
-  background-repeat: repeat-x !important;
-  background-attachment: fixed !important;
-  background-position: center top !important;
+  background-size: auto 100vh !important;      /* 高度撑满屏幕，宽度等比例缩放 */
+  background-size: auto 100dvh !important;      /* 支持动态视口高的浏览器（手机地址栏收展不跳变） */
+  background-repeat: repeat-x !important;       /* 高度已满，只在横向（x 轴）无缝重复平铺 */
+  background-attachment: fixed !important;      /* 滚动时背景固定不动，类似桌布效果 */
+  background-position: center top !important;   /* 居中对齐 */
   color: var(--nb-ink);
 }
 
 ::selection { background: var(--nb-yellow); color: #211d17; }
 
+/* ---------- 顶部悬浮导航：下滑隐藏，上滑出现 ---------- */
 #topBar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 60;
+  /* 顶栏底色走 --nb-nav-bg：浅色下固定纯白，跟 iOS 的状态栏 / 地址栏融成一片（页面本身仍是奶油底）；
+     不用半透明+高斯模糊，避免顶栏偏色出一条色带。 */
   background-color: var(--nb-nav-bg);
   background-image: radial-gradient(circle, var(--nb-dot) 1.3px, transparent 1.4px);
   background-size: 22px 22px;
+  /* 只留一根发丝线做分隔，不再是 2.5px 墨色粗描边 */
   border-bottom: 1px solid color-mix(in srgb, var(--nb-ink) 12%, transparent);
   padding-top: env(safe-area-inset-top, 0px);
   transition: transform .32s cubic-bezier(.22, 1, .36, 1);
@@ -5033,6 +5437,7 @@ body {
   margin: 0 auto;
 }
 
+/* 品牌：贴纸小头像 + 站名 */
 .topbar-brand { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 
 .topbar-brand img {
@@ -5054,6 +5459,7 @@ body {
   color: var(--nb-ink);
 }
 
+/* 菜单：移动端独占一行可横滑，桌面端居中 */
 .topbar-nav { order: 3; width: 100%; }
 
 .topbar-menu {
@@ -5083,10 +5489,7 @@ body {
   transition: transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease;
 }
 
-.topbar-menu .tab-btn { flex-direction:column; gap:3px; min-width:52px; padding:.3rem .3rem .35rem; }
-.topbar-menu .tab-btn .iconify { font-size:1.42rem; line-height:1; }
-.topbar-menu .tab-btn .nav-label { font-size:.72rem; line-height:1.2; }
-.topbar-menu .tab-btn.active { border-color:var(--nb-border); }
+.topbar-menu .tab-btn .iconify { font-size: 1.05rem; }
 
 .topbar-menu .tab-btn:hover {
   background: var(--nb-panel);
@@ -5110,6 +5513,7 @@ body {
   margin-left: 2px;
 }
 
+/* 功能图标：小贴纸按钮 */
 .topbar-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; flex: 0 0 auto; }
 
 .topbar-actions .btn {
@@ -5140,6 +5544,7 @@ body {
   .topbar-actions { margin-left: 0; }
 }
 
+/* ---------- 居中内容栏 ---------- */
 .page-container {
   max-width: 1080px;
   margin: 0 auto;
@@ -5150,8 +5555,10 @@ body {
   .page-container { padding-top: 92px; }
 }
 
+/* 说说列表：窄栏居中，阅读更舒适 */
 #content ul.memo-list { max-width: 720px !important; margin-inline: auto !important; }
 
+/* ---------- 刊头：荧光笔题记 ---------- */
 #masthead { padding: 1.7rem 0 1.2rem !important; }
 
 #masthead .mh-body { position: relative; }
@@ -5176,6 +5583,7 @@ body {
   background: linear-gradient(transparent 56%, var(--nb-pink) 56%, var(--nb-pink) 94%, transparent 94%);
 }
 
+/* 深色下荧光条压成半透明，保证白字可读 */
 html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p {
   background: linear-gradient(transparent 56%, color-mix(in srgb, var(--nb-yellow) 62%, transparent) 56%, color-mix(in srgb, var(--nb-yellow) 62%, transparent) 94%, transparent 94%);
 }
@@ -5184,6 +5592,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last
   background: linear-gradient(transparent 56%, color-mix(in srgb, var(--nb-pink) 62%, transparent) 56%, color-mix(in srgb, var(--nb-pink) 62%, transparent) 94%, transparent 94%);
 }
 
+/* 刊头两侧的小星号装饰 */
 #masthead .mh-body::before,
 #masthead .mh-body::after {
   position: absolute;
@@ -5195,10 +5604,10 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last
   pointer-events: none;
 }
 
-#masthead .mh-body::before { content: "✦"; left: -2.2em; }
+#masthead .mh-body::before { content: '✦'; left: -2.2em; }
 
 #masthead .mh-body::after {
-  content: "✶";
+  content: '✶';
   right: -2.2em;
   top: auto;
   bottom: -.2em;
@@ -5206,6 +5615,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last
   transform: rotate(12deg);
 }
 
+/* ---------- 说说卡片：贴纸卡 ---------- */
 #content ul.memo-list > li { padding: 0 0 1.6rem !important; }
 
 .memo-card {
@@ -5224,8 +5634,14 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last
   }
 }
 
+/* 旧胶带伪元素彻底关闭，日期一律走 .memo-tape-date 贴纸 */
 .memo-card::before { display: none !important; }
 
+/* ---------- 硬阴影的右侧留白补偿 ----------
+   贴纸卡/海报卡的硬阴影统一朝右下偏移（卡片 7px、海报卡 5px），
+   而页面左右留白是对称的 16px —— 于是「卡片 + 阴影」的视觉重心整体右偏，
+   窄屏上尤其明显（卡片右侧像贴住了屏幕边）。这里把内容区右侧补回同样的偏移，
+   让含阴影在内的整块视觉重新居中；左侧留白、卡片宽度以外的排版均不变。 */
 #content { padding-right: 7px; }
 
 .memo-card .memo-text {
@@ -5234,6 +5650,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) #masthead .mh-poem p:last
   color: var(--nb-ink) !important;
 }
 
+/* 日期贴纸：胶囊牌，颜色随第一个标签（淡化保证黑字可读） */
 .memo-tape-date {
   position: absolute;
   z-index: 3;
@@ -5263,6 +5680,54 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   background: color-mix(in srgb, var(--tape, var(--nb-yellow)) 55%, var(--nb-panel));
 }
 
+/* ---------- 图片：卡内图片扁平处理（一个容器里只留一层贴纸） ----------
+   卡片本身已经有 2.5px 墨线 + 硬阴影，图片再包一层等重描边就是「框套框」；
+   加上很多图（截图/地图/海报）自带边界，所以卡内图片只保留圆角，
+   贴纸感交给卡片、日期贴纸和标题笔触。图片页的照片墙不受影响。 */
+.memo-img-single-wrap {
+  border-radius: 12px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  overflow: hidden;
+}
+
+.memo-img-single-wrap img { border-radius: 12px !important; }
+
+.split-img {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  overflow: hidden;
+}
+
+.memo-split.rev .split-img,
+.memo-split .split-img:hover { transform: none !important; }
+.split-img img { border-radius: 12px !important; height: 235px !important; }
+
+/* 多图横条：同样扁平，只留圆角与间距 */
+.carousel-strip { gap: 10px !important; padding: 2px 4px 10px !important; }
+
+.carousel-strip .strip-item {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.carousel-strip .strip-item:nth-child(odd),
+.carousel-strip .strip-item:nth-child(even) { transform: none; }
+.carousel-strip .strip-item.pressed { transform: scale(.94); }
+.carousel-strip .strip-item img { border-radius: 12px !important; }
+
+/* ---------- 图片墙 ---------- */
 .photo-item a {
   border-radius: 14px !important;
   border: 2.5px solid var(--nb-border);
@@ -5281,6 +5746,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   .photo-item:hover img { transform: none; }
 }
 
+/* ---------- 影视海报卡 ---------- */
 .poster-card {
   border: 2.5px solid var(--nb-border) !important;
   border-radius: 16px !important;
@@ -5296,6 +5762,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   }
 }
 
+/* 影视筛选 chips */
 #content .btn.btn-xs {
   border: 1.5px solid var(--nb-border) !important;
   box-shadow: 2.5px 2.5px 0 var(--nb-hard);
@@ -5304,6 +5771,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 
 #content .btn.btn-xs:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--nb-hard); }
 
+/* ---------- 列表（标注 / 世界时间等 daisyUI list） ---------- */
 #content ul.list {
   background: var(--nb-panel) !important;
   border: 2.5px solid var(--nb-border);
@@ -5312,14 +5780,13 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   overflow: hidden;
 }
 
+/* 热搜 / 书签行 hover：荧光黄打底 */
 .hot-body a:hover,
 .bm-body a:hover {
   background: color-mix(in srgb, var(--nb-yellow) 26%, transparent) !important;
 }
 
-.bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; }
-.bm-cats .tag-chip .iconify { font-size:1.05rem; }
-.bm-cats .tag-chip.active { border-color:var(--nb-border); }
+/* 书签分类 chips */
 .bm-cats .tag-chip {
   border: 1.5px solid var(--nb-border) !important;
   border-radius: 999px !important;
@@ -5328,6 +5795,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 
 .bm-cats .tag-chip:active { transform: translate(1px, 1px); box-shadow: none; }
 
+/* 世界时间 */
 .wc-daybox {
   border: 2px solid var(--nb-border);
   border-radius: 12px !important;
@@ -5337,6 +5805,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 
 [data-wc-main-time] { font-family: var(--font-num) !important; letter-spacing: .03em; }
 
+/* 输入框 / 下拉：贴纸凹槽 */
 #content .input,
 #content .select {
   border: 2px solid var(--nb-border) !important;
@@ -5345,6 +5814,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   box-shadow: 3px 3px 0 var(--nb-hard);
 }
 
+/* ---------- 翻页器：扁平极简（无描边 / 无硬阴影 / 无吸底蒙版） ---------- */
 #pagerBtns .pager-btn {
   background: transparent !important;
   border: 0 !important;
@@ -5371,6 +5841,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 
 #pagerBtns .pager-gap { color: var(--nb-ink-55) !important; }
 
+/* ---------- 回到顶部 ---------- */
 #toTop {
   background: var(--nb-panel) !important;
   border: 2.5px solid var(--nb-border) !important;
@@ -5389,16 +5860,20 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   box-shadow: 6px 6px 0 var(--nb-hard) !important;
 }
 
+/* ---------- 底部提示 ---------- */
 #endHint {
   font-family: var(--font-display);
   letter-spacing: .22em !important;
   color: var(--nb-ink-55) !important;
 }
 
+/* ---------- 标签抽屉 ---------- */
 .tag-drawer {
   background: var(--nb-bg) !important;
   color: var(--nb-ink) !important;
   border-right: 3px solid var(--nb-border) !important;
+  /* 关闭时不留投影：抽屉是 translateX(-104%) 移到屏幕左侧之外，阴影不会被裁掉，
+     会在屏幕最左边糊出一条竖着的灰边。投影只在打开时给。 */
   box-shadow: none !important;
 }
 
@@ -5487,9 +5962,14 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 .tag-drawer-list .tag-chip.active .tag-count { color: #211d17; opacity: .7; }
 .tag-drawer-list .tag-chip.active .tag-drawer-check { color: #211d17 !important; }
 
+/* ---------- 音乐抽屉 ---------- */
 .music-drawer {
   background: var(--nb-panel) !important;
+  /* 原来是 3px 墨色描边 + 打开时 -10px 的硬阴影，在左侧屏幕上就是一条厚厚的黑边；
+     改成发丝线 + 与标签抽屉一致的柔和投影，看着更像原生浮层。 */
   border-left: 1px solid color-mix(in srgb, var(--nb-ink) 16%, transparent) !important;
+  /* 关闭时不留投影：抽屉是 translateX(100%) 移到屏幕右侧之外，但它自己的阴影不会被裁掉，
+     会在屏幕最右边永久留下一条整屏高的竖边。投影只在打开时给。 */
   box-shadow: none !important;
 }
 
@@ -5574,6 +6054,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 .music-drawer .hw-pl-list { border-top: 2px dashed var(--nb-ink-22) !important; }
 .music-drawer .hw-pl-view-lyrics { border-top: 2px dashed var(--nb-ink-22); border-bottom: 2px dashed var(--nb-ink-22); }
 
+/* ---------- 悬浮歌词窗 ---------- */
 .hw-lyrics-float {
   border: 2.5px solid var(--nb-border) !important;
   border-radius: 16px !important;
@@ -5582,6 +6063,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
 
 .hw-lyrics-float-bar { border-bottom: 2px dashed var(--nb-ink-22) !important; }
 
+/* ---------- 底部歌词药丸 ---------- */
 #headerLyricsBar > div {
   border: 2.5px solid var(--nb-border) !important;
   background: var(--nb-panel) !important;
@@ -5590,6 +6072,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   -webkit-backdrop-filter: none !important;
 }
 
+/* ---------- Ctrl+K 搜索 ---------- */
 .cmdk-panel {
   background: var(--nb-panel) !important;
   border: 3px solid var(--nb-border) !important;
@@ -5615,6 +6098,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   border-radius: 6px;
 }
 
+/* ---------- toast ---------- */
 .wc-toast {
   border: 2px solid var(--nb-border);
   border-radius: 999px;
@@ -5622,6 +6106,12 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-tape-date {
   font-weight: 600;
 }
 
+/* ---------- 深色图片亮度：所有内容图片统一 70% ---------- */
+/*
+ * 这里必须使用 !important：
+ * 页面前面的 #content img 规则，以及图片 hover 规则会互相覆盖。
+ * 统一在样式表最后明确指定，确保动态渲染出来的图片也遵循同一规则。
+ */
 html:is([data-theme="dark"], [data-theme="halloween"]) #content img,
 html:is([data-theme="dark"], [data-theme="halloween"]) #content img:hover,
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-card img,
@@ -5630,6 +6120,12 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .memo-entry img,
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-entry img:hover,
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-text img,
 html:is([data-theme="dark"], [data-theme="halloween"]) .memo-text img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-split img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-split img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .memo-img-single-wrap img:hover,
+html:is([data-theme="dark"], [data-theme="halloween"]) .carousel-strip img,
+html:is([data-theme="dark"], [data-theme="halloween"]) .carousel-strip img:hover,
 html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img,
 html:is([data-theme="dark"], [data-theme="halloween"]) .strip-item img:hover,
 html:is([data-theme="dark"], [data-theme="halloween"]) .photo-item img,
@@ -5639,6 +6135,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .poster-card img:hover {
   filter: brightness(.7) !important;
 }
 
+/* 点击图床 / Fancybox 灯箱中的原图同样保持 70% */
 html:is([data-theme="dark"], [data-theme="halloween"]) .fancybox__container img,
 html:is([data-theme="dark"], [data-theme="halloween"]) .fancybox__content img {
   filter: brightness(.7) !important;
@@ -5648,12 +6145,13 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-overlay { bac
 </style>
 
 <script>
-// 歌词药丸：播放时显示当前歌词，过长则左右滚动
+// 歌词药丸（顶栏）：播放时显示当前歌词，过长则左右滚动
 (function () {
   const bar = document.getElementById('headerLyricsBar');
   const textEl = document.getElementById('headerLyricsText');
   const marquee = document.getElementById('headerLyricsMarquee');
   if (!bar || !textEl || !marquee) return;
+  // 窗口尺寸变化时重新计算 marquee 滚动距离
   window.addEventListener('resize', () => { if (!bar.classList.contains('hidden')) applyMarquee(); });
 
   const lrcCache = new Map();
@@ -5777,893 +6275,5 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-overlay { bac
 })();
 </script>
 
-
-<style id="witcher-flat-category-redesign">
-/* 书签分类：横向胶囊按钮 */
-.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
-
-.bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; }
-.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; } .bm-cats::-webkit-scrollbar { display:none; }
-.bm-cats .tag-chip { border-radius:999px!important; }
-
-.bm-cats .tag-chip.active { border-color:var(--nb-border); }
-
-.memo-card,
-#content .poster-card,
-#content ul.list,
-.wc-daybox,
-#content .input,
-#content .select,
-.bm-cats .tag-chip {
-  border-radius:0!important; box-shadow:none!important;
-}
-.memo-card { background:transparent!important; border:0!important; padding:1.15rem 0 1.35rem!important; transition:none!important; }
-.memo-card:hover { transform:none!important; box-shadow:none!important; }
-#content ul.memo-list { max-width:720px!important; }
-#content ul.memo-list > li { padding:0!important; border-bottom:1px solid color-mix(in oklch,var(--color-base-content) 24%,transparent); }
-#content ul.memo-list > li:last-child { border-bottom:0; }
-#content ul.memo-list .memo-card::before { display:none!important; }
-#content .poster-card { box-shadow:none!important; }
-#content ul.list { border:0!important; background:transparent!important; }
-#content .input,
-#content .select { box-shadow:none!important; border-width:1px!important; }
-.bm-cats .tag-chip { box-shadow:none!important; border-radius:999px!important; }
-@media(max-width:640px) {
-  .bm-cats::-webkit-scrollbar { display:none; }
-  .bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
-
-  .memo-card { padding:1rem 0 1.15rem!important; }
-}
-</style>
-
-
-<script id="bookmark-navigation-chips">
-function renderBookmarkChips(cats) {
-  const wrap = contentEl.querySelector('.bm-cats');
-  if (!wrap) return;
-  wrap.innerHTML = cats.map(c => `<button type="button" class="tag-chip${c === state.bookmarksCat ? ' active' : ''}" data-bmcat="${escapeHtml(c)}" aria-pressed="${c === state.bookmarksCat}">${escapeHtml(c)}</button>`).join('');
-  wrap.querySelectorAll('[data-bmcat]').forEach(btn => btn.onclick = () => {
-    if (state.bookmarksCat === btn.dataset.bmcat) return;
-    bmScrolls[state.bookmarksCat] = getScrollPos();
-    state.bookmarksCat = btn.dataset.bmcat;
-    renderBookmarkChips(cats);
-    renderBookmarkList();
-    setScrollPos(bmScrolls[state.bookmarksCat] || 0);
-  });
-}
-</script>
-
-
-<style id="witcher-3-full-replica">
-:root,
-[data-theme="light"],
-[data-theme="dark"],
-[data-theme="halloween"] {
-  --witcher-ink: #d4c8ad;
-  --witcher-muted: #988b73;
-  --witcher-brass: #82745a;
-  --witcher-brass-soft: rgba(173, 153, 116, .32);
-  --witcher-panel: rgba(13, 12, 10, .96);
-  --witcher-panel-deep: #090908;
-}
-html,
-body { background: #100d0a !important; }
-body { color: var(--witcher-ink) !important; }
-#appShell,
-#appDrawer,
-#mainScroll,
-#content { background: transparent !important; }
-#appShell { color: var(--witcher-ink) !important; }
-#mainScroll { padding-inline: clamp(12px, 2.4vw, 30px) !important; }
-#content {
-  position: relative;
-  isolation: isolate;
-  color: var(--witcher-ink) !important;
-  background: var(--witcher-panel) !important;
-  border: 1px solid rgba(155, 139, 108, .62) !important;
-  outline: 1px solid rgba(155, 139, 108, .20);
-  outline-offset: -5px;
-  padding: clamp(18px, 3vw, 34px) clamp(16px, 3vw, 36px) !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-}
-#content::before {
-  content: ""; position: absolute; inset: 4px; z-index: -1; pointer-events: none;
-  border: 1px solid rgba(155, 139, 108, .16);
-}
-#content a,
-#content button { -webkit-tap-highlight-color: transparent; }
-#content .memo-text,
-#content .memo-text p,
-#content .memo-text li,
-#content .memo-card,
-#content .memo-entry { color: var(--witcher-ink) !important; }
-#content .memo-text a { color: #c1a979 !important; background: transparent !important; padding: 0 !important; border-radius: 0 !important; text-decoration: underline; text-decoration-color: rgba(193,169,121,.45); text-underline-offset: 3px; }
-#content .memo-text a::after { display: none; }
-#content .memo-text h1,
-#content .memo-text h2,
-#content .memo-text h3,
-#content .memo-text h4,
-#content .memo-text h5,
-#content .memo-text h6 { color: #d4c4a2 !important; text-decoration: none !important; }
-#content .memo-text h2::before,
-#content .memo-text h2::after { display:none!important; }
-#content .memo-text blockquote { border-left: 2px solid var(--witcher-brass) !important; }
-.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
-
-.bm-cats::-webkit-scrollbar { display:none; }
-.bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; } .bm-cats::-webkit-scrollbar { display:none; }
-.bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
-
-.bm-cats .tag-chip.active { border-color:var(--nb-border); }
-
-#content ul.memo-list { width:100%!important; max-width:850px!important; margin:0 auto!important; padding:0!important; }
-#content ul.memo-list > li { padding:0!important; margin:0!important; border-bottom:1px solid rgba(169,151,117,.42)!important; }
-#content ul.memo-list > li:last-child { border-bottom:0!important; }
-#content ul.memo-list .memo-card,
-.memo-card {
-  background:transparent!important; border:0!important; border-radius:0!important;
-  box-shadow:none!important; padding:22px 0 24px!important; margin:0!important;
-}
-#content ul.memo-list .memo-card::before,
-.memo-card::before { display:none!important; }
-#content .memo-card:hover,
-#content .poster-card:hover { transform:none!important; box-shadow:none!important; }
-
-#content .strip-item img { border-radius:0!important; }
-#content .tag-chip,
-#content .memo-tag { border-radius:0!important; box-shadow:none!important; }
-#content .input,
-#content .select,
-#content textarea,
-#content input,
-#content .btn,
-#content .badge { border-radius:0!important; box-shadow:none!important; }
-#content .btn { border-color:rgba(169,151,117,.45)!important; }
-#content :focus-visible { outline:1px solid #c3aa79!important; outline-offset:3px; }
-#content .section-title,
-#content .view-title,
-#content h1.page-title {
-  color:#b9a98a!important; font-family:var(--font-display,serif)!important;
-  font-weight:400!important; letter-spacing:.045em; text-transform:uppercase;
-}
-@media(max-width:640px) {
-  #mainScroll { padding-inline:8px!important; }
-  #content { padding:14px 12px!important; }
-  .bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
-
-  .bm-cats::-webkit-scrollbar { display:none; }
-  .bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
-
-  #content ul.memo-list .memo-card,
-.memo-card { padding:17px 0 19px!important; }
-}
-</style>
-
-
-
-
-<style id="witcher-integrated-frame-final">
-:root {
-  --witcher-ink: #d4c8ad;
-  --witcher-muted: #988b73;
-  --witcher-brass: #82745a;
-  --witcher-brass-soft: rgba(173,153,116,.32);
-  --witcher-panel: rgba(13,12,10,.97);
-}
-html,
-body { background:#100d0a!important; }
-#mainScroll { padding-inline: clamp(10px,2vw,24px)!important; }
-.page-container {
-  position:relative;
-  max-width:1260px!important;
-  margin:12px auto 30px!important;
-  padding:0 clamp(14px,2.2vw,30px) 32px!important;
-  background:var(--witcher-panel)!important;
-  border:1px solid rgba(155,139,108,.68)!important;
-  outline:1px solid rgba(155,139,108,.22);
-  outline-offset:-5px;
-  color:var(--witcher-ink)!important;
-}
-.page-container::before {
-  content:""; position:absolute; inset:4px; z-index:0; pointer-events:none;
-  border:1px solid rgba(155,139,108,.18);
-}
-.page-container > * { position:relative; z-index:1; }
-#topBar {
-  position:sticky!important; top:0!important; left:auto!important; right:auto!important;
-  z-index:60!important; width:calc(100% + clamp(28px,4.4vw,60px))!important;
-  margin:0 calc(clamp(14px,2.2vw,30px) * -1)!important;
-  padding-top:env(safe-area-inset-top,0px)!important;
-  background:rgba(9,9,8,.98)!important;
-  background-image:none!important;
-  border:0!important;
-  border-bottom:1px solid rgba(173,153,116,.48)!important;
-  box-shadow:none!important;
-  transform:none!important;
-  transition:none!important;
-}
-#topBar.bar-hidden { transform:none!important; }
-.topbar-inner {
-  max-width:none!important; min-height:58px; flex-wrap:nowrap!important;
-  padding:8px clamp(10px,1.8vw,24px)!important; gap:clamp(8px,1.2vw,18px)!important;
-}
-.topbar-brand img {
-  border:1px solid rgba(203,187,151,.65)!important; border-radius:3px!important;
-  box-shadow:none!important; transform:none!important;
-}
-.brand-name { color:#d4c4a2!important; letter-spacing:.08em!important; }
-.topbar-nav { order:0!important; width:auto!important; min-width:0; flex:1!important; display:flex!important; justify-content:center!important; }
-.topbar-menu { gap:clamp(1px,.35vw,6px)!important; overflow-x:auto!important; padding:2px!important; }
-.topbar-menu .tab-btn {
-  border:1px solid transparent!important; border-radius:0!important;
-  box-shadow:none!important; background:transparent!important;
-  color:#b9ad96!important; padding:.42rem clamp(.3rem,.65vw,.72rem)!important;
-  font-size:clamp(.72rem,.9vw,.92rem)!important; letter-spacing:.025em!important;
-}
-.topbar-menu .tab-btn:hover { color:#e1d2b3!important; border-color:rgba(203,187,151,.3)!important; background:rgba(203,187,151,.05)!important; }
-.topbar-menu .tab-btn.active {
-  color:#e1d2b3!important; border:1px solid rgba(203,187,151,.82)!important;
-  outline:1px solid rgba(203,187,151,.28)!important; outline-offset:1px;
-  background:rgba(203,187,151,.07)!important; box-shadow:none!important;
-}
-.topbar-actions { gap:5px!important; margin-left:0!important; }
-.topbar-actions .btn {
-  width:30px!important; height:30px!important; min-height:30px!important;
-  border:1px solid rgba(169,151,117,.55)!important; border-radius:0!important;
-  background:transparent!important; color:#c8b895!important; box-shadow:none!important;
-}
-.topbar-actions .btn:hover { background:rgba(203,187,151,.1)!important; transform:none!important; box-shadow:none!important; }
-#masthead { padding:clamp(24px,3vw,42px) 0 22px!important; }
-#masthead .mh-body { width:100%!important; max-width:100%!important; }
-#masthead .mh-poem {
-  display:flex!important; align-items:baseline!important; justify-content:center!important;
-  flex-wrap:nowrap!important; gap:clamp(10px,2vw,30px)!important;
-  white-space:nowrap!important; font-family:var(--font-display,serif)!important;
-  font-size:clamp(1rem,2.15vw,1.8rem)!important; line-height:1.6!important;
-  letter-spacing:.07em!important; text-indent:0!important; color:#d4c8ad!important;
-}
-#masthead .mh-poem p,
-html:is([data-theme="dark"],[data-theme="halloween"]) #masthead .mh-poem p,
-html:is([data-theme="dark"],[data-theme="halloween"]) #masthead .mh-poem p:last-child {
-  flex:0 1 auto!important; width:auto!important; max-width:100%!important;
-  margin:0!important; padding:0 .12em .08em!important;
-  background:linear-gradient(transparent 72%,rgba(130,116,90,.65) 72%,rgba(130,116,90,.65) 96%,transparent 96%)!important;
-}
-#masthead .mh-body::before { left:clamp(2px,8vw,100px)!important; top:0!important; color:#b7a582!important; }
-#masthead .mh-body::after { right:clamp(2px,8vw,100px)!important; bottom:-.1em!important; color:#b7a582!important; }
-#content {
-  max-width:none!important; width:100%!important; margin:0 auto!important;
-  background:transparent!important; border:0!important; outline:0!important;
-  box-shadow:none!important; border-radius:0!important;
-  padding:clamp(12px,2vw,24px) clamp(0px,1.2vw,14px)!important;
-}
-#content::before { display:none!important; }
-#content ul.memo-list { max-width:100%!important; }
-#content ul.memo-list > li { border-bottom:1px solid rgba(169,151,117,.42)!important; }
-#content ul.memo-list .memo-card,
-#content .memo-card { padding:20px 0 23px!important; }
-@media(max-width:760px) {
-  .page-container { margin:6px 6px 18px!important; padding:0 12px 22px!important; }
-  #topBar { width:calc(100% + 24px)!important; margin:0 -12px!important; }
-  .topbar-inner { flex-wrap:wrap!important; justify-content:space-between; padding:8px 10px!important; }
-  .topbar-brand { gap:6px!important; }
-  .topbar-brand img { width:29px!important; height:29px!important; }
-  .brand-name { font-size:1rem!important; }
-  .topbar-nav { order:3!important; flex:0 0 100%!important; width:100%!important; justify-content:flex-start!important; }
-  .topbar-menu { justify-content:flex-start!important; }
-  .topbar-menu .tab-btn { font-size:.78rem!important; padding:.35rem .48rem!important; }
-  .topbar-actions { margin-left:auto!important; }
-  #masthead { padding:23px 0 15px!important; }
-  #masthead .mh-poem { gap:8px!important; font-size:clamp(.78rem,3.15vw,1.15rem)!important; letter-spacing:.015em!important; }
-  #masthead .mh-body::before { left:0!important; font-size:1rem!important; }
-  #masthead .mh-body::after { right:0!important; font-size:1rem!important; }
-  #content { padding:8px 2px 16px!important; }
-}
-@media(max-width:360px) {
-  #masthead .mh-poem { font-size:.72rem!important; gap:5px!important; }
-  .topbar-menu .tab-btn { padding:.32rem .38rem!important; }
-}
-</style>
-
-
-<style id="witcher-frame-gap-and-light-palette">
-#topBar { top: 12px !important; }
-@media (max-width:760px) { #topBar { top: 8px !important; } }
-
-html[data-theme="light"] {
-  --witcher-ink: #393126;
-  --witcher-muted: #756954;
-  --witcher-brass: #8c7650;
-  --witcher-brass-soft: rgba(116, 91, 51, .30);
-  --witcher-panel: rgba(241, 233, 216, .98);
-  --witcher-panel-deep: #e6dac0;
-}
-html[data-theme="light"],
-html[data-theme="light"] body {
-  background: #d8cfbb !important;
-  color: #393126 !important;
-}
-html[data-theme="light"] #appShell,
-html[data-theme="light"] #appDrawer,
-html[data-theme="light"] #mainScroll,
-html[data-theme="light"] #content { background: transparent !important; }
-html[data-theme="light"] .page-container {
-  background: var(--witcher-panel) !important;
-  color: var(--witcher-ink) !important;
-  border-color: rgba(116, 91, 51, .62) !important;
-  outline-color: rgba(116, 91, 51, .24) !important;
-}
-html[data-theme="light"] .page-container::before { border-color: rgba(116, 91, 51, .20) !important; }
-html[data-theme="light"] #topBar {
-  background: rgba(232, 222, 201, .98) !important;
-  border-bottom-color: rgba(116, 91, 51, .48) !important;
-}
-html[data-theme="light"] .brand-name,
-html[data-theme="light"] .topbar-menu .tab-btn,
-html[data-theme="light"] .topbar-actions .btn { color: #554832 !important; }
-html[data-theme="light"] .topbar-menu .tab-btn:hover {
-  color: #30271b !important;
-  border-color: rgba(116, 91, 51, .35) !important;
-  background: rgba(116, 91, 51, .07) !important;
-}
-html[data-theme="light"] .topbar-menu .tab-btn.active {
-  color: #30271b !important;
-  border-color: rgba(116, 91, 51, .78) !important;
-  outline-color: rgba(116, 91, 51, .24) !important;
-  background: rgba(116, 91, 51, .09) !important;
-}
-html[data-theme="light"] .topbar-actions .btn { border-color: rgba(116, 91, 51, .52) !important; }
-html[data-theme="light"] .topbar-actions .btn:hover { background: rgba(116, 91, 51, .10) !important; }
-html[data-theme="light"] #masthead .mh-poem { color: #393126 !important; }
-html[data-theme="light"] #masthead .mh-poem p,
-html[data-theme="light"] #masthead .mh-poem p:last-child {
-  background: linear-gradient(transparent 72%, rgba(171, 145, 91, .48) 72%, rgba(171, 145, 91, .48) 96%, transparent 96%) !important;
-}
-html[data-theme="light"] #masthead .mh-body::before,
-html[data-theme="light"] #masthead .mh-body::after { color: #8c7650 !important; }
-html[data-theme="light"] #content,
-html[data-theme="light"] #content .memo-text,
-html[data-theme="light"] #content .memo-text p,
-html[data-theme="light"] #content .memo-text li,
-html[data-theme="light"] #content .memo-card,
-html[data-theme="light"] #content .memo-entry { color: #393126 !important; }
-html[data-theme="light"] #content .memo-text h1,
-html[data-theme="light"] #content .memo-text h2,
-html[data-theme="light"] #content .memo-text h3,
-html[data-theme="light"] #content .memo-text h4,
-html[data-theme="light"] #content .memo-text h5,
-html[data-theme="light"] #content .memo-text h6 { color: #493a25 !important; }
-html[data-theme="light"] #content .memo-text a { color: #785d30 !important; text-decoration-color: rgba(120, 93, 48, .48) !important; }
-html[data-theme="light"] #content ul.memo-list > li { border-bottom-color: rgba(116, 91, 51, .38) !important; }
-html[data-theme="light"] .bm-cats { display:flex!important; align-items:center; gap:5px!important; min-width:0; overflow-x:auto!important; padding:2px 1px 5px!important; scrollbar-width:none; }
-html[data-theme="light"] 
-html[data-theme="light"] 
-html[data-theme="light"] .bm-cats .tag-chip { display:inline-flex; align-items:center; gap:5px; padding:.3rem .68rem; font-size:.9rem; white-space:nowrap; border:2px solid transparent; border-radius:999px!important; }
-html[data-theme="light"] .bm-cats .tag-chip.active { border-color:var(--nb-border); }
-html[data-theme="light"] 
-html[data-theme="light"] #content .btn,
-html[data-theme="light"] #content .input,
-html[data-theme="light"] #content .select,
-html[data-theme="light"] #content textarea,
-html[data-theme="light"] #content input { color: #393126 !important; border-color: rgba(116, 91, 51, .45) !important; background-color: rgba(255,255,255,.20) !important; }
-html[data-theme="light"] #content :focus-visible { outline-color: #8c7650 !important; }
-html[data-theme="light"] .tag-drawer,
-html[data-theme="light"] .music-drawer,
-html[data-theme="light"] .cmdk-panel { background: #eee5d2 !important; color: #393126 !important; }
-html[data-theme="light"] .tag-drawer,
-html[data-theme="light"] .music-drawer,
-html[data-theme="light"] .cmdk-panel { border-color: rgba(116, 91, 51, .42) !important; }
-</style>
-
-  
-
-<style id="witcher-polish-flat-scroll-date">
-#topBar {
-  top: 12px !important;
-  z-index: 100 !important;
-  isolation: isolate !important;
-  backface-visibility: hidden !important;
-  -webkit-backface-visibility: hidden !important;
-  will-change: auto !important;
-  animation: none !important;
-}
-#topBar::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  left: 0;
-  right: 0;
-  top: -14px;
-  bottom: 0;
-  pointer-events: none;
-  background: #090908;
-}
-#topBar.bar-hidden { transform: none !important; visibility: visible !important; }
-html[data-theme="light"] #topBar::before { background: #e8dec9; }
-@media (max-width:760px) {
-  #topBar { top: 8px !important; }
-  #topBar::before { top: -10px; }
-}
-
-#content .memo-card { display: block !important; }
-#content .memo-tape-date {
-  position: static !important;
-  display: block !important;
-  width: fit-content !important;
-  min-width: 0 !important;
-  height: auto !important;
-  margin: 0 0 9px 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  color: var(--witcher-muted, #988b73) !important;
-  font-family: var(--font-num, ui-monospace, monospace) !important;
-  font-size: .76rem !important;
-  font-weight: 500 !important;
-  letter-spacing: .025em !important;
-  line-height: 1.5 !important;
-  text-shadow: none !important;
-}
-html[data-theme="light"] #content .memo-tape-date { color: #756954 !important; }
-
-*,
-*::before,
-*::after {
-  border-radius: 0 !important;
-}
-img,
-video,
-canvas,
-iframe,
-picture,
-.photo-item a,
-.photo-item img,
-#content img,
-.strip-item img,
-.topbar-brand img,
-.side-profile img,
-.hw-pl-cover,
-.hw-pl-row-thumb {
-  border-radius: 0 !important;
-}
-.memo-card,
-.memo-entry,
-.poster-card,
-.cmdk-panel,
-.cmdk-item,
-.cmdk-ico,
-.cmdk-input-row,
-.cmdk-results,
-.tag-drawer,
-.tag-drawer-current,
-.music-drawer,
-.music-drawer .hw-pl-cover,
-.music-drawer .hw-pl-row,
-.music-drawer .hw-pl-row-thumb,
-.music-drawer .hw-btn,
-#content .btn,
-#content .badge,
-#content input,
-#content textarea,
-#content select,
-#content .input,
-#content .select,
-#appSidebar,
-#appShell,
-.wc-toast,
-.hw-lyrics-float,
-.hw-lyrics-float-bar,
-.hw-lyrics-float-close {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-.cmdk-panel,
-.tag-drawer,
-.music-drawer,
-.hw-lyrics-float {
-  box-shadow: none !important;
-}
-.cmdk-item:hover,
-.cmdk-item.active,
-.tag-drawer .sidebar-tag:hover,
-.music-drawer .hw-pl-row:hover,
-.music-drawer .hw-pl-row.playing {
-  border-radius: 0 !important;
-}
-
-#content .strip-item,
-#content .strip-item img { transform-origin: center; }
-@media (prefers-reduced-motion: reduce) {
-  #topBar,
-#topBar * { transition: none !important; animation: none !important; }
-}
-</style>
-
-
-<style id="witcher-sticky-frame-and-drawer-fix">
-#topBar {
-  top: max(12px, env(safe-area-inset-top, 0px)) !important;
-  border-top: 1px solid rgba(173,153,116,.48) !important;
-  outline: 1px solid rgba(155,139,108,.22) !important;
-  outline-offset: -5px !important;
-  box-sizing: border-box !important;
-  background-clip: padding-box !important;
-}
-@media (max-width: 760px) {
-  #topBar { top: max(8px, env(safe-area-inset-top, 0px)) !important; }
-}
-#musicDrawerOverlay {
-  z-index: 10000 !important;
-}
-#musicDrawer {
-  position: fixed !important;
-  z-index: 10001 !important;
-  top: 0 !important;
-  right: 0 !important;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  isolation: isolate;
-}
-#musicDrawer.open { z-index: 10001 !important; }
-</style>
-
-
-
-<style id="witcher-fixed-frame-internal-scroll">
-html,
-body {
-  width:100%; height:100%; min-height:100%;
-  overflow:hidden !important;
-  overscroll-behavior:none;
-}
-body { padding:0 !important; }
-#mainScroll {
-  position:fixed !important;
-  inset:12px !important;
-  width:auto !important; height:auto !important;
-  max-height:none !important;
-  margin:0 auto !important;
-  padding:0 clamp(10px,2vw,24px) 18px !important;
-  overflow-x:hidden !important;
-  overflow-y:auto !important;
-  overscroll-behavior:contain;
-  scrollbar-width:none !important;
-  border:1px solid rgba(155,139,108,.68) !important;
-  outline:1px solid rgba(155,139,108,.22) !important;
-  outline-offset:-5px !important;
-  background:rgb(13,12,10) !important;
-  background-color:rgb(13,12,10) !important;
-  background-image:none !important;
-  background-clip:padding-box !important;
-  isolation:isolate;
-  -webkit-overflow-scrolling:touch;
-}
-#mainScroll::before {
-  content:""; position:fixed; pointer-events:none; z-index:110;
-  inset:16px; border:1px solid rgba(155,139,108,.18);
-}
-.page-container {
-  width:100% !important; max-width:1260px !important;
-  min-height:100% !important; height:auto !important;
-  margin:0 auto !important; padding:0 clamp(14px,2.2vw,30px) 32px !important;
-  border:0 !important; outline:0 !important; box-shadow:none !important;
-  background:transparent !important; overflow:visible !important;
-}
-.page-container::before { display:none !important; }
-#topBar {
-  position:sticky !important; top:0 !important; z-index:100 !important;
-  transform:none !important; transition:none !important; margin-top:0 !important;
-  border-top:0 !important;
-  border-bottom:0 !important;
-  outline:0 !important;
-  background:rgb(13,12,10) !important;
-  background-color:rgb(13,12,10) !important;
-  background-image:none !important;
-  box-shadow:none !important;
-  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-}
-#topBar::before {
-  top:0 !important; z-index:-1 !important;
-  background:transparent !important;
-  background-color:transparent !important;
-  background-image:none !important;
-  box-shadow:none !important;
-}
-#topBar.bar-hidden { transform:none !important; visibility:visible !important; }
-#toTop { z-index:120 !important; right:30px !important; bottom:30px !important; }
-#musicDrawerOverlay,
-#tagDrawerOverlay,
-.cmdk-overlay { z-index:10000 !important; }
-#musicDrawer,
-.tag-drawer,
-.cmdk-panel { z-index:10001 !important; }
-html[data-theme="light"] #mainScroll {
-  background:rgb(241,233,216) !important;
-  background-color:rgb(241,233,216) !important;
-  background-image:none !important;
-  border-color:rgba(116,91,51,.56) !important;
-  outline-color:rgba(116,91,51,.20) !important;
-}
-html[data-theme="light"] #mainScroll::before { border-color:rgba(116,91,51,.18); }
-html[data-theme="light"] #topBar::before {
-  background:transparent !important;
-  background-color:transparent !important;
-  background-image:none !important;
-}
-html[data-theme="light"] #topBar {
-  background:rgb(241,233,216) !important;
-  background-color:rgb(241,233,216) !important;
-  background-image:none !important;
-  box-shadow:none !important;
-  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-}
-@media (max-width:760px) {
-  #mainScroll { inset:6px !important; padding:0 8px 12px !important; }
-  #mainScroll::before { inset:10px; }
-  .page-container { padding:0 12px 22px !important; }
-  #topBar { top:0 !important; }
-  #toTop { right:18px !important; bottom:18px !important; }
-}
-</style>
-
-
-<style id="unified-grid-and-wenkai">
-html body .strip-wrap .memo-image-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;max-width:540px;padding:0;overflow:hidden;}
-html body .strip-wrap .memo-image-grid[data-count="1"] {grid-template-columns:minmax(0,1fr);max-width:260px;}
-html body .strip-wrap .memo-image-grid[data-count="2"],html body .strip-wrap .memo-image-grid[data-count="4"] {grid-template-columns:repeat(2,minmax(0,1fr));max-width:360px;}
-html body .strip-wrap .memo-image-grid .strip-item {display:block;position:relative;width:100%;min-width:0;min-height:0;aspect-ratio:1/1;padding:0!important;margin:0!important;overflow:hidden;border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important;cursor:zoom-in;background:rgb(128 128 128 / .10)!important;}
-html body .strip-wrap .memo-image-grid .strip-item img {display:block;width:100%!important;height:100%!important;max-width:100%;max-height:none!important;aspect-ratio:1/1;object-fit:cover;border-radius:0!important;transform:none!important;}
-html body .strip-wrap .memo-image-grid .strip-item:nth-child(n+10) {display:none;}
-html body .strip-wrap .memo-image-grid .strip-item[data-more]::after {content:'+' attr(data-more);position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgb(0 0 0 / .52);color:#fff;font-family:var(--font-num);font-size:clamp(22px,4vw,38px);font-weight:600;line-height:1;pointer-events:none;border-radius:0!important;}
-html body .photo-item a,html body .photo-item img {border-radius:0!important;}
-body,button,input,textarea,select,optgroup {font-family:var(--font-family);}
-code,pre,kbd,samp {font-family:var(--font-num);}
-@media(max-width:640px) {html body .strip-wrap .memo-image-grid {gap:4px;}}
-</style>
-
-<style id="dsh-selection-filter-drawer-polish">
-/* ============================================================
-   视觉微调
-============================================================ */
-
-html:is([data-theme="dark"], [data-theme="halloween"]) ::selection {
-  background: rgba(203, 187, 151, .35);
-  color: var(--nb-ink);
-}
-
-#content .btn.btn-xs.btn-primary {
-  background-color: #393126 !important;
-  border-color: #393126 !important;
-  color: #f1e9d8 !important;
-  box-shadow: none !important;
-}
-
-#content .btn.btn-xs.btn-primary:hover {
-  background-color: #30271b !important;
-}
-
-#content .btn.btn-xs.btn-primary .badge {
-  background-color: rgba(241, 233, 216, .16) !important;
-  border-color: rgba(241, 233, 216, .35) !important;
-  color: #f1e9d8 !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) #content .btn.btn-xs.btn-primary {
-  background-color: rgba(203, 187, 151, .16) !important;
-  border-color: rgba(203, 187, 151, .78) !important;
-  color: #e1d2b3 !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) #content .btn.btn-xs.btn-primary:hover {
-  background-color: rgba(203, 187, 151, .24) !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) #content .btn.btn-xs.btn-primary .badge {
-  background-color: rgba(203, 187, 151, .20) !important;
-  border-color: rgba(203, 187, 151, .32) !important;
-  color: #e1d2b3 !important;
-}
-
-.tag-drawer-close,
-.tag-drawer-clear {
-  border: 1px solid rgba(169, 151, 116, .55) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: #c8b895 !important;
-  box-shadow: none !important;
-}
-
-.tag-drawer-close:hover,
-.tag-drawer-clear:hover {
-  background: rgba(203, 187, 151, .10) !important;
-  color: #e1d2b3 !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-html[data-theme="light"] .tag-drawer-close,
-html[data-theme="light"] .tag-drawer-clear {
-  border-color: rgba(116, 91, 51, .52) !important;
-  color: #554832 !important;
-}
-
-html[data-theme="light"] .tag-drawer-close:hover,
-html[data-theme="light"] .tag-drawer-clear:hover {
-  background: rgba(116, 91, 51, .10) !important;
-  color: #30271b !important;
-}
-
-.tag-drawer-list .tag-chip {
-  border: 0 !important;
-  border-bottom: 1px solid rgba(116, 91, 51, .22) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #554832 !important;
-}
-
-.tag-drawer-list .tag-chip:hover {
-  background: rgba(116, 91, 51, .08) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.tag-drawer-list .tag-chip.active {
-  background: rgba(116, 91, 51, .12) !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(116, 91, 51, .34) !important;
-  color: #30271b !important;
-  box-shadow: none !important;
-}
-
-.tag-drawer-list .tag-chip.active .tag-count { color: inherit !important; }
-.tag-drawer-list .tag-chip.active .tag-drawer-check { color: #30271b !important; }
-
-html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip {
-  border-bottom: 1px solid rgba(169, 151, 116, .22) !important;
-  color: #b9ad96 !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip:hover {
-  background: rgba(203, 187, 151, .09) !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active {
-  background: rgba(203, 187, 151, .16) !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(169, 151, 116, .36) !important;
-  color: #e1d2b3 !important;
-  box-shadow: none !important;
-}
-
-html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active .tag-count { color: inherit !important; }
-html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active .tag-drawer-check { color: #e1d2b3 !important; }
-html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip .tag-count { color: rgba(185, 173, 150, .72) !important; }
-
-#content .memo-text h3 {
-  text-decoration: underline !important;
-  text-decoration-color: rgba(193, 169, 121, .6) !important;
-  text-decoration-thickness: 2px !important;
-  text-underline-offset: 5px !important;
-}
-
-#content .memo-text h4 {
-  text-decoration: underline wavy rgba(193, 169, 121, .5) !important;
-  text-decoration-thickness: 1.5px !important;
-  text-underline-offset: 5px !important;
-}
-
-#content .memo-text h2::before,
-#content .memo-text h2::after { display: block !important; }
-
-#content .memo-text h2::before {
-  background: rgba(193, 169, 121, .4) !important;
-  opacity: .5 !important;
-  border-radius: 20% 70% 65% 25% / 55% 90% 40% 60% !important;
-}
-
-#content .memo-text h2::after {
-  background: rgba(139, 116, 80, .5) !important;
-  opacity: .35 !important;
-  border-radius: 75% 25% 40% 70% / 45% 35% 80% 55% !important;
-}
-
-#content .memo-text blockquote { border-left: 2px solid rgba(193, 169, 121, .45) !important; }
-
-html[data-theme="light"] #content .memo-text h3 {
-  text-decoration-color: rgba(116, 91, 51, .6) !important;
-}
-
-html[data-theme="light"] #content .memo-text h4 {
-  text-decoration: underline wavy rgba(140, 118, 80, .55) !important;
-  text-decoration-thickness: 1.5px !important;
-}
-
-html[data-theme="light"] #content .memo-text h2::before {
-  background: rgba(140, 118, 80, .3) !important;
-  opacity: .6 !important;
-}
-
-html[data-theme="light"] #content .memo-text h2::after {
-  background: rgba(103, 84, 52, .5) !important;
-  opacity: .4 !important;
-}
-
-html[data-theme="light"] #content .memo-text blockquote { border-left-color: #8c7650 !important; }
-</style>
-
-<!-- ============================================================
-     ★ 本次优化：说说列表改为「窄栏居中」
-     说明：
-       1) 之前 ul.memo-list 被几处 max-width:100%/850px 覆盖，
-          PC 宽屏下整条容器几乎撑满，只有 1~2 张图的说说图片区
-          靠左对齐（图片网格最大 260/360px），右边留下大片空白。
-       2) 这里把列表收窄到一个舒适的阅读宽度并水平居中：
-          容器本身居中后，左右两侧本来就有对称留白，
-          左对齐的小图块视觉重心也就跟着回正了。
-       3) 只作用于说说列表，不影响图片墙 / 影视 / 书签等其它视图。
-     ============================================================ -->
-<style id="say-list-centered-narrow">
-#content ul.memo-list {
-  width: 100% !important;
-  max-width: 760px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-/* #content 是 flex 列容器：显式让 ul 在交叉轴上居中，避免被拉伸到左缘 */
-#content {
-  align-items: center !important;
-}
-#content > * {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-#content > ul.memo-list {
-  max-width: 760px !important;
-}
-
-/* 空状态 / 错误提示等非列表内容也保持一致的可读宽度与居中 */
-#content > .fade-up,
-#content > div:not(.memo-list) {
-  max-width: 100% !important;
-}
-
-/* 窄屏：宽度回归容器自然宽度，不额外收窄 */
-@media (max-width: 860px) {
-  #content ul.memo-list,
-  #content > ul.memo-list {
-    max-width: 100% !important;
-  }
-}
-
-/* 正文两侧不额外留白时，分隔线正好落在窄栏内，不会被拉长 */
-#content ul.memo-list > li {
-  width: 100% !important;
-}
-</style>
-
-
-<style id="final-ui-fixes">
-html body #toTop {position:fixed!important;top:auto!important;left:auto!important;right:calc(30px + env(safe-area-inset-right,0px))!important;bottom:calc(30px + env(safe-area-inset-bottom,0px))!important;margin:0!important;z-index:120!important;}
-@media(max-width:760px){html body #toTop {right:calc(18px + env(safe-area-inset-right,0px))!important;bottom:calc(18px + env(safe-area-inset-bottom,0px))!important;}}
-html body #topBar .topbar-menu .tab-btn,html body #topBar .topbar-menu .tab-btn:hover,html body #topBar .topbar-menu .tab-btn.active {position:relative;border:1px solid transparent!important;outline:none!important;background:transparent!important;box-shadow:none!important;transform:none!important;padding-bottom:16px!important;transition:color .18s ease!important;}
-html body #topBar .topbar-menu .tab-btn::after {content:"";position:absolute;left:50%;bottom:3px;width:8px;height:5px;background:currentColor;clip-path:polygon(50% 0,100% 100%,0 100%);transform:translateX(-50%);opacity:0;pointer-events:none;transition:opacity .18s ease;}
-html body #topBar .topbar-menu .tab-btn.active::after {opacity:1;}
-html body #topBar .topbar-menu .tab-btn:focus-visible {outline:1px dashed currentColor!important;outline-offset:1px;}
-html body #content .memo-card > .memo-tape-date {position:static!important;display:block!important;width:fit-content!important;min-width:0!important;height:auto!important;margin:0 0 14px!important;padding:0!important;transform:none!important;rotate:none!important;translate:none!important;font-family:"LXGW WenKai Screen",var(--font-family)!important;font-size:13px!important;font-style:normal!important;font-weight:400!important;font-synthesis:none;line-height:1.6!important;letter-spacing:.035em!important;text-align:left!important;text-indent:0!important;border:0!important;background:transparent!important;box-shadow:none!important;}
-html body #content .memo-card > .memo-tape-date + .memo-text {margin-top:0!important;padding-top:0!important;}
-html body #content .memo-card > .memo-tape-date + .memo-text > :first-child {margin-top:0!important;}
-@media(max-width:640px){html body #content .memo-card > .memo-tape-date {font-size:12px!important;margin-bottom:12px!important;}}
-@media(prefers-reduced-motion:reduce){html body #topBar .topbar-menu .tab-btn,html body #topBar .topbar-menu .tab-btn::after{transition:none!important;}}
-</style>
-</body>
+  </body>
 </html>
