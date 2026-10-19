@@ -6868,6 +6868,69 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chi
 html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active .tag-count { color: inherit !important; }
 html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip.active .tag-drawer-check { color: #e1d2b3 !important; }
 html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-list .tag-chip .tag-count { color: rgba(185, 173, 150, .72) !important; }
+
+/* ============================================================
+   Markdown 正文装饰恢复（老站版式 → 猎魔人配色）
+   旧的渲染样式（## 水彩笔涂划 / ### 下划线 / #### 波浪线）被主题层的
+   text-decoration:none 与 display:none 掩盖了，这里逐条恢复；
+   颜色不再用糖果 primary/accent，改为深色铜调 / 浅色旧墨铜调。
+============================================================ */
+
+/* ### 下划线 */
+#content .memo-text h3 {
+  text-decoration: underline !important;
+  text-decoration-color: rgba(193, 169, 121, .6) !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 5px !important;
+}
+
+/* #### 波浪线 */
+#content .memo-text h4 {
+  text-decoration: underline wavy rgba(193, 169, 121, .5) !important;
+  text-decoration-thickness: 1.5px !important;
+  text-underline-offset: 5px !important;
+}
+
+/* ## 水彩笔涂划：恢复被隐藏的双层柔化色块与有机笔触外形 */
+#content .memo-text h2::before,
+#content .memo-text h2::after { display: block !important; }
+
+#content .memo-text h2::before {
+  background: rgba(193, 169, 121, .4) !important;
+  opacity: .5 !important;
+  border-radius: 20% 70% 65% 25% / 55% 90% 40% 60% !important;
+}
+
+#content .memo-text h2::after {
+  background: rgba(139, 116, 80, .5) !important;
+  opacity: .35 !important;
+  border-radius: 75% 25% 40% 70% / 45% 35% 80% 55% !important;
+}
+
+/* 引用竖线：深色下 --witcher-brass 未定义会退成 currentColor，钉成半透明铜 */
+#content .memo-text blockquote { border-left: 2px solid rgba(193, 169, 121, .45) !important; }
+
+/* ---------- 浅色：羊皮纸上的旧墨水 / 铜调 ---------- */
+html[data-theme="light"] #content .memo-text h3 {
+  text-decoration-color: rgba(116, 91, 51, .6) !important;
+}
+
+html[data-theme="light"] #content .memo-text h4 {
+  text-decoration: underline wavy rgba(140, 118, 80, .55) !important;
+  text-decoration-thickness: 1.5px !important;
+}
+
+html[data-theme="light"] #content .memo-text h2::before {
+  background: rgba(140, 118, 80, .3) !important;
+  opacity: .6 !important;
+}
+
+html[data-theme="light"] #content .memo-text h2::after {
+  background: rgba(103, 84, 52, .5) !important;
+  opacity: .4 !important;
+}
+
+html[data-theme="light"] #content .memo-text blockquote { border-left-color: #8c7650 !important; }
 </style>
 
 </body>
