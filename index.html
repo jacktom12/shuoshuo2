@@ -8022,6 +8022,9 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 /* Tailwind 的 preflight 给所有 img 上了 max-width:100%，放大就会被压回框内 */
 #imgBox .imgbox-view img{
   display:block; max-width:none !important; height:auto;
+  /* 竖图的宽度由自身决定，窗口宽度却由标题栏和底部说明撑开，
+     不居中就会把空白全留在右边；放大到超出可视区时 auto 自动归零，不影响滚动。 */
+  margin-inline:auto;
   border:1px solid var(--k2-edge); background:var(--k2-strip);
 }
 #imgBox .imgbox-foot{
