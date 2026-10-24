@@ -8047,12 +8047,15 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 <style id="site-footer-y2k">/* ---------- 页脚：一条发丝分隔线 + 一行年份，直角无底色 ----------
    页脚是 #mainScroll 的最后一个子元素，不进 .page-container：
    那个容器在桌面断点是两列网格，多一个子元素会被 grid-row:1 拍到左上角、还会撑坏行高。 */
+/* 正文容器原本靠 32px 底内边距给自己收口，现在这条收口交给页脚的分隔线，
+   不清掉就会在列表可视区和页脚之间留出一整条死带。 */
+.page-container{ padding-bottom:0 !important; }
 .site-footer{
   flex:0 0 auto !important;
   height:fit-content !important;
   align-self:stretch;
-  margin:10px 0 0;
-  padding:6px 0 2px;
+  margin:6px 0 0;
+  padding:5px 0 2px;
   border-top:1px solid var(--k2-hair);
   color:var(--k2-mute);
   font:.72rem/1.4 var(--k2-font-nav);
