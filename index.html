@@ -2731,12 +2731,16 @@ function renderHotView() {
   const tabs = HOT_SITES.map(s => {
     const on = s.id === active;
     const color = tagColor(s.id);
-    return `<button type="button" class="badge tag-chip cursor-pointer select-none whitespace-nowrap transition-all ${on ? `badge-${color}` : 'badge-soft badge-ghost'}" data-hot="${s.id}">${s.name}</button>`;
+    return `<button type="button" class="badge tag-chip cursor-pointer select-none whitespace-nowrap transition-all ${on ? `active badge-${color}` : 'badge-soft badge-ghost'}" data-hot="${s.id}">${s.name}</button>`;
   }).join('');
   contentEl.innerHTML = `
   <div>
     <div class="flex items-center gap-2 sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
-      <div class="hot-tabs flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5">${tabs}</div>
+      <div class="milli-nav flex-1 min-w-0">
+          <button type="button" class="milli-btn" data-milli-prev aria-label="上一个分类">‹</button>
+          <div class="hot-tabs flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5 milli-track">${tabs}</div>
+          <button type="button" class="milli-btn" data-milli-next aria-label="下一个分类">›</button>
+        </div>
       <button type="button" class="hot-refresh btn btn-xs btn-ghost btn-circle shrink-0" aria-label="手动刷新" title="手动刷新">
         <span class="iconify text-base" data-icon="lucide:refresh-cw"></span>
       </button>
@@ -2752,11 +2756,12 @@ function renderHotView() {
       renderHotView();
       loadHot(state.hotActive);
       setScrollPos(hotScrolls[state.hotActive] || 0);   // 恢复目标平台位置（首次为顶部）
+      focusActiveChip(contentEl.querySelector('.hot-tabs'));   // 让新选中的平台滚回视野中央
     };
   });
   const refreshBtn = contentEl.querySelector('.hot-refresh');
   refreshBtn.onclick = () => loadHot(state.hotActive, true);
-  initDragScroll(contentEl.querySelector('.hot-tabs'));   // PC 端鼠标拖拽滚动平台条
+  initMillenniumNav(contentEl.querySelector('.hot-tabs').closest('.milli-nav'));   // 左右按钮切换平台
   loadHot(active);
 }
 
@@ -2858,7 +2863,11 @@ function renderBookmarks() {
           </svg>
           <input type="search" class="bm-search grow min-w-0" placeholder="搜索 标题/描述/标签" />
         </label>
-        <div class="bm-cats flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5"></div>
+        <div class="milli-nav flex-1 min-w-0">
+          <button type="button" class="milli-btn" data-milli-prev aria-label="上一个分类">‹</button>
+          <div class="bm-cats flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5 milli-track"></div>
+          <button type="button" class="milli-btn" data-milli-next aria-label="下一个分类">›</button>
+        </div>
       </div>
     </div>
     <div class="bm-body min-h-40"></div>
@@ -2866,7 +2875,7 @@ function renderBookmarks() {
 
     renderBookmarkChips(cats);
     renderBookmarkList();
-    initDragScroll(contentEl.querySelector('.bm-cats'));   // PC 端鼠标拖拽滚动分类条
+    initMillenniumNav(contentEl.querySelector('.bm-cats').closest('.milli-nav'));   // 左右按钮切换分类
 
     const search = contentEl.querySelector('.bm-search');
   search.value = state.bookmarksQuery;
@@ -2896,6 +2905,7 @@ function renderBookmarkChips(cats) {
       renderBookmarkChips(cats);
       renderBookmarkList();
       setScrollPos(bmScrolls[state.bookmarksCat] || 0);   // 恢复目标分类位置（首次为顶部）
+      focusActiveChip(contentEl.querySelector('.bm-cats'));   // 让新选中的分类滚回视野中央
     };
   });
 }
@@ -8192,5 +8202,77 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 }
 </style>
 <script id="siteFooterYearScript">document.getElementById("siteFooterYear").textContent = new Date().getFullYear();</script>
+
+<style id="millennium-category-nav">
+.milli-nav{display:flex;align-items:center;gap:6px;min-width:0;}
+.milli-btn{
+  flex:0 0 auto;width:30px;height:30px;display:grid;place-items:center;
+  font:700 17px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:var(--color-base-content);
+  background:linear-gradient(180deg,var(--color-base-100),var(--color-base-200));
+  border:2px solid var(--color-base-content);
+  border-radius:8px;cursor:pointer;user-select:none;
+  box-shadow:2px 2px 0 var(--color-base-content);
+  transition:transform .06s ease,box-shadow .06s ease,opacity .15s ease,background .15s ease;
+}
+.milli-btn:hover{background:linear-gradient(180deg,var(--color-base-100),color-mix(in oklch,var(--color-warning) 45%,var(--color-base-200)));}
+.milli-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--color-base-content);}
+.milli-btn[disabled]{opacity:.35;cursor:not-allowed;transform:none;box-shadow:2px 2px 0 var(--color-base-content);}
+.milli-track{scrollbar-width:none;scroll-behavior:smooth;}
+.milli-track::-webkit-scrollbar{display:none;}
+
+.bm-cats .tag-chip.active,
+.hot-tabs .tag-chip.active{
+  background:var(--color-primary) !important;
+  color:var(--color-primary-content) !important;
+  border-color:var(--color-base-content) !important;
+  font-weight:700;
+  box-shadow:2px 2px 0 color-mix(in oklch,var(--color-base-content) 75%,transparent);
+}
+.bm-cats .tag-chip:not(.active),
+.hot-tabs .tag-chip:not(.active){
+  background:var(--color-base-200);
+  color:var(--color-base-content);
+  border-color:color-mix(in oklch,var(--color-base-content) 25%,transparent);
+}
+.bm-cats .tag-chip:not(.active):hover,
+.hot-tabs .tag-chip:not(.active):hover{
+  background:color-mix(in oklch,var(--color-primary) 18%,var(--color-base-200));
+  border-color:var(--color-primary);
+}
+</style>
+<script id="millennium-category-nav-js">
+function focusActiveChip(track){
+  if(!track) return;
+  const active=track.querySelector('.tag-chip.active');
+  if(!active) return;
+  const target=active.offsetLeft-(track.clientWidth-active.offsetWidth)/2;
+  track.scrollTo({left:Math.max(0,Math.min(target,track.scrollWidth-track.clientWidth)),behavior:'smooth'});
+}
+function initMillenniumNav(nav){
+  if(!nav) return;
+  const track=nav.querySelector('.milli-track');
+  const prev=nav.querySelector('[data-milli-prev]');
+  const next=nav.querySelector('[data-milli-next]');
+  if(!track||!prev||!next) return;
+
+  const update=()=>{
+    const max=track.scrollWidth-track.clientWidth;
+    prev.disabled=track.scrollLeft<=2;
+    next.disabled=track.scrollLeft>=max-2;
+  };
+  const page=dir=>{
+    const step=Math.max(track.clientWidth*0.8,120);
+    track.scrollBy({left:dir*step,behavior:'smooth'});
+  };
+  prev.onclick=()=>page(-1);
+  next.onclick=()=>page(1);
+  track.addEventListener('scroll',update,{passive:true});
+  window.addEventListener('resize',update);
+
+  requestAnimationFrame(()=>{ focusActiveChip(track); update(); });
+  update();
+}
+</script>
 </body>
 </html>
