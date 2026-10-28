@@ -2756,7 +2756,7 @@ function renderHotView() {
       renderHotView();
       loadHot(state.hotActive);
       setScrollPos(hotScrolls[state.hotActive] || 0);   // 恢复目标平台位置（首次为顶部）
-      focusActiveChip(contentEl.querySelector('.hot-tabs'));   // 让新选中的平台滚回视野中央
+      focusActiveChip(contentEl.querySelector('.hot-tabs'));
     };
   });
   const refreshBtn = contentEl.querySelector('.hot-refresh');
@@ -2905,7 +2905,7 @@ function renderBookmarkChips(cats) {
       renderBookmarkChips(cats);
       renderBookmarkList();
       setScrollPos(bmScrolls[state.bookmarksCat] || 0);   // 恢复目标分类位置（首次为顶部）
-      focusActiveChip(contentEl.querySelector('.bm-cats'));   // 让新选中的分类滚回视野中央
+      focusActiveChip(contentEl.querySelector('.bm-cats'));
     };
   });
 }
@@ -5801,6 +5801,7 @@ function renderBookmarkChips(cats) {
     renderBookmarkChips(cats);
     renderBookmarkList();
     setScrollPos(bmScrolls[state.bookmarksCat] || 0);
+    focusActiveChip(wrap);   // 当前分类平滑滚回分类条中央
   });
 }
 </script>
@@ -8242,12 +8243,23 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 }
 </style>
 <script id="millennium-category-nav-js">
+/* 将当前 .tag-chip.active 水平居中；用 rect 差值计算，避免 offsetParent 不一致导致滚错 */
 function focusActiveChip(track){
   if(!track) return;
   const active=track.querySelector('.tag-chip.active');
   if(!active) return;
-  const target=active.offsetLeft-(track.clientWidth-active.offsetWidth)/2;
-  track.scrollTo({left:Math.max(0,Math.min(target,track.scrollWidth-track.clientWidth)),behavior:'smooth'});
+
+  const center=()=>{
+    const trackRect=track.getBoundingClientRect();
+    const activeRect=active.getBoundingClientRect();
+    const delta=(activeRect.left+activeRect.width/2)-(trackRect.left+trackRect.width/2);
+    const target=track.scrollLeft+delta;
+    const max=track.scrollWidth-track.clientWidth;
+    track.scrollTo({left:Math.max(0,Math.min(target,max)),behavior:'smooth'});
+  };
+
+  // 等浏览器完成重排后再计算，连续点前后分类也能准确居中
+  requestAnimationFrame(()=>requestAnimationFrame(center));
 }
 function initMillenniumNav(nav){
   if(!nav) return;
