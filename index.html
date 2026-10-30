@@ -4713,7 +4713,13 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
           );
           if (activeIdx >= 0) {
             const activeEl = lineEls[activeIdx];
-            const targetTop = activeEl.offsetTop - scroll.clientHeight / 2 + activeEl.clientHeight / 2;
+            // offsetTop 的参照是最近的定位祖先（浮窗是 fixed），会连标题栏一起算进去，
+            // 所以用两个 rect 相减再加上已滚距离，才是行在滚动内容里的真实位置。
+            const activeTop =
+              activeEl.getBoundingClientRect().top -
+              scroll.getBoundingClientRect().top +
+              scroll.scrollTop;
+            const targetTop = activeTop - scroll.clientHeight / 2 + activeEl.clientHeight / 2;
             scroll.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
           }
         }
@@ -4897,6 +4903,7 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
                 <span class="hw-time hw-pl-dur">00:00</span>
               </div>
               <div class="hw-pl-controls">
+                <button class="hw-btn hw-pl-lyrics-toggle" title="歌词" aria-label="歌词">${ICONS.lyrics}</button>
                 <button class="hw-btn hw-pl-shuffle${pls.shuffle ? " active" : ""}" title="随机播放">${ICONS.shuffle}</button>
                 <button class="hw-btn hw-play hw-pl-play" title="播放/暂停">${ICONS.play}</button>
                 <button class="hw-btn hw-pl-repeat${
@@ -4985,6 +4992,7 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
           const playBtn = cardEl.querySelector(".hw-pl-play");
           const shuffleBtn = cardEl.querySelector(".hw-pl-shuffle");
           const repeatBtn = cardEl.querySelector(".hw-pl-repeat");
+          const lyricsBtn = cardEl.querySelector(".hw-pl-lyrics-toggle");
           const progress = cardEl.querySelector(".hw-pl-progress");
           let repeatHintTimer = null;
 
@@ -5024,6 +5032,49 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
               (Number(progress.value) / 1000) * (audioEl.duration || 0);
           });
 
+          // 歌词板：浮窗本体、拖动、位置记忆都是现成的，这里只把当前歌的多行词画进去
+          const floatOpen = () => {
+            const el = getLyricsFloat();
+            return !!el && el.classList.contains("open");
+          };
+          const thisQueueActive = () =>
+            !!(state.queue && state.queue.listId === listId);
+
+          async function showFloatLyrics() {
+            const scroll = document.getElementById("hwLyricsFloatScroll");
+            const titleEl = document.getElementById("hwLyricsFloatTitle");
+            if (!scroll) return;
+            const track = thisQueueActive()
+              ? pls.tracks[state.queue.index]
+              : null;
+            if (!track) {
+              if (titleEl) titleEl.textContent = "歌词";
+              scroll.innerHTML = '<div class="hw-lyrics-empty">暂无歌词</div>';
+              return;
+            }
+            if (titleEl) titleEl.textContent = track.title || "歌词";
+            const r = await getLyricsByNeteaseId(track.neteaseId);
+            // 拉词期间可能又切了歌或关了窗，别把上一首的词画上去
+            if (!floatOpen() || !thisQueueActive()) return;
+            const now = pls.tracks[state.queue.index];
+            if (!now || now.trackId !== track.trackId) return;
+            renderLyricsList(scroll, r);
+            syncLyrics(cardEl, state.position);
+          }
+
+          lyricsBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const nowOn = !floatOpen();
+            setLyricsFloatOpen(nowOn);
+            // 板子只有一块，别让两张卡片的歌词键同时亮着
+            document
+              .querySelectorAll(".hw-lyrics-toggle, .hw-pl-lyrics-toggle")
+              .forEach((b) => b.classList.remove("active"));
+            lyricsBtn.classList.toggle("active", nowOn);
+            if (nowOn) showFloatLyrics();
+          });
+
           cardEl.querySelectorAll(".hw-pl-row").forEach((row) => {
             row.addEventListener("click", (e) => {
               e.preventDefault();
@@ -5037,12 +5088,15 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
             passive: true,
           });
 
-          document.addEventListener("hwplayer:update", () =>
-            refreshPlaylistUI(cardEl, listId)
-          );
+          document.addEventListener("hwplayer:update", () => {
+            refreshPlaylistUI(cardEl, listId);
+            if (floatOpen() && thisQueueActive())
+              syncLyrics(cardEl, state.position);
+          });
           document.addEventListener("hwplayer:queue-change", (e) => {
             if (e.detail.listId !== listId) return;
             refreshPlaylistUI(cardEl, listId);
+            if (floatOpen()) showFloatLyrics();
           });
           refreshPlaylistUI(cardEl, listId);
         }
@@ -7705,11 +7759,18 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) .ph
   border-radius:0 !important;
   border:2px solid var(--k2-edge) !important;
   box-shadow:4px 4px 0 var(--k2-hair) !important;
+  /* 底色本来就是不透明的，玻璃层那套模糊白耗一次合成，跟抽屉/搜索面板一样清掉 */
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  /* 板子要能拖到屏幕任何角落，层级压过贴顶导航（100），否则拖上去就被导航吃掉 */
+  z-index:120;
 }
 .hw-lyrics-float-bar{
   background:linear-gradient(180deg, var(--k2-banner-a), var(--k2-banner-b)) !important;
   border-bottom:1px solid var(--k2-edge) !important;
 }
+/* 高亮行：浅色下糖果粉落在奶油底上对比只有 2.8:1，改用主题的深强调色（暗色值不变） */
+.hw-lyrics-float .hw-lyrics-line.active{ color:var(--k2-link-hover) !important; }
 /* 输入框：Win 文本框的下凹内边框（sunken field） */
 input,textarea,select{ border-radius:0 !important; }
 #cmdkInput,
