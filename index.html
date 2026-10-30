@@ -17,15 +17,18 @@
 <link href="/site.webmanifest" rel="manifest"/>
 <title>time</title>
 <meta content="个人说说与影视记录" name="description"/>
-<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
-<link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+<!-- 全部依赖已本地化到 vendor/，不再请求境外 CDN（jsdelivr / Google Fonts / iconify API），
+     国内无 VPN 也能正常渲染。快照版本：daisyUI 5.7.50、@tailwindcss/browser 4.3.3、
+     Iconify 3.1.0、masonry-layout 4.2.2。升级时重新下载对应文件覆盖即可。 -->
+<link href="vendor/daisyui.css" rel="stylesheet" type="text/css"/>
+<link href="vendor/daisyui-themes.css" rel="stylesheet" type="text/css"/>
+<link href="vendor/space-mono.css" rel="stylesheet"/>
+<link href="vendor/pixel-fonts.css" rel="stylesheet"/>
+<script src="vendor/tailwind-browser.js"></script>
+<script src="vendor/iconify.min.js"></script>
+<script src="vendor/icons-bundle.js"></script>
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/masonry.pkgd.min.js"></script>
 <style>:root { color-scheme: light; --font-family: "LXGW WenKai Screen", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; --font-display: var(--font-family); --font-num: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
 /* 盒模型兜底：Tailwind CDN（@tailwindcss/browser）加载失败或很慢时 preflight 缺失，
      .memo-card 这类「width:100% + 内边距 + 描边」的卡片会按 content-box 计算，
@@ -1118,7 +1121,7 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-current {
   background: rgba(218, 199, 166, .055);
   border-left-color: #aa8b5e;
 }</style>
-<link href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.7.0/style.min.css" rel="stylesheet"/>
+<link href="vendor/lxgw-wenkai-screen/lxgwwenkaigbscreen.css" rel="stylesheet"/>
 <style id="personal-homepage-final">
 /* Final navigation: legacy topbar selectors have been removed from older skins. */
 :root{--home-paper:#fffaf0;--home-ink:#483d4b;--home-link:#493b83;--home-hover:#a32f48;--home-line:#afa091;--home-muted:#837477;--home-selected:#fff0b5;--home-selected-ink:#493e2d;--home-rule:#65516a;
@@ -1388,7 +1391,8 @@ const MOCK_TAGS = {
   tag_music:  '音乐',
 };
 
-function mockImg(seed, w = 800, h = 600) { return `https://picsum.photos/seed/${seed}/${w}/${h}`; }
+// 图片本地化后仍需绝对 URL：parseContent 的 imgRe 只匹配 http(s) 开头的地址
+function mockImg(seed, w = 800, h = 600) { return new URL(`vendor/img/mock/${seed}-${w}x${h}.jpg`, document.baseURI).href; }
 
 const MOCK_MEMOS = (() => {
   const now = Date.now();
@@ -1470,7 +1474,7 @@ const MOCK_MEDIA = (() => {
     return {
       type: 'media', status, media_type: mt, rawDate: d, date: d.split(' ')[0],
       title, original_title: orig,
-      poster_path: `https://picsum.photos/seed/${status}${i}/400/600`,
+      poster_path: `vendor/img/mock/${status}${i}-400x600.jpg`,
       release_date: rd, vote_average: va.toFixed(1),
       douban_url: `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(title)}`,
       genre_ids: gids || [],
@@ -5127,8 +5131,8 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
   --nb-green: #5fd68a;
   --nb-purple: #b18cff;
   --nb-dot: rgba(33, 29, 23, .09);
-  /* 页面壁纸：浅色模式（外部图床代理） */
-  --nb-wallpaper: url("https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperlight.png");
+  /* 页面壁纸：浅色模式（本地文件） */
+  --nb-wallpaper: url("vendor/img/wallpaper-light.png");
   /* 翻页器当前页强调色（参考图中的暖橙） */
   --pager-accent: #ef7c12;
 }
@@ -5148,8 +5152,8 @@ html:is([data-theme="dark"], [data-theme="halloween"]) {
   --nb-green: #6fe09b;
   --nb-purple: #c0a4ff;
   --nb-dot: rgba(236, 232, 219, .06);
-  /* 页面壁纸：暗色模式（外部图床代理） */
-  --nb-wallpaper: url("https://images.weserv.nl/?url=https://raw.githubusercontent.com/jacktom12/blogpic3/main/wallpaperdark.png");
+  /* 页面壁纸：暗色模式（本地文件） */
+  --nb-wallpaper: url("vendor/img/wallpaper-dark.png");
   --pager-accent: #ffab4d;
 }
 /* ---------- 页面底：主题壁纸（浅色/暗色各一张，专为横向无缝循环设计） ---------- */
@@ -7002,15 +7006,15 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) .ro
    Y2K / 千禧年部落格皮肤 · 精简版
    只做视觉覆盖；不改动结构、脚本与交互逻辑
    ========================================================= */
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap");
+/* Press Start 2P 已在 head 里以 vendor/pixel-fonts.css 本地引入 */
 :root{
   --y2k-pink:#ff5fa8;
   --y2k-lilac:#b28dff;
   --y2k-cyan:#5fd8ff;
   --y2k-lemon:#ffe86b;
   --y2k-ink:#4b2b4f;
-  --y2k-font:"Space Mono","Comic Sans MS","Microsoft YaHei","PingFang SC",monospace;
-  --y2k-display:"Press Start 2P","Space Mono","Microsoft YaHei",monospace;
+  --y2k-font:"Space Mono","LXGW WenKai Screen","Comic Sans MS","Microsoft YaHei","PingFang SC",monospace;
+  --y2k-display:"Press Start 2P","Space Mono","LXGW WenKai Screen","Microsoft YaHei",monospace;
 }
 /* ---------- 浅色：奶油纸 + 糖果粉 ---------- */
 html[data-theme="light"]{
