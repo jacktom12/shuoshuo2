@@ -1305,6 +1305,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 <div class="imgbox-frame">
 <div class="imgbox-bar">
 <span class="imgbox-name" id="imgBoxName">图片</span>
+<button class="imgbox-nav-link" hidden id="imgBoxPrev" type="button">上一张</button>
+<button class="imgbox-nav-link" hidden id="imgBoxNext" type="button">下一张</button>
 <button aria-label="缩小" class="imgbox-btn" id="imgBoxMinus" type="button">-</button>
 <span class="imgbox-zoom" id="imgBoxZoom">100%</span>
 <button aria-label="放大" class="imgbox-btn" id="imgBoxPlus" type="button">+</button>
@@ -1400,6 +1402,7 @@ const MOCK_MEMOS = (() => {
   const items = [
     { d: 0.1, tags: ['tag_daily','tag_photo'], c: `傍晚在江边散步，风很大，云烧起来了。\n\n![晚霞](${mockImg('sunset1')})\n![](${mockImg('sunset2')})` },
     { d: 0.5, tags: ['tag_dev'], c: '把说说页的 Worker 又重构了一遍，标签筛选改成 SINTER 反索引取交集，速度快了不少。\n代码这东西，就是越写越顺手，也越写越觉得以前写的是💩。' },
+    { d: 0.8, tags: ['tag_photo','tag_daily'], c: `江滩从傍晚走到天黑，一口气拍了十二张，九宫格装不下。\n\n![江滩的黄昏](${mockImg('rain1')})\n![](${mockImg('rain2')})\n![](${mockImg('rain3')})\n![](${mockImg('rain4')})\n![](${mockImg('rain5')})\n![](${mockImg('street1')})\n![](${mockImg('street2')})\n![](${mockImg('street3')})\n![](${mockImg('sunset1')})\n![](${mockImg('sunset2')})\n![](${mockImg('cat1', 800, 800)})\n![](${mockImg('sunrise', 1200, 800)})` },
     { d: 1,   tags: ['tag_photo'], c: `周末扫街收获。\n\n![](${mockImg('street1')})\n![](${mockImg('street2')})\n![](${mockImg('street3')})` },
     { d: 1.4, tags: ['tag_food'], c: `楼下的热干面加蛋酒，武汉人的一天从这开始。\n\n![热干面](${mockImg('noodle')})` },
     { d: 2,   tags: ['tag_read'], c: '读完《东京八平米》。\n\n原来一个人需要的空间可以这么小，而生活可以这么大。作者说：你的小不是问题，外面的世界足够大。\n\n推荐给所有在大城市里觉得逼仄的人。' },
@@ -1645,7 +1648,8 @@ async function fetchData({ view, page = 1, tags = [] }) {
 
 /* ============================================================
    图片查看窗：一次只看一张，按原始大小出现，可放大缩小
-   （不要图床那套华丽切换：没有左右翻页，点框外或 ✕ 就关）
+   同一条说说 / 同一面相册墙里的图可以上一张下一张翻，首尾不出现对应链接
+   （不要图床那套华丽切换：点框外或 ✕ 就关）
 ============================================================ */
 function initImgBox() {
   const box = document.getElementById('imgBox');
@@ -1656,22 +1660,44 @@ function initImgBox() {
   const nameEl = document.getElementById('imgBoxName');
   const zoomEl = document.getElementById('imgBoxZoom');
   const footEl = document.getElementById('imgBoxFoot');
+  const prevBtn = document.getElementById('imgBoxPrev');
+  const nextBtn = document.getElementById('imgBoxNext');
   let natural = { w: 0, h: 0 };
   let zoom = 1;
   let fitZoom = 1;
   let opener = null;
+  let group = [];
+  let groupIndex = -1;
+
+  const srcOf = el => el.getAttribute('href') || el.getAttribute('data-src') || el.getAttribute('src') || '';
+  const captionOf = el => el.getAttribute('data-caption') || el.getAttribute('alt') || '图片';
+
+  // 翻页范围＝点开的那张图所在的组，含九宫格里第 10 张起被 display:none 的图：
+  // 那些图在页面上没有别的入口，查看器是唯一能看到它们的地方。
+  function collectGroup(trigger) {
+    const wrap = trigger && trigger.closest('.memo-image-grid, #photoGrid');
+    if (!wrap) return [];
+    return Array.from(wrap.querySelectorAll('[data-imgbox]'));
+  }
+
+  function updateNav() {
+    prevBtn.hidden = groupIndex <= 0;
+    nextBtn.hidden = groupIndex < 0 || groupIndex >= group.length - 1;
+  }
+
+  function step(delta) {
+    const target = group[groupIndex + delta];
+    if (!target) return;
+    open(srcOf(target), captionOf(target), target);
+    // open() 会把焦点送到 ✕；翻到首尾时那一侧的链接刚被藏起来，焦点别跟过去
+    const btn = delta < 0 ? prevBtn : nextBtn;
+    if (!btn.hidden) btn.focus();
+  }
 
   function label() {
-    const pct = Math.round(zoom * 100) + '%';
-    zoomEl.textContent = pct;
-    let mode;
-    if (Math.abs(zoom - 1) < 0.01) mode = '原始大小';
-    else if (zoom > 1) mode = '放大';
-    else if (Math.abs(zoom - fitZoom) < 0.02) mode = '适合窗口';
-    else mode = '缩小';
-    footEl.textContent =
-      natural.w + ' × ' + natural.h + ' 像素 · ' + pct + ' · ' + mode +
-      ' · 双击图片在原始大小和适合窗口之间切换';
+    zoomEl.textContent = Math.round(zoom * 100) + '%';
+    footEl.textContent = natural.w + ' × ' + natural.h + ' 像素' +
+      (group.length > 1 ? ' · 第 ' + (groupIndex + 1) + ' / ' + group.length + ' 张' : '');
   }
 
   function setZoom(next) {
@@ -1699,6 +1725,10 @@ function initImgBox() {
 
   function open(src, caption, trigger) {
     opener = trigger || null;
+    // 必须在设置 img.src 之前定好位置：图已缓存时 ready() 会同步跑到底部说明那一行
+    group = collectGroup(trigger);
+    groupIndex = group.indexOf(trigger);
+    updateNav();
     box.classList.remove('hidden');
     footEl.textContent = '正在载入…';
     zoomEl.textContent = '—';
@@ -1729,6 +1759,8 @@ function initImgBox() {
   box.querySelector('.imgbox-close').addEventListener('click', close);
   document.getElementById('imgBoxPlus').addEventListener('click', () => setZoom(zoom * 1.25));
   document.getElementById('imgBoxMinus').addEventListener('click', () => setZoom(zoom / 1.25));
+  prevBtn.addEventListener('click', () => step(-1));
+  nextBtn.addEventListener('click', () => step(1));
   img.addEventListener('dblclick', () => setZoom(Math.abs(zoom - 1) < 0.01 ? fitZoom : 1));
   addEventListener('resize', () => { if (!box.classList.contains('hidden')) measureFit(); });
   addEventListener('keydown', e => {
@@ -1744,9 +1776,9 @@ function initImgBox() {
     const trigger = e.target.closest('[data-imgbox]');
     if (!trigger) return;
     e.preventDefault();
-    const src = trigger.getAttribute('href') || trigger.getAttribute('data-src') || trigger.getAttribute('src') || '';
+    const src = srcOf(trigger);
     if (!src) return;
-    open(src, trigger.getAttribute('data-caption') || trigger.getAttribute('alt') || '图片', trigger);
+    open(src, captionOf(trigger), trigger);
   });
 }
 
@@ -8061,6 +8093,25 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
   font-weight:700; letter-spacing:.02em;
 }
+/* 上一张 / 下一张：跟顶部菜单条一样的纯文字链接，不是立体键。
+   全局 button 那条 !important 的圆角、描边、hover 位移都要在这里压掉。 */
+#imgBox .imgbox-nav-link{
+  flex:0 0 auto; padding:0 3px;
+  border:0 !important; border-radius:0 !important;
+  background:none !important; box-shadow:none !important;
+  color:var(--k2-link) !important;
+  -webkit-text-fill-color:var(--k2-link) !important;
+  font:.72rem var(--k2-font-nav) !important;
+  white-space:nowrap; text-decoration:underline; text-underline-offset:3px;
+  cursor:pointer;
+}
+#imgBox .imgbox-nav-link:hover{
+  color:var(--k2-link-hover) !important;
+  -webkit-text-fill-color:var(--k2-link-hover) !important;
+  background:none !important; transform:none !important; box-shadow:none !important;
+}
+#imgBox .imgbox-nav-link:active{ transform:none !important; box-shadow:none !important; }
+#imgBox .imgbox-nav-link[hidden]{ display:none !important; }
 #imgBox .imgbox-zoom{
   min-width:3.9em; padding:1px 2px; text-align:center;
   font:.72rem var(--font-num);
