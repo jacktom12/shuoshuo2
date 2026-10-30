@@ -8068,20 +8068,29 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   border:1px solid;
   border-color:var(--k2-bevel-dk) var(--k2-bevel-lt) var(--k2-bevel-lt) var(--k2-bevel-dk);
 }
+/* y2k 皮肤的全局 button 规则带 !important（8px 圆角 + hover 位移投影），
+   这里同权重抬回来，标题栏小键跟播放器控制键、分页键走同一套直角硬边。 */
 #imgBox .imgbox-btn{
   min-width:22px; height:20px; padding:0 5px;
-  font:.78rem/1 var(--k2-font-nav);
-  background:linear-gradient(180deg, var(--k2-chrome-a), var(--k2-chrome-b));
-  color:var(--k2-chrome-ink);
-  border:2px solid;
-  border-color:var(--k2-bevel-lt) var(--k2-bevel-dk) var(--k2-bevel-dk) var(--k2-bevel-lt);
+  font:.78rem/1 var(--k2-font-nav) !important;
+  background:linear-gradient(180deg, var(--k2-chrome-a), var(--k2-chrome-b)) !important;
+  color:var(--k2-chrome-ink) !important;
+  border:2px solid !important;
+  border-color:var(--k2-bevel-lt) var(--k2-bevel-dk) var(--k2-bevel-dk) var(--k2-bevel-lt) !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
   cursor:pointer;
 }
-#imgBox .imgbox-btn:hover{ background:var(--k2-banner-a); color:var(--k2-banner-ink); }
+#imgBox .imgbox-btn:hover{
+  background:linear-gradient(180deg, var(--k2-banner-a), var(--k2-banner-b)) !important;
+  color:var(--k2-banner-ink) !important;
+  transform:none !important; box-shadow:none !important;
+}
 #imgBox .imgbox-btn:active{
-  border-color:var(--k2-bevel-dk) var(--k2-bevel-lt) var(--k2-bevel-lt) var(--k2-bevel-dk);
-  background:linear-gradient(180deg, var(--k2-press-a), var(--k2-press-b));
-  color:var(--k2-press-ink);
+  border-color:var(--k2-bevel-dk) var(--k2-bevel-lt) var(--k2-bevel-lt) var(--k2-bevel-dk) !important;
+  background:linear-gradient(180deg, var(--k2-press-a), var(--k2-press-b)) !important;
+  color:var(--k2-press-ink) !important;
+  transform:none !important; box-shadow:none !important;
 }
 #imgBox .imgbox-view{
   flex:1 1 auto; min-width:0; min-height:0; overflow:auto;
