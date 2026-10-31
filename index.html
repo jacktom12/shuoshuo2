@@ -671,17 +671,18 @@ body { min-height: 100dvh; }
 /* 滚动区底部避开 Home 指示条 */
 #mainScroll { padding-bottom: env(safe-area-inset-bottom, 0px); }
 #toTop { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
-/* ============ 翻页控件：随内容滚动，到底部才出现（无吸底 / 无蒙版） ============ */
+/* ============ 翻页控件：列表上下各一行，同步翻页（无吸底 / 无蒙版） ============ */
 #mediaPager {
     padding: 0 8px calc(16px + env(safe-area-inset-bottom, 0px));
   }
-#pagerBtns {
+.pager-btns {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 2px;
+    --pg-pad: .5rem;
   }
-#pagerBtns .pager-btn {
+.pager-btns .pager-btn {
     appearance: none;
     -webkit-appearance: none;
     border: 0;
@@ -693,7 +694,7 @@ body { min-height: 100dvh; }
     line-height: 1;
     min-width: 2.25rem;
     height: 2.25rem;
-    padding: 0 .3rem;
+    padding: 0 var(--pg-pad, .3rem);
     border-radius: 10px;
     display: inline-flex;
     align-items: center;
@@ -703,30 +704,25 @@ body { min-height: 100dvh; }
     -webkit-tap-highlight-color: transparent;
     transition: background-color .15s ease, color .15s ease;
   }
-#pagerBtns .pager-btn:hover:not(:disabled):not(.is-active) {
+.pager-btns .pager-btn:hover:not(:disabled):not(.is-active) {
     background: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 8%, transparent);
     color: var(--journal-ink, var(--color-base-content));
   }
-#pagerBtns .pager-btn:focus-visible {
+.pager-btns .pager-btn:focus-visible {
     outline: 2px solid var(--pager-accent, var(--color-primary));
     outline-offset: 2px;
   }
-#pagerBtns .pager-btn.is-active {
+.pager-btns .pager-btn.is-active {
     background: color-mix(in oklch, var(--pager-accent, var(--color-primary)) 15%, transparent);
     color: var(--pager-accent, var(--color-primary));
     font-weight: 700;
     cursor: default;
   }
-#pagerBtns .pager-btn:disabled {
+.pager-btns .pager-btn:disabled {
     opacity: .28;
     cursor: default;
   }
-#pagerBtns .pager-btn svg {
-    width: 1.05rem;
-    height: 1.05rem;
-    display: block;
-  }
-#pagerBtns .pager-gap {
+.pager-btns .pager-gap {
     min-width: 1.5rem;
     text-align: center;
     color: color-mix(in oklch, var(--journal-ink, var(--color-base-content)) 45%, transparent);
@@ -735,10 +731,11 @@ body { min-height: 100dvh; }
     user-select: none;
     -webkit-user-select: none;
   }
-/* 窄屏：压缩单元格宽度，保证 1/2/3/4/5/6/7/…/末页 + 左右箭头一行放得下 */
-@media  (max-width: 400px) {#pagerBtns { gap: 0; }
-#pagerBtns .pager-btn { min-width: 1.95rem; padding: 0 .18rem; font-size: .9rem; }
-#pagerBtns .pager-gap { min-width: 1.15rem; }}
+/* 窄屏：整行等比缩小但保留两端文字（样式与桌面一致），
+   保证 首页/01/02/…/末页/最后 一行放得下 */
+@media  (max-width: 560px) {.pager-btns { gap: 0; --pg-pad: .18rem; }
+.pager-btns .pager-btn { min-width: 1.55rem; font-size: .75rem; }
+.pager-btns .pager-gap { min-width: 1rem; font-size: .75rem; }}
 /* ============ 全站快速搜索（Ctrl+K Command Palette） ============ */
 .cmdk-overlay {
     position: fixed; inset: 0; z-index: 90;
@@ -1218,8 +1215,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 <span class="loading loading-dots loading-md opacity-60 hidden" id="loadingMore"></span>
 <p class="text-xs opacity-40 hidden" id="endHint">— 到底啦 —</p>
 </div>
-<div class="hidden mt-4 flex justify-center" id="mediaPager">
-<div aria-label="分页" id="pagerBtns" role="navigation"></div>
+<div class="hidden flex media-pager" id="mediaPager">
+<div aria-label="分页" class="pager-btns" id="pagerBtns" role="navigation"></div>
 </div>
 </div>
 <button aria-label="回到顶部" class="btn btn-circle btn-sm shadow-lg z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" id="toTop">
@@ -3408,15 +3405,17 @@ function renderMediaPage(view) {
     <div>
       ${filterBar}
       <p class="text-xs opacity-50 mt-3.5 mb-4">${countText}</p>
+      <div class="media-pager media-pager-top flex${pages > 1 ? '' : ' hidden'}" id="mediaPagerTop">
+        <div class="pager-btns" id="pagerBtnsTop" role="navigation" aria-label="分页"></div>
+      </div>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>
     </div>`;
   bindMediaFilterEvents(view);
   applyRestore(view);
 
   if (pages > 1) {
-    const chevron = dir => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${dir === 'prev' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"></path></svg>`;
     const btns = [];
-    btns.push(`<button type="button" class="pager-btn" data-p="${p - 1}" aria-label="上一页"${p === 1 ? ' disabled' : ''}>${chevron('prev')}</button>`);
+    btns.push(`<button type="button" class="pager-btn pager-end" data-p="1" aria-label="第一页"${p === 1 ? ' disabled' : ''}>«<span class="pager-end-word"> 首页</span></button>`);
     const win = [];
     for (let i = 1; i <= pages; i++) {
       if (i === 1 || i === pages || Math.abs(i - p) <= 2) win.push(i);
@@ -3424,19 +3423,23 @@ function renderMediaPage(view) {
     let prev = 0;
     win.forEach(i => {
       if (i - prev > 1) btns.push('<span class="pager-gap" aria-hidden="true">···</span>');
-      btns.push(`<button type="button" class="pager-btn${i === p ? ' is-active' : ''}" data-p="${i}"${i === p ? ' aria-current="page"' : ''}>${i}</button>`);
+      btns.push(`<button type="button" class="pager-btn${i === p ? ' is-active' : ''}" data-p="${i}"${i === p ? ' aria-current="page"' : ''}>${String(i).padStart(2, '0')}</button>`);
       prev = i;
     });
-    btns.push(`<button type="button" class="pager-btn" data-p="${p + 1}" aria-label="下一页"${p === pages ? ' disabled' : ''}>${chevron('next')}</button>`);
-    const pager = $('#pagerBtns');
-    pager.innerHTML = btns.join('');
-    pager.querySelectorAll('button[data-p]').forEach(b => {
-      b.onclick = () => {
-        if (b.disabled || b.classList.contains('is-active')) return;
-        state.mediaPage[view] = Number(b.dataset.p);
-        renderMediaPage(view);
-        scrollToTop({ behavior: 'smooth' });
-      };
+    btns.push(`<button type="button" class="pager-btn pager-end" data-p="${pages}" aria-label="最后一页"${p === pages ? ' disabled' : ''}><span class="pager-end-word">最后 </span>»</button>`);
+    const html = btns.join('');
+    ['#pagerBtns', '#pagerBtnsTop'].forEach(sel => {
+      const box = $(sel);
+      if (!box) return;
+      box.innerHTML = html;
+      box.querySelectorAll('button[data-p]').forEach(b => {
+        b.onclick = () => {
+          if (b.disabled || b.classList.contains('is-active')) return;
+          state.mediaPage[view] = Number(b.dataset.p);
+          renderMediaPage(view);
+          scrollToTop({ behavior: 'smooth' });
+        };
+      });
     });
     $('#mediaPager').classList.remove('hidden');
   } else {
@@ -8325,6 +8328,63 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   #content#content{ padding:0 !important; }
   #content#content ul.memo-list{ padding:0 8px 5px !important; }
   #content#content ul.memo-list .memo-card{ padding:12px 4px !important; }
+}
+</style>
+<style id="k2-media-pager">
+/* ---------- 看过/想看分页：千禧年论坛那种糖果色分页 ----------
+   列表上下各一行（.media-pager / .pager-btns），纯文字页码（补零两位）+
+   当前页一块圆角色块，两端「« 首页 / 最后 »」跳首末页。
+   色块不写死颜色，跟主题变量走：浅色是站点"按下"的李子紫配柠檬字，
+   暗色/万圣是青色链接色配深字，两套都是现成的 --k2-* 调色板。
+   只覆盖 .pager-btn：上面 k2 那条把分页键和 hot-tabs / bm-cats 芯片写在一起的规则
+   保持不动，筛选芯片仍是 Win98 立体键。圆角是全站"不留弧度"的唯一例外，
+   靠双 id 加类的权重压过收尾那条 *{border-radius:0!important}。 */
+.media-pager{ --pager-accent:var(--k2-press-a); --pager-on-accent:var(--k2-press-ink); }
+html:is([data-theme="dark"], [data-theme="halloween"]) .media-pager{ --pager-accent:var(--k2-link); }
+/* 左对齐：跟卡片左缘对齐，居中会把整行挤在中间、和右下角回顶按钮抢位置 */
+.media-pager{ justify-content:flex-start; padding-inline:0; }
+.media-pager-top{ margin:0 0 12px; }
+/* 上下两行与列表的间距保持一致（各 12px）。
+   说说流的 sentinel（加载点/到底提示）在影视视图里是空壳，却带着上下各 24px
+   留白，会把列表和底部分页撑开一大截；分页出现时把这块空腔收掉。 */
+#mediaPager{ margin-top:12px; }
+#feedScroll:has(#mediaPager:not(.hidden)) #sentinel{ padding-block:0; }
+.pager-btns{ justify-content:flex-start; }
+#mainScroll#mainScroll .pager-btns .pager-btn{
+  border:0 !important;
+  background:none !important;
+  box-shadow:none !important;
+  transform:none !important;
+  color:var(--k2-mute) !important;
+  font-family:var(--k2-font-nav) !important;
+  font-weight:700 !important;
+  line-height:1 !important;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.01em;
+  border-radius:8px !important;
+}
+#mainScroll#mainScroll .pager-btns .pager-btn:hover:not(:disabled):not(.is-active){
+  background:color-mix(in srgb, var(--k2-mute) 14%, transparent) !important;
+  color:var(--k2-link-hover) !important;
+}
+/* 高亮块比单元格小一圈，尺寸用 em 跟着字号走，窄屏自动同比缩小 */
+#mainScroll#mainScroll .pager-btns .pager-btn.is-active{
+  background:var(--pager-accent) !important;
+  color:var(--pager-on-accent) !important;
+  min-width:0 !important;
+  height:1.75em;
+  padding:0 .35em;
+  border-radius:.4em !important;
+  cursor:default;
+}
+#mainScroll#mainScroll .pager-btns .pager-btn:disabled{
+  opacity:.35 !important;
+  background:none !important;
+  color:var(--k2-mute) !important;
+}
+#mainScroll#mainScroll .pager-btns .pager-gap{
+  color:var(--k2-mute) !important;
+  opacity:.6;
 }
 </style>
 <script id="siteFooterYearScript">document.getElementById("siteFooterYear").textContent = new Date().getFullYear();</script>
