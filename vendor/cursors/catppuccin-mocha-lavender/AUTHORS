@@ -1,8 +1,10 @@
 Catppuccin Cursors v2.0.0
 Source: https://github.com/catppuccin/cursors/tree/v2.0.0
 License: GPL-2.0 (see LICENSE)
-Local SVG sources: default.svg and pointer.svg
-Palette: Mocha Lavender #b4befe, Base #1e1e2e
+Local SVG sources: default.svg, pointer.svg, default-light.svg, pointer-light.svg
+Dark palette: Mocha Lavender #b4befe, Base #1e1e2e
+Local light palette: Graphite #232524, Cream #f5f1e8
+Light variants retain the original paths, dimensions and hotspots.
 Hotspots at 32 x 32: default (2, 2), pointer (13, 7)
 
 Cursors:

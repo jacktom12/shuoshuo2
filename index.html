@@ -104,6 +104,10 @@ html:not([data-theme="dark"]):not([data-theme="halloween"]) .theme-icon-moon { d
     --cursor-pointer: url("vendor/cursors/catppuccin-mocha-lavender/pointer.svg") 13 7, pointer;
     cursor: var(--cursor-default);
   }
+  :root[data-theme="light"] {
+    --cursor-default: url("vendor/cursors/catppuccin-mocha-lavender/default-light.svg") 2 2, default;
+    --cursor-pointer: url("vendor/cursors/catppuccin-mocha-lavender/pointer-light.svg") 13 7, pointer;
+  }
 }
 :where(a[href], button:enabled, [role="button"], .cursor-pointer) { cursor: var(--cursor-pointer); }
 html { scroll-behavior: smooth; font-family: var(--font-family); font-size: 16.5px; }
