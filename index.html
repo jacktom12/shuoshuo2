@@ -1327,6 +1327,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 <span class="imgbox-name" id="imgBoxName">图片</span>
 <button class="imgbox-nav-link" hidden id="imgBoxPrev" type="button">上一张</button>
 <button class="imgbox-nav-link" hidden id="imgBoxNext" type="button">下一张</button>
+<button class="imgbox-nav-link" id="imgBoxDownload" type="button">下载</button>
 <button aria-label="缩小" class="imgbox-btn" id="imgBoxMinus" type="button">-</button>
 <span class="imgbox-zoom" id="imgBoxZoom">100%</span>
 <button aria-label="放大" class="imgbox-btn" id="imgBoxPlus" type="button">+</button>
@@ -1335,6 +1336,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 <div class="imgbox-view" id="imgBoxView"><img alt="" id="imgBoxImg"/></div>
 <div class="imgbox-foot" id="imgBoxFoot">正在载入…</div>
 </div>
+<button aria-label="上一张（循环）" class="imgbox-cycle imgbox-cycle-prev" hidden id="imgBoxCyclePrev" type="button"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></svg></button>
+<button aria-label="下一张（循环）" class="imgbox-cycle imgbox-cycle-next" hidden id="imgBoxCycleNext" type="button"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"/></svg></button>
 </div>
 <!-- ======================= 全站快速搜索（Ctrl+K） ======================= -->
 <div class="cmdk-overlay" id="cmdkOverlay">
@@ -1672,6 +1675,9 @@ function initImgBox() {
   const footEl = document.getElementById('imgBoxFoot');
   const prevBtn = document.getElementById('imgBoxPrev');
   const nextBtn = document.getElementById('imgBoxNext');
+  const downloadBtn = document.getElementById('imgBoxDownload');
+  const cyclePrevBtn = document.getElementById('imgBoxCyclePrev');
+  const cycleNextBtn = document.getElementById('imgBoxCycleNext');
   let natural = { w: 0, h: 0 };
   let zoom = 1;
   let fitZoom = 1;
@@ -1693,14 +1699,16 @@ function initImgBox() {
   function updateNav() {
     prevBtn.hidden = groupIndex <= 0;
     nextBtn.hidden = groupIndex < 0 || groupIndex >= group.length - 1;
+    cyclePrevBtn.hidden = cycleNextBtn.hidden = groupIndex < 0 || group.length < 2;
   }
 
-  function step(delta) {
-    const target = group[groupIndex + delta];
+  function step(delta, cycle = false) {
+    const index = cycle ? (groupIndex + delta + group.length) % group.length : groupIndex + delta;
+    const target = group[index];
     if (!target) return;
     open(srcOf(target), captionOf(target), target);
     // open() 会把焦点送到 ✕；翻到首尾时那一侧的链接刚被藏起来，焦点别跟过去
-    const btn = delta < 0 ? prevBtn : nextBtn;
+    const btn = delta < 0 ? (cycle ? cyclePrevBtn : prevBtn) : (cycle ? cycleNextBtn : nextBtn);
     if (!btn.hidden) btn.focus();
   }
 
@@ -1726,7 +1734,8 @@ function initImgBox() {
   // 读 view 的宽高会被图片本身撑大撑小，越算越漂。
   function measureFit() {
     if (!natural.w) return;
-    const availW = Math.min(1200, innerWidth * 0.94) - 20;
+    const desktop = matchMedia('(min-width:1024px) and (hover:hover) and (pointer:fine)').matches;
+    const availW = Math.min(1200, desktop ? innerWidth - 160 : innerWidth * 0.94) - 20;
     const availH = innerHeight * 0.88 - 74;
     fitZoom = Math.min(1, availW / natural.w, availH / natural.h);
     zoom = fitZoom;
@@ -1759,6 +1768,38 @@ function initImgBox() {
     box.querySelector('.imgbox-close').focus();
   }
 
+  async function download() {
+    const src = img.getAttribute('src');
+    if (!src || downloadBtn.disabled) return;
+    downloadBtn.disabled = true;
+    try {
+      const response = await fetch(src);
+      if (!response.ok) throw new Error('Image download failed');
+      const blob = await response.blob();
+      if (!blob.size || (blob.type && !blob.type.startsWith('image/') && blob.type !== 'application/octet-stream')) {
+        throw new Error('Invalid image response');
+      }
+      const filename = new URL(src, document.baseURI).pathname.split('/').pop();
+      const extension = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp', 'image/avif': 'avif', 'image/svg+xml': 'svg', 'image/bmp': 'bmp', 'image/x-icon': 'ico' })[blob.type];
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename && /\.(jpe?g|png|gif|webp|avif|bmp|svg|ico)$/i.test(filename) ? filename : 'image.' + (extension || 'bin');
+      link.hidden = true;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      if (img.getAttribute('src') === src && !box.classList.contains('hidden') && img.complete && img.naturalWidth) label();
+    } catch {
+      if (img.getAttribute('src') === src && !box.classList.contains('hidden')) {
+        footEl.textContent = '下载失败（网络或图片源限制）';
+      }
+    } finally {
+      downloadBtn.disabled = false;
+    }
+  }
+
   function close() {
     box.classList.add('hidden');
     img.removeAttribute('src');
@@ -1773,6 +1814,9 @@ function initImgBox() {
   document.getElementById('imgBoxMinus').addEventListener('click', () => setZoom(zoom / 1.25));
   prevBtn.addEventListener('click', () => step(-1));
   nextBtn.addEventListener('click', () => step(1));
+  downloadBtn.addEventListener('click', download);
+  cyclePrevBtn.addEventListener('click', () => step(-1, true));
+  cycleNextBtn.addEventListener('click', () => step(1, true));
   // 放大后按住左键拖拽平移：view 本身就是滚动容器，拖拽＝反向改它的
   // scrollLeft/scrollTop，图片跟着手走。scroll-behavior 不会被 html 继承下来，
   // 所以这里是即时滚动，够跟手也够顺。
@@ -1824,6 +1868,10 @@ function initImgBox() {
   addEventListener('keydown', e => {
     if (box.classList.contains('hidden')) return;
     if (e.key === 'Escape') close();
+    else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      if (group.length > 1) step(e.key === 'ArrowLeft' ? -1 : 1, true);
+    }
     else if (e.key === '+' || e.key === '=') setZoom(zoom * 1.25);
     else if (e.key === '-' || e.key === '_') setZoom(zoom / 1.25);
     else if (e.key === '0') setZoom(1);
@@ -8186,6 +8234,7 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 }
 #imgBox .imgbox-nav-link:active{ transform:none !important; box-shadow:none !important; }
 #imgBox .imgbox-nav-link[hidden]{ display:none !important; }
+#imgBox .imgbox-nav-link:disabled{ opacity:.5; cursor:not-allowed; }
 #imgBox .imgbox-zoom{
   min-width:3.9em; padding:1px 2px; text-align:center;
   font:.72rem var(--font-num);
@@ -8216,6 +8265,24 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   background:linear-gradient(180deg, var(--k2-press-a), var(--k2-press-b)) !important;
   color:var(--k2-press-ink) !important;
   transform:none !important; box-shadow:none !important;
+}
+#imgBox .imgbox-cycle{ display:none; }
+#imgBox .imgbox-cycle[hidden]{ display:none !important; }
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  #imgBox .imgbox-frame{ max-width:min(1200px, calc(100vw - 160px)); }
+  #imgBox .imgbox-cycle{
+    position:absolute; top:50%; z-index:1;
+    display:flex; align-items:center; justify-content:center;
+    width:40px; height:40px; padding:0;
+    border:1px solid rgba(255,255,255,.4) !important; border-radius:50% !important;
+    background:rgba(20,20,22,.52) !important; color:#fff !important;
+    transform:translateY(-50%) !important; box-shadow:none !important;
+    cursor:var(--cursor-pointer);
+  }
+  #imgBox .imgbox-cycle-prev{ left:24px; }
+  #imgBox .imgbox-cycle-next{ right:24px; }
+  #imgBox .imgbox-cycle:hover{ background:rgba(20,20,22,.78) !important; }
+  #imgBox .imgbox-cycle:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
 }
 #imgBox .imgbox-view{
   flex:1 1 auto; min-width:0; min-height:0; overflow:auto;
