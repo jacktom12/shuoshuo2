@@ -1193,50 +1193,48 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 <body class="min-h-screen paper-bg text-base-content">
 <div id="bgOrbs" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
 <main id="mainScroll">
-<!-- ============ 顶部导航：一条菜单带，功能项（搜索/浅色/暗色）并到菜单末尾 ============ -->
-<!-- 导航是 mainScroll 的直接子元素：不受 .page-container 的 max-width 约束，可铺满整个外框 -->
-<header id="topBar">
-  <div class="topbar-inner">
-    <div class="retro-masthead">
-      <div class="retro-identity"><span class="retro-site-name">文</span><span class="retro-site-slash">/</span><span class="retro-site-desc">碎碎念</span></div>
-      <span class="retro-motto">人生就是座监狱<span class="retro-online"> · dead inside</span></span>
-    </div>
-    <div class="retro-nav-row">
-      <ul aria-label="网站工具" class="topbar-menu retro-tools">
-        <li><button aria-label="世界时间" class="tab-btn" data-view="worldtime" type="button"><span class="iconify" data-icon="lucide:clock-3"></span><span class="nav-label">世界时间</span></button></li>
-        <li>
-          <button aria-controls="tagBar" aria-expanded="false" aria-label="标签" class="tab-btn" id="tagDrawerOpen" type="button">
-            <span class="iconify" data-icon="lucide:tags"></span><span class="nav-label">标签</span><span class="text-xs hidden" id="tagSelectedCount"></span>
-          </button>
-        </li>
-        <li class="menu-li-music">
-          <button aria-label="音乐" class="tab-btn music-trigger" type="button"><span class="iconify" data-icon="lucide:music-2"></span><span class="nav-label">音乐</span><span class="hidden" id="musicDot"></span></button>
-        </li>
-        <li><button aria-label="快速搜索（Ctrl+K）" class="tab-btn cmdk-open" type="button"><span class="iconify" data-icon="lucide:search"></span><span class="nav-label">搜索</span></button></li>
-        <li class="menu-li-theme" id="themeMenuItem">
-          <button aria-controls="themeMenu" aria-expanded="false" aria-haspopup="true" class="tab-btn" id="themeMenuBtn" type="button"><span class="theme-cur" id="themeCur">浅色</span></button>
-          <ul class="theme-menu" id="themeMenu">
-            <li><button class="theme-pick" data-theme-pick="light" type="button">浅色</button></li>
-            <li><button class="theme-pick" data-theme-pick="dark" type="button">暗色</button></li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-  </div>
-</header>
+<!-- ============ 两列：左大卡片（刊头+工具+分类+说说列表）｜右常驻播放器 ============ -->
+<!-- 刊头与工具不再独占顶部横栏，收进左卡片头部，列表与播放器向上吃掉那块空间 -->
 <div class="page-container">
-  <nav aria-label="主导航" class="topbar-nav nav-rail" id="navRail">
-    <ul class="topbar-menu retro-primary">
-      <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
-      <li><button aria-label="相册" class="tab-btn" data-view="photos" type="button"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">相册</span></button></li>
-      <li><button aria-label="看过" class="tab-btn" data-view="watched" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button></li>
-      <li><button aria-label="想看" class="tab-btn" data-view="watchlist" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button></li>
-      <li><button aria-label="摘录" class="tab-btn" data-view="clips" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button></li>
-      <li><button aria-label="热搜" class="tab-btn" data-view="hot" type="button"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></button></li>
-      <li><button aria-label="书签" class="tab-btn" data-view="bookmarks" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></button></li>
-    </ul>
-  </nav>
   <section aria-label="站点内容" class="feed-col">
+    <header class="feed-head" id="feedHead">
+      <div class="feed-head-top">
+        <div class="retro-masthead">
+          <div class="retro-identity"><span class="retro-site-name">文</span><span class="retro-site-slash">/</span><span class="retro-site-desc">碎碎念</span></div>
+          <span class="retro-motto">人生就是座监狱<span class="retro-online"> · dead inside</span></span>
+        </div>
+        <ul aria-label="网站工具" class="retro-tools">
+          <li><button aria-label="世界时间" class="tab-btn" data-view="worldtime" type="button"><span class="iconify" data-icon="lucide:clock-3"></span><span class="nav-label">世界时间</span></button></li>
+          <li>
+            <button aria-controls="tagBar" aria-expanded="false" aria-label="标签" class="tab-btn" id="tagDrawerOpen" type="button">
+              <span class="iconify" data-icon="lucide:tags"></span><span class="nav-label">标签</span><span class="text-xs hidden" id="tagSelectedCount"></span>
+            </button>
+          </li>
+          <li class="menu-li-music">
+            <button aria-label="音乐" class="tab-btn music-trigger" type="button"><span class="iconify" data-icon="lucide:music-2"></span><span class="nav-label">音乐</span><span class="hidden" id="musicDot"></span></button>
+          </li>
+          <li><button aria-label="快速搜索（Ctrl+K）" class="tab-btn cmdk-open" type="button"><span class="iconify" data-icon="lucide:search"></span><span class="nav-label">搜索</span></button></li>
+          <li class="menu-li-theme" id="themeMenuItem">
+            <button aria-controls="themeMenu" aria-expanded="false" aria-haspopup="true" class="tab-btn" id="themeMenuBtn" type="button"><span class="theme-cur" id="themeCur">浅色</span></button>
+            <ul class="theme-menu" id="themeMenu">
+              <li><button class="theme-pick" data-theme-pick="light" type="button">浅色</button></li>
+              <li><button class="theme-pick" data-theme-pick="dark" type="button">暗色</button></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <nav aria-label="主导航" class="nav-rail" id="navRail">
+        <ul class="retro-primary">
+          <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
+          <li><button aria-label="相册" class="tab-btn" data-view="photos" type="button"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">相册</span></button></li>
+          <li><button aria-label="看过" class="tab-btn" data-view="watched" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button></li>
+          <li><button aria-label="想看" class="tab-btn" data-view="watchlist" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button></li>
+          <li><button aria-label="摘录" class="tab-btn" data-view="clips" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button></li>
+          <li><button aria-label="热搜" class="tab-btn" data-view="hot" type="button"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></button></li>
+          <li><button aria-label="书签" class="tab-btn" data-view="bookmarks" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></button></li>
+        </ul>
+      </nav>
+    </header>
     <div class="feed-scroll" id="feedScroll">
       <div class="flex flex-col" id="content"></div>
       <div class="py-6 text-center" id="sentinel">
@@ -9039,6 +9037,107 @@ html:is([data-theme="dark"],[data-theme="halloween"]) body{
 }
 html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{background:transparent!important;}
 @media (prefers-reduced-motion:reduce){#bgOrbs span{animation:none;}}
+</style>
+<style id="archive-card-layout">
+/* ============================================================
+   刊头并入左卡片：顶部不再独占横栏，说说列表与右侧播放器向上吃满。
+   两列＝左大卡片（刊头+工具+横排分类+列表）｜右常驻播放器。
+   本块排在 personal-space-layout 之后，同权重靠源序压过它。
+   ============================================================ */
+.page-container.page-container{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  gap:14px!important;
+  width:100%!important;max-width:1240px!important;margin:0 auto!important;
+  padding:clamp(12px,2.4vh,24px) 0 0!important;
+  flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;background:transparent!important;
+}
+.feed-col{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;min-width:0!important;min-height:0!important;overflow:hidden!important;}
+@media (min-width:1024px){
+  .page-container.page-container{grid-template-columns:minmax(0,1fr) 300px!important;}
+  .music-rail{grid-column:2!important;grid-row:1!important;display:flex!important;flex-direction:column!important;}
+  .retro-tools .menu-li-music{display:none!important;}
+}
+@media (max-width:1023px){.music-rail{display:none!important;}}
+
+/* ---------- 卡片头部：刊头在左、工具在右，下面一条横排分类 ---------- */
+.feed-head{flex:0 0 auto!important;padding:20px 20px 16px!important;border-bottom:1px solid var(--sp-line)!important;}
+.feed-head-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;flex-wrap:wrap!important;}
+.retro-masthead{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:5px!important;min-width:0!important;padding:0!important;border:0!important;}
+.retro-identity{display:flex!important;align-items:baseline!important;gap:9px!important;white-space:nowrap!important;}
+.retro-site-name{font:700 24px/1.15 var(--font-family)!important;letter-spacing:.06em!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
+.retro-site-slash{font:300 18px/1 var(--font-family)!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
+.retro-site-desc{font:700 22px/1.15 var(--font-family)!important;letter-spacing:.04em!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
+.retro-motto{font:12px/1.5 var(--font-family)!important;letter-spacing:.06em!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
+.retro-online{font:inherit!important;}
+
+/* ---------- 工具：世界时间/标签/搜索/主题，落在刊头右侧 ---------- */
+.retro-tools{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:2px!important;flex:0 1 auto!important;margin:0!important;padding:0!important;list-style:none!important;}
+.retro-tools>li{position:relative!important;display:flex!important;border:0!important;}
+.retro-tools .tab-btn{
+  appearance:none!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;
+  min-height:32px!important;padding:5px 9px!important;border:1px solid transparent!important;border-radius:8px!important;
+  background:transparent!important;box-shadow:none!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  font:12px/1.2 var(--font-family)!important;text-decoration:none!important;white-space:nowrap!important;cursor:var(--cursor-pointer)!important;transform:none!important;
+}
+.retro-tools .tab-btn .iconify{font-size:15px!important;}
+.retro-tools .tab-btn .nav-label{color:inherit!important;-webkit-text-fill-color:inherit!important;text-decoration:none!important;}
+.retro-tools .tab-btn:hover,.retro-tools .tab-btn[aria-expanded="true"]{background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;transform:none!important;}
+.retro-tools .tab-btn.active,.retro-tools .tab-btn[data-view].active{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;box-shadow:inset 0 -2px 0 var(--sp-accent)!important;}
+.retro-tools .tab-btn.active::before{content:none!important;}
+.retro-tools #themeMenuBtn::after{content:'▾';font-size:9px;opacity:.7;}
+.retro-tools #tagSelectedCount{font:10px var(--font-num);color:inherit;}
+.retro-tools #musicDot:not(.hidden){display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--sp-accent);}
+/* 主题下拉：#topBar 作用域已失效，这里补回显隐与定位 */
+.menu-li-theme{position:relative!important;}
+.theme-menu{display:none;position:absolute!important;top:calc(100% + 5px)!important;right:0!important;z-index:200!important;min-width:96px!important;margin:0!important;padding:4px!important;list-style:none!important;border:1px solid var(--sp-line)!important;border-radius:9px!important;background:var(--sp-panel)!important;box-shadow:0 8px 24px rgba(0,0,0,.18)!important;}
+.menu-li-theme.open .theme-menu{display:block!important;}
+.theme-pick{display:flex!important;align-items:center!important;width:100%!important;min-height:32px!important;padding:5px 10px!important;border:0!important;border-radius:5px!important;background:none!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font:12px var(--font-family)!important;text-align:left!important;cursor:var(--cursor-pointer)!important;}
+.theme-pick:hover{background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
+.theme-pick.active{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;font-weight:700!important;}
+
+/* ---------- 分类：从竖排图标条改成横排盒子（图标在上、名字在下） ---------- */
+.nav-rail{min-width:0!important;min-height:0!important;padding:14px 0 0!important;overflow:visible!important;}
+.nav-rail .retro-primary{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px!important;margin:0!important;padding:0!important;list-style:none!important;}
+.nav-rail .retro-primary>li{display:flex!important;min-width:0!important;margin:0!important;padding:0!important;border:0!important;}
+.nav-rail .tab-btn{
+  appearance:none!important;position:relative!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+  width:100%!important;height:auto!important;min-width:0!important;min-height:0!important;padding:12px 4px!important;
+  border:1px solid var(--sp-line)!important;border-radius:10px!important;background:transparent!important;box-shadow:none!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font:12px/1.2 var(--font-family)!important;cursor:var(--cursor-pointer)!important;transform:none!important;
+  transition:background-color .16s ease,color .16s ease,border-color .16s ease!important;
+}
+.nav-rail .tab-btn .iconify{font-size:20px!important;}
+.nav-rail .tab-btn .nav-label{display:block!important;color:inherit!important;-webkit-text-fill-color:inherit!important;font-size:12px!important;letter-spacing:.02em!important;}
+.nav-rail .tab-btn:hover{border-color:color-mix(in srgb,var(--sp-accent) 40%,var(--sp-line))!important;background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;transform:none!important;}
+.nav-rail .tab-btn.active,.nav-rail .tab-btn.active.bg-base-300{
+  border-color:color-mix(in srgb,var(--sp-accent) 55%,var(--sp-line))!important;background:transparent!important;
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;box-shadow:none!important;font-weight:600!important;transform:none!important;
+}
+.nav-rail .tab-btn:focus-visible,.retro-tools .tab-btn:focus-visible{outline:2px solid var(--sp-accent)!important;outline-offset:2px;}
+
+/* ---------- 窄屏：工具收成图标、分类盒子同比缩小 ---------- */
+@media (max-width:760px){
+  .feed-head{padding:15px 14px 12px!important;}
+  .feed-head-top{gap:10px!important;}
+  .retro-site-name{font-size:20px!important;}
+  .retro-site-desc{font-size:18px!important;}
+  .retro-motto{font-size:10px!important;}
+  .retro-tools{gap:0!important;}
+  .retro-tools .tab-btn{padding:5px 7px!important;}
+  .retro-tools .tab-btn .nav-label{display:none!important;}
+  .retro-tools #themeMenuBtn{padding-inline:8px!important;}
+  .nav-rail{padding-top:12px!important;}
+  .nav-rail .retro-primary{gap:5px!important;}
+  .nav-rail .tab-btn{padding:9px 2px!important;gap:5px!important;border-radius:9px!important;}
+  .nav-rail .tab-btn .iconify{font-size:17px!important;}
+  .nav-rail .tab-btn .nav-label{font-size:10px!important;}
+}
+@media (max-width:360px){
+  .retro-online{display:none!important;}
+  .nav-rail .tab-btn .nav-label{font-size:9px!important;}
+}
 </style>
 </body>
 </html>
