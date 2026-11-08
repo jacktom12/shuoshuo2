@@ -1785,8 +1785,9 @@ function initImgBox() {
   function measureFit() {
     if (!natural.w) return;
     const desktop = matchMedia('(min-width:1024px) and (hover:hover) and (pointer:fine)').matches;
-    const availW = Math.min(1200, desktop ? innerWidth - 160 : innerWidth * 0.94) - 20;
-    const availH = innerHeight * 0.88 - 74;
+    // 移动端无框满屏：可用画心就是整个视口，不再扣标题栏和说明行
+    const availW = isTouch() ? innerWidth : Math.min(1200, desktop ? innerWidth - 160 : innerWidth * 0.94) - 20;
+    const availH = isTouch() ? innerHeight : innerHeight * 0.88 - 74;
     fitZoom = Math.min(1, availW / natural.w, availH / natural.h);
     zoom = fitZoom;
     img.style.width = Math.round(natural.w * zoom) + 'px';
@@ -1924,6 +1925,7 @@ function initImgBox() {
     updateCursor();
   });
   img.addEventListener('dblclick', () => {
+    if (isTouch()) return;  // 移动端双击走触摸手势里的判定，不吃兼容鼠标事件
     if (dragMoved) return;  // 这一下是拖拽不是双击，别顺手切了缩放
     setZoom(Math.abs(zoom - 1) < 0.01 ? fitZoom : 1);
   });
@@ -1940,6 +1942,7 @@ function initImgBox() {
   const pointers = new Map();
   let gesture = null;
   let swipeSamples = [];
+  let lastTap = { t: 0, x: 0, y: 0 };
 
   function settleFit() {
     img.style.transition = 'transform .18s ease-out';
@@ -1972,7 +1975,7 @@ function initImgBox() {
       const [a, b] = [...pointers.values()];
       gesture = { mode: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, s0: tScale, x0: tX, y0: tY };
     } else if (pointers.size === 1) {
-      gesture = { mode: 'wait', x0: e.clientX, y0: e.clientY, tx0: tX, ty0: tY };
+      gesture = { mode: 'wait', x0: e.clientX, y0: e.clientY, tx0: tX, ty0: tY, t0: performance.now(), target: e.target };
       swipeSamples = [{ x: e.clientX, t: performance.now() }];
     }
   });
@@ -2028,6 +2031,19 @@ function initImgBox() {
       return;
     }
     if (pointers.size > 0) return;
+    if (gesture.mode === 'wait' && performance.now() - gesture.t0 < 300) {
+      // 没挪过窝的快击：点在图外＝关窗（满屏后没有 ✕，图外 backdrop 是唯一出口）；
+      // 点在图上＝双击判定：双击放大 8%，再双击回到适配比例
+      if (gesture.target !== img) { close(); gesture = null; return; }
+      const now = performance.now();
+      if (now - lastTap.t < 350 && Math.hypot(gesture.x0 - lastTap.x, gesture.y0 - lastTap.y) < 32) {
+        lastTap.t = 0;
+        if (tScale > 1.01) settleFit();
+        else touchZoom(1.08, gesture.x0, gesture.y0, true);
+      } else {
+        lastTap = { t: now, x: gesture.x0, y: gesture.y0 };
+      }
+    }
     if (gesture.mode === 'swipe') {
       let v = 0;
       if (swipeSamples.length >= 2) {
@@ -8493,13 +8509,27 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 }
 @media  (max-width:600px){#imgBox .imgbox-frame{ max-width:96vw; max-height:92vh; }
 #imgBox .imgbox-view{ padding:5px; }}
-/* 移动端手势接管：浏览器不再抢滚动/页面缩放，长按也不弹系统菜单（下载走标题栏按钮） */
+/* 移动端手势接管：浏览器不再抢滚动/页面缩放，长按不弹系统菜单 */
 @media (hover:none) and (pointer:coarse){
-#imgBox .imgbox-view{ touch-action:none; }
+/* 无框满屏：标题栏/说明行/边框全撤，图片在整个视口里适配居中，
+   点图外 backdrop 关窗（tap 判定在 JS 里），框本体不再贡献任何视觉 */
+#imgBox#imgBox{ padding:0; }
+#imgBox .imgbox-frame{
+  width:100vw; height:100vh; height:100dvh;
+  max-width:none; max-height:none;
+  border:0; box-shadow:none; background:transparent;
+}
+#imgBox .imgbox-bar, #imgBox .imgbox-foot{ display:none; }
+#imgBox .imgbox-view{
+  display:flex; align-items:center; justify-content:center;
+  padding:0; overflow:hidden; background:transparent;
+}
 #imgBox .imgbox-view img{
+  margin:0; border:0; background:none;
   transform-origin:center center;
   user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
 }
+#imgBox .imgbox-view{ touch-action:none; }
 }</style>
 <style id="site-footer-y2k">/* ---------- 页脚：一行居中年份文字，无分隔线、无底色 ----------
    页脚是 #mainScroll 的最后一个子元素，不进 .page-container：
