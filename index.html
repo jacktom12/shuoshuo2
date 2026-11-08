@@ -1683,6 +1683,52 @@ function initImgBox() {
   let group = [];
   let groupIndex = -1;
 
+  // —— 移动端手势（仅粗指针设备生效，PC 的宽度+滚动路径原样保留）——
+  // 捏合缩放走 transform：布局尺寸钉在适配比例，tScale=1 就是刚点开的样子。
+  const touchMQ = matchMedia('(hover:none) and (pointer:coarse)');
+  const isTouch = () => touchMQ.matches;
+  let tScale = 1, tX = 0, tY = 0;
+  let slideIn = 0;        // 滑动切图后，新图从哪一侧滑入（+1 右 / -1 左）
+  let animating = false;  // 切图动画期间不接手势
+  let animTimer = 0;
+
+  function applyTransform() {
+    img.style.transform = tScale === 1 && !tX && !tY ? '' : `translate(${tX}px,${tY}px) scale(${tScale})`;
+  }
+  function resetTransform() {
+    clearTimeout(animTimer);
+    img.style.transition = 'none';
+    tScale = 1; tX = 0; tY = 0;
+    applyTransform();
+  }
+  // 布局几何（不含 transform）：rect 中心减去平移就是未变换时的中心
+  function baseRect() {
+    const r = img.getBoundingClientRect();
+    return { cx: r.left + r.width / 2 - tX, cy: r.top + r.height / 2 - tY, w: r.width / tScale, h: r.height / tScale };
+  }
+  // 放大后不许把图拖出视口；没超过视口的方向钉回原位
+  function clampOffset(x, y, s) {
+    const b = baseRect(), v = view.getBoundingClientRect();
+    const hw = b.w * s / 2, hh = b.h * s / 2;
+    x = b.w * s <= v.width ? 0 : Math.min(v.left - b.cx + hw, Math.max(v.right - b.cx - hw, x));
+    y = b.h * s <= v.height ? 0 : Math.min(v.top - b.cy + hh, Math.max(v.bottom - b.cy - hh, y));
+    return { x, y };
+  }
+  function touchZoom(s1, mx, my, animate) {
+    s1 = Math.min(4 / fitZoom, Math.max(1, s1));
+    const b = baseRect(), k = s1 / tScale;
+    let x = mx - b.cx - k * (mx - b.cx - tX);
+    let y = my - b.cy - k * (my - b.cy - tY);
+    ({ x, y } = clampOffset(x, y, s1));
+    img.style.transition = animate ? 'transform .2s ease-out' : 'none';
+    tScale = s1; tX = x; tY = y; zoom = fitZoom * s1;
+    applyTransform(); label();
+    if (animate) {
+      clearTimeout(animTimer);
+      animTimer = setTimeout(() => { img.style.transition = 'none'; }, 210);
+    }
+  }
+
   const srcOf = el => el.getAttribute('href') || el.getAttribute('data-src') || el.getAttribute('src') || '';
   const captionOf = el => el.getAttribute('data-caption') || el.getAttribute('alt') || '图片';
 
@@ -1719,6 +1765,12 @@ function initImgBox() {
 
   function setZoom(next, min = 0.1) {
     zoom = Math.min(4, Math.max(min, next));
+    if (isTouch() && fitZoom) {
+      // 移动端：标题栏 +/− 与捏合共用 transform 管线，绕视口中心缩放
+      const v = view.getBoundingClientRect();
+      touchZoom(zoom / fitZoom, v.left + v.width / 2, v.top + v.height / 2, true);
+      return;
+    }
     // 缩放前后把画面中心钉住，不然一放大就跳到左上角
     const fx = view.scrollWidth ? (view.scrollLeft + view.clientWidth / 2) / view.scrollWidth : 0.5;
     const fy = view.scrollHeight ? (view.scrollTop + view.clientHeight / 2) / view.scrollHeight : 0.5;
@@ -1738,6 +1790,7 @@ function initImgBox() {
     fitZoom = Math.min(1, availW / natural.w, availH / natural.h);
     zoom = fitZoom;
     img.style.width = Math.round(natural.w * zoom) + 'px';
+    if (isTouch()) resetTransform();
     label();
   }
 
@@ -1752,12 +1805,29 @@ function initImgBox() {
     zoomEl.textContent = '—';
     img.style.width = 'auto';
     img.style.cursor = '';
+    resetTransform();
+    // 滑动切图的目标图大概率没缓存，提前把左右邻居拉下来，滑入时不至于空框
+    if (isTouch() && group.length > 1) {
+      [1, -1].forEach(d => {
+        const t = group[(groupIndex + d + group.length) % group.length];
+        if (t) { const p = new Image(); p.src = srcOf(t); }
+      });
+    }
     const ready = () => {
       if (img.dataset.src !== src) return;
       natural = { w: img.naturalWidth, h: img.naturalHeight };
       measureFit();
+      if (slideIn) {
+        const dir = slideIn; slideIn = 0;
+        tX = dir * view.clientWidth; applyTransform();
+        img.getBoundingClientRect();
+        img.style.transition = 'transform .26s cubic-bezier(.22,.9,.32,1)';
+        tX = 0; applyTransform();
+        clearTimeout(animTimer);
+        animTimer = setTimeout(() => { img.style.transition = 'none'; animating = false; }, 270);
+      }
     };
-    img.onerror = () => { footEl.textContent = '图片打不开'; };
+    img.onerror = () => { footEl.textContent = '图片打不开'; slideIn = 0; animating = false; };
     img.dataset.src = src;
     img.src = src;
     if (img.complete) ready();
@@ -1801,6 +1871,8 @@ function initImgBox() {
   function close() {
     box.classList.add('hidden');
     img.removeAttribute('src');
+    resetTransform();
+    slideIn = 0; animating = false;
     if (opener && opener.focus) opener.focus();
     opener = null;
   }
@@ -1862,6 +1934,120 @@ function initImgBox() {
     e.preventDefault();
     setZoom(e.deltaY < 0 ? zoom * 1.25 : zoom / 1.25, fitZoom);
   }, { passive: false });
+
+  // —— 触摸手势：双指捏合缩放（下限＝适配比例），放大后单指平移，
+  //    适配比例下单指左右滑＝循环切图，松手按位移/速度决定滑走还是弹回 ——
+  const pointers = new Map();
+  let gesture = null;
+  let swipeSamples = [];
+
+  function settleFit() {
+    img.style.transition = 'transform .18s ease-out';
+    tScale = 1; tX = 0; tY = 0; zoom = fitZoom;
+    applyTransform(); label();
+    clearTimeout(animTimer);
+    animTimer = setTimeout(() => { img.style.transition = 'none'; }, 190);
+  }
+  function swipeCommit(dir) {
+    animating = true;
+    img.style.transition = 'transform .2s cubic-bezier(.5,0,.75,.4)';
+    tX = -dir * view.clientWidth; tY = 0; applyTransform();
+    clearTimeout(animTimer);
+    animTimer = setTimeout(() => {
+      slideIn = dir;
+      const target = group[(groupIndex + dir + group.length) % group.length];
+      if (target) open(srcOf(target), captionOf(target), target);
+      else { slideIn = 0; animating = false; }
+    }, 200);
+  }
+
+  view.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch' || !isTouch() || animating || !natural.w) return;
+    e.preventDefault();   // 掐掉兼容鼠标事件，免得触发 mousedown 平移/双击缩放
+    try { view.setPointerCapture(e.pointerId); } catch {}
+    clearTimeout(animTimer);
+    img.style.transition = 'none';
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      gesture = { mode: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, s0: tScale, x0: tX, y0: tY };
+    } else if (pointers.size === 1) {
+      gesture = { mode: 'wait', x0: e.clientX, y0: e.clientY, tx0: tX, ty0: tY };
+      swipeSamples = [{ x: e.clientX, t: performance.now() }];
+    }
+  });
+  view.addEventListener('pointermove', e => {
+    const p = pointers.get(e.pointerId);
+    if (!p || !gesture) return;
+    p.x = e.clientX; p.y = e.clientY;
+    if (gesture.mode === 'pinch' && pointers.size >= 2) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (gesture.d0 > 0 && d > 0) {
+        const s1 = Math.min(4 / fitZoom, Math.max(1, gesture.s0 * d / gesture.d0));
+        const base = baseRect(), k = s1 / gesture.s0;
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        let x = mx - base.cx - k * (gesture.mx - base.cx - gesture.x0);
+        let y = my - base.cy - k * (gesture.my - base.cy - gesture.y0);
+        ({ x, y } = clampOffset(x, y, s1));
+        tScale = s1; tX = x; tY = y; zoom = fitZoom * s1;
+        applyTransform(); label();
+      }
+      return;
+    }
+    if (pointers.size !== 1) return;
+    const dx = p.x - gesture.x0, dy = p.y - gesture.y0;
+    if (gesture.mode === 'wait') {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      if (tScale > 1.01) gesture.mode = 'pan';
+      else if (group.length > 1 && Math.abs(dx) > Math.abs(dy) * 1.2) gesture.mode = 'swipe';
+      else gesture.mode = 'dead';   // 适配比例下的竖向滑动不做事，touch-action 已禁掉页面滚动
+    }
+    if (gesture.mode === 'pan') {
+      const c = clampOffset(gesture.tx0 + dx, gesture.ty0 + dy, tScale);
+      tX = c.x; tY = c.y; applyTransform();
+    } else if (gesture.mode === 'swipe') {
+      tX = dx; tY = 0; applyTransform();
+      swipeSamples.push({ x: p.x, t: performance.now() });
+      if (swipeSamples.length > 6) swipeSamples.shift();
+    }
+  });
+  const pointerEnd = e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.delete(e.pointerId);
+    if (!gesture) return;
+    if (gesture.mode === 'pinch') {
+      if (pointers.size === 1 && tScale > 1.01) {
+        // 抬了一指还剩一指：接着当平移用，起点按剩下的手指重新定
+        const rest = [...pointers.values()][0];
+        gesture = { mode: 'pan', x0: rest.x, y0: rest.y, tx0: tX, ty0: tY };
+      } else {
+        if (tScale <= 1.01) settleFit();
+        gesture = null;
+      }
+      return;
+    }
+    if (pointers.size > 0) return;
+    if (gesture.mode === 'swipe') {
+      let v = 0;
+      if (swipeSamples.length >= 2) {
+        const a = swipeSamples[0], b = swipeSamples[swipeSamples.length - 1];
+        if (b.t > a.t) v = (b.x - a.x) / (b.t - a.t);
+      }
+      const dir = tX < 0 ? 1 : -1;
+      if (Math.abs(tX) > view.clientWidth * 0.22 || (Math.abs(v) > 0.45 && Math.abs(tX) > 24)) swipeCommit(dir);
+      else {
+        img.style.transition = 'transform .22s cubic-bezier(.22,.9,.32,1)';
+        tX = 0; applyTransform();
+        clearTimeout(animTimer);
+        animTimer = setTimeout(() => { img.style.transition = 'none'; }, 230);
+      }
+    }
+    gesture = null;
+  };
+  view.addEventListener('pointerup', pointerEnd);
+  view.addEventListener('pointercancel', pointerEnd);
+
   addEventListener('resize', () => { if (!box.classList.contains('hidden')) measureFit(); });
   addEventListener('keydown', e => {
     if (box.classList.contains('hidden')) return;
@@ -8306,7 +8492,15 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
 }
 @media  (max-width:600px){#imgBox .imgbox-frame{ max-width:96vw; max-height:92vh; }
-#imgBox .imgbox-view{ padding:5px; }}</style>
+#imgBox .imgbox-view{ padding:5px; }}
+/* 移动端手势接管：浏览器不再抢滚动/页面缩放，长按也不弹系统菜单（下载走标题栏按钮） */
+@media (hover:none) and (pointer:coarse){
+#imgBox .imgbox-view{ touch-action:none; }
+#imgBox .imgbox-view img{
+  transform-origin:center center;
+  user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+}
+}</style>
 <style id="site-footer-y2k">/* ---------- 页脚：一行居中年份文字，无分隔线、无底色 ----------
    页脚是 #mainScroll 的最后一个子元素，不进 .page-container：
    那个容器在桌面断点是两列网格，多一个子元素会被 grid-row:1 拍到左上角、还会撑坏行高。 */
