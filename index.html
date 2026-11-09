@@ -2229,10 +2229,9 @@ function mediaCard(m, idx) {
   return `
   <div class="poster-card fade-up card bg-base-100 shadow-sm border border-base-300/50 overflow-hidden" style="animation-delay:${Math.min(idx * 30, 300)}ms">
     <figure class="relative aspect-[2/3] bg-base-300">
-      <img src="${escapeHtml(m.poster_path)}" alt="${escapeHtml(m.title)}" loading="lazy" class="w-full h-full object-cover" />
-      <span class="absolute top-1.5 right-1.5 badge badge-sm bg-black/60 text-white border-none gap-0.5"><span class="iconify text-xs" data-icon="mdi:star"></span>${escapeHtml(m.vote_average)}</span>
+      <img src="${escapeHtml(m.poster_path)}" alt="${escapeHtml(m.title)}" loading="lazy" crossorigin="anonymous" class="w-full h-full object-cover" />
     </figure>
-    <div class="p-1.5 sm:p-2">
+    <div class="poster-caption p-1.5 sm:p-2">
       <h3 class="font-semibold text-[12px] leading-snug line-clamp-1" title="${escapeHtml(m.title)}">${escapeHtml(m.title)}</h3>
       <p class="text-[10px] opacity-50 line-clamp-1 mt-0.5" title="${escapeHtml(m.original_title)}">${escapeHtml(m.original_title || '—')}</p>
       <div class="flex items-center justify-between mt-1">
@@ -2242,7 +2241,7 @@ function mediaCard(m, idx) {
             <span class="iconify text-base" data-icon="streamline-logos:douban-logo-block"></span>
           </a>
         </div>
-        <span class="text-[10px] opacity-40 shrink-0">${escapeHtml(m.date)}</span>
+        <span class="poster-date text-[10px] opacity-40 shrink-0">${escapeHtml(m.date)}</span>
       </div>
     </div>
   </div>`;
@@ -3045,18 +3044,8 @@ function renderHotList(platform, list, ts) {
   const active = state.hotActive;
   if (platform !== active) return;   // 用户已切到别的平台，丢弃过期渲染
   const time = new Date(ts).toTimeString().slice(0, 5);
-  const rankCls = i => i === 0 ? 'bg-error/15 text-error' : i === 1 ? 'bg-warning/15 text-warning' : i === 2 ? 'bg-success/15 text-success' : 'bg-base-200/70 opacity-70';
-  const rows = list.slice(0, 50).map((it, i) => {
-    const rank = String(it.index || i + 1).padStart(2, '0');
-    const hot = it.hot_value ? `<span class="text-xs opacity-50 shrink-0 tabular-nums">${escapeHtml(String(it.hot_value))}</span>` : '';
-    return `
-    <a href="${escapeHtml(it.url || '#')}" target="_blank" rel="noopener noreferrer"
-       class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${it.url ? 'hover:bg-base-200/60' : 'pointer-events-none'}">
-      <span class="size-7 shrink-0 rounded-lg grid place-items-center text-xs font-bold tabular-nums ${rankCls(i)}">${rank}</span>
-      <span class="flex-1 min-w-0 text-[15px] leading-snug truncate">${escapeHtml(it.title || '')}</span>
-      ${hot}
-    </a>`;
-  }).join('');
+  const rows = list.slice(0, 50).map(it => `
+    <a href="${escapeHtml(it.url || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title || '')}</a>`).join('');
   const body = contentEl.querySelector('.hot-body');
   if (!body) return;
   body.innerHTML = `
@@ -3645,7 +3634,7 @@ function renderMediaPage(view) {
       <div class="media-pager media-pager-top flex${pages > 1 ? '' : ' hidden'}" id="mediaPagerTop">
         <div class="pager-btns" id="pagerBtnsTop" role="navigation" aria-label="分页"></div>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>
     </div>`;
   bindMediaFilterEvents(view);
   applyRestore(view);
@@ -8698,8 +8687,9 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
 .rail-player .hw-btn{
   width:32px!important;height:32px!important;padding:5px!important;border:0!important;border-radius:8px!important;
   background:transparent!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;box-shadow:none!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease!important;
 }
-.rail-player .hw-btn:hover{background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;transform:none!important;}
+.rail-player .hw-btn:hover{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;box-shadow:none!important;transform:none!important;}
 .rail-player .hw-btn.active{color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;}
 .rail-player .hw-pl-repeat{gap:4px!important;padding:5px 6px!important;}
 .rail-player .hw-repeat-flag{font:9px/1.2 var(--font-family)!important;}
@@ -8865,9 +8855,6 @@ html[data-theme="light"] #mainScroll#mainScroll #content#content .photo-item a:h
 }
 #mainScroll#mainScroll #content#content .poster-card figure{background:var(--sp-soft)!important;}
 #mainScroll#mainScroll #content#content .poster-card img{border:0!important;border-radius:0!important;box-shadow:none!important;}
-#mainScroll#mainScroll #content#content .poster-card figure .badge{
-  border:0!important;background:rgba(0,0,0,.58)!important;color:#fff!important;font-weight:500!important;
-}
 html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #content#content :is(.photo-item,.poster-card) img{filter:brightness(.7)!important;}
 /* 查看窗在 #content 之外，上面那些降亮度规则管不到它，这里单独补一层，
    和正文缩略图保持同一档，免得点开后被原图的亮度闪一下 */
@@ -8887,10 +8874,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #imgBox .imgbox-view img{f
 #mainScroll#mainScroll #content#content :is(.hot-body,.bm-body) a:hover{
   background:var(--sp-soft)!important;color:var(--sp-ink)!important;text-decoration:none!important;
 }
-#mainScroll#mainScroll #content#content .hot-body a>span:first-child{
-  border-radius:7px!important;background:transparent!important;color:var(--sp-muted)!important;font-weight:500!important;
-}
-#mainScroll#mainScroll #content#content .hot-body a:nth-child(-n+3)>span:first-child{color:var(--sp-accent)!important;}
 #mainScroll#mainScroll #content#content .bm-body a>div:first-child{
   border:0!important;border-radius:10px!important;background:var(--sp-soft)!important;box-shadow:none!important;
 }
@@ -9132,6 +9115,10 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   /* 拍立得相纸：纸面走本主题主色（湖绿）的淡调，描边与投影同族，不再是一张纯白纸 */
   --po-paper:#e6f1ee;--po-edge:rgba(31,122,107,.28);--po-photo:rgba(31,122,107,.20);--po-caption:#3f5a53;
   --po-shadow:0 26px 50px -18px rgba(23,60,50,.4),0 3px 10px rgba(23,60,50,.18);
+  /* 同一族的小尺寸投影：卡片只有十几厘米宽，用查看窗那套会糊成一片黑 */
+  --po-shadow-card:0 1px 2px rgba(23,60,50,.16),0 10px 18px -12px rgba(23,60,50,.34);
+  /* hover 四周发光：取到色的卡片会被脚本换成海报主色，取不到的走这个主色 */
+  --po-glow:rgba(23,99,90,.5);
 }
 html:is([data-theme="dark"],[data-theme="halloween"]){
   --gl-panel:rgba(20,11,38,.60);
@@ -9146,6 +9133,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]){
   /* 暗色相纸：不用白纸刺眼，换成同族的深紫黑纸＋淡紫描边 */
   --po-paper:#1c1430;--po-edge:rgba(190,160,255,.26);--po-photo:rgba(190,160,255,.16);--po-caption:#9a90b4;
   --po-shadow:0 30px 60px -22px rgba(0,0,0,.8),0 4px 14px rgba(0,0,0,.55);
+  --po-shadow-card:0 1px 2px rgba(0,0,0,.5),0 12px 20px -12px rgba(0,0,0,.7);
+  --po-glow:rgba(196,168,255,.42);
 }
 /* 划词选中：浅色跟自己的青绿走，不再沿用暗色那一族的粉 */
 html[data-theme="light"] ::selection{ background:rgba(31,122,107,.22)!important; color:var(--sp-ink)!important; }
@@ -10403,6 +10392,194 @@ canvas.hw-pfx{
   }
 }
 </style>
+<style id="hot-list-plain-rows">
+/* ---------- 热搜列表：只剩标题一行 ----------
+   排名数字去掉后每行前面没有任何元素了，原来压在行底的那根发丝线就成了满屏横线，
+   整屏像一张表格；改成纯文字行，行与行只靠留白分开。
+   hover 沿用书签列表 / 歌单行那套柔光底，再把字提到主色，不再画线。 */
+#mainScroll#mainScroll #content#content .hot-body a{
+  display:block!important;
+  padding:6px 10px!important;
+  border-bottom:0!important;border-radius:8px!important;
+  background:transparent!important;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+  font-size:15px!important;line-height:1.55!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  box-shadow:none!important;
+  transition:color .16s ease,background-color .16s ease!important;
+}
+#mainScroll#mainScroll #content#content .hot-body a:hover{
+  background:var(--sp-soft)!important;
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+  box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .hot-body a[href="#"]{pointer-events:none!important;}
+@media(max-width:700px){
+  #mainScroll#mainScroll #content#content .hot-body a{font-size:14.5px!important;padding:6px 9px!important;}
+}
+</style>
+<style id="poster-polaroid">
+/* ---------- 影视卡片：拍立得相纸 ----------
+   材质直接复用图片查看窗那套 --po-* token，两处拍立得是同一张纸。
+   照片四周走窄边、下面留一条宽头，片名 / 原名 / 日期写在宽头里；
+   卡片里的按钮（类型徽章、豆瓣）一律不碰。 */
+#mainScroll#mainScroll #content#content .poster-card{
+  padding:8px 8px 0!important;
+  border:1px solid var(--po-edge)!important;border-radius:4px!important;
+  background:var(--po-paper)!important;
+  box-shadow:var(--po-shadow-card)!important;
+  transform:none!important;
+  transition:box-shadow .26s ease,border-color .26s ease,background-color .26s ease!important;
+}
+/* hover：整圈发光，不位移、不铺色块；原来的落影留着，卡片才不会像被抠起来。
+   background 得在这里再写一遍——前面有一层 hover 把底色清成了 transparent，
+   不补的话一 hover 相纸就没了，露出底下的壁纸。 */
+@media (hover:hover){
+  #mainScroll#mainScroll #content#content .poster-card:hover{
+    background:var(--po-paper)!important;
+    border-color:var(--po-glow)!important;
+    box-shadow:
+      inset 0 0 16px -10px var(--po-glow),
+      0 0 0 1px var(--po-glow),0 0 18px 2px var(--po-glow),0 0 42px -2px var(--po-glow),
+      var(--po-shadow-card)!important;
+  }
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #content#content .poster-card:hover img{
+  filter:brightness(.86)!important;
+}
+#mainScroll#mainScroll #content#content .poster-card figure{background:transparent!important;}
+#mainScroll#mainScroll #content#content .poster-card img{
+  border:1px solid var(--po-photo)!important;border-radius:2px!important;box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .poster-caption{padding:9px 4px 10px!important;}
+#mainScroll#mainScroll #content#content .poster-caption h3{color:var(--sp-ink)!important;}
+#mainScroll#mainScroll #content#content .poster-caption p{color:var(--po-caption)!important;opacity:.82!important;}
+#mainScroll#mainScroll #content#content .poster-caption .poster-date{color:var(--po-caption)!important;opacity:.72!important;}
+</style>
+<script id="poster-tint">
+/* ---------- 影视卡取色：相纸材质跟着海报主色走 ----------
+   canvas 缩样读像素就行，但图必须是无污染的：本地同源 jpg 天然满足，线上的 TMDB 图
+   靠 img 上的 crossorigin 走 CORS 模式（image.tmdb.org 回 ACAO:*）。
+   任何一步拿不到像素——图床不给 CORS 头、file:// 打开被判污染——都整张退回全局 token，
+   不硬造兜底色；整张几乎没有彩色能量（黑白片、全黑底）时同样不染色，
+   否则暗色下一张白卡就是一块刺眼的灯。 */
+(function () {
+  const rawBySrc = new Map();
+  const VARS = ['--po-paper', '--po-edge', '--po-photo', '--po-caption', '--po-glow'];
+
+  function rgb2hsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    if (!d) return [0, 0, (mx + mn) / 2];
+    const l = (mx + mn) / 2;
+    const s = d / (l > .5 ? 2 - mx - mn : mx + mn);
+    const h = mx === r ? (g - b) / d + (g < b ? 6 : 0)
+            : mx === g ? (b - r) / d + 2
+            : (r - g) / d + 4;
+    return [h * 60, s, l];
+  }
+
+  /* 缩到 24×36 按色相分 12 桶，每桶累计「彩色能量」（饱和度之和），取最高的一桶——
+     海报主体常常是灰的，靠标题、服装那几块颜色才认得出发什么色调；
+     桶内用能量加权做圆周平均求色相，免得 359° 和 1° 被平均成 180° 的绿。 */
+  function sample(img) {
+    const W = 24, H = 36, total = W * H;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0, W, H);
+    const px = ctx.getImageData(0, 0, W, H).data;
+    const bins = Array.from({ length: 12 }, () => ({ e: 0, n: 0, s: 0, x: 0, y: 0 }));
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] < 128) continue;
+      const c = rgb2hsl(px[i], px[i + 1], px[i + 2]);
+      if (c[1] < .06 || c[2] < .08 || c[2] > .95) continue;
+      const b = bins[Math.min(11, Math.floor(c[0] / 30))];
+      b.e += c[1]; b.n++; b.s += c[1];
+      b.x += c[1] * Math.cos(c[0] * Math.PI / 180);
+      b.y += c[1] * Math.sin(c[0] * Math.PI / 180);
+    }
+    let best = bins[0];
+    for (const b of bins) if (b.e > best.e) best = b;
+    if (best.e < total * .02) return null;
+    return {
+      h: (Math.atan2(best.y, best.x) * 180 / Math.PI + 360) % 360,
+      s: best.s / best.n,
+      share: best.n / total,
+    };
+  }
+
+  function paint(card, raw) {
+    if (!raw) { VARS.forEach(v => card.style.removeProperty(v)); return; }
+    const dark = isDarkTheme(document.documentElement.dataset.theme);
+    const hue = Math.round(raw.h);
+    /* 纸面这套跟着主色占比走淡，占比低就几乎看不出来 */
+    const mix = .35 + .65 * raw.share;
+    const sat = cap => Math.round(Math.min(raw.s * 100, cap) * mix);
+    const col = (cap, light, alpha) =>
+      `hsl(${hue} ${sat(cap)}% ${light}%${alpha ? ' / ' + alpha : ''})`;
+    /* 发光不参与「按占比压淡」：灰调海报压完只剩十几个点饱和度，hover 就没反应了。
+       这里给饱和度兜个底，亮度按主题反着来——浅色要比纸深才看得见，暗色要比桌布亮。 */
+    const glowSat = Math.min(72, Math.max(30, Math.round(raw.s * 100) + 12));
+    const glow = dark ? `hsl(${hue} ${glowSat}% 54% / .5)` : `hsl(${hue} ${glowSat}% 42% / .55)`;
+    const v = dark
+      ? [col(34, 12), col(46, 52, .3), col(46, 62, .18), col(22, 74), glow]
+      : [col(36, 93), col(52, 40, .32), col(52, 34, .24), col(24, 30), glow];
+    VARS.forEach((name, i) => card.style.setProperty(name, v[i]));
+  }
+
+  /* 同一张 src 可能同时挂在几张卡上，采一次按 src 广播 */
+  function paintBySrc(src, raw) {
+    document.querySelectorAll('.poster-card').forEach(card => {
+      const img = card.querySelector('figure img');
+      if (img && img.getAttribute('src') === src) paint(card, raw);
+    });
+  }
+
+  function resolve(img) {
+    const src = img.getAttribute('src');
+    if (!src) return;
+    if (rawBySrc.has(src)) return void paintBySrc(src, rawBySrc.get(src));
+    if (!img.complete || !img.naturalWidth) return;
+    let raw = null;
+    try { raw = sample(img); } catch { raw = null; }
+    rawBySrc.set(src, raw);
+    paintBySrc(src, raw);
+  }
+
+  function tintAll() {
+    document.querySelectorAll('.poster-card figure img').forEach(resolve);
+  }
+
+  let queued = false;
+  const rerun = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; tintAll(); });
+  };
+
+  /* loading=lazy 的图要等真下载完才采得到；换主题得按新明度重推一遍 */
+  document.addEventListener('load', e => {
+    if (e.target.tagName === 'IMG' && e.target.closest('.poster-card')) resolve(e.target);
+  }, true);
+  /* 图床不给 CORS 头时，带 crossorigin 的 img 是整张加载失败的，不只是取不到色——
+     所以摘掉属性用原始模式再要一次：裂图比素色相纸严重得多。只兜这一次，不会来回重试。 */
+  document.addEventListener('error', e => {
+    const img = e.target;
+    if (img.tagName !== 'IMG' || !img.crossOrigin || img.dataset.rawRetry) return;
+    if (!img.closest('.poster-card')) return;
+    img.dataset.rawRetry = '1';
+    const src = img.getAttribute('src');
+    img.removeAttribute('crossorigin');
+    img.setAttribute('src', src);
+  }, true);
+  new MutationObserver(rerun)
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  const content = document.getElementById('content');
+  if (content) new MutationObserver(rerun).observe(content, { childList: true, subtree: true });
+  rerun();
+})();
+</script>
 
 </body>
 </html>
