@@ -41,10 +41,15 @@
      加载失败时它整个失效——明暗切换按钮的太阳/月亮会同时显示、底部歌词条（带跳动的
      均衡器）会窜到页面顶部、音乐红点常驻。这里按 Tailwind 原定义兜底，不再依赖 CDN。 */
 .hidden { display: none !important; }
-/* 明暗图标双保险：不依赖 .hidden 类，直接由 data-theme 属性决定太阳/月亮谁显示，
-     就算 CDN 挂掉、类丢失也绝不同时出现两个图标（JS 未执行时默认只显示太阳）。 */
-html:is([data-theme="dark"], [data-theme="halloween"]) .theme-icon-sun { display: none !important; }
-html:not([data-theme="dark"]):not([data-theme="halloween"]) .theme-icon-moon { display: none !important; }
+/* 明暗图标双保险：不依赖 .hidden 类，直接由 data-theme 属性决定太阳/月亮谁显示。
+   两个图标叠在同一个固定尺寸里，切换时只做透明度与轻微旋转，和 lucide 工具图标风格一致。 */
+.theme-icon-stack { position:relative; display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; flex:0 0 auto; }
+.theme-icon-stack .theme-icon-sun,
+.theme-icon-stack .theme-icon-moon { position:absolute; inset:0; display:inline-flex; align-items:center; justify-content:center; width:100%; height:100%; pointer-events:none; transition:opacity .18s ease, transform .18s ease; }
+.theme-icon-stack .theme-icon-sun { opacity:1; transform:rotate(0deg) scale(1); }
+.theme-icon-stack .theme-icon-moon { opacity:0; transform:rotate(-30deg) scale(.72); }
+html:is([data-theme="dark"], [data-theme="halloween"]) .theme-icon-stack .theme-icon-sun { opacity:0; transform:rotate(30deg) scale(.72); }
+html:is([data-theme="dark"], [data-theme="halloween"]) .theme-icon-stack .theme-icon-moon { opacity:1; transform:rotate(0deg) scale(1); }
 /* ============ 主题配色：糖果贴纸（浅）/ 暗夜霓虹（深），跟随系统自动切换 ============ */
 :root,
 [data-theme="light"] {
@@ -1159,28 +1164,19 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 #topBar .tab-btn.active,#topBar .tab-btn.active.bg-base-300{background:var(--home-selected)!important;color:var(--home-selected-ink)!important;-webkit-text-fill-color:var(--home-selected-ink)!important;box-shadow:none!important;font-weight:700!important;}
 #topBar .tab-btn.active::before{content:'»';font:700 14px Georgia,serif;}
 #topBar .tab-btn.active .nav-label{text-decoration:none;}
-#topBar .tab-btn:focus-visible,#topBar .theme-pick:focus-visible{outline:1px dotted var(--home-link)!important;outline-offset:-3px;}
+#topBar .tab-btn:focus-visible{outline:1px dotted var(--home-link)!important;outline-offset:-3px;}
 #topBar .retro-tools{flex:0 1 auto;justify-content:flex-end;}
 #topBar .retro-tools .tab-btn{font-size:11px!important;padding-inline:7px;color:var(--home-muted)!important;-webkit-text-fill-color:var(--home-muted)!important;}
 #topBar .retro-tools .nav-label{text-decoration:none;}
 #topBar .retro-tools .tab-btn:hover,#topBar .retro-tools .tab-btn[aria-expanded="true"]{color:var(--home-hover)!important;-webkit-text-fill-color:var(--home-hover)!important;background:transparent!important;}
 #topBar .retro-tools .tab-btn[data-view].active{color:var(--home-selected-ink)!important;-webkit-text-fill-color:var(--home-selected-ink)!important;background:var(--home-selected)!important;}
-#topBar #themeCur{font:inherit;color:inherit;border:0;background:none;padding:0;}
-#topBar #themeMenuBtn::after{content:'▾';font-size:10px;}
 #topBar #tagSelectedCount{font:10px Verdana,sans-serif;color:inherit;}
 #topBar #musicDot:not(.hidden){display:inline-block;width:5px;height:5px;background:var(--home-hover);}
-#topBar .theme-menu{display:none;position:absolute;top:100%;right:0;z-index:150;min-width:105px;margin:0;padding:3px;list-style:none;background:var(--home-paper);border:1px solid var(--home-line);box-shadow:2px 2px 0 rgba(0,0,0,.18);}
-#topBar .menu-li-theme.open .theme-menu{display:block;}
-#topBar .theme-pick{display:flex;align-items:center;width:100%;min-height:34px;padding:5px 10px;border:0;background:none;color:var(--home-link);font:12px var(--k2-font-nav);text-align:left;cursor:var(--cursor-pointer);}
-#topBar .theme-pick::before{content:'';width:14px;}
-#topBar .theme-pick.active::before{content:'✓';}
-#topBar .theme-pick:hover,#topBar .theme-pick.active{background:var(--home-selected);color:var(--home-selected-ink);}
 .retro-about{flex:0 0 auto;margin:0 9px 10px;padding:11px 2px 1px;border-top:1px dotted var(--home-line);color:var(--home-muted);}
 .retro-about h2{margin:0 0 7px;font:10px/1.5 Verdana,sans-serif;letter-spacing:.16em;color:var(--home-ink);}
 .retro-about p{margin:0;font:12px/1.8 var(--k2-font-nav);}
 .retro-stamps{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
 .retro-stamps span{border:1px solid var(--home-line);padding:2px 5px;font:9px/1.2 var(--k2-font-nav);letter-spacing:.04em;}
-.rail-head{letter-spacing:.06em!important;font-weight:400!important;}
 .page-container.page-container{padding-top:20px!important;}
 @media(min-width:1024px){#topBar .menu-li-music{display:none!important;}}
 @media(max-width:1100px){.retro-nav-row{gap:3px;}#topBar .tab-btn{padding-inline:8px;}.retro-online{display:none;}}
@@ -1214,12 +1210,11 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
             <button aria-label="音乐" class="tab-btn music-trigger" type="button"><span class="iconify" data-icon="lucide:music-2"></span><span class="nav-label">音乐</span><span class="hidden" id="musicDot"></span></button>
           </li>
           <li><button aria-label="快速搜索（Ctrl+K）" class="tab-btn cmdk-open" type="button"><span class="iconify" data-icon="lucide:search"></span><span class="nav-label">搜索</span></button></li>
-          <li class="menu-li-theme" id="themeMenuItem">
-            <button aria-controls="themeMenu" aria-expanded="false" aria-haspopup="true" class="tab-btn" id="themeMenuBtn" type="button"><span class="theme-cur" id="themeCur">浅色</span></button>
-            <ul class="theme-menu" id="themeMenu">
-              <li><button class="theme-pick" data-theme-pick="light" type="button">浅色</button></li>
-              <li><button class="theme-pick" data-theme-pick="dark" type="button">暗色</button></li>
-            </ul>
+          <li>
+            <button aria-label="深色模式" aria-pressed="false" class="tab-btn theme-toggle" id="themeToggleBtn" title="当前浅色模式，点击切换到深色模式" type="button">
+              <span aria-hidden="true" class="theme-icon-stack"><span class="iconify theme-icon-sun" data-icon="lucide:sun"></span><span class="iconify theme-icon-moon" data-icon="lucide:moon"></span></span>
+              <span class="nav-label">主题</span>
+            </button>
           </li>
         </ul>
       </div>
@@ -1248,7 +1243,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
     <button aria-label="回到顶部" class="btn btn-circle btn-sm shadow-lg z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" id="toTop"><span class="iconify text-xl" data-icon="gg:pin-top"></span></button>
   </section>
   <aside aria-label="音乐播放器" class="music-rail" id="musicRail">
-    <div class="rail-head"><span>正在播放</span></div>
     <div class="music-drawer rail-player">
       <div class="drawer-body"><div class="hw-playlist-mount" data-hw-list-id="9127652363" id="musicRailMount"></div></div>
     </div>
@@ -1318,19 +1312,9 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 </div>
 </div>
 <!-- ======================= 图片查看窗（一次一张，原始大小 + 缩放） ======================= -->
-<div aria-label="图片查看" aria-modal="true" class="imgbox hidden" id="imgBox" role="dialog">
+<div aria-label="图片查看" aria-modal="true" class="imgbox hidden" id="imgBox" role="dialog" tabindex="-1">
 <div class="imgbox-mask"></div>
 <div class="imgbox-frame">
-<div class="imgbox-bar">
-<span class="imgbox-name" id="imgBoxName">图片</span>
-<button class="imgbox-nav-link" hidden id="imgBoxPrev" type="button">上一张</button>
-<button class="imgbox-nav-link" hidden id="imgBoxNext" type="button">下一张</button>
-<button class="imgbox-nav-link" id="imgBoxDownload" type="button">下载</button>
-<button aria-label="缩小" class="imgbox-btn" id="imgBoxMinus" type="button">-</button>
-<span class="imgbox-zoom" id="imgBoxZoom">100%</span>
-<button aria-label="放大" class="imgbox-btn" id="imgBoxPlus" type="button">+</button>
-<button aria-label="关闭图片" class="imgbox-btn imgbox-close" type="button">✕</button>
-</div>
 <div class="imgbox-view" id="imgBoxView"><img alt="" id="imgBoxImg"/></div>
 <div class="imgbox-foot" id="imgBoxFoot">正在载入…</div>
 </div>
@@ -1658,9 +1642,9 @@ async function fetchData({ view, page = 1, tags = [] }) {
 }
 
 /* ============================================================
-   图片查看窗：一次只看一张，按原始大小出现，可放大缩小
-   同一条说说 / 同一面相册墙里的图可以上一张下一张翻，首尾不出现对应链接
-   （不要图床那套华丽切换：点框外或 ✕ 就关）
+   图片查看窗：一次只看一张，按原始大小出现，滚轮与双击缩放
+   同一条说说 / 同一面相册墙里的图用两侧箭头或方向键循环翻
+   （不要图床那套华丽切换：点框外或 Esc 就关）
 ============================================================ */
 function initImgBox() {
   const box = document.getElementById('imgBox');
@@ -1668,12 +1652,7 @@ function initImgBox() {
   box.dataset.bound = '1';
   const view = document.getElementById('imgBoxView');
   const img = document.getElementById('imgBoxImg');
-  const nameEl = document.getElementById('imgBoxName');
-  const zoomEl = document.getElementById('imgBoxZoom');
   const footEl = document.getElementById('imgBoxFoot');
-  const prevBtn = document.getElementById('imgBoxPrev');
-  const nextBtn = document.getElementById('imgBoxNext');
-  const downloadBtn = document.getElementById('imgBoxDownload');
   const cyclePrevBtn = document.getElementById('imgBoxCyclePrev');
   const cycleNextBtn = document.getElementById('imgBoxCycleNext');
   let natural = { w: 0, h: 0 };
@@ -1730,7 +1709,6 @@ function initImgBox() {
   }
 
   const srcOf = el => el.getAttribute('href') || el.getAttribute('data-src') || el.getAttribute('src') || '';
-  const captionOf = el => el.getAttribute('data-caption') || el.getAttribute('alt') || '图片';
 
   // 翻页范围＝点开的那张图所在的组，含九宫格里第 10 张起被 display:none 的图：
   // 那些图在页面上没有别的入口，查看器是唯一能看到它们的地方。
@@ -1741,32 +1719,27 @@ function initImgBox() {
   }
 
   function updateNav() {
-    prevBtn.hidden = groupIndex <= 0;
-    nextBtn.hidden = groupIndex < 0 || groupIndex >= group.length - 1;
     cyclePrevBtn.hidden = cycleNextBtn.hidden = groupIndex < 0 || group.length < 2;
   }
 
-  function step(delta, cycle = false) {
-    const index = cycle ? (groupIndex + delta + group.length) % group.length : groupIndex + delta;
-    const target = group[index];
+  function step(delta) {
+    const target = group[(groupIndex + delta + group.length) % group.length];
     if (!target) return;
-    open(srcOf(target), captionOf(target), target);
-    // open() 会把焦点送到 ✕；翻到首尾时那一侧的链接刚被藏起来，焦点别跟过去
-    const btn = delta < 0 ? (cycle ? cyclePrevBtn : prevBtn) : (cycle ? cycleNextBtn : nextBtn);
+    open(srcOf(target), target);
+    // 焦点跟着箭头走，连按方向键时才不会跑到页面别的控件上
+    const btn = delta < 0 ? cyclePrevBtn : cycleNextBtn;
     if (!btn.hidden) btn.focus();
   }
 
   function label() {
-    zoomEl.textContent = Math.round(zoom * 100) + '%';
-    footEl.textContent = natural.w + ' × ' + natural.h + ' 像素' +
-      (group.length > 1 ? ' · 第 ' + (groupIndex + 1) + ' / ' + group.length + ' 张' : '');
+    footEl.textContent = group.length > 1 ? '第 ' + (groupIndex + 1) + ' / ' + group.length + ' 张' : '';
     updateCursor();
   }
 
   function setZoom(next, min = 0.1) {
     zoom = Math.min(4, Math.max(min, next));
     if (isTouch() && fitZoom) {
-      // 移动端：标题栏 +/− 与捏合共用 transform 管线，绕视口中心缩放
+      // 移动端：键盘 +/− 与捏合共用 transform 管线，绕视口中心缩放
       const v = view.getBoundingClientRect();
       touchZoom(zoom / fitZoom, v.left + v.width / 2, v.top + v.height / 2, true);
       return;
@@ -1785,9 +1758,9 @@ function initImgBox() {
   function measureFit() {
     if (!natural.w) return;
     const desktop = matchMedia('(min-width:1024px) and (hover:hover) and (pointer:fine)').matches;
-    // 移动端无框满屏：可用画心就是整个视口，不再扣标题栏和说明行
-    const availW = isTouch() ? innerWidth : Math.min(1200, desktop ? innerWidth - 160 : innerWidth * 0.94) - 20;
-    const availH = isTouch() ? innerHeight : innerHeight * 0.88 - 74;
+    // 移动端无框满屏：可用画心就是整个视口，不再扣相纸边距和说明行
+    const availW = isTouch() ? innerWidth : Math.min(1200, desktop ? innerWidth - 160 : innerWidth * 0.94) - 36;
+    const availH = isTouch() ? innerHeight : innerHeight * 0.88 - 94;
     fitZoom = Math.min(1, availW / natural.w, availH / natural.h);
     zoom = fitZoom;
     img.style.width = Math.round(natural.w * zoom) + 'px';
@@ -1795,7 +1768,7 @@ function initImgBox() {
     label();
   }
 
-  function open(src, caption, trigger) {
+  function open(src, trigger) {
     opener = trigger || null;
     // 必须在设置 img.src 之前定好位置：图已缓存时 ready() 会同步跑到底部说明那一行
     group = collectGroup(trigger);
@@ -1803,7 +1776,6 @@ function initImgBox() {
     updateNav();
     box.classList.remove('hidden');
     footEl.textContent = '正在载入…';
-    zoomEl.textContent = '—';
     img.style.width = 'auto';
     img.style.cursor = '';
     resetTransform();
@@ -1833,40 +1805,7 @@ function initImgBox() {
     img.src = src;
     if (img.complete) ready();
     else img.addEventListener('load', ready, { once: true });
-    nameEl.textContent = caption || '图片';
-    box.querySelector('.imgbox-close').focus();
-  }
-
-  async function download() {
-    const src = img.getAttribute('src');
-    if (!src || downloadBtn.disabled) return;
-    downloadBtn.disabled = true;
-    try {
-      const response = await fetch(src);
-      if (!response.ok) throw new Error('Image download failed');
-      const blob = await response.blob();
-      if (!blob.size || (blob.type && !blob.type.startsWith('image/') && blob.type !== 'application/octet-stream')) {
-        throw new Error('Invalid image response');
-      }
-      const filename = new URL(src, document.baseURI).pathname.split('/').pop();
-      const extension = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp', 'image/avif': 'avif', 'image/svg+xml': 'svg', 'image/bmp': 'bmp', 'image/x-icon': 'ico' })[blob.type];
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename && /\.(jpe?g|png|gif|webp|avif|bmp|svg|ico)$/i.test(filename) ? filename : 'image.' + (extension || 'bin');
-      link.hidden = true;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-      if (img.getAttribute('src') === src && !box.classList.contains('hidden') && img.complete && img.naturalWidth) label();
-    } catch {
-      if (img.getAttribute('src') === src && !box.classList.contains('hidden')) {
-        footEl.textContent = '下载失败（网络或图片源限制）';
-      }
-    } finally {
-      downloadBtn.disabled = false;
-    }
+    box.focus({ preventScroll: true });
   }
 
   function close() {
@@ -1880,14 +1819,8 @@ function initImgBox() {
 
   box.querySelectorAll('.imgbox-mask').forEach(m => { m.addEventListener('click', close); });
   box.addEventListener('click', e => { if (e.target === box) close(); });
-  box.querySelector('.imgbox-close').addEventListener('click', close);
-  document.getElementById('imgBoxPlus').addEventListener('click', () => setZoom(zoom * 1.25));
-  document.getElementById('imgBoxMinus').addEventListener('click', () => setZoom(zoom / 1.25));
-  prevBtn.addEventListener('click', () => step(-1));
-  nextBtn.addEventListener('click', () => step(1));
-  downloadBtn.addEventListener('click', download);
-  cyclePrevBtn.addEventListener('click', () => step(-1, true));
-  cycleNextBtn.addEventListener('click', () => step(1, true));
+  cyclePrevBtn.addEventListener('click', () => step(-1));
+  cycleNextBtn.addEventListener('click', () => step(1));
   // 放大后按住左键拖拽平移：view 本身就是滚动容器，拖拽＝反向改它的
   // scrollLeft/scrollTop，图片跟着手走。scroll-behavior 不会被 html 继承下来，
   // 所以这里是即时滚动，够跟手也够顺。
@@ -1959,7 +1892,7 @@ function initImgBox() {
     animTimer = setTimeout(() => {
       slideIn = dir;
       const target = group[(groupIndex + dir + group.length) % group.length];
-      if (target) open(srcOf(target), captionOf(target), target);
+      if (target) open(srcOf(target), target);
       else { slideIn = 0; animating = false; }
     }, 200);
   }
@@ -2070,7 +2003,7 @@ function initImgBox() {
     if (e.key === 'Escape') close();
     else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      if (group.length > 1) step(e.key === 'ArrowLeft' ? -1 : 1, true);
+      if (group.length > 1) step(e.key === 'ArrowLeft' ? -1 : 1);
     }
     else if (e.key === '+' || e.key === '=') setZoom(zoom * 1.25);
     else if (e.key === '-' || e.key === '_') setZoom(zoom / 1.25);
@@ -2084,7 +2017,7 @@ function initImgBox() {
     e.preventDefault();
     const src = srcOf(trigger);
     if (!src) return;
-    open(src, captionOf(trigger), trigger);
+    open(src, trigger);
   });
 }
 
@@ -2095,7 +2028,7 @@ function initImgBox() {
   if (!images.length) return '';
   const items = images.map((img, i) => {
     const more = images.length > 9 && i === 8 ? ` data-more="${images.length - 9}"` : '';
-    return `<div class="strip-item"${more}><img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" data-caption="${escapeHtml(img.alt || '')}" /></div>`;
+    return `<div class="strip-item"${more}><img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" /></div>`;
   }).join('');
   return `<div class="strip-wrap mt-3"><div class="memo-image-grid" data-count="${images.length}">${items}</div></div>`;
 }
@@ -3067,40 +3000,44 @@ async function loadHot(platform, force = false) {
 
 function renderHotView() {
   const active = state.hotActive;
-  const tabs = HOT_SITES.map(s => {
+  const rows = HOT_SITES.map(s => {
     const on = s.id === active;
-    const color = tagColor(s.id);
-    return `<button type="button" class="badge tag-chip cursor-pointer select-none whitespace-nowrap transition-all ${on ? `active badge-${color}` : 'badge-soft badge-ghost'}" data-hot="${s.id}">${s.name}</button>`;
+    const cached = state.hotCache[s.id];
+    const cnt = on || cached ? `<span class="side-row-count">${cached ? cached.data.length : '···'}</span>` : '';
+    return `<button type="button" class="side-row${on ? ' active' : ''}" data-hot="${s.id}"><span class="side-row-name">${s.name}</span>${cnt}</button>`;
   }).join('');
   contentEl.innerHTML = `
-  <div>
-    <div class="flex items-center gap-2 sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
-      <div class="milli-nav flex-1 min-w-0">
-          <button type="button" class="milli-btn" data-milli-prev aria-label="上一个分类">‹</button>
-          <div class="hot-tabs flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5 milli-track">${tabs}</div>
-          <button type="button" class="milli-btn" data-milli-next aria-label="下一个分类">›</button>
-        </div>
-      <button type="button" class="hot-refresh btn btn-xs btn-ghost btn-circle shrink-0" aria-label="手动刷新" title="手动刷新">
-        <span class="iconify text-base" data-icon="lucide:refresh-cw"></span>
-      </button>
+  <div class="split-view">
+    <aside class="split-side glass-panel">
+      <div class="split-side-head">
+        <span class="split-side-title">平台</span>
+        <button type="button" class="hot-refresh btn btn-xs btn-ghost btn-circle shrink-0" aria-label="手动刷新" title="手动刷新">
+          <span class="iconify text-base" data-icon="lucide:refresh-cw"></span>
+        </button>
+      </div>
+      <div class="side-list hot-sites">${rows}</div>
+    </aside>
+    <div class="split-main">
+      <div class="hot-body min-h-40"></div>
     </div>
-    <div class="hot-body min-h-40"></div>
   </div>`;
 
   contentEl.querySelectorAll('[data-hot]').forEach(btn => {
     btn.onclick = () => {
       if (state.hotActive === btn.dataset.hot) return;
-      hotScrolls[state.hotActive] = getScrollPos();   // 记住当前平台的位置
+      hotScrolls[state.hotActive] = contentEl.querySelector('.split-main .hot-body')?.scrollTop || 0;   // 记住当前平台在右侧面板内的位置（v5 布局列表在 .hot-body 内滚）
       state.hotActive = btn.dataset.hot;
       renderHotView();
       loadHot(state.hotActive);
-      setScrollPos(hotScrolls[state.hotActive] || 0);   // 恢复目标平台位置（首次为顶部）
-      focusActiveChip(contentEl.querySelector('.hot-tabs'));
+      const mainPanel = contentEl.querySelector('.split-main .hot-body');
+      if (mainPanel) mainPanel.scrollTop = hotScrolls[state.hotActive] || 0;   // 恢复目标平台在右侧面板内的位置（数据未到时由 renderHotList 兜底）
+      const side = contentEl.querySelector('.split-side .side-list');
+      const now = contentEl.querySelector('.side-row.active');
+      if (side && now) now.scrollIntoView({ block: 'nearest' });
     };
   });
   const refreshBtn = contentEl.querySelector('.hot-refresh');
   refreshBtn.onclick = () => loadHot(state.hotActive, true);
-  initMillenniumNav(contentEl.querySelector('.hot-tabs').closest('.milli-nav'));   // 左右按钮切换平台
   loadHot(active);
 }
 
@@ -3125,6 +3062,7 @@ function renderHotList(platform, list, ts) {
   body.innerHTML = `
     <p class="text-xs opacity-50 px-3 pt-1 pb-1">更新于 ${time} · 每 ${HOT_AUTO_MS / 60000} 分钟自动刷新</p>
     <div class="flex flex-col gap-0.5">${rows}</div>`;
+  body.scrollTop = hotScrolls[active] || 0;   // 渲染完恢复该平台上次下拉到的位置（切平台/切视图回来、自动刷新都不丢）
   applyRestore('hot');
 }
 
@@ -3137,6 +3075,22 @@ function loadHotView() {
 /* ---------- 书签收藏（/api/bookmarks，一次拉全量，搜索/分类全前端筛选） ---------- */
 const bmScrolls = {};   // 各分类独立的滚动位置
 let bmSearchTimer = null;
+
+/* 右侧列表的下拉位置记忆：v5 双面板布局里 .split-main 已固定不滚，真正滚动的容器是
+   .hot-body / .bm-body。在捕获阶段监听滚动实时记录，切分类、切视图、甚至离开页面
+   前的最后一次滚动都能存下来，回来时按当前平台/分类恢复。 */
+document.addEventListener('scroll', e => {
+  const t = e.target;
+  if (!(t instanceof Element)) return;
+  // 内容还没渲染/变短（scrollHeight 撑不满）时浏览器会发出钳制到 0 的 scroll 事件，忽略之，
+  // 免得把真实下拉位置冲掉；真正滚回顶部发生在可滚动的列表上，照样记录 0
+  if (t.scrollHeight <= t.clientHeight + 4) return;
+  if (t.classList.contains('hot-body') && state.view === 'hot') {
+    hotScrolls[state.hotActive] = t.scrollTop;
+  } else if (t.classList.contains('bm-body') && state.view === 'bookmarks') {
+    bmScrolls[state.bookmarksCat] = t.scrollTop;
+  }
+}, { capture: true, passive: true });
 
 async function loadBookmarks() {
   if (state.bookmarksCache) { renderBookmarks(); return; }
@@ -3190,31 +3144,31 @@ function renderBookmarks() {
   const cats = ['全部', ...(favCount ? ['收藏'] : []), ...[...catMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN')).map(([c]) => c)];
 
   contentEl.innerHTML = `
-  <div>
-    <div class="sticky top-0 z-10 bg-base-100/95 backdrop-blur py-2 -mx-1 px-1">
-      <div class="flex items-center gap-2">
-        <label class="input input-sm h-9 w-32 sm:w-48 shrink-0 items-center gap-2">
-          <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </g>
-          </svg>
-          <input type="search" class="bm-search grow min-w-0" placeholder="搜索 标题/描述/标签" />
-        </label>
-        <div class="milli-nav flex-1 min-w-0">
-          <button type="button" class="milli-btn" data-milli-prev aria-label="上一个分类">‹</button>
-          <div class="bm-cats flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0 py-0.5 milli-track"></div>
-          <button type="button" class="milli-btn" data-milli-next aria-label="下一个分类">›</button>
-        </div>
+  <div class="split-view">
+    <aside class="split-side glass-panel">
+      <div class="split-side-head">
+        <span class="split-side-title">分类</span>
       </div>
+      <label class="side-search input input-sm h-9 w-full items-center gap-2">
+        <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </g>
+        </svg>
+        <input type="search" class="bm-search grow min-w-0" placeholder="搜索 标题/描述/标签" />
+      </label>
+      <div class="side-list bm-filters"></div>
+    </aside>
+    <div class="split-main">
+      <div class="bm-body min-h-40"></div>
     </div>
-    <div class="bm-body min-h-40"></div>
   </div>`;
 
     renderBookmarkChips(cats);
     renderBookmarkList();
-    initMillenniumNav(contentEl.querySelector('.bm-cats').closest('.milli-nav'));   // 左右按钮切换分类
+    const body = contentEl.querySelector('.split-main .bm-body');
+    if (body) body.scrollTop = bmScrolls[state.bookmarksCat] || 0;   // 切回书签视图时恢复当前分类的下拉位置
 
     const search = contentEl.querySelector('.bm-search');
   search.value = state.bookmarksQuery;
@@ -3224,29 +3178,6 @@ function renderBookmarks() {
     bmSearchTimer = setTimeout(renderBookmarkList, 150);
   });
   applyRestore('bookmarks');
-}
-
-function renderBookmarkChips(cats) {
-  const wrap = contentEl.querySelector('.bm-cats');
-  if (!wrap) return;
-  wrap.innerHTML = cats.map(c => {
-    const on = c === state.bookmarksCat;
-    const isFav = c === '收藏';
-    const color = tagColor('bmcat:' + c);
-    const cls = on ? (isFav ? 'badge-warning' : `badge-${color}`) : 'badge-ghost';
-    return `<button type="button" class="badge tag-chip cursor-pointer select-none whitespace-nowrap transition-all ${cls}" data-bmcat="${escapeHtml(c)}">${isFav ? '★ ' : ''}${escapeHtml(c)}</button>`;
-  }).join('');
-  wrap.querySelectorAll('[data-bmcat]').forEach(btn => {
-    btn.onclick = () => {
-      if (state.bookmarksCat === btn.dataset.bmcat) return;
-      bmScrolls[state.bookmarksCat] = getScrollPos();  // 记住当前分类的位置
-      state.bookmarksCat = btn.dataset.bmcat;
-      renderBookmarkChips(cats);
-      renderBookmarkList();
-      setScrollPos(bmScrolls[state.bookmarksCat] || 0);   // 恢复目标分类位置（首次为顶部）
-      focusActiveChip(contentEl.querySelector('.bm-cats'));
-    };
-  });
 }
 
 function renderBookmarkList() {
@@ -3793,6 +3724,13 @@ async function loadSayToPage(targetPage, pos) {
 function switchView(view) {
   // 保存当前视图滚动位置
   saveCurrentScroll();
+  // 热搜/书签双面板：切走前把右侧列表位置也存进各自平台/分类的记录
+  // （平时由全局 scroll 捕获监听实时记录，这里兜底，保证切换一定不失忆）
+  const listScroll = contentEl.querySelector('.split-main .hot-body, .split-main .bm-body');
+  if (listScroll) {
+    if (state.view === 'hot') hotScrolls[state.hotActive] = listScroll.scrollTop;
+    else if (state.view === 'bookmarks') bmScrolls[state.bookmarksCat] = listScroll.scrollTop;
+  }
   // 说说视图把哨兵收进了列表框，切走前先还回内容列，避免随内容一起被 innerHTML 清掉
   releaseSentinel();
   // 从说说切走且无筛选时，同步保存无筛选位置
@@ -3918,14 +3856,12 @@ function isDarkTheme(t) { return DARK_THEMES.has(t); }
 
 function updateThemeIcons(theme) {
   const dark = isDarkTheme(theme);
-  // 下拉里当前主题那一项标成选中态，菜单按钮上的小方块同步显示现用档位
-  document.querySelectorAll('.theme-pick').forEach(btn => {
-    const on = (btn.dataset.themePick === 'dark') === dark;
-    btn.classList.toggle('active', on);
-    btn.setAttribute('aria-current', on ? 'true' : 'false');
-  });
-  const cur = document.getElementById('themeCur');
-  if (cur) cur.textContent = dark ? '暗色' : '浅色';
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) {
+    btn.setAttribute('aria-label', '深色模式');
+    btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    btn.title = `当前${dark ? '深色' : '浅色'}模式，点击切换到${dark ? '浅色' : '深色'}模式`;
+  }
 }
 
 function applyTheme(theme) {
@@ -3934,36 +3870,14 @@ function applyTheme(theme) {
   try { localStorage.setItem('memo-theme', theme); } catch {}
 }
 
-function setThemeMenu(open) {
-  const li = document.getElementById('themeMenuItem');
-  const btn = document.getElementById('themeMenuBtn');
-  if (!li || !btn) return;
-  li.classList.toggle('open', open);
-  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+/* 主题按钮直接切换，不再展开下拉菜单 */
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    const current = document.documentElement.dataset.theme;
+    applyTheme(isDarkTheme(current) ? 'light' : 'dark');
+  });
 }
-
-document.querySelectorAll('.theme-pick').forEach(btn => {
-  btn.onclick = () => {
-    applyTheme(btn.dataset.themePick);
-    setThemeMenu(false);
-    closeNav();
-  };
-});
-
-(function initThemeMenu() {
-  const btn = document.getElementById('themeMenuBtn');
-  if (!btn) return;
-  btn.onclick = e => {
-    e.stopPropagation();
-    setThemeMenu(btn.getAttribute('aria-expanded') !== 'true');
-  };
-  document.addEventListener('click', e => {
-    if (!e.target.closest('#themeMenuItem')) setThemeMenu(false);
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') setThemeMenu(false);
-  });
-})();
 
 (function initTheme() {
   let saved = null;
@@ -6170,17 +6084,23 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .tag-drawer-overlay { bac
 <script id="bookmark-navigation-chips">
 /* 书签分类：横向胶囊按钮，沿用原导航风格 */
 function renderBookmarkChips(cats) {
-  const wrap = contentEl.querySelector('.bm-cats');
+  const wrap = contentEl.querySelector('.bm-filters');
   if (!wrap) return;
-  wrap.innerHTML = cats.map(c => `<button type="button" class="tag-chip${c === state.bookmarksCat ? ' active' : ''}" data-bmcat="${escapeHtml(c)}" aria-pressed="${c === state.bookmarksCat}">${escapeHtml(c)}</button>`).join('');
+  const all = state.bookmarksCache || [];
+  const countOf = c => c === '全部' ? all.length
+    : c === '收藏' ? all.filter(b => b.favorite).length
+    : all.filter(b => b.category === c).length;
+  wrap.innerHTML = cats.map(c => `<button type="button" class="side-row${c === state.bookmarksCat ? ' active' : ''}" data-bmcat="${escapeHtml(c)}" aria-pressed="${c === state.bookmarksCat}"><span class="side-row-name">${escapeHtml(c)}</span><span class="side-row-count">${countOf(c)}</span></button>`).join('');
   wrap.querySelectorAll('[data-bmcat]').forEach(btn => btn.onclick = () => {
     if (state.bookmarksCat === btn.dataset.bmcat) return;
-    bmScrolls[state.bookmarksCat] = getScrollPos();
+    bmScrolls[state.bookmarksCat] = contentEl.querySelector('.split-main .bm-body')?.scrollTop || 0;
     state.bookmarksCat = btn.dataset.bmcat;
     renderBookmarkChips(cats);
     renderBookmarkList();
-    setScrollPos(bmScrolls[state.bookmarksCat] || 0);
-    focusActiveChip(wrap);   // 当前分类平滑滚回分类条中央
+    const mainPanel = contentEl.querySelector('.split-main .bm-body');
+    if (mainPanel) mainPanel.scrollTop = bmScrolls[state.bookmarksCat] || 0;   // 恢复目标分类在右侧面板内的位置（v5 布局列表在 .bm-body 内滚）
+    const now = wrap.querySelector('.side-row.active');
+    if (now) now.scrollIntoView({ block: 'nearest' });
   });
 }
 </script>
@@ -8134,16 +8054,6 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) .cm
   padding:0 !important;
   margin:0 !important;
 }
-.rail-head{
-  display:flex; align-items:center; gap:5px;
-  padding:4px 7px;
-  background:linear-gradient(180deg, var(--k2-banner-a), var(--k2-banner-b)) !important;
-  border-bottom:1px solid var(--k2-edge) !important;
-  color:var(--k2-banner-ink) !important;
-  font-size:.72rem !important;
-  font-weight:700 !important;
-  letter-spacing:.16em !important;
-}
 /* 常驻栏里的播放器：借 .music-drawer 这套变量与内部样式，但把抽屉的外壳拍平 */
 .rail-player{
   position:static !important;
@@ -8383,8 +8293,9 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 .music-drawer .hw-pl-lyric-marquee{ flex:1 1 auto; min-width:0; overflow:hidden; }
 .music-drawer .hw-pl-lyric-text{ display:inline-block; white-space:nowrap; }
 .music-drawer .hw-playlist.is-current .hw-pl-lyric{ color:var(--text) !important; -webkit-text-fill-color:var(--text) !important; }</style>
-<style id="imgbox-1999">/* ---------- 图片查看窗：直角套框 + Win98 标题栏 ----------
-   颜色全走 k2 变量，深浅两套自动跟着换；框子贴着图片收缩。 */
+<style id="imgbox-1999">/* ---------- 图片查看窗：拍立得相纸 ----------
+   PC 上只剩相纸、照片和底部一行张数；颜色全走 --po-* 两套 token，明暗各一。
+   手机端在文末 (hover:none)(pointer:coarse) 里仍是无框满屏，不吃这套。 */
 #imgBox#imgBox{
   position:fixed; inset:0; z-index:10020;
   display:flex; align-items:center; justify-content:center;
@@ -8392,79 +8303,16 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 }
 #imgBox#imgBox.hidden{ display:none !important; }
 #imgBox .imgbox-mask{ position:absolute; inset:0; background:rgba(12,6,16,.74); }
+/* 拍立得的边距：上左右 16px 窄边，下面那条宽头由 .imgbox-foot 的固定高度给出 */
 #imgBox .imgbox-frame{
   position:relative; display:flex; flex-direction:column;
   max-width:min(1200px, 94vw); max-height:88vh;
-  background:var(--k2-strip);
-  border:2px solid var(--k2-edge);
-  border-radius:0;
-  box-shadow:inset 1px 1px 0 var(--k2-bevel-lt), 5px 5px 0 rgba(0,0,0,.4);
-}
-#imgBox .imgbox-bar{
-  display:flex; align-items:center; gap:4px; padding:3px 4px;
-  min-width:0;
-  background:linear-gradient(180deg, var(--k2-banner-a), var(--k2-banner-b));
-  border-bottom:2px solid var(--k2-edge);
-  color:var(--k2-banner-ink);
-  font:.76rem var(--k2-font-nav);
-}
-#imgBox .imgbox-name{
-  /* 同上：标题是任意长度的用户文字，给了固有宽度就会把窗撑到比图片宽得多。
-     定宽 0 + flex 撑开，它只吃标题栏剩下的空间，控件永远放得下。 */
-  flex:1 1 0; width:0; min-width:0;
-  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-  font-weight:700; letter-spacing:.02em;
-}
-/* 上一张 / 下一张：跟顶部菜单条一样的纯文字链接，不是立体键。
-   全局 button 那条 !important 的圆角、描边、hover 位移都要在这里压掉。 */
-#imgBox .imgbox-nav-link{
-  flex:0 0 auto; padding:0 3px;
-  border:0 !important; border-radius:0 !important;
-  background:none !important; box-shadow:none !important;
-  color:var(--k2-link) !important;
-  -webkit-text-fill-color:var(--k2-link) !important;
-  font:.72rem var(--k2-font-nav) !important;
-  white-space:nowrap; text-decoration:underline; text-underline-offset:3px;
-  cursor:var(--cursor-pointer);
-}
-#imgBox .imgbox-nav-link:hover{
-  color:var(--k2-link-hover) !important;
-  -webkit-text-fill-color:var(--k2-link-hover) !important;
-  background:none !important; transform:none !important; box-shadow:none !important;
-}
-#imgBox .imgbox-nav-link:active{ transform:none !important; box-shadow:none !important; }
-#imgBox .imgbox-nav-link[hidden]{ display:none !important; }
-#imgBox .imgbox-nav-link:disabled{ opacity:.5; cursor:not-allowed; }
-#imgBox .imgbox-zoom{
-  min-width:3.9em; padding:1px 2px; text-align:center;
-  font:.72rem var(--font-num);
-  background:var(--k2-strip); color:var(--k2-chrome-ink);
-  border:1px solid;
-  border-color:var(--k2-bevel-dk) var(--k2-bevel-lt) var(--k2-bevel-lt) var(--k2-bevel-dk);
-}
-/* y2k 皮肤的全局 button 规则带 !important（8px 圆角 + hover 位移投影），
-   这里同权重抬回来，标题栏小键跟播放器控制键、分页键走同一套直角硬边。 */
-#imgBox .imgbox-btn{
-  min-width:22px; height:20px; padding:0 5px;
-  font:.78rem/1 var(--k2-font-nav) !important;
-  background:linear-gradient(180deg, var(--k2-chrome-a), var(--k2-chrome-b)) !important;
-  color:var(--k2-chrome-ink) !important;
-  border:2px solid !important;
-  border-color:var(--k2-bevel-lt) var(--k2-bevel-dk) var(--k2-bevel-dk) var(--k2-bevel-lt) !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-  cursor:var(--cursor-pointer);
-}
-#imgBox .imgbox-btn:hover{
-  background:linear-gradient(180deg, var(--k2-banner-a), var(--k2-banner-b)) !important;
-  color:var(--k2-banner-ink) !important;
-  transform:none !important; box-shadow:none !important;
-}
-#imgBox .imgbox-btn:active{
-  border-color:var(--k2-bevel-dk) var(--k2-bevel-lt) var(--k2-bevel-lt) var(--k2-bevel-dk) !important;
-  background:linear-gradient(180deg, var(--k2-press-a), var(--k2-press-b)) !important;
-  color:var(--k2-press-ink) !important;
-  transform:none !important; box-shadow:none !important;
+  padding:16px 16px 0;
+  background:var(--po-paper);
+  border:1px solid var(--po-edge);
+  border-radius:4px!important;
+  box-shadow:var(--po-shadow);
+  overflow:hidden;
 }
 #imgBox .imgbox-cycle{ display:none; }
 #imgBox .imgbox-cycle[hidden]{ display:none !important; }
@@ -8486,46 +8334,46 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 }
 #imgBox .imgbox-view{
   flex:1 1 auto; min-width:0; min-height:0; overflow:auto;
-  padding:8px; background:var(--k2-strip-2); scrollbar-width:thin;
+  padding:0; background:transparent; scrollbar-width:thin;
 }
 /* Tailwind 的 preflight 给所有 img 上了 max-width:100%，放大就会被压回框内 */
 #imgBox .imgbox-view img{
   display:block; max-width:none !important; height:auto;
-  /* 竖图的宽度由自身决定，窗口宽度却由标题栏和底部说明撑开，
-     不居中就会把空白全留在右边；放大到超出可视区时 auto 自动归零，不影响滚动。 */
+  /* 竖图的宽度由自身决定，不居中就会把空白全留在右边；
+     放大到超出可视区时 auto 自动归零，不影响滚动。 */
   margin-inline:auto;
-  border:1px solid var(--k2-edge); background:var(--k2-strip);
+  border:1px solid var(--po-photo); border-radius:2px!important; background:transparent;
 }
 #imgBox .imgbox-foot{
-  padding:3px 7px;
-  background:linear-gradient(180deg, var(--k2-strip), var(--k2-strip-2));
-  border-top:1px solid var(--k2-hair);
-  color:var(--k2-mute); font:.7rem var(--k2-font-nav);
+  /* 相纸下面的宽头只有张数一行；高度写死，单图没字时也是同样高的留白。
+     文字靠 line-height 垂直居中（font 简写在前面，line-height 必须排在它之后）。 */
+  height:74px; padding:0 8px;
+  color:var(--po-caption); font:.72rem var(--k2-font-nav); line-height:74px;
+  letter-spacing:.06em; text-align:center;
   /* 列向 flex 的窗宽取各子项 max-content 的最大值，
      这行 nowrap 文字会把整扇窗撑到它的长度，竖图就成了左右两大片空白。
      width:0 让它不再贡献宽度，min-width:100% 再把它拉回满幅（百分比不参与固有尺寸计算）。 */
   width:0; min-width:100%;
   overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
 }
-@media  (max-width:600px){#imgBox .imgbox-frame{ max-width:96vw; max-height:92vh; }
-#imgBox .imgbox-view{ padding:5px; }}
+@media  (max-width:600px){#imgBox .imgbox-frame{ max-width:96vw; max-height:92vh; }}
 /* 移动端手势接管：浏览器不再抢滚动/页面缩放，长按不弹系统菜单 */
 @media (hover:none) and (pointer:coarse){
-/* 无框满屏：标题栏/说明行/边框全撤，图片在整个视口里适配居中，
+/* 无框满屏：相纸边距、说明行、边框全撤，图片在整个视口里适配居中，
    点图外 backdrop 关窗（tap 判定在 JS 里），框本体不再贡献任何视觉 */
 #imgBox#imgBox{ padding:0; }
 #imgBox .imgbox-frame{
   width:100vw; height:100vh; height:100dvh;
   max-width:none; max-height:none;
-  border:0; box-shadow:none; background:transparent;
+  padding:0; border:0; border-radius:0!important; box-shadow:none; background:transparent;
 }
-#imgBox .imgbox-bar, #imgBox .imgbox-foot{ display:none; }
+#imgBox .imgbox-foot{ display:none; }
 #imgBox .imgbox-view{
   display:flex; align-items:center; justify-content:center;
   padding:0; overflow:hidden; background:transparent;
 }
 #imgBox .imgbox-view img{
-  margin:0; border:0; background:none;
+  margin:0; border:0; border-radius:0!important; background:none;
   transform-origin:center center;
   user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
 }
@@ -8688,88 +8536,6 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .media-pager{ --pager-acc
 </style>
 <script id="siteFooterYearScript">document.getElementById("siteFooterYear").textContent = new Date().getFullYear();</script>
 
-<style id="millennium-category-nav">
-.milli-nav{display:flex;align-items:center;gap:6px;min-width:0;}
-.milli-btn{
-  flex:0 0 auto;width:30px;height:30px;display:grid;place-items:center;
-  font:700 17px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-  color:var(--color-base-content);
-  background:linear-gradient(180deg,var(--color-base-100),var(--color-base-200));
-  border:2px solid var(--color-base-content);
-  border-radius:8px;cursor:var(--cursor-pointer);user-select:none;
-  box-shadow:2px 2px 0 var(--color-base-content);
-  transition:transform .06s ease,box-shadow .06s ease,opacity .15s ease,background .15s ease;
-}
-.milli-btn:hover{background:linear-gradient(180deg,var(--color-base-100),color-mix(in oklch,var(--color-warning) 45%,var(--color-base-200)));}
-.milli-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--color-base-content);}
-.milli-btn[disabled]{opacity:.35;cursor:not-allowed;transform:none;box-shadow:2px 2px 0 var(--color-base-content);}
-.milli-track{scrollbar-width:none;scroll-behavior:smooth;}
-.milli-track::-webkit-scrollbar{display:none;}
-
-.bm-cats .tag-chip.active,
-.hot-tabs .tag-chip.active{
-  background:var(--color-primary) !important;
-  color:var(--color-primary-content) !important;
-  border-color:var(--color-base-content) !important;
-  font-weight:700;
-  box-shadow:2px 2px 0 color-mix(in oklch,var(--color-base-content) 75%,transparent);
-}
-.bm-cats .tag-chip:not(.active),
-.hot-tabs .tag-chip:not(.active){
-  background:var(--color-base-200);
-  color:var(--color-base-content);
-  border-color:color-mix(in oklch,var(--color-base-content) 25%,transparent);
-}
-.bm-cats .tag-chip:not(.active):hover,
-.hot-tabs .tag-chip:not(.active):hover{
-  background:color-mix(in oklch,var(--color-primary) 18%,var(--color-base-200));
-  border-color:var(--color-primary);
-}
-</style>
-<script id="millennium-category-nav-js">
-/* 将当前 .tag-chip.active 水平居中；用 rect 差值计算，避免 offsetParent 不一致导致滚错 */
-function focusActiveChip(track){
-  if(!track) return;
-  const active=track.querySelector('.tag-chip.active');
-  if(!active) return;
-
-  const center=()=>{
-    const trackRect=track.getBoundingClientRect();
-    const activeRect=active.getBoundingClientRect();
-    const delta=(activeRect.left+activeRect.width/2)-(trackRect.left+trackRect.width/2);
-    const target=track.scrollLeft+delta;
-    const max=track.scrollWidth-track.clientWidth;
-    track.scrollTo({left:Math.max(0,Math.min(target,max)),behavior:'smooth'});
-  };
-
-  // 等浏览器完成重排后再计算，连续点前后分类也能准确居中
-  requestAnimationFrame(()=>requestAnimationFrame(center));
-}
-function initMillenniumNav(nav){
-  if(!nav) return;
-  const track=nav.querySelector('.milli-track');
-  const prev=nav.querySelector('[data-milli-prev]');
-  const next=nav.querySelector('[data-milli-next]');
-  if(!track||!prev||!next) return;
-
-  const update=()=>{
-    const max=track.scrollWidth-track.clientWidth;
-    prev.disabled=track.scrollLeft<=2;
-    next.disabled=track.scrollLeft>=max-2;
-  };
-  const page=dir=>{
-    const step=Math.max(track.clientWidth*0.8,120);
-    track.scrollBy({left:dir*step,behavior:'smooth'});
-  };
-  prev.onclick=()=>page(-1);
-  next.onclick=()=>page(1);
-  track.addEventListener('scroll',update,{passive:true});
-  window.addEventListener('resize',update);
-
-  requestAnimationFrame(()=>{ focusActiveChip(track); update(); });
-  update();
-}
-</script>
 <style id="personal-space-layout">
 :root{
   --sp-bg:#f6f5f2;--sp-panel:#fffefb;--sp-ink:#232524;--sp-muted:#71736c;
@@ -8792,7 +8558,7 @@ body{font-family:var(--font-family)!important;}
   width:100%!important;max-width:none!important;margin:0!important;padding:0!important;
   border:0!important;background:transparent!important;box-shadow:none!important;color:var(--sp-ink)!important;
 }
-#topBar .topbar-inner{position:relative;width:100%;max-width:1240px;margin:0 auto;padding:25px 0 21px;}
+#topBar .topbar-inner{position:relative;width:100%;max-width:930px;margin:0 auto;padding:25px 0 21px;}
 #topBar .retro-masthead{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
   padding:0;border:0;color:var(--sp-ink);
@@ -8827,13 +8593,8 @@ body{font-family:var(--font-family)!important;}
   border-bottom:2px solid var(--sp-accent)!important;box-shadow:none!important;
 }
 #topBar .tab-btn.active::before{content:none!important;}
-#topBar #themeMenuBtn::after{font-size:9px;}
-#topBar .theme-menu{top:calc(100% + 5px);min-width:96px;padding:4px;border:1px solid var(--sp-line);border-radius:9px;background:var(--sp-panel);box-shadow:0 8px 24px rgba(0,0,0,.12);}
-#topBar .theme-pick{min-height:32px;border-radius:5px;color:var(--sp-muted);font:12px var(--font-family);}
-#topBar .theme-pick:hover{background:var(--sp-soft);color:var(--sp-ink);}
-#topBar .theme-pick.active{background:transparent;color:var(--sp-accent);font-weight:700;}
 .page-container.page-container{
-  width:100%;max-width:1240px!important;margin:0 auto;padding:0!important;
+  width:100%;max-width:930px!important;margin:0 auto;padding:0!important;
   flex:1 1 auto;min-height:0;display:grid!important;grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:auto minmax(0,1fr)!important;gap:10px!important;overflow:hidden;background:transparent!important;
 }
@@ -8912,10 +8673,6 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
   border:1px solid var(--sp-line)!important;border-radius:14px!important;background:var(--sp-panel)!important;
   box-shadow:none!important;color:var(--sp-ink)!important;
 }
-.music-rail .rail-head{
-  flex:0 0 49px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--sp-line)!important;
-  background:transparent!important;color:var(--sp-ink)!important;font:700 16px/1 var(--font-family)!important;letter-spacing:.02em!important;
-}
 #musicRail .rail-player{
   padding:15px 15px 12px!important;background:transparent!important;color:var(--sp-ink);font-family:var(--font-family)!important;
   --bg:var(--sp-panel);--paper:var(--sp-panel);--text:var(--sp-ink);--text-main:var(--sp-ink);
@@ -8980,8 +8737,6 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
   #topBar .retro-tools{justify-content:center;gap:7px;}
   #topBar .retro-tools .tab-btn{width:34px;height:32px;min-height:32px;padding:4px!important;}
   #topBar .retro-tools .tab-btn .nav-label{display:none;}
-  #topBar #themeMenuBtn{width:auto;padding-inline:8px!important;}
-  #topBar .theme-menu{right:50%;transform:translateX(50%);}
   .nav-rail{overflow-x:auto;scrollbar-width:none;}
   .nav-rail .retro-primary{justify-content:space-between;gap:3px;}
   .nav-rail .tab-btn{width:38px;height:38px;}
@@ -9273,13 +9028,13 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:minmax(0,1fr)!important;
   gap:14px!important;
-  width:100%!important;max-width:1240px!important;margin:0 auto!important;
+  width:100%!important;max-width:930px!important;margin:0 auto!important;
   padding:clamp(12px,2.4vh,24px) 0 0!important;
   flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;background:transparent!important;
 }
 .feed-col{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;min-width:0!important;min-height:0!important;overflow:hidden!important;}
 @media (min-width:1024px){
-  .page-container.page-container{grid-template-columns:minmax(0,1fr) 300px!important;}
+  .page-container.page-container{grid-template-columns:minmax(0,1fr) 240px!important;}
   .music-rail{grid-column:2!important;grid-row:1!important;display:flex!important;flex-direction:column!important;}
   .retro-tools .menu-li-music{display:none!important;}
 }
@@ -9304,22 +9059,15 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   min-height:32px!important;padding:5px 9px!important;border:1px solid transparent!important;border-radius:8px!important;
   background:transparent!important;box-shadow:none!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
   font:12px/1.2 var(--font-family)!important;text-decoration:none!important;white-space:nowrap!important;cursor:var(--cursor-pointer)!important;transform:none!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease,border-color .16s ease!important;
 }
 .retro-tools .tab-btn .iconify{font-size:15px!important;}
 .retro-tools .tab-btn .nav-label{color:inherit!important;-webkit-text-fill-color:inherit!important;text-decoration:none!important;}
-.retro-tools .tab-btn:hover,.retro-tools .tab-btn[aria-expanded="true"]{background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;transform:none!important;}
+.retro-tools .tab-btn:hover,.retro-tools .tab-btn[aria-expanded="true"]{background:transparent!important;border-color:transparent!important;box-shadow:none!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;transform:none!important;}
 .retro-tools .tab-btn.active,.retro-tools .tab-btn[data-view].active{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;box-shadow:inset 0 -2px 0 var(--sp-accent)!important;}
 .retro-tools .tab-btn.active::before{content:none!important;}
-.retro-tools #themeMenuBtn::after{content:'▾';font-size:9px;opacity:.7;}
 .retro-tools #tagSelectedCount{font:10px var(--font-num);color:inherit;}
 .retro-tools #musicDot:not(.hidden){display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--sp-accent);}
-/* 主题下拉：#topBar 作用域已失效，这里补回显隐与定位 */
-.menu-li-theme{position:relative!important;}
-.theme-menu{display:none;position:absolute!important;top:calc(100% + 5px)!important;right:0!important;z-index:200!important;min-width:96px!important;margin:0!important;padding:4px!important;list-style:none!important;border:1px solid var(--sp-line)!important;border-radius:9px!important;background:var(--sp-panel)!important;box-shadow:0 8px 24px rgba(0,0,0,.18)!important;}
-.menu-li-theme.open .theme-menu{display:block!important;}
-.theme-pick{display:flex!important;align-items:center!important;width:100%!important;min-height:32px!important;padding:5px 10px!important;border:0!important;border-radius:5px!important;background:none!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font:12px var(--font-family)!important;text-align:left!important;cursor:var(--cursor-pointer)!important;}
-.theme-pick:hover{background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
-.theme-pick.active{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;font-weight:700!important;}
 
 /* ---------- 分类：从竖排图标条改成横排盒子（图标在上、名字在下） ---------- */
 .nav-rail{min-width:0!important;min-height:0!important;padding:14px 0 0!important;overflow:visible!important;}
@@ -9351,7 +9099,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   .retro-tools{gap:0!important;}
   .retro-tools .tab-btn{padding:5px 7px!important;}
   .retro-tools .tab-btn .nav-label{display:none!important;}
-  .retro-tools #themeMenuBtn{padding-inline:8px!important;}
   .nav-rail{padding-top:12px!important;}
   .nav-rail .retro-primary{gap:5px!important;}
   .nav-rail .tab-btn{padding:9px 2px!important;gap:5px!important;border-radius:9px!important;}
@@ -9363,5 +9110,1299 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   .nav-rail .tab-btn .nav-label{font-size:9px!important;}
 }
 </style>
+<style id="glass-skin">
+/* ============================================================
+   玻璃拟态 + 霓虹发光皮肤（最终层，压过前面所有皮肤）
+   壁纸：dark.jpg / light.jpg 铺在 #bgOrbs 固定层上，面板半透明磨砂。
+   配色分两套，各自取自本主题的壁纸：
+   浅色＝湖面青绿（--gl-glow / --sp-accent）＋码头陶橙（--gl-warm，选中态）；
+   暗色＝紫夜淡紫＋暖橙云（选中态）。hover / 菜单 / 选中高亮只走这几个 token。
+   ============================================================ */
+:root{
+  --gl-panel:rgba(255,255,255,.62);
+  --gl-border:rgba(255,255,255,.75);
+  --gl-glow:#1f7a6b;--gl-warm:#e8833a;
+  --gl-track:rgba(38,35,46,.14);
+  --gl-shadow:0 12px 36px rgba(60,70,100,.18),0 0 24px rgba(31,122,107,.10);
+  --sp-bg:#e9edf1;--sp-panel:var(--gl-panel);--sp-ink:#26232e;--sp-muted:#5b6a65;
+  --sp-line:rgba(31,84,74,.16);--sp-soft:rgba(31,122,107,.10);--sp-on-ink:#fff;--sp-accent:#17635a;
+  /* 面板投影：只往下走，横向用负 spread 收住，免得在窄缝里被切出硬边 */
+  --gl-float:0 2px 5px rgba(23,52,46,.10),0 14px 24px -12px rgba(23,52,46,.26),0 30px 54px -22px rgba(23,52,46,.24);
+  --gl-rim:rgba(255,255,255,.85);
+  /* 拍立得相纸：暖白纸＋铅笔字，纸边只留一道极浅的阴影勾出厚度 */
+  --po-paper:#fffdf6;--po-edge:rgba(58,50,40,.16);--po-photo:rgba(58,50,40,.12);--po-caption:#6b6258;
+  --po-shadow:0 26px 50px -18px rgba(30,26,20,.5),0 3px 10px rgba(30,26,20,.22);
+}
+html:is([data-theme="dark"],[data-theme="halloween"]){
+  --gl-panel:rgba(20,11,38,.60);
+  --gl-border:rgba(190,160,255,.25);
+  --gl-glow:#b28dff;--gl-warm:#ffb26b;
+  --gl-track:rgba(246,233,255,.16);
+  --gl-shadow:0 12px 44px rgba(4,2,12,.55),0 0 28px rgba(178,141,255,.14);
+  --sp-bg:#0b0716;--sp-panel:var(--gl-panel);--sp-ink:#f2ecff;--sp-muted:#a89ec0;
+  --sp-line:rgba(178,141,255,.22);--sp-soft:rgba(178,141,255,.12);--sp-on-ink:#180e2b;--sp-accent:#c4a8ff;
+  --gl-float:0 2px 6px rgba(0,0,0,.45),0 16px 28px -14px rgba(0,0,0,.60),0 34px 60px -24px rgba(0,0,0,.55);
+  --gl-rim:rgba(255,255,255,.16);
+  /* 暗色相纸：不用白纸刺眼，换成同族的深紫黑纸＋淡紫描边 */
+  --po-paper:#1c1430;--po-edge:rgba(190,160,255,.26);--po-photo:rgba(190,160,255,.16);--po-caption:#9a90b4;
+  --po-shadow:0 30px 60px -22px rgba(0,0,0,.8),0 4px 14px rgba(0,0,0,.55);
+}
+/* 划词选中：浅色跟自己的青绿走，不再沿用暗色那一族的粉 */
+html[data-theme="light"] ::selection{ background:rgba(31,122,107,.22)!important; color:var(--sp-ink)!important; }
+/* 壁纸固定层：bgOrbs 原本只有暗色显示，这里两主题都铺图，光斑继续漂在图上 */
+#bgOrbs{display:block!important;background:url('light.jpg') center/cover no-repeat!important;}
+html:is([data-theme="dark"],[data-theme="halloween"]) #bgOrbs{background-image:url('dark.jpg')!important;}
+#mainScroll#mainScroll{background:transparent!important;}
+
+/* ---------- 玻璃面板：左大卡片 + 右侧播放器 ----------
+   站点里有一条 #mainScroll#mainScroll * 的直角清零（双 id + !important），
+   凡落在它 scope 内的圆角都要用更高的 id 权重压回去。 */
+#mainScroll#mainScroll .feed-col,#mainScroll#mainScroll .music-rail{
+  background:var(--gl-panel)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
+  border:1px solid var(--gl-border)!important;border-radius:18px!important;
+  box-shadow:var(--gl-shadow),inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+/* 弹层同材质 */
+#cmdkOverlay .cmdk-panel,#cmdkMemoModal .cmdk-panel,#tagBar#tagBar.tag-drawer{
+  background:var(--gl-panel)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
+  border:1px solid var(--gl-border)!important;box-shadow:var(--gl-shadow)!important;
+}
+#cmdkOverlay .cmdk-panel,#cmdkMemoModal .cmdk-panel{border-radius:16px!important;}
+#tagBar#tagBar.tag-drawer{border-radius:0 16px 16px 0!important;}
+/* ---------- 回到顶部：裸图标，无框无底，hover 才浮出圆形柔光 ---------- */
+#toTop#toTop{
+  border:0!important;border-radius:50%!important;
+  background:transparent!important;background-image:none!important;
+  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  transition:background-color .18s ease,color .18s ease,box-shadow .18s ease,opacity .3s ease!important;
+}
+#toTop#toTop:hover,#toTop#toTop:focus-visible{
+  background:var(--sp-soft)!important;
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+  box-shadow:0 0 16px color-mix(in srgb,var(--gl-glow) 20%,transparent)!important;transform:none!important;
+}
+
+/* ---------- 分类盒子：玻璃芯片，选中＝橙色霓虹描边 ---------- */
+#mainScroll#mainScroll .nav-rail .tab-btn{
+  background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
+  border:1px solid var(--gl-border)!important;border-radius:14px!important;
+}
+#mainScroll#mainScroll .nav-rail .tab-btn:hover{
+  border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;
+  background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+  box-shadow:0 0 12px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
+}
+#mainScroll#mainScroll .nav-rail .tab-btn.active,#mainScroll#mainScroll .nav-rail .tab-btn.active.bg-base-300{
+  border-color:color-mix(in srgb,var(--gl-warm) 60%,transparent)!important;
+  background:color-mix(in srgb,var(--gl-warm) 8%,transparent)!important;
+  color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
+  box-shadow:0 0 16px color-mix(in srgb,var(--gl-warm) 32%,transparent),inset 0 0 12px color-mix(in srgb,var(--gl-warm) 10%,transparent)!important;
+}
+#mainScroll#mainScroll .nav-rail .tab-btn::before{content:none!important;}
+
+/* ---------- 播放列表：当前行橙色霓虹 ---------- */
+.rail-player .hw-pl-row.playing,.rail-player .hw-pl-row.playing:hover,
+.music-drawer .hw-pl-row.playing,.music-drawer .hw-pl-row.playing:hover{
+  background:color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gl-warm) 50%,transparent),0 0 14px color-mix(in srgb,var(--gl-warm) 22%,transparent)!important;
+}
+.rail-player .hw-pl-row.playing .hw-pl-row-idx,.rail-player .hw-pl-row.playing .hw-pl-row-title,
+.rail-player .hw-pl-row.playing .hw-pl-row-playicon,
+.music-drawer .hw-pl-row.playing .hw-pl-row-idx,.music-drawer .hw-pl-row.playing .hw-pl-row-title,
+.music-drawer .hw-pl-row.playing .hw-pl-row-playicon{
+  color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
+}
+
+/* ---------- 说说：日期小胶囊 + 字距微调 ---------- */
+#mainScroll#mainScroll #content#content .memo-tape-date{
+  padding:3px 9px!important;border:1px solid var(--sp-line)!important;border-radius:999px!important;
+  background:var(--sp-soft)!important;
+}
+#mainScroll#mainScroll .rail-player .hw-pl-row,#musicDrawer#musicDrawer .hw-pl-row{border-radius:10px!important;}
+#content .memo-card .memo-text{letter-spacing:.015em!important;}
+
+/* ---------- 热搜 / 书签筛选条：玻璃胶囊工具栏，选中＝暖橙霓虹（同导航盒） ----------
+   热搜与书签选中都带 .active，未选中无 .active；统一用 .active 判定。
+   这些部件落在 #content 直角清零与 personal-space 扁平规则里，要用四 id 权重压回。 */
+#mainScroll#mainScroll #content#content .sticky{
+  background:var(--gl-panel)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.4)!important;backdrop-filter:blur(18px) saturate(1.4)!important;
+  border:1px solid var(--gl-border)!important;border-radius:16px!important;
+  box-shadow:var(--gl-shadow)!important;
+}
+#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip{
+  min-height:30px;padding:7px 12px!important;
+  border:1px solid var(--gl-border)!important;border-radius:999px!important;
+  background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;box-shadow:none!important;
+  font-size:12px!important;font-weight:500!important;transform:none!important;
+}
+#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip:hover{
+  border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;
+  background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+  box-shadow:0 0 12px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;transform:none!important;
+}
+#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip.active{
+  border:1px solid color-mix(in srgb,var(--gl-warm) 60%,transparent)!important;
+  background:color-mix(in srgb,var(--gl-warm) 8%,transparent)!important;
+  color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
+  box-shadow:0 0 14px color-mix(in srgb,var(--gl-warm) 30%,transparent),inset 0 0 10px color-mix(in srgb,var(--gl-warm) 10%,transparent)!important;
+  font-weight:600!important;
+}
+#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip.active:hover{
+  background:color-mix(in srgb,var(--gl-warm) 12%,transparent)!important;
+  color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
+}
+/* 搜索框：玻璃胶囊，聚焦紫色微光 */
+#mainScroll#mainScroll #content#content label.input:has(.bm-search){
+  background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
+  border:1px solid var(--gl-border)!important;border-radius:999px!important;box-shadow:none!important;
+  color:var(--sp-ink)!important;
+  -webkit-backdrop-filter:blur(12px)!important;backdrop-filter:blur(12px)!important;
+}
+#mainScroll#mainScroll #content#content label.input:has(.bm-search):focus-within{
+  border-color:color-mix(in srgb,var(--gl-glow) 55%,var(--gl-border))!important;
+  box-shadow:0 0 14px color-mix(in srgb,var(--gl-glow) 28%,transparent)!important;
+}
+#mainScroll#mainScroll #content#content .bm-search{color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
+#mainScroll#mainScroll #content#content .bm-search::placeholder{color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
+/* 左右切换键 / 刷新键：圆形玻璃钮 */
+#mainScroll#mainScroll #content#content .milli-btn{
+  width:30px;height:30px;padding:0;
+  border:1px solid var(--gl-border)!important;border-radius:999px!important;
+  background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
+  color:var(--sp-muted)!important;box-shadow:none!important;font:400 18px/1 var(--font-family)!important;
+}
+#mainScroll#mainScroll #content#content .milli-btn:hover:not(:disabled){
+  border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;color:var(--sp-ink)!important;
+  box-shadow:0 0 10px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
+}
+#mainScroll#mainScroll #content#content .milli-btn:disabled{opacity:.28;box-shadow:none!important;}
+#mainScroll#mainScroll #content#content .hot-refresh{
+  border:1px solid var(--gl-border)!important;border-radius:999px!important;
+  background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
+  color:var(--sp-muted)!important;box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .hot-refresh:hover{
+  border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;color:var(--sp-ink)!important;
+  box-shadow:0 0 10px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
+}
+
+/* ---------- 进度条：紫→橙渐变填充，发光-thumb，粒子画布 ---------- */
+.rail-player .hw-progress,.music-drawer .hw-progress{
+  -webkit-appearance:none!important;appearance:none!important;
+  height:6px!important;border:0!important;border-radius:999px!important;outline:none!important;
+  background:linear-gradient(90deg,var(--gl-glow) 0%,var(--gl-warm) var(--p,0%),var(--gl-track) var(--p,0%),var(--gl-track) 100%)!important;
+  box-shadow:0 0 10px color-mix(in srgb,var(--gl-glow) 30%,transparent)!important;
+  cursor:var(--cursor-pointer);
+}
+.rail-player .hw-progress::-webkit-slider-runnable-track,.music-drawer .hw-progress::-webkit-slider-runnable-track{
+  height:6px!important;background:transparent!important;border:0!important;
+}
+.rail-player .hw-progress::-webkit-slider-thumb,.music-drawer .hw-progress::-webkit-slider-thumb{
+  -webkit-appearance:none!important;appearance:none!important;
+  width:12px!important;height:12px!important;margin-top:-3px!important;border:0!important;border-radius:50%!important;
+  background:#fff!important;box-shadow:0 0 8px var(--gl-glow),0 0 3px rgba(255,255,255,.9)!important;
+}
+.rail-player .hw-progress::-moz-range-track,.music-drawer .hw-progress::-moz-range-track{
+  height:6px!important;background:transparent!important;border:0!important;
+}
+.rail-player .hw-progress::-moz-range-thumb,.music-drawer .hw-progress::-moz-range-thumb{
+  width:12px!important;height:12px!important;border:0!important;border-radius:50%!important;
+  background:#fff!important;box-shadow:0 0 8px var(--gl-glow),0 0 3px rgba(255,255,255,.9)!important;
+}
+#mainScroll#mainScroll .rail-player .hw-progress,#musicDrawer#musicDrawer .hw-progress{border-radius:999px!important;}
+.hw-pl-progress-row,.hw-progress-row{position:relative!important;}
+canvas.hw-pfx{
+  position:absolute;left:0;top:-16px;width:100%;height:calc(100% + 16px);
+  pointer-events:none;z-index:2;
+}
+
+</style>
+<script>
+/* 进度条填充 + 播放粒子：不碰播放器内部状态，每 tick 读 #hwGlobalAudio 和 .hw-progress。
+   填充靠 --p 自定义属性驱动 CSS 渐变；粒子在进度头生成，向左上方飘散淡出。 */
+(function(){
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fxMap = new Map();
+  const PALETTE = { dark:['178,141,255','255,178,107','139,233,255'], light:['31,122,107','232,131,58','96,170,150'] };
+  function ensureFX(row){
+    let fx = fxMap.get(row);
+    if (!fx){
+      const canvas = document.createElement('canvas');
+      canvas.className = 'hw-pfx';
+      canvas.setAttribute('aria-hidden','true');
+      row.appendChild(canvas);
+      fx = { canvas, ctx: canvas.getContext('2d'), parts: [] };
+      fxMap.set(row, fx);
+    }
+    return fx;
+  }
+  function tick(){
+    const audio = document.getElementById('hwGlobalAudio');
+    const playing = !!audio && !audio.paused && !audio.ended;
+    const theme = document.documentElement.getAttribute('data-theme');
+    const palette = (theme === 'dark' || theme === 'halloween') ? PALETTE.dark : PALETTE.light;
+    document.querySelectorAll('.hw-pl-progress-row,.hw-progress-row').forEach(row => {
+      const bar = row.querySelector('.hw-progress');
+      if (!bar) return;
+      const pct = Math.max(0, Math.min(100, Number(bar.value) / 10));
+      bar.style.setProperty('--p', pct + '%');
+      if (reduceMotion) return;
+      const rect = row.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const fx = ensureFX(row);
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const cr = fx.canvas.getBoundingClientRect();
+      const W = Math.round(cr.width * dpr), H = Math.round(cr.height * dpr);
+      if (fx.canvas.width !== W || fx.canvas.height !== H){ fx.canvas.width = W; fx.canvas.height = H; }
+      const ctx = fx.ctx;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cr.width, cr.height);
+      const br = bar.getBoundingClientRect();
+      if (playing && pct > 0 && fx.parts.length < 70 && Math.random() < .6){
+        fx.parts.push({
+          x: br.left - cr.left + (pct / 100) * br.width,
+          y: br.top - cr.top + br.height / 2,
+          vx: -(.15 + Math.random() * .55),
+          vy: -(.25 + Math.random() * .75),
+          life: 1,
+          size: .8 + Math.random() * 1.7,
+          c: palette[(Math.random() * palette.length) | 0]
+        });
+      }
+      if (!fx.parts.length) return;
+      ctx.globalCompositeOperation = 'lighter';
+      fx.parts = fx.parts.filter(p => p.life > 0);
+      for (const p of fx.parts){
+        p.life -= .024; p.x += p.vx; p.y += p.vy; p.vy -= .008;
+        const a = Math.max(0, p.life);
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(' + p.c + ',' + (a * .9).toFixed(3) + ')';
+        ctx.shadowColor = 'rgba(' + p.c + ',' + a.toFixed(3) + ')';
+        ctx.shadowBlur = 6;
+        ctx.arc(p.x, p.y, p.size * (.5 + a * .5), 0, 6.2832);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.globalCompositeOperation = 'source-over';
+    });
+    // 播放器重渲染后旧行会被换掉，顺手清掉 detached 的画布登记
+    if (fxMap.size > 8){ for (const [row] of fxMap){ if (!row.isConnected) fxMap.delete(row); } }
+  }
+  setInterval(tick, 33);
+})();
+</script>
+
+<style id="hot-bookmark-glass-sidebar">
+/* 热搜 / 书签：左侧筛选栏 + 右侧内容区，统一当前紫夜玻璃皮肤 */
+#mainScroll#mainScroll #content#content .split-view{
+  display:grid!important;
+  grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:16px!important;
+  width:100%!important;
+  min-width:0!important;
+}
+#mainScroll#mainScroll #content#content .split-side{
+  position:sticky!important;
+  top:12px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:12px!important;
+  min-width:0!important;
+  max-height:calc(100dvh - 150px)!important;
+  padding:14px!important;
+  overflow:hidden!important;
+  color:var(--sp-ink)!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .split-side-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  min-height:30px!important;
+  padding:0 2px 10px!important;
+  border-bottom:1px solid var(--sp-line)!important;
+}
+#mainScroll#mainScroll #content#content .split-side-title{
+  color:var(--sp-ink)!important;
+  font-size:.88rem!important;
+  font-weight:700!important;
+  letter-spacing:.08em!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-list{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:4px!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  padding:1px 2px 2px!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  width:100%!important;
+  min-height:38px!important;
+  padding:8px 10px!important;
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:var(--sp-muted)!important;
+  -webkit-text-fill-color:var(--sp-muted)!important;
+  text-align:left!important;
+  font:inherit!important;
+  font-size:.86rem!important;
+  cursor:var(--cursor-pointer)!important;
+  transition:background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row:hover{
+  background:var(--sp-soft)!important;
+  border-color:color-mix(in srgb,var(--gl-glow) 30%,transparent)!important;
+  color:var(--sp-ink)!important;
+  -webkit-text-fill-color:var(--sp-ink)!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row.active{
+  background:color-mix(in srgb,var(--gl-warm) 10%,transparent)!important;
+  border-color:color-mix(in srgb,var(--gl-warm) 52%,transparent)!important;
+  color:var(--gl-warm)!important;
+  -webkit-text-fill-color:var(--gl-warm)!important;
+  box-shadow:0 0 14px color-mix(in srgb,var(--gl-warm) 18%,transparent),inset 0 0 10px color-mix(in srgb,var(--gl-warm) 7%,transparent)!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row-name{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row-count{
+  flex:0 0 auto!important;
+  min-width:1.5em!important;
+  text-align:right!important;
+  color:inherit!important;
+  opacity:.68!important;
+  font-family:var(--font-num)!important;
+  font-size:.72rem!important;
+  font-variant-numeric:tabular-nums!important;
+}
+#mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+  width:100%!important;
+  min-height:36px!important;
+  height:36px!important;
+  padding:0 10px!important;
+  border:1px solid var(--gl-border)!important;
+  border-radius:10px!important;
+  background:color-mix(in srgb,var(--gl-panel) 68%,transparent)!important;
+  color:var(--sp-ink)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(1.4)!important;
+  backdrop-filter:blur(14px) saturate(1.4)!important;
+}
+#mainScroll#mainScroll #content#content .split-side label.input:focus-within{
+  border-color:color-mix(in srgb,var(--gl-glow) 58%,var(--gl-border))!important;
+  box-shadow:0 0 14px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
+}
+#mainScroll#mainScroll #content#content .split-side .bm-search{
+  min-width:0!important;
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  color:var(--sp-ink)!important;
+  -webkit-text-fill-color:var(--sp-ink)!important;
+  font-size:.78rem!important;
+}
+#mainScroll#mainScroll #content#content .split-side .bm-search::placeholder{
+  color:var(--sp-muted)!important;
+  -webkit-text-fill-color:var(--sp-muted)!important;
+  opacity:.8!important;
+}
+#mainScroll#mainScroll #content#content .split-side .hot-refresh{
+  width:30px!important;
+  height:30px!important;
+  min-height:30px!important;
+  border:1px solid var(--gl-border)!important;
+  border-radius:9px!important;
+  background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
+  color:var(--sp-muted)!important;
+  box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .split-side .hot-refresh:hover{
+  color:var(--gl-warm)!important;
+  border-color:color-mix(in srgb,var(--gl-warm) 55%,transparent)!important;
+  background:color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
+}
+#mainScroll#mainScroll #content#content .split-main{
+  min-width:0!important;
+  width:100%!important;
+}
+#mainScroll#mainScroll #content#content .hot-body,
+#mainScroll#mainScroll #content#content .bm-body{
+  min-width:0!important;
+  padding:4px 2px 12px!important;
+}
+#mainScroll#mainScroll #content#content .hot-body > p,
+#mainScroll#mainScroll #content#content .bm-body > p{
+  padding:3px 10px 10px!important;
+  color:var(--sp-muted)!important;
+  font-size:.72rem!important;
+}
+#mainScroll#mainScroll #content#content .hot-body a,
+#mainScroll#mainScroll #content#content .bm-body a{
+  border-bottom:1px solid var(--sp-line)!important;
+  border-radius:9px!important;
+  color:var(--sp-ink)!important;
+  transition:background .16s ease,border-color .16s ease!important;
+}
+#mainScroll#mainScroll #content#content .hot-body a:last-child,
+#mainScroll#mainScroll #content#content .bm-body a:last-child{border-bottom-color:transparent!important;}
+#mainScroll#mainScroll #content#content .hot-body a:hover,
+#mainScroll#mainScroll #content#content .bm-body a:hover{
+  background:var(--sp-soft)!important;
+  border-bottom-color:color-mix(in srgb,var(--gl-glow) 35%,transparent)!important;
+}
+@media(max-width:700px){
+  #mainScroll#mainScroll #content#content .split-view{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:12px!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side{
+    position:relative!important;
+    top:auto!important;
+    max-height:none!important;
+    padding:11px!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+    max-height:190px!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row{
+    min-width:0!important;
+    min-height:36px!important;
+    padding:7px 8px!important;
+    font-size:.8rem!important;
+  }
+}
+/* ---------- v2：筛选栏独立滚动 + 强化紫夜玻璃质感 ---------- */
+#mainScroll#mainScroll #content#content .split-side{
+  /* 明确给侧栏一个独立高度，避免高度跟随右侧内容一起增长 */
+  height:min(720px,calc(100dvh - 170px))!important;
+  min-height:260px!important;
+  max-height:calc(100dvh - 170px)!important;
+  overflow:hidden!important;
+  position:sticky!important;
+  isolation:isolate!important;
+  background:
+    linear-gradient(145deg,
+      rgba(255,255,255,.15) 0%,
+      rgba(255,255,255,.055) 34%,
+      rgba(164,125,255,.105) 100%),
+    color-mix(in srgb,var(--gl-panel) 78%,transparent)!important;
+  border:1px solid color-mix(in srgb,var(--gl-border) 82%,rgba(255,255,255,.42))!important;
+  -webkit-backdrop-filter:blur(30px) saturate(1.8)!important;
+  backdrop-filter:blur(30px) saturate(1.8)!important;
+  box-shadow:
+    0 18px 48px rgba(5,2,18,.24),
+    0 0 30px color-mix(in srgb,var(--gl-glow) 18%,transparent),
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(255,255,255,.045)!important;
+}
+#mainScroll#mainScroll #content#content .split-side::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  border-radius:inherit!important;
+  background:
+    radial-gradient(ellipse at 8% 0%,rgba(255,255,255,.16),transparent 48%),
+    linear-gradient(110deg,rgba(255,255,255,.045),transparent 42%,rgba(172,132,255,.055))!important;
+}
+#mainScroll#mainScroll #content#content .split-side > *{
+  position:relative!important;
+  z-index:1!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-list{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  height:auto!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+  scrollbar-color:transparent transparent!important;
+  padding:3px 3px 8px!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-list::-webkit-scrollbar{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row{
+  background:linear-gradient(110deg,rgba(255,255,255,.035),rgba(255,255,255,.012))!important;
+  border-color:rgba(255,255,255,.045)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row:hover{
+  background:linear-gradient(110deg,
+    color-mix(in srgb,var(--gl-glow) 17%,transparent),
+    rgba(255,255,255,.055))!important;
+  border-color:color-mix(in srgb,var(--gl-glow) 38%,transparent)!important;
+  box-shadow:0 0 18px color-mix(in srgb,var(--gl-glow) 15%,transparent),inset 0 1px 0 rgba(255,255,255,.10)!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row.active{
+  background:linear-gradient(110deg,
+    color-mix(in srgb,var(--gl-warm) 15%,transparent),
+    color-mix(in srgb,var(--gl-glow) 9%,transparent))!important;
+  border-color:color-mix(in srgb,var(--gl-warm) 58%,transparent)!important;
+  box-shadow:0 0 18px color-mix(in srgb,var(--gl-warm) 20%,transparent),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+#mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+  background:linear-gradient(115deg,rgba(255,255,255,.12),rgba(255,255,255,.035)),
+    color-mix(in srgb,var(--gl-panel) 72%,transparent)!important;
+  border-color:color-mix(in srgb,var(--gl-border) 85%,rgba(255,255,255,.35))!important;
+  -webkit-backdrop-filter:blur(20px) saturate(1.7)!important;
+  backdrop-filter:blur(20px) saturate(1.7)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 4px 16px rgba(0,0,0,.08)!important;
+}
+@media(max-width:700px){
+  #mainScroll#mainScroll #content#content .split-side{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    flex:0 1 auto!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    max-height:220px!important;
+    overflow-y:auto!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #mainScroll#mainScroll #content#content .split-side .side-row{transition:none!important;}
+}
+</style>
+
+
+<style id="hot-bookmark-glass-sidebar-v3">
+/* v3：侧栏外框首屏完整呈现；只有分类/平台列表像播放器歌单一样独立滚动 */
+@media (min-width:701px){
+  #mainScroll#mainScroll #content#content .split-view{
+    align-items:start!important;
+    grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side{
+    position:sticky!important;
+    top:112px!important; /* 避开固定顶部导航 */
+    align-self:start!important;
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    height:min(720px,calc(100dvh - 160px))!important;
+    min-height:320px!important;
+    max-height:calc(100dvh - 160px)!important;
+    overflow:hidden!important;
+    flex:0 0 auto!important;
+    padding:0!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    box-shadow:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side-head{
+    flex:0 0 auto!important;
+    min-height:38px!important;
+    padding:1px 2px 11px!important;
+    border-bottom:1px solid rgba(255,255,255,.16)!important;
+    box-shadow:0 1px 0 rgba(0,0,0,.08)!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+    flex:0 0 38px!important;
+    margin-top:2px!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    display:flex!important;
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:0!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+    scrollbar-color:transparent transparent!important;
+    padding:5px 3px 3px!important;
+    mask-image:linear-gradient(to bottom,transparent 0,#000 9px,#000 calc(100% - 9px),transparent 100%);
+    -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9px,#000 calc(100% - 9px),transparent 100%);
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list::-webkit-scrollbar{
+    display:none!important;width:0!important;height:0!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row{
+    flex:0 0 auto!important;
+    background:linear-gradient(115deg,rgba(255,255,255,.075),rgba(255,255,255,.018))!important;
+    border-color:rgba(255,255,255,.075)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.075),0 2px 8px rgba(0,0,0,.045)!important;
+  }
+}
+@media(max-width:700px){
+  #mainScroll#mainScroll #content#content .split-side{
+    position:relative!important;
+    top:auto!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    flex:0 1 auto!important;
+    height:auto!important;
+    max-height:230px!important;
+    overflow-y:auto!important;
+    scrollbar-width:none!important;
+  }
+}
+</style>
+
+
+
+<style id="hot-bookmark-two-independent-panels-v4">
+/* V4：左右两栏同高、同起点；左侧筛选与右侧列表各自独立滚动。
+   不再使用 sticky 的 top 偏移，也不让右侧内容高度决定左侧外框高度。 */
+@media (min-width:701px){
+  #mainScroll#mainScroll #content#content .split-view{
+    display:grid!important;
+    grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr)!important;
+    align-items:stretch!important;
+    gap:16px!important;
+    height:clamp(320px,calc(100dvh - 190px),760px)!important;
+    min-height:320px!important;
+    max-height:calc(100dvh - 150px)!important;
+    overflow:hidden!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side{
+    position:relative!important;
+    inset:auto!important;
+    align-self:stretch!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    overflow:hidden!important;
+  }
+  #mainScroll#mainScroll #content#content .split-main{
+    align-self:stretch!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-height:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-main::-webkit-scrollbar{
+    display:none!important;width:0!important;height:0!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:0!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+  }
+}
+@media (max-width:700px){
+  #mainScroll#mainScroll #content#content .split-view{
+    display:flex!important;flex-direction:column!important;
+    height:auto!important;min-height:0!important;max-height:none!important;
+    overflow:visible!important;align-items:stretch!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side{
+    position:relative!important;inset:auto!important;
+    width:100%!important;height:auto!important;
+    min-height:0!important;max-height:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    flex:0 1 auto!important;height:auto!important;
+    max-height:220px!important;overflow-y:auto!important;
+  }
+  #mainScroll#mainScroll #content#content .split-main{
+    width:100%!important;height:auto!important;max-height:none!important;
+    min-height:0!important;overflow:visible!important;
+  }
+}
+</style>
+
+
+<style id="hot-bookmark-home-two-panel-layout-v5">
+/* V5：完全沿用首页 feed-col 的固定外框思路。
+   feedScroll 不再承担整页滚动；左右两个面板始终完整可见，内容分别在各自面板内滚动。 */
+@media (min-width:701px){
+  /* 只在热搜/书签视图锁定内容视口，不影响说说、影视等其他页面 */
+  #feedScroll#feedScroll:has(#content > .split-view){
+    display:flex!important;
+    flex:1 1 auto!important;
+    flex-direction:column!important;
+    min-height:0!important;
+    height:100%!important;
+    overflow:hidden!important;
+    overscroll-behavior:contain!important;
+  }
+  #content#content:has(> .split-view){
+    display:flex!important;
+    flex:1 1 auto!important;
+    flex-direction:column!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    box-sizing:border-box!important;
+    padding:14px!important;
+    overflow:hidden!important;
+  }
+  #mainScroll#mainScroll #content#content .split-view{
+    display:grid!important;
+    grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
+    grid-template-rows:minmax(0,1fr)!important;
+    align-items:stretch!important;
+    flex:1 1 auto!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    gap:14px!important;
+    overflow:hidden!important;
+  }
+  /* 左侧：整个筛选面板是外框，标题/搜索固定，只有分类列表滚动 */
+  #mainScroll#mainScroll #content#content .split-side{
+    position:relative!important;
+    inset:auto!important;
+    align-self:stretch!important;
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .split-side-head,
+  #mainScroll#mainScroll #content#content .split-side > label.input{
+    flex:0 0 auto!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    display:flex!important;
+    flex:1 1 0!important;
+    flex-direction:column!important;
+    min-height:0!important;
+    height:0!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  /* 右侧：同样是一整个固定外框；热搜/书签列表只在内部滚动 */
+  #mainScroll#mainScroll #content#content .split-main{
+    position:relative!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-self:stretch!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:10px 12px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    border:0!important;
+    border-left:1px solid var(--sp-line)!important;   /* 与说说列表同款细线，替代嵌套玻璃卡 */
+    border-radius:0!important;
+    color:var(--sp-ink)!important;
+    background:transparent!important;
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    box-shadow:none!important;
+  }
+  #mainScroll#mainScroll #content#content .hot-body,
+  #mainScroll#mainScroll #content#content .bm-body{
+    flex:1 1 auto!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:0!important;
+    padding:3px 2px 8px!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:thin!important;
+    scrollbar-color:var(--sp-line) transparent!important;
+  }
+}
+@media (max-width:700px){
+  #feedScroll#feedScroll:has(#content > .split-view){
+    display:block!important;
+    height:auto!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;   /* 手机端整页滚动仍发生在 feedScroll：visible 会被 fixed 外框裁掉，列表就拉不动了 */
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  #content#content:has(> .split-view){
+    display:block!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  #mainScroll#mainScroll #content#content .split-view{
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side,
+  #mainScroll#mainScroll #content#content .split-main{
+    height:auto!important;
+    max-height:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-main{
+    overflow:visible!important;
+  }
+  #mainScroll#mainScroll #content#content .hot-body,
+  #mainScroll#mainScroll #content#content .bm-body{
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+/* 热搜/书签视图用不到首页无限滚动的哨兵，收起它，双面板才能贴满父级底部（不再矮一截） */
+#feedScroll#feedScroll:has(#content > .split-view) > #sentinel{display:none!important;}
+</style>
+
+
+<style id="hot-bookmark-glass-sidebar-final">
+/* Final polish: one coherent glass sidebar, quieter category rows, clean rounded clipping.
+   Visual-only overrides; platform/category selection and scrolling logic remain untouched. */
+@media (min-width:701px){
+  #mainScroll#mainScroll #content#content .split-side{
+    position:relative!important;
+    inset:auto!important;
+    align-self:stretch!important;
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:13px 11px 10px!important;
+    overflow:hidden!important;
+    isolation:isolate!important;
+    box-sizing:border-box!important;
+    border:1px solid color-mix(in srgb,var(--gl-border) 88%,rgba(255,255,255,.28))!important;
+    border-radius:15px!important;
+    background:
+      radial-gradient(ellipse at 8% 0%,rgba(255,255,255,.13),transparent 48%),
+      linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018) 58%,rgba(170,130,255,.055)),
+      color-mix(in srgb,var(--gl-panel) 88%,transparent)!important;
+    -webkit-backdrop-filter:blur(24px) saturate(1.55)!important;
+    backdrop-filter:blur(24px) saturate(1.55)!important;
+    box-shadow:
+      0 10px 28px rgba(4,2,14,.14),
+      inset 0 1px 0 rgba(255,255,255,.16),
+      inset 0 -1px 0 rgba(255,255,255,.035)!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side::before{
+    content:""!important;
+    position:absolute!important;
+    inset:0!important;
+    z-index:0!important;
+    pointer-events:none!important;
+    border-radius:inherit!important;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.045),transparent 28%),
+      radial-gradient(ellipse at 100% 100%,color-mix(in srgb,var(--gl-glow) 8%,transparent),transparent 55%)!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side > *{
+    position:relative!important;
+    z-index:1!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .split-side-head{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+    min-height:42px!important;
+    margin:0 1px 7px!important;
+    padding:0 3px 10px!important;
+    border-bottom:1px solid color-mix(in srgb,var(--gl-border) 70%,transparent)!important;
+    box-shadow:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side-title{
+    color:var(--sp-ink)!important;
+    font-size:.9rem!important;
+    font-weight:700!important;
+    letter-spacing:.12em!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    display:flex!important;
+    flex:1 1 0!important;
+    flex-direction:column!important;
+    gap:3px!important;
+    min-height:0!important;
+    height:0!important;
+    max-height:none!important;
+    padding:5px 2px 8px!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+    mask-image:none!important;
+    -webkit-mask-image:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row{
+    position:relative!important;
+    display:flex!important;
+    flex:0 0 auto!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:9px!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:39px!important;
+    padding:8px 10px 8px 12px!important;
+    border:1px solid transparent!important;
+    border-radius:9px!important;
+    background:transparent!important;
+    color:var(--sp-muted)!important;
+    -webkit-text-fill-color:var(--sp-muted)!important;
+    box-shadow:none!important;
+    text-align:left!important;
+    font:inherit!important;
+    font-size:.84rem!important;
+    font-weight:500!important;
+    transition:background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row:hover{
+    background:color-mix(in srgb,var(--gl-glow) 10%,rgba(255,255,255,.035))!important;
+    border-color:color-mix(in srgb,var(--gl-glow) 24%,transparent)!important;
+    color:var(--sp-ink)!important;
+    -webkit-text-fill-color:var(--sp-ink)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row.active{
+    background:linear-gradient(100deg,
+      color-mix(in srgb,var(--gl-warm) 13%,transparent),
+      color-mix(in srgb,var(--gl-glow) 7%,transparent))!important;
+    border-color:color-mix(in srgb,var(--gl-warm) 34%,transparent)!important;
+    color:var(--gl-warm)!important;
+    -webkit-text-fill-color:var(--gl-warm)!important;
+    box-shadow:inset 2px 0 0 var(--gl-warm),0 0 13px color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
+    font-weight:650!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row-name{
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row-count{
+    flex:0 0 auto!important;
+    min-width:1.6em!important;
+    text-align:right!important;
+    color:inherit!important;
+    opacity:.58!important;
+    font-family:var(--font-num)!important;
+    font-size:.7rem!important;
+    font-variant-numeric:tabular-nums!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+    display:flex!important;
+    flex:0 0 37px!important;
+    align-items:center!important;
+    width:100%!important;
+    min-height:37px!important;
+    height:37px!important;
+    margin:1px 0 5px!important;
+    padding:0 10px!important;
+    border:1px solid color-mix(in srgb,var(--gl-border) 85%,transparent)!important;
+    border-radius:9px!important;
+    background:rgba(255,255,255,.045)!important;
+    color:var(--sp-muted)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.09)!important;
+    -webkit-backdrop-filter:blur(12px) saturate(1.35)!important;
+    backdrop-filter:blur(12px) saturate(1.35)!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side label.input:focus-within{
+    border-color:color-mix(in srgb,var(--gl-glow) 48%,var(--gl-border))!important;
+    box-shadow:0 0 12px color-mix(in srgb,var(--gl-glow) 16%,transparent),inset 0 1px 0 rgba(255,255,255,.1)!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .bm-search{
+    min-width:0!important;
+    background:transparent!important;
+    border:0!important;
+    outline:0!important;
+    box-shadow:none!important;
+    color:var(--sp-ink)!important;
+    -webkit-text-fill-color:var(--sp-ink)!important;
+    font-size:.76rem!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .bm-search::placeholder{
+    color:var(--sp-muted)!important;
+    -webkit-text-fill-color:var(--sp-muted)!important;
+    opacity:.72!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .hot-refresh{
+    width:30px!important;height:30px!important;min-height:30px!important;
+    padding:0!important;
+    border:1px solid var(--gl-border)!important;
+    border-radius:8px!important;
+    background:rgba(255,255,255,.055)!important;
+    color:var(--sp-muted)!important;
+    box-shadow:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .hot-refresh:hover{
+    color:var(--gl-warm)!important;
+    border-color:color-mix(in srgb,var(--gl-warm) 48%,transparent)!important;
+    background:color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
+    box-shadow:0 0 12px color-mix(in srgb,var(--gl-warm) 12%,transparent)!important;
+  }
+}
+/* Glass surfaces with rounded corners must clip their own contents, not expose
+   rectangular compositor/backdrop-filter edges around the radius. */
+#mainScroll#mainScroll .feed-col,
+#mainScroll#mainScroll .music-rail{
+  border-radius:16px!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  background-clip:padding-box!important;
+  -webkit-background-clip:padding-box!important;
+}
+#mainScroll#mainScroll #content#content .split-side{
+  border-radius:15px!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  background-clip:padding-box!important;
+}
+#mainScroll#mainScroll #content#content .split-side::before{
+  border-radius:inherit!important;
+}
+@media(max-width:700px){
+  #mainScroll#mainScroll #content#content .split-side{
+    position:relative!important;
+    inset:auto!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    padding:11px!important;
+    border-radius:13px!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-list{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    flex:0 1 auto!important;
+    height:auto!important;
+    max-height:220px!important;
+    gap:4px!important;
+    overflow-y:auto!important;
+    mask-image:none!important;
+    -webkit-mask-image:none!important;
+  }
+  #mainScroll#mainScroll #content#content .split-side .side-row{
+    min-width:0!important;
+    min-height:36px!important;
+    padding:7px 8px!important;
+    border-radius:8px!important;
+    font-size:.78rem!important;
+  }
+}
+</style>
+
+
+<style id="hot-bookmark-outline-only-final">
+/* 热搜 / 书签左栏：改成播放器歌单式的透明分区，只留轮廓，不再叠加第二层玻璃底色 */
+#mainScroll#mainScroll #content#content .split-side{
+  background:transparent!important;
+  background-image:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+  border:1px solid color-mix(in srgb,var(--gl-border) 76%,rgba(255,255,255,.12))!important;
+  border-radius:13px!important;
+  overflow:hidden!important;
+  isolation:auto!important;
+}
+#mainScroll#mainScroll #content#content .split-side::before{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+}
+#mainScroll#mainScroll #content#content .split-side .split-side-head{
+  background:transparent!important;
+  box-shadow:none!important;
+  border-bottom:1px solid color-mix(in srgb,var(--gl-border) 58%,transparent)!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-list{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row{
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  border-radius:8px!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row:hover{
+  background:color-mix(in srgb,var(--gl-glow) 7%,transparent)!important;
+  border-color:color-mix(in srgb,var(--gl-border) 42%,transparent)!important;
+  box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .split-side .side-row.active{
+  background:color-mix(in srgb,var(--gl-warm) 8%,transparent)!important;
+  border-color:color-mix(in srgb,var(--gl-warm) 27%,transparent)!important;
+  box-shadow:inset 2px 0 0 color-mix(in srgb,var(--gl-warm) 82%,transparent)!important;
+}
+#mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+  background:transparent!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+#mainScroll#mainScroll #content#content .split-side .hot-refresh{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+@media(max-width:700px){
+  #mainScroll#mainScroll #content#content .split-side{
+    background:transparent!important;
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    box-shadow:none!important;
+    border-radius:11px!important;
+  }
+}
+</style>
+
+
+
+<style id="home-panels-rounded-glass-fix">
+/*
+ * 首页说说区与播放器：修复圆角处暗色矩形接缝。
+ * 将背景、描边和 backdrop-filter 放到独立的圆角伪元素上，
+ * 内容层保持透明并位于其上方，避免滤镜直接作用于滚动容器。
+ */
+#mainScroll#mainScroll .feed-col,
+#mainScroll#mainScroll .music-rail{
+  position:relative!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  clip-path:inset(0 round 12px);
+  -webkit-clip-path:inset(0 round 12px);
+}
+
+/* 独立玻璃底层：圆角、背景、模糊和描边在同一图层内完成 */
+#mainScroll#mainScroll .feed-col::before,
+#mainScroll#mainScroll .music-rail::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  border:1px solid var(--gl-border)!important;
+  border-radius:12px!important;
+  background:var(--gl-panel)!important;
+  background-clip:padding-box!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;
+  backdrop-filter:blur(22px) saturate(1.5)!important;
+  /* 玻璃层在面板的 overflow:hidden 内，外投影画不出去；这里只留顶部亮边 */
+  box-shadow:inset 0 1px 0 var(--gl-rim)!important;
+}
+
+/* 内容层不再绘制第二块矩形底色 */
+#mainScroll#mainScroll .feed-col > *,
+#mainScroll#mainScroll .music-rail > *{
+  position:relative;
+  z-index:1;
+}
+#mainScroll#mainScroll #feedScroll,
+#mainScroll#mainScroll #musicRail .rail-player{
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+/* 小屏布局继续使用更紧凑的圆角 */
+@media(max-width:700px){
+  #mainScroll#mainScroll .feed-col,
+  #mainScroll#mainScroll .music-rail{
+    border-radius:10px!important;
+    clip-path:inset(0 round 10px);
+    -webkit-clip-path:inset(0 round 10px);
+  }
+  #mainScroll#mainScroll .feed-col::before,
+  #mainScroll#mainScroll .music-rail::before{
+    border-radius:10px!important;
+  }
+}
+
+/* ---------- 桌面双栏：把投影真正投到桌布上 ----------
+   面板外面那层 .page-container 也在裁剪，放开它才留得下阴影；
+   两块面板自身仍是 overflow:hidden + 圆角，内容照旧被自己剪住，
+   实测容器 scrollHeight 与高度相等，不裁剪不会有东西溢出去。
+   小屏两块是通栏的，投影没有落点，维持原样。 */
+@media(min-width:701px){
+  .page-container.page-container{ overflow:visible!important; }
+  #mainScroll#mainScroll .feed-col,
+  #mainScroll#mainScroll .music-rail{
+    clip-path:none!important;
+    -webkit-clip-path:none!important;
+    box-shadow:var(--gl-float)!important;
+  }
+}
+</style>
+
 </body>
 </html>
