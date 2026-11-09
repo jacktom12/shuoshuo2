@@ -10513,8 +10513,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
     if (!raw) { VARS.forEach(v => card.style.removeProperty(v)); return; }
     const dark = isDarkTheme(document.documentElement.dataset.theme);
     const hue = Math.round(raw.h);
-    /* 纸面这套跟着主色占比走淡，占比低就几乎看不出来 */
-    const mix = .35 + .65 * raw.share;
+    /* 纸面这套跟着主色占比走淡，但下限抬高：占比低也得一眼看得出是这张海报的色 */
+    const mix = .6 + .4 * raw.share;
     const sat = cap => Math.round(Math.min(raw.s * 100, cap) * mix);
     const col = (cap, light, alpha) =>
       `hsl(${hue} ${sat(cap)}% ${light}%${alpha ? ' / ' + alpha : ''})`;
@@ -10523,8 +10523,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
     const glowSat = Math.min(72, Math.max(30, Math.round(raw.s * 100) + 12));
     const glow = dark ? `hsl(${hue} ${glowSat}% 54% / .5)` : `hsl(${hue} ${glowSat}% 42% / .55)`;
     const v = dark
-      ? [col(34, 12), col(46, 52, .3), col(46, 62, .18), col(22, 74), glow]
-      : [col(36, 93), col(52, 40, .32), col(52, 34, .24), col(24, 30), glow];
+      ? [col(58, 13), col(66, 54, .38), col(66, 64, .22), col(40, 76), glow]
+      : [col(50, 93), col(58, 38, .38), col(58, 32, .28), col(36, 30), glow];
     VARS.forEach((name, i) => card.style.setProperty(name, v[i]));
   }
 
