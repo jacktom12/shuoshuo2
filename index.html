@@ -10482,16 +10482,16 @@ canvas.hw-pfx{
 }
 /* hover：整圈发光，不位移、不铺色块；原来的落影留着，卡片才不会像被抠起来。
    background 得在这里再写一遍——前面有一层 hover 把底色清成了 transparent，
-   不补的话一 hover 相纸就没了，露出底下的壁纸。 */
-@media (hover:hover){
-  #mainScroll#mainScroll #content#content .poster-card:hover{
-    background:var(--po-paper)!important;
-    border-color:var(--po-glow)!important;
-    box-shadow:
-      inset 0 0 16px -10px var(--po-glow),
-      0 0 0 1px var(--po-glow),0 0 18px 2px var(--po-glow),0 0 42px -2px var(--po-glow),
-      var(--po-shadow-card)!important;
-  }
+   不补的话一 hover 相纸就没了，露出底下的壁纸。
+   不套 @media (hover:hover)：手机点中元素也会挂 :hover，套上就只有 PC 拿得到这圈光，
+   手机上剩下的只有那层把相纸清透明的旧规则。 */
+#mainScroll#mainScroll #content#content .poster-card:hover{
+  background:var(--po-paper)!important;
+  border-color:var(--po-glow)!important;
+  box-shadow:
+    inset 0 0 16px -10px var(--po-glow),
+    0 0 0 1px var(--po-glow),0 0 18px 2px var(--po-glow),0 0 42px -2px var(--po-glow),
+    var(--po-shadow-card)!important;
 }
 html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #content#content .poster-card:hover img{
   filter:brightness(.86)!important;
