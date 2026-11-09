@@ -1667,18 +1667,25 @@ function initImgBox() {
   const touchMQ = matchMedia('(hover:none) and (pointer:coarse)');
   const isTouch = () => touchMQ.matches;
   let tScale = 1, tX = 0, tY = 0;
+  let dScale = 1;         // 上滑退出时的轻微缩小，只在这条路径上不等于 1
   let slideIn = 0;        // 滑动切图后，新图从哪一侧滑入（+1 右 / -1 左）
   let animating = false;  // 切图动画期间不接手势
   let animTimer = 0;
+  const mask = box.querySelector('.imgbox-mask');
+
+  // 上滑时背景跟着变淡，手能感到「真在关掉」；k=1 就完全交回 CSS
+  function veil(k) { mask.style.opacity = k >= 1 ? '' : String(Math.max(0, k)); }
 
   function applyTransform() {
-    img.style.transform = tScale === 1 && !tX && !tY ? '' : `translate(${tX}px,${tY}px) scale(${tScale})`;
+    img.style.transform = tScale === 1 && dScale === 1 && !tX && !tY ? '' : `translate(${tX}px,${tY}px) scale(${tScale * dScale})`;
   }
   function resetTransform() {
     clearTimeout(animTimer);
     img.style.transition = 'none';
-    tScale = 1; tX = 0; tY = 0;
+    mask.style.transition = 'none';
+    tScale = 1; tX = 0; tY = 0; dScale = 1;
     applyTransform();
+    veil(1);
   }
   // 布局几何（不含 transform）：rect 中心减去平移就是未变换时的中心
   function baseRect() {
@@ -1875,12 +1882,14 @@ function initImgBox() {
   const pointers = new Map();
   let gesture = null;
   let swipeSamples = [];
+  let upSamples = [];
   let lastTap = { t: 0, x: 0, y: 0 };
 
   function settleFit() {
     img.style.transition = 'transform .18s ease-out';
-    tScale = 1; tX = 0; tY = 0; zoom = fitZoom;
+    tScale = 1; tX = 0; tY = 0; dScale = 1; zoom = fitZoom;
     applyTransform(); label();
+    veil(1);
     clearTimeout(animTimer);
     animTimer = setTimeout(() => { img.style.transition = 'none'; }, 190);
   }
@@ -1896,6 +1905,16 @@ function initImgBox() {
       else { slideIn = 0; animating = false; }
     }, 200);
   }
+  // 上滑过了线就让它飞完：图继续上移并收到 0.9，背景同步淡到全透，动画结束再真关窗
+  function dismissCommit() {
+    animating = true;
+    img.style.transition = 'transform .2s cubic-bezier(.5,0,.75,.4)';
+    mask.style.transition = 'opacity .2s linear';
+    tY = -view.clientHeight * .9; dScale = .9; applyTransform();
+    veil(0);
+    clearTimeout(animTimer);
+    animTimer = setTimeout(close, 200);
+  }
 
   view.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch' || !isTouch() || animating || !natural.w) return;
@@ -1903,6 +1922,7 @@ function initImgBox() {
     try { view.setPointerCapture(e.pointerId); } catch {}
     clearTimeout(animTimer);
     img.style.transition = 'none';
+    mask.style.transition = 'none';
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
@@ -1910,6 +1930,7 @@ function initImgBox() {
     } else if (pointers.size === 1) {
       gesture = { mode: 'wait', x0: e.clientX, y0: e.clientY, tx0: tX, ty0: tY, t0: performance.now(), target: e.target };
       swipeSamples = [{ x: e.clientX, t: performance.now() }];
+      upSamples = [{ y: e.clientY, t: performance.now() }];
     }
   });
   view.addEventListener('pointermove', e => {
@@ -1937,6 +1958,9 @@ function initImgBox() {
       if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
       if (tScale > 1.01) gesture.mode = 'pan';
       else if (group.length > 1 && Math.abs(dx) > Math.abs(dy) * 1.2) gesture.mode = 'swipe';
+      // 没放大时的上滑＝退出：满屏后点图外不好够着，往上拽就当成关窗的手势。
+      // 只认向上，往下仍然不做事，免得想切图的手势被误判成退出。
+      else if (dy < 0 && Math.abs(dy) > Math.abs(dx) * 1.2) gesture.mode = 'dismiss';
       else gesture.mode = 'dead';   // 适配比例下的竖向滑动不做事，touch-action 已禁掉页面滚动
     }
     if (gesture.mode === 'pan') {
@@ -1946,6 +1970,14 @@ function initImgBox() {
       tX = dx; tY = 0; applyTransform();
       swipeSamples.push({ x: p.x, t: performance.now() });
       if (swipeSamples.length > 6) swipeSamples.shift();
+    } else if (gesture.mode === 'dismiss') {
+      // 图跟手上移，越往上拽收得越小、背景越淡，两个量都按半屏高归一
+      tX = 0; tY = gesture.ty0 + dy;
+      const k = Math.min(1, -tY / (view.clientHeight * .5));
+      dScale = 1 - .1 * k;
+      applyTransform(); veil(1 - .62 * k);
+      upSamples.push({ y: p.y, t: performance.now() });
+      if (upSamples.length > 6) upSamples.shift();
     }
   });
   const pointerEnd = e => {
@@ -1965,9 +1997,10 @@ function initImgBox() {
     }
     if (pointers.size > 0) return;
     if (gesture.mode === 'wait' && performance.now() - gesture.t0 < 300) {
-      // 没挪过窝的快击：点在图外＝关窗（满屏后没有 ✕，图外 backdrop 是唯一出口）；
-      // 点在图上＝双击判定：双击放大 8%，再双击回到适配比例
-      if (gesture.target !== img) { close(); gesture = null; return; }
+      // 快击只在图上有效：双击放大 8%，再双击回到适配比例。
+      // 图外不再关窗——满屏后遮罩外的空白正压在别的说说的缩略图上，
+      // 一按就误开别人的图；退出改走上滑手势。
+      if (gesture.target !== img) { gesture = null; return; }
       const now = performance.now();
       if (now - lastTap.t < 350 && Math.hypot(gesture.x0 - lastTap.x, gesture.y0 - lastTap.y) < 32) {
         lastTap.t = 0;
@@ -1990,6 +2023,22 @@ function initImgBox() {
         tX = 0; applyTransform();
         clearTimeout(animTimer);
         animTimer = setTimeout(() => { img.style.transition = 'none'; }, 230);
+      }
+    }
+    if (gesture.mode === 'dismiss') {
+      let v = 0;
+      if (upSamples.length >= 2) {
+        const a = upSamples[0], b = upSamples[upSamples.length - 1];
+        if (b.t > a.t) v = (b.y - a.y) / (b.t - a.t);
+      }
+      // 拽过半屏的十四分之一，或者手速够快（哪怕只挪了一点）就放手让它走
+      if (tY < -view.clientHeight * .14 || (v < -.45 && tY < -24)) dismissCommit();
+      else {
+        img.style.transition = 'transform .22s cubic-bezier(.22,.9,.32,1)';
+        mask.style.transition = 'opacity .22s ease-out';
+        tY = gesture.ty0; dScale = 1; applyTransform(); veil(1);
+        clearTimeout(animTimer);
+        animTimer = setTimeout(() => { img.style.transition = 'none'; mask.style.transition = 'none'; }, 230);
       }
     }
     gesture = null;
