@@ -8768,7 +8768,7 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
 }
 @media (max-width:1023px){.music-rail{display:none!important;}}
 @media (max-width:760px){
-  #mainScroll#mainScroll{padding-inline:10px!important;}
+  #mainScroll#mainScroll{padding-inline:4px!important;}
   #topBar .topbar-inner{padding:18px 0 13px;}
   #topBar .retro-site-name{font-size:18px;}#topBar .retro-site-desc{font-size:16px;}
   #topBar .retro-motto{font-size:9px;letter-spacing:.04em;}
@@ -9099,7 +9099,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
 .retro-tools .tab-btn.active,.retro-tools .tab-btn[data-view].active{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;box-shadow:inset 0 -2px 0 var(--sp-accent)!important;}
 .retro-tools .tab-btn.active::before{content:none!important;}
 .retro-tools #tagSelectedCount{font:10px var(--font-num);color:inherit;}
-.retro-tools #musicDot:not(.hidden){display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--sp-accent);}
+#mainScroll#mainScroll .retro-tools #musicDot:not(.hidden){display:inline-block;width:5px;height:5px;border-radius:50%!important;background:var(--sp-accent);}
 
 /* ---------- 分类：从竖排图标条改成横排盒子（图标在上、名字在下） ---------- */
 .nav-rail{min-width:0!important;min-height:0!important;padding:14px 0 0!important;overflow:visible!important;}
@@ -9123,6 +9123,9 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
 
 /* ---------- 窄屏：工具收成图标、分类盒子同比缩小 ---------- */
 @media (max-width:760px){
+  /* 面板四周的沟距收窄，列表拿到更多可用面积；内部留白与列数不动 */
+  .page-container.page-container{padding-top:8px!important;}
+  #mainScroll#mainScroll{padding-bottom:max(6px, env(safe-area-inset-bottom, 0px))!important;}
   .feed-head{padding:15px 14px 12px!important;}
   .feed-head-top{gap:10px!important;}
   .retro-site-name{font-size:20px!important;}
@@ -9358,6 +9361,77 @@ canvas.hw-pfx{
   position:absolute;left:0;top:-16px;width:100%;height:calc(100% + 16px);
   pointer-events:none;z-index:2;
 }
+
+/* ---------- 手机音乐抽屉与弹层/常驻栏同材质 ----------
+   抽屉此前还穿着更早的 g- 玻璃层（粉描边方按钮、Space Mono 数字、虚线分隔），
+   而标签抽屉与右侧常驻播放器都已是 gl 面板 + sp 排版，手机一开抽屉就串味。
+   外壳照 #tagBar 的「弹层同材质」来（右侧滑出，圆角留在左侧），内部照 .rail-player 重铺；
+   选择器全部钉在 #musicDrawer 上，桌面常驻栏一行不沾。 */
+#musicDrawer#musicDrawer{
+  background:var(--gl-panel)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
+  border:1px solid var(--gl-border)!important;
+  border-radius:16px 0 0 16px!important;
+  box-shadow:var(--gl-shadow)!important;
+  font-family:var(--font-family)!important;
+  --bg:var(--sp-panel);--paper:var(--sp-panel);
+  --border:var(--sp-line);--border-light:var(--sp-line);
+  --text:var(--sp-ink);--text-main:var(--sp-ink);
+  --secondary-text:var(--sp-muted);--text-muted:var(--sp-muted);
+  --accent:var(--sp-accent);--accent-color:var(--sp-accent);--accent-dark:var(--sp-soft);
+  --bg-player:var(--sp-soft);--dot-normal:var(--sp-line);
+}
+/* 抽屉自带的「歌单」条与关闭键：发丝线压底，关闭键跟控制键同款裸图标 */
+#musicDrawer .drawer-header{ border-bottom:1px solid var(--sp-line)!important; padding-bottom:10px!important; }
+#musicDrawer .drawer-title{ color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;font-family:var(--font-family)!important; }
+#musicDrawer .drawer-close{
+  width:32px!important;height:32px!important;justify-content:center!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease!important;
+}
+#musicDrawer .drawer-close:hover{
+  background:transparent!important;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+}
+/* 控制键：与常驻栏同款裸图标键，选中/悬停只变色不铺底 */
+#musicDrawer .hw-btn{
+  width:32px!important;height:32px!important;padding:5px!important;
+  border:0!important;
+  background:transparent!important;background-image:none!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;box-shadow:none!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease!important;
+}
+#musicDrawer .hw-btn:hover{
+  background:transparent!important;transform:none!important;
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+}
+#musicDrawer .hw-btn.active{ color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important; }
+/* 循环档位键：撤掉更早 k2 层给的立体渐变底，回到档位名变色 */
+#musicDrawer .hw-pl-repeat{ gap:4px!important;padding:5px 6px!important;font-family:var(--font-family)!important; }
+#musicDrawer .hw-repeat-flag{ font:9px/1.2 var(--font-family)!important; }
+#musicDrawer .hw-pl-repeat[data-repeat-mode="all"],
+#musicDrawer .hw-pl-repeat[data-repeat-mode="one"]{
+  background:transparent!important;background-image:none!important;border-color:transparent!important;box-shadow:none!important;
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+}
+/* 歌单头 / 封面 / 曲目行：常驻栏同款字号与色阶 */
+#musicDrawer .hw-pl-header{ margin:0 0 10px!important;padding:0 0 12px!important;border-bottom:1px solid var(--sp-line)!important; }
+#musicDrawer .hw-pl-cover{ border:0!important;background:var(--sp-soft)!important; }
+#musicDrawer .hw-pl-title{ color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;font-size:15px!important;font-family:var(--font-family)!important; }
+#musicDrawer .hw-pl-artist{ margin-top:4px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font-size:12px!important;font-family:var(--font-family)!important; }
+#musicDrawer .hw-pl-count{ margin-top:3px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font-size:11px!important; }
+#musicDrawer .hw-pl-progress-row{ gap:7px!important;margin:0 0 7px!important; }
+#musicDrawer .hw-time{ min-width:30px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font:9px/1 var(--font-num)!important; }
+#musicDrawer .hw-pl-list{ margin-top:0!important;padding-top:5px!important;border-top:1px solid var(--sp-line)!important; }
+#musicDrawer .hw-pl-row{ gap:7px!important;padding:8px 6px!important;border:0!important; }
+/* 正在播放那行有专属霓虹（上面的共享规则），hover 底色只给普通行 */
+#musicDrawer .hw-pl-row:hover:not(.playing){ background:var(--sp-soft)!important; }
+#musicDrawer .hw-pl-row-idx{ width:17px!important;flex-basis:17px!important;color:var(--sp-muted)!important;font:10px/1 var(--font-num)!important; }
+#musicDrawer .hw-pl-row-thumb{ width:30px!important;height:30px!important;flex-basis:30px!important;border:0!important;background:var(--sp-soft)!important; }
+#musicDrawer .hw-pl-row-title{ color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;font-size:12px!important;font-weight:400!important;font-family:var(--font-family)!important; }
+#musicDrawer .hw-pl-row-artist{ margin-top:2px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font-size:10px!important;font-family:var(--font-family)!important; }
+#musicDrawer .hw-pl-row-playicon{ color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important; }
 
 </style>
 <script>
@@ -10370,14 +10444,14 @@ canvas.hw-pfx{
 #mainScroll#mainScroll .music-rail{
   position:relative!important;
   border:0!important;
-  border-radius:12px!important;
+  border-radius:8px!important;
   background:transparent!important;
   background-image:none!important;
   box-shadow:none!important;
   overflow:hidden!important;
   isolation:isolate!important;
-  clip-path:inset(0 round 12px);
-  -webkit-clip-path:inset(0 round 12px);
+  clip-path:inset(0 round 8px);
+  -webkit-clip-path:inset(0 round 8px);
 }
 
 /* 独立玻璃底层：圆角、背景、模糊和描边在同一图层内完成 */
@@ -10390,7 +10464,7 @@ canvas.hw-pfx{
   z-index:0!important;
   pointer-events:none!important;
   border:1px solid var(--gl-border)!important;
-  border-radius:12px!important;
+  border-radius:8px!important;
   background:var(--gl-panel)!important;
   background-clip:padding-box!important;
   -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;
@@ -10416,13 +10490,13 @@ canvas.hw-pfx{
 @media(max-width:700px){
   #mainScroll#mainScroll .feed-col,
   #mainScroll#mainScroll .music-rail{
-    border-radius:10px!important;
-    clip-path:inset(0 round 10px);
-    -webkit-clip-path:inset(0 round 10px);
+    border-radius:7px!important;
+    clip-path:inset(0 round 7px);
+    -webkit-clip-path:inset(0 round 7px);
   }
   #mainScroll#mainScroll .feed-col::before,
   #mainScroll#mainScroll .music-rail::before{
-    border-radius:10px!important;
+    border-radius:7px!important;
   }
 }
 
