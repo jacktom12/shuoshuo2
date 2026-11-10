@@ -9433,6 +9433,101 @@ canvas.hw-pfx{
 #musicDrawer .hw-pl-row-artist{ margin-top:2px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font-size:10px!important;font-family:var(--font-family)!important; }
 #musicDrawer .hw-pl-row-playicon{ color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important; }
 
+/* ---------- Ctrl+K 搜索 / 说说详情弹窗：内部控件跟上 gl+sp ----------
+   外壳早在「弹层同材质」里换成了 gl 玻璃，里面的输入行、结果行、键位提示
+   还穿着 nb 贴纸层与 g- 旧配色（黄色选中块、灰边方块键、btn-ghost 灰底）。
+   按站点现行惯例重铺：发丝线、sp-soft 悬停、键盘选中＝暖橙霓虹（同导航盒/热搜选中/正在播放行）；
+   面板内圆角都被 .cmdk-panel.cmdk-panel * 清零，全部凑双 id 才拿得回来。 */
+#cmdkOverlay#cmdkOverlay .cmdk-input-row,
+#cmdkMemoModal#cmdkMemoModal .cmdk-memo-bar{
+  border-bottom:1px solid var(--sp-line)!important;
+}
+#cmdkOverlay#cmdkOverlay .cmdk-input-row .iconify{ color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:1!important; }
+#cmdkOverlay#cmdkOverlay .cmdk-input-row input{
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+  caret-color:var(--sp-accent)!important;
+}
+#cmdkOverlay#cmdkOverlay .cmdk-input-row input::placeholder{ color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:1!important; }
+/* 关闭键：跟播放器控制键同款裸图标，悬停只变色 */
+#cmdkOverlay#cmdkOverlay .cmdk-close,
+#cmdkMemoModal#cmdkMemoModal .cmdk-memo-close{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease!important;
+}
+#cmdkOverlay#cmdkOverlay .cmdk-close:hover,
+#cmdkMemoModal#cmdkMemoModal .cmdk-memo-close:hover{
+  background:transparent!important;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+}
+/* 结果行：10px 圆角同播放器曲目行，悬停 sp-soft */
+#cmdkOverlay#cmdkOverlay .cmdk-item,
+#cmdkMemoModal#cmdkMemoModal .cmdk-item{ border-radius:10px!important; }
+#cmdkOverlay#cmdkOverlay .cmdk-item:hover{ background:var(--sp-soft)!important; }
+/* 键盘选中：暖橙霓虹 */
+#cmdkOverlay#cmdkOverlay .cmdk-item.active{
+  background:color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gl-warm) 50%,transparent),0 0 14px color-mix(in srgb,var(--gl-warm) 22%,transparent)!important;
+  color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
+}
+/* 命中字标：主题色淡底 + 主题色字；选中行里随行变暖 */
+#cmdkOverlay#cmdkOverlay .cmdk-item mark,
+#cmdkMemoModal#cmdkMemoModal .cmdk-item mark{
+  background:color-mix(in srgb,var(--sp-accent) 16%,transparent)!important;
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+  border-radius:4px!important;padding:0 2px;
+}
+#cmdkOverlay#cmdkOverlay .cmdk-item.active mark{
+  background:color-mix(in srgb,var(--gl-warm) 22%,transparent)!important;
+  color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
+}
+/* 类型小方块：8px 圆度 */
+#cmdkOverlay#cmdkOverlay .cmdk-ico{ border-radius:8px!important; }
+/* 分组标题与底部键位条 */
+#cmdkOverlay#cmdkOverlay .cmdk-group-title{ color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:1!important; }
+#cmdkOverlay#cmdkOverlay .cmdk-footer{
+  border-top:1px solid var(--sp-line)!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:1!important;
+}
+/* 键位小键：透明底 + 发丝边 + 等宽数字字，撤掉 nb 硬阴影 */
+#cmdkOverlay#cmdkOverlay .cmdk-footer .kbd{
+  background:transparent!important;border:1px solid var(--sp-line)!important;box-shadow:none!important;
+  border-radius:6px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  font-family:var(--font-num)!important;
+}
+/* 结果列表滚动条：跟 feedScroll / 常驻栏同款细条 */
+#cmdkOverlay#cmdkOverlay .cmdk-results{ scrollbar-width:thin!important;scrollbar-color:var(--sp-line) transparent; }
+
+/* ---------- 歌词浮窗：跟上 gl 玻璃 + sp 排版 ----------
+   它还穿着 k2 层的旧 Win98 装（粉渐变标题栏、墨色粗框、硬投影），
+   与抽屉、搜索弹窗的「弹层同材质」脱节。外壳换 gl 面板，标题栏退成发丝线，
+   高亮行用主题强调色（浅色暖橙对奶油底对比只有 2.6:1，沿用青绿/淡紫一族）；
+   拖动逻辑一行没碰，z-index:120 压过贴顶导航照旧。 */
+#hwLyricsFloat#hwLyricsFloat{
+  background:var(--gl-panel)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
+  border:1px solid var(--gl-border)!important;
+  border-radius:14px!important;
+  box-shadow:var(--gl-shadow)!important;
+  font-family:var(--font-family)!important;
+}
+#hwLyricsFloat .hw-lyrics-float-bar{ background:transparent!important;border-bottom:1px solid var(--sp-line)!important; }
+#hwLyricsFloat .hw-lyrics-float-title{ color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;font-family:var(--font-family)!important; }
+/* 关闭键：跟播放器控制键同款裸图标 */
+#hwLyricsFloat .hw-lyrics-float-close{
+  background:transparent!important;box-shadow:none!important;border:0!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:1!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease!important;
+}
+#hwLyricsFloat .hw-lyrics-float-close:hover{ background:transparent!important;border:0!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important; }
+/* 歌词行：未唱到的行灰阶，正在唱的行上主题强调色加粗 */
+#hwLyricsFloat .hw-lyrics-line{ color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important; }
+#hwLyricsFloat .hw-lyrics-line.active{
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+  font-weight:700!important;
+}
+#hwLyricsFloat .hw-lyrics-empty{ color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:1!important; }
+
 </style>
 <script>
 /* 进度条填充 + 播放粒子：不碰播放器内部状态，每 tick 读 #hwGlobalAudio 和 .hw-progress。
