@@ -10663,6 +10663,27 @@ html.pop-lock body{ overflow:hidden !important; }
   flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain;
   padding:6px 16px calc(env(safe-area-inset-bottom, 0px) + 26px);
 }
+
+/* ---------- 手机通栏 + 浅色刊头纯白 ----------
+   两侧沟距清零：#mainScroll 的 4px 内边距、面板圆角裁掉的三角都露壁纸，
+   手机上看着就是两条缝；通栏后 feed-col 直角贴屏幕两边，::before 侧边框一并撤掉。
+   浅色刊头换纯白（不透明，磨砂随之关掉），跟手机浅色状态栏连成一片；
+   暗色刊头仍是玻璃。只动 ≤760px，桌面沟距/圆角/投影原样。 */
+@media (max-width:760px){
+  #mainScroll#mainScroll{ padding-inline:0 !important; }
+  .page-container.page-container{ margin-inline:0 !important; padding-inline:0 !important; }
+  #mainScroll#mainScroll .feed-col{
+    border-radius:0 !important;
+    clip-path:none !important; -webkit-clip-path:none !important;
+  }
+  #mainScroll#mainScroll .feed-col::before{
+    border-radius:0 !important; border-inline:0 !important;
+  }
+  html[data-theme="light"] .feed-head{
+    background-color:#fff !important; background-image:none !important;
+    -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  }
+}
 </style>
 <script id="poster-tint">
 /* ---------- 影视卡取色：相纸材质跟着海报主色走 ----------
