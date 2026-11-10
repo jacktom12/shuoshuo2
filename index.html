@@ -1178,7 +1178,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 .retro-stamps{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
 .retro-stamps span{border:1px solid var(--home-line);padding:2px 5px;font:9px/1.2 var(--k2-font-nav);letter-spacing:.04em;}
 .page-container.page-container{padding-top:20px!important;}
-@media(min-width:1024px){#topBar .menu-li-music{display:none!important;}}
 @media(max-width:1100px){.retro-nav-row{gap:3px;}#topBar .tab-btn{padding-inline:8px;}.retro-online{display:none;}}
 @media(max-width:800px){
 .retro-masthead{padding:12px 13px 9px;gap:8px;}.retro-site-name{font-size:22px;}.retro-site-desc{font-size:11px;}.retro-motto{font-size:10px;}
@@ -1197,9 +1196,11 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
       <div class="feed-head-top">
         <div class="retro-masthead">
           <div class="retro-identity"><span class="retro-site-name">文</span><span class="retro-site-slash">/</span><span class="retro-site-desc">碎碎念</span></div>
-          <span class="retro-motto">人生就是座监狱<span class="retro-online"> · dead inside</span></span>
+          <span class="retro-motto">人生就是座监狱<span class="retro-online"> · dead inside</span><span class="retro-copyright">©<span id="siteFooterYear"></span></span></span>
         </div>
         <ul aria-label="网站工具" class="retro-tools">
+          <li><button aria-label="热搜" class="tab-btn" data-view="hot" type="button"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></button></li>
+          <li><button aria-label="书签" class="tab-btn" data-view="bookmarks" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></button></li>
           <li><button aria-label="世界时间" class="tab-btn" data-view="worldtime" type="button"><span class="iconify" data-icon="lucide:clock-3"></span><span class="nav-label">世界时间</span></button></li>
           <li>
             <button aria-controls="tagBar" aria-expanded="false" aria-label="标签" class="tab-btn" id="tagDrawerOpen" type="button">
@@ -1218,17 +1219,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
           </li>
         </ul>
       </div>
-      <nav aria-label="主导航" class="nav-rail" id="navRail">
-        <ul class="retro-primary">
-          <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
-          <li><button aria-label="相册" class="tab-btn" data-view="photos" type="button"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">相册</span></button></li>
-          <li><button aria-label="看过" class="tab-btn" data-view="watched" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button></li>
-          <li><button aria-label="想看" class="tab-btn" data-view="watchlist" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button></li>
-          <li><button aria-label="摘录" class="tab-btn" data-view="clips" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button></li>
-          <li><button aria-label="热搜" class="tab-btn" data-view="hot" type="button"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></button></li>
-          <li><button aria-label="书签" class="tab-btn" data-view="bookmarks" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></button></li>
-        </ul>
-      </nav>
     </header>
     <div class="feed-scroll" id="feedScroll">
       <div class="flex flex-col" id="content"></div>
@@ -1240,18 +1230,30 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
         <div aria-label="分页" class="pager-btns" id="pagerBtns" role="navigation"></div>
       </div>
     </div>
-    <button aria-label="回到顶部" class="btn btn-circle btn-sm shadow-lg z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" id="toTop"><span class="iconify text-xl" data-icon="gg:pin-top"></span></button>
   </section>
-  <aside aria-label="音乐播放器" class="music-rail" id="musicRail">
-    <div class="music-drawer rail-player">
-      <div class="drawer-body"><div class="hw-playlist-mount" data-hw-list-id="9127652363" id="musicRailMount"></div></div>
-    </div>
-  </aside>
 </div>
-<footer class="site-footer" id="siteFooter">
-<span id="siteFooterYear"></span> · 碎碎念
-</footer>
 </main>
+<button aria-label="回到顶部" class="btn btn-circle btn-sm shadow-lg z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" id="toTop"><span class="iconify text-xl" data-icon="gg:pin-top"></span></button>
+<!-- ======================= 底部 dock：首页/相册/摘录切文档视图，看过/想开弹窗 ======================= -->
+<nav aria-label="主导航" class="nav-rail dock-bar" id="dockBar">
+  <ul class="retro-primary">
+    <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
+    <li><button aria-label="相册" class="tab-btn" data-view="photos" type="button"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">相册</span></button></li>
+    <li><button aria-label="看过" class="tab-btn" data-view="watched" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button></li>
+    <li><button aria-label="想看" class="tab-btn" data-view="watchlist" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button></li>
+    <li><button aria-label="摘录" class="tab-btn" data-view="clips" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button></li>
+  </ul>
+</nav>
+<!-- ============ 全屏弹窗：热搜/书签/看过/想看/世界时间，自带滚动不碰文档滚动条 ============ -->
+<div aria-hidden="true" class="fullpop-overlay" id="popOverlay"></div>
+<section aria-hidden="true" aria-modal="true" class="fullpop" id="popPanel" role="dialog">
+  <header class="fullpop-head">
+    <span aria-hidden="true" class="iconify fullpop-icon" id="popIcon" data-icon="lucide:flame"></span>
+    <h2 class="fullpop-title" id="popTitle">热搜</h2>
+    <button aria-label="关闭" class="fullpop-close" id="popClose" type="button"><span aria-hidden="true" class="iconify" data-icon="lucide:x"></span></button>
+  </header>
+  <div class="fullpop-body" id="popBody"></div>
+</section>
 <!-- ======================= 标签抽屉：左侧滑出，支持组合标签 ======================= -->
 <div aria-hidden="true" class="tag-drawer-overlay" id="tagDrawerOverlay"></div>
 <aside aria-label="标签筛选" aria-modal="true" class="tag-drawer hidden" id="tagBar" role="dialog">
@@ -1511,21 +1513,21 @@ const MOCK_BOOKMARKS = [
    工具函数
 ============================================================ */
 const $ = sel => document.querySelector(sel);
-// ========== 滚动管理器 ==========
+// ========== 滚动管理器（滚动在文档上，浏览器原生的那一条） ==========
 function getScrollPos() {
-  return feedScroll ? feedScroll.scrollTop : 0;
+  return window.scrollY || document.documentElement.scrollTop || 0;
 }
 function setScrollPos(pos) {
-  if (feedScroll) feedScroll.scrollTop = pos;
+  // html 上有 scroll-behavior:smooth，两参 scrollTo 也会跟着动画；恢复位置要瞬时直达
+  window.scrollTo({ top: pos, behavior: 'instant' });
 }
 function scrollToTop(opts = {}) {
-  const target = feedScroll;
   if (opts.behavior === 'smooth') {
-    target?.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
     setScrollPos(0);
     // 本来就在顶部时不会触发原生 scroll 事件，手动补一个，让「回到顶部」按钮归位
-    target?.dispatchEvent(new Event('scroll'));
+    window.dispatchEvent(new Event('scroll'));
   }
 }
 function escapeHtml(s) {
@@ -2464,7 +2466,8 @@ const state = {
   loading: false,
 };
 
-const contentEl = $('#content');
+let contentEl = $('#content');          // 弹窗打开时会被换到 #popBody，关闭时换回
+const docContentEl = contentEl;
 const mainScroll = $('#mainScroll');
 const feedScroll = $('#feedScroll');
 
@@ -2658,8 +2661,8 @@ async function loadSayPage(page, { replace = false } = {}) {
     const done = state.sayPage >= state.sayTotalPages;
     $('#endHint').classList.toggle('hidden', !done || state.sayTotal === 0);
     if (done) $('#endHint').textContent = state.selectedTags.size ? `— 筛选共 ${state.sayTotal} 条，到底啦 —` : `— 共 ${state.sayTotal} 条，到底啦 —`;
-    if (state.view === 'say' && !done && feedScroll) {
-      const remaining = feedScroll.scrollHeight - feedScroll.clientHeight - feedScroll.scrollTop;
+    if (state.view === 'say' && !done) {
+      const remaining = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
       if (remaining < 400) {
         setTimeout(() => { if (!state.loading) loadSayPage(state.sayPage + 1); }, 0);
       }
@@ -2989,14 +2992,13 @@ const HOT_API = 'https://uapis.cn/api/v1/misc/hotboard?type=';
 const HOT_TTL = 2 * 60 * 1000;        // 平台缓存有效期
 const HOT_AUTO_MS = 3 * 60 * 1000;    // 自动刷新间隔
 let hotTimer = null;
-const hotScrolls = {};                // 各平台独立的滚动位置
 
 function hotSite(id) { return HOT_SITES.find(s => s.id === id) || { id, name: id }; }
 
 function startHotAutoRefresh() {
   stopHotAutoRefresh();
   hotTimer = setInterval(() => {
-    if (state.view === 'hot' && !document.hidden) loadHot(state.hotActive, true);
+    if (popKind === 'hot' && !document.hidden) loadHot(state.hotActive, true);
   }, HOT_AUTO_MS);
 }
 function stopHotAutoRefresh() {
@@ -3073,15 +3075,11 @@ function renderHotView() {
   contentEl.querySelectorAll('[data-hot]').forEach(btn => {
     btn.onclick = () => {
       if (state.hotActive === btn.dataset.hot) return;
-      hotScrolls[state.hotActive] = contentEl.querySelector('.split-main .hot-body')?.scrollTop || 0;   // 记住当前平台在右侧面板内的位置（v5 布局列表在 .hot-body 内滚）
       state.hotActive = btn.dataset.hot;
+      // 切平台回顶：列表共用弹窗一根滚动条，不按平台各记进度；关掉重开的记忆以切换后的状态为准
+      if (popKind === 'hot') { popScrolls.hot = 0; popBody.scrollTop = 0; }
       renderHotView();
       loadHot(state.hotActive);
-      const mainPanel = contentEl.querySelector('.split-main .hot-body');
-      if (mainPanel) mainPanel.scrollTop = hotScrolls[state.hotActive] || 0;   // 恢复目标平台在右侧面板内的位置（数据未到时由 renderHotList 兜底）
-      const side = contentEl.querySelector('.split-side .side-list');
-      const now = contentEl.querySelector('.side-row.active');
-      if (side && now) now.scrollIntoView({ block: 'nearest' });
     };
   });
   const refreshBtn = contentEl.querySelector('.hot-refresh');
@@ -3100,7 +3098,6 @@ function renderHotList(platform, list, ts) {
   body.innerHTML = `
     <p class="text-xs opacity-50 px-3 pt-1 pb-1">更新于 ${time} · 每 ${HOT_AUTO_MS / 60000} 分钟自动刷新</p>
     <div class="flex flex-col gap-0.5">${rows}</div>`;
-  body.scrollTop = hotScrolls[active] || 0;   // 渲染完恢复该平台上次下拉到的位置（切平台/切视图回来、自动刷新都不丢）
   applyRestore('hot');
 }
 
@@ -3111,24 +3108,7 @@ function loadHotView() {
 }
 
 /* ---------- 书签收藏（/api/bookmarks，一次拉全量，搜索/分类全前端筛选） ---------- */
-const bmScrolls = {};   // 各分类独立的滚动位置
 let bmSearchTimer = null;
-
-/* 右侧列表的下拉位置记忆：v5 双面板布局里 .split-main 已固定不滚，真正滚动的容器是
-   .hot-body / .bm-body。在捕获阶段监听滚动实时记录，切分类、切视图、甚至离开页面
-   前的最后一次滚动都能存下来，回来时按当前平台/分类恢复。 */
-document.addEventListener('scroll', e => {
-  const t = e.target;
-  if (!(t instanceof Element)) return;
-  // 内容还没渲染/变短（scrollHeight 撑不满）时浏览器会发出钳制到 0 的 scroll 事件，忽略之，
-  // 免得把真实下拉位置冲掉；真正滚回顶部发生在可滚动的列表上，照样记录 0
-  if (t.scrollHeight <= t.clientHeight + 4) return;
-  if (t.classList.contains('hot-body') && state.view === 'hot') {
-    hotScrolls[state.hotActive] = t.scrollTop;
-  } else if (t.classList.contains('bm-body') && state.view === 'bookmarks') {
-    bmScrolls[state.bookmarksCat] = t.scrollTop;
-  }
-}, { capture: true, passive: true });
 
 async function loadBookmarks() {
   if (state.bookmarksCache) { renderBookmarks(); return; }
@@ -3205,8 +3185,6 @@ function renderBookmarks() {
 
     renderBookmarkChips(cats);
     renderBookmarkList();
-    const body = contentEl.querySelector('.split-main .bm-body');
-    if (body) body.scrollTop = bmScrolls[state.bookmarksCat] || 0;   // 切回书签视图时恢复当前分类的下拉位置
 
     const search = contentEl.querySelector('.bm-search');
   search.value = state.bookmarksQuery;
@@ -3683,7 +3661,10 @@ function renderMediaPage(view) {
       <div class="media-pager media-pager-top flex${pages > 1 ? '' : ' hidden'}" id="mediaPagerTop">
         <div class="pager-btns" id="pagerBtnsTop" role="navigation" aria-label="分页"></div>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">${slice.map((m, i) => mediaCard(m, i)).join('')}</div>
+      <div class="media-pager mt-4 flex${pages > 1 ? '' : ' hidden'}" id="mediaPagerBottom">
+        <div class="pager-btns" id="pagerBtnsBottom" role="navigation" aria-label="分页"></div>
+      </div>
     </div>`;
   bindMediaFilterEvents(view);
   applyRestore(view);
@@ -3703,7 +3684,8 @@ function renderMediaPage(view) {
     });
     btns.push(`<button type="button" class="pager-btn pager-end" data-p="${pages}" aria-label="最后一页"${p === pages ? ' disabled' : ''}><span class="pager-end-word">最后 </span>»</button>`);
     const html = btns.join('');
-    ['#pagerBtns', '#pagerBtnsTop'].forEach(sel => {
+    // 弹窗模式下只填内容列顶部那份分页器；文档底部那份属于文档视图，不碰
+    (popKind ? ['#pagerBtnsTop', '#pagerBtnsBottom'] : ['#pagerBtns', '#pagerBtnsTop']).forEach(sel => {
       const box = $(sel);
       if (!box) return;
       box.innerHTML = html;
@@ -3712,18 +3694,21 @@ function renderMediaPage(view) {
           if (b.disabled || b.classList.contains('is-active')) return;
           state.mediaPage[view] = Number(b.dataset.p);
           renderMediaPage(view);
-          scrollToTop({ behavior: 'smooth' });
+          if (popKind) popBody.scrollTo({ top: 0, behavior: 'smooth' });
+          else scrollToTop({ behavior: 'smooth' });
         };
       });
     });
-    $('#mediaPager').classList.remove('hidden');
-  } else {
+    if (!popKind) $('#mediaPager').classList.remove('hidden');
+  } else if (!popKind) {
     $('#mediaPager').classList.add('hidden');
   }
 }
 
 /* ---------- 滚动位置管理（各视图独立保存/恢复） ---------- */
-const viewScrollPos = { say: 0, photos: 0, watched: 0, watchlist: 0, clips: 0, hot: 0, bookmarks: 0, worldtime: 0 };
+/* 文档视图只有 say/photos/clips（dock 前三键）；watched/watchlist/hot/bookmarks/worldtime
+   都在弹窗里，滚动位置记在 popScrolls（弹窗体自己的 scrollTop），不占文档滚动。 */
+const viewScrollPos = { say: 0, photos: 0, clips: 0 };
 let sayUnfilteredScroll = 0;   // 说说无筛选时保存的滚动位置
 let sayUnfilteredPage = 1;     // 说说无筛选时保存的已加载页数
 let sayLoadedPage = 1;         // 说说当前已加载到的页码
@@ -3743,6 +3728,8 @@ function applyRestore(view) {
   if (view === 'say' && page > 1) {
     // 延迟到当前 loadSayPage 结束后（state.loading 复位）再补加载
     setTimeout(() => loadSayToPage(page, pos), 0);
+  } else if (popKind === view) {
+    popBody.scrollTop = pos;
   } else {
     setScrollPos(pos);
   }
@@ -3758,17 +3745,19 @@ async function loadSayToPage(targetPage, pos) {
   setScrollPos(pos);
 }
 
-/* ---------- 视图切换 ---------- */
+/* ---------- 视图切换（文档视图：首页/相册/摘录；看过/想看等走 openFullPop 弹窗） ---------- */
+function syncTabActive(view) {
+  document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
+    const on = t.dataset.view === view;
+    t.classList.toggle('active', on);
+    t.classList.toggle('bg-base-300', on);
+    t.classList.toggle('text-primary', on);
+  });
+}
+
 function switchView(view) {
   // 保存当前视图滚动位置
   saveCurrentScroll();
-  // 热搜/书签双面板：切走前把右侧列表位置也存进各自平台/分类的记录
-  // （平时由全局 scroll 捕获监听实时记录，这里兜底，保证切换一定不失忆）
-  const listScroll = contentEl.querySelector('.split-main .hot-body, .split-main .bm-body');
-  if (listScroll) {
-    if (state.view === 'hot') hotScrolls[state.hotActive] = listScroll.scrollTop;
-    else if (state.view === 'bookmarks') bmScrolls[state.bookmarksCat] = listScroll.scrollTop;
-  }
   // 说说视图把哨兵收进了列表框，切走前先还回内容列，避免随内容一起被 innerHTML 清掉
   releaseSentinel();
   // 从说说切走且无筛选时，同步保存无筛选位置
@@ -3778,18 +3767,9 @@ function switchView(view) {
 
   // 筛选条件按视图独立保存（mediaFilter[view]），切换菜单不再重置，切回时原样恢复
   state.view = view;
-  // 热搜自动刷新：仅在热搜页运行
-  if (view === 'hot') startHotAutoRefresh(); else stopHotAutoRefresh();
-  // 世界时钟秒针：仅在世界时间页运行
-  if (view === 'worldtime') startWcTick(); else stopWcTick();
- document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
-  const on = t.dataset.view === view;
-  t.classList.toggle('active', on);
-  t.classList.toggle('bg-base-300', on);
-  t.classList.toggle('text-primary', on);
-});
   $('#mediaPager').classList.add('hidden');
   $('#endHint').classList.add('hidden');
+  syncTabActive(view);
 
   // 立即回顶部，避免旧视图滚动位置残留
   scrollToTop();
@@ -3804,20 +3784,81 @@ function switchView(view) {
   } else if (view === 'clips') {
     restoreTarget = { view: 'clips', pos: viewScrollPos.clips };
     loadClips();
-  } else if (view === 'hot') {
-    restoreTarget = { view: 'hot', pos: viewScrollPos.hot };
-    loadHotView();
-  } else if (view === 'bookmarks') {
-    restoreTarget = { view: 'bookmarks', pos: viewScrollPos.bookmarks };
-    loadBookmarks();
-  } else if (view === 'worldtime') {
-    restoreTarget = { view: 'worldtime', pos: viewScrollPos.worldtime };
-    loadWorldClock();
-  } else {
-    restoreTarget = { view, pos: viewScrollPos[view] };
-    loadMedia(view);
   }
 }
+
+/* ============================================================
+   全屏弹窗：热搜 / 书签 / 看过 / 想看 / 世界时间
+   弹窗自带滚动条（.fullpop-body），文档滚动条在弹窗打开期间锁死，
+   两边互不干扰；每个弹窗记住自己的滚动位置，关了再开原位恢复。
+   渲染复用原有 load* 管线：把 contentEl 换到弹窗体里再调用。
+============================================================ */
+const POP_VIEWS = ['watched', 'watchlist', 'hot', 'bookmarks', 'worldtime'];
+const POP_META = {
+  watched:   { icon: 'lucide:clapperboard', title: '看过' },
+  watchlist: { icon: 'lucide:heart',        title: '想看' },
+  hot:       { icon: 'lucide:flame',        title: '热搜' },
+  bookmarks: { icon: 'lucide:bookmark',     title: '书签' },
+  worldtime: { icon: 'lucide:clock-3',      title: '世界时间' },
+};
+const popOverlay = document.getElementById('popOverlay');
+const popPanel = document.getElementById('popPanel');
+const popBody = document.getElementById('popBody');
+const popScrolls = { watched: 0, watchlist: 0, hot: 0, bookmarks: 0, worldtime: 0 };
+let popKind = null;
+
+function savePopScroll() {
+  if (popKind) popScrolls[popKind] = popBody.scrollTop;
+}
+
+function openFullPop(kind) {
+  if (!POP_VIEWS.includes(kind)) return;
+  if (popKind === kind) { closeFullPop(); return; }
+  if (popKind) { stopHotAutoRefresh(); stopWcTick(); }   // 提醒气泡等路径可能直接换弹窗
+  popKind = kind;
+  popBody.scrollTop = 0;
+  contentEl = popBody;
+  const meta = POP_META[kind];
+  document.getElementById('popIcon').setAttribute('data-icon', meta.icon);
+  document.getElementById('popTitle').textContent = meta.title;
+  popPanel.classList.add('open');
+  popPanel.setAttribute('aria-hidden', 'false');
+  popOverlay.classList.add('open');
+  popOverlay.setAttribute('aria-hidden', 'false');
+  document.documentElement.classList.add('pop-lock');
+  restoreTarget = { view: kind, pos: popScrolls[kind] || 0 };
+  if (kind === 'hot') { loadHotView(); startHotAutoRefresh(); }
+  else if (kind === 'bookmarks') loadBookmarks();
+  else if (kind === 'watched' || kind === 'watchlist') loadMedia(kind);
+  else loadWorldClock();
+  if (kind === 'worldtime') startWcTick();
+  syncTabActive(kind);
+}
+
+function closeFullPop() {
+  if (!popKind) return;
+  savePopScroll();
+  stopHotAutoRefresh();
+  stopWcTick();
+  popKind = null;
+  restoreTarget = null;
+  contentEl = docContentEl;
+  popBody.innerHTML = '';
+  popBody.scrollTop = 0;
+  popPanel.classList.remove('open');
+  popPanel.setAttribute('aria-hidden', 'true');
+  popOverlay.classList.remove('open');
+  popOverlay.setAttribute('aria-hidden', 'true');
+  document.documentElement.classList.remove('pop-lock');
+  syncTabActive(state.view);
+}
+
+document.getElementById('popClose').addEventListener('click', closeFullPop);
+popOverlay.addEventListener('click', closeFullPop);
+popBody.addEventListener('scroll', savePopScroll, { passive: true });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && popKind) closeFullPop();
+});
 
 /* ============================================================
    标签抽屉：左侧滑出
@@ -3878,10 +3919,13 @@ function closeNav() {
 })();
 
 // 只绑定真正代表视图的菜单项；标签抽屉按钮没有 data-view，交给 initTagDrawer 自己处理
+// dock 与工具行里的弹窗键（热搜/书签/看过/想看/世界时间）开全屏弹窗，其余切文档视图
 document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
   t.addEventListener('click', () => {
-    if (state.view !== t.dataset.view) switchView(t.dataset.view);
+    const v = t.dataset.view;
     closeNav();
+    if (POP_VIEWS.includes(v)) { openFullPop(v); return; }
+    if (state.view !== v) switchView(v);
   });
 });
 
@@ -4211,14 +4255,13 @@ document.addEventListener('keydown', e => {
 
 /* ---------- 回到顶部 ---------- */
 const toTop = $('#toTop');
-// 滚动发生在内容列 #feedScroll 或（说说视图）列表框 ul.memo-list 上；
-// scroll 事件不冒泡，但在捕获阶段能听到后代滚动容器的动静
+// 滚动已还给文档，监听 window 的 scroll 即可
 function updateToTop() {
   const show = getScrollPos() > 500;
   toTop.style.opacity = show ? '1' : '0';
   toTop.style.pointerEvents = show ? 'auto' : 'none';
 }
-feedScroll?.addEventListener('scroll', updateToTop, { passive: true, capture: true });
+window.addEventListener('scroll', updateToTop, { passive: true });
 window.addEventListener('resize', updateToTop);
 toTop.onclick = () => scrollToTop({ behavior: 'smooth' });
 
@@ -6131,14 +6174,11 @@ function renderBookmarkChips(cats) {
   wrap.innerHTML = cats.map(c => `<button type="button" class="side-row${c === state.bookmarksCat ? ' active' : ''}" data-bmcat="${escapeHtml(c)}" aria-pressed="${c === state.bookmarksCat}"><span class="side-row-name">${escapeHtml(c)}</span><span class="side-row-count">${countOf(c)}</span></button>`).join('');
   wrap.querySelectorAll('[data-bmcat]').forEach(btn => btn.onclick = () => {
     if (state.bookmarksCat === btn.dataset.bmcat) return;
-    bmScrolls[state.bookmarksCat] = contentEl.querySelector('.split-main .bm-body')?.scrollTop || 0;
     state.bookmarksCat = btn.dataset.bmcat;
+    // 切分类回顶：同弹窗一根滚动条，不按分类各记进度；关掉重开的记忆以切换后的状态为准
+    if (popKind === 'bookmarks') { popScrolls.bookmarks = 0; popBody.scrollTop = 0; }
     renderBookmarkChips(cats);
     renderBookmarkList();
-    const mainPanel = contentEl.querySelector('.split-main .bm-body');
-    if (mainPanel) mainPanel.scrollTop = bmScrolls[state.bookmarksCat] || 0;   // 恢复目标分类在右侧面板内的位置（v5 布局列表在 .bm-body 内滚）
-    const now = wrap.querySelector('.side-row.active');
-    if (now) now.scrollIntoView({ block: 'nearest' });
   });
 }
 </script>
@@ -7749,34 +7789,6 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .cmdk-panel { color-schem
   box-shadow: none !important;
   border-radius: 7px !important;
 }</style>
-<script>
-/* 桌面右侧常驻栏：直接挂载歌单（抽屉那份仍是懒加载，两处各自刷新、共用同一播放状态） */
-(function mountRailPlayer() {
-  const mount = document.getElementById('musicRailMount');
-  if (!mount || !window.HWPlayer) return;
-  window.HWPlayer.mountAll(mount.parentElement);
-})();
-
-/* 底部歌词条与「回到顶部」都贴着说说列表的左右沿走：
-   列表是居中定宽，外层又是「居中容器 + 右栏」两列，纯 CSS 算不出这两条边，量一次最省事。 */
-(function alignToMemoList() {
-  const col = document.querySelector('.feed-col');
-  const content = document.getElementById('content');
-  if (!col || !content) return;
-  const root = document.documentElement.style;
-  const sync = () => {
-    const card = content.querySelector('.memo-card');
-    if (!card) return;
-    const box = card.getBoundingClientRect();
-    if (!box.width) return;
-    const inset = col.getBoundingClientRect().right - box.right;
-    root.setProperty('--totop-right', Math.max(8, Math.round(inset)) + 'px');
-  };
-  if (window.ResizeObserver) new ResizeObserver(sync).observe(content);
-  addEventListener('resize', sync, { passive: true });
-  sync();
-})();
-</script>
 <style id="y2k-nav-1999-2003">/* =========================================================
    导航改造：1999–2003 部落格 / 个人主页
    去掉圆角药丸与毛玻璃，换成那个年代真实存在的物件语法：
@@ -8082,107 +8094,6 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) .cm
 /* ---------- 修复：当前菜单项文字被 -webkit-text-fill-color 涂成同色 ----------
    apple-glass 段在 7206 行给 .tab-btn.active 写死了 text-fill-color: var(--g-ink)，
    浅色下就是深紫字 + 深紫底，完全看不见。用重复 id 抬权重压过它。 */
-/* 桌面右侧常驻栏的网格布局见文末「只让内容列滚动」段：
-   它必须排在同权重的基础骨架之后才能生效。 */
-.music-rail{
-  font-family:var(--k2-font-nav) !important;
-  border:1px solid var(--k2-edge) !important;
-  background:var(--k2-strip) !important;
-  box-shadow:none !important;
-  padding:0 !important;
-  margin:0 !important;
-}
-/* 常驻栏里的播放器：借 .music-drawer 这套变量与内部样式，但把抽屉的外壳拍平 */
-.rail-player{
-  position:static !important;
-  inset:auto !important;
-  width:auto !important;
-  max-width:none !important;
-  height:auto !important;
-  transform:none !important;
-  transition:none !important;
-  z-index:auto !important;
-  background:transparent !important;
-  border:0 !important;
-  box-shadow:none !important;
-  backdrop-filter:none !important;
-  -webkit-backdrop-filter:none !important;
-  padding:8px 9px 9px !important;
-  overflow:hidden !important;
-  --bg:var(--k2-strip);
-  --paper:var(--k2-strip);
-  --border:var(--k2-hair);
-  --border-light:var(--k2-hair);
-  --text:var(--k2-link);
-  --text-main:var(--k2-link);
-  --secondary-text:var(--k2-mute);
-  --text-muted:var(--k2-mute);
-  --accent:var(--k2-press-a);
-  --accent-color:var(--k2-press-a);
-  --accent-dark:var(--k2-press-b);
-  --bg-player:var(--k2-strip-2);
-  --dot-normal:var(--k2-hair);
-}
-.rail-player .hw-pl-header{ border-bottom:1px solid var(--k2-hair) !important; }
-.rail-player .hw-pl-cover{
-  width:56px !important; height:56px !important; flex:0 0 56px !important;
-  border:1px solid var(--k2-edge) !important;
-  background:#fff !important;
-}
-.rail-player .hw-pl-title{ font-size:.8rem !important; }
-.rail-player .hw-pl-artist{ font-size:.74rem !important; }
-.rail-player .hw-pl-list{
-  border-top:1px solid var(--k2-edge) !important;
-  scrollbar-width:thin !important;
-}
-/* 曲目行：表格似的一行一条，行与行之间压一根发丝线 */
-.rail-player .hw-pl-row{
-  padding:4px 2px !important;
-  border-bottom:1px solid var(--k2-hair) !important;
-  border-radius:0 !important;
-  transition:background-color .1s linear !important;
-}
-.rail-player .hw-pl-row:hover{ background:var(--k2-banner-a) !important; }
-.rail-player .hw-pl-row-idx{ font-family:var(--k2-font-nav) !important; }
-.rail-player .hw-pl-row-title{ font-size:.78rem !important; }
-.rail-player .hw-pl-row-artist{ font-size:.68rem !important; }
-/* 当前曲目：列表框选中行那样整条反白 */
-.rail-player .hw-pl-row.playing,
-.rail-player .hw-pl-row.playing:hover{
-  background:linear-gradient(180deg, var(--k2-press-a), var(--k2-press-b)) !important;
-}
-.rail-player .hw-pl-row.playing .hw-pl-row-idx,
-.rail-player .hw-pl-row.playing .hw-pl-row-title,
-.rail-player .hw-pl-row.playing .hw-pl-row-artist,
-.rail-player .hw-pl-row.playing .hw-pl-row-playicon{
-  color:var(--k2-press-ink) !important;
-  -webkit-text-fill-color:var(--k2-press-ink) !important;
-}
-/* 控制键：小立体键，播放键按下时转凹陷 */
-.rail-player .hw-btn{
-  width:32px !important; height:28px !important;
-  border:2px outset var(--k2-chrome-b) !important;
-  border-radius:0 !important;
-  background:linear-gradient(180deg, var(--k2-chrome-a), var(--k2-chrome-b)) !important;
-  color:var(--k2-chrome-ink) !important;
-}
-.rail-player .hw-btn:hover{
-  background:linear-gradient(180deg, var(--k2-banner-a), var(--k2-banner-b)) !important;
-  color:var(--k2-banner-ink) !important;
-  transform:none !important;
-}
-.rail-player .hw-btn:active{ transform:none !important; border-style:inset !important; }
-.rail-player .hw-btn.active{ color:var(--k2-press-a) !important; -webkit-text-fill-color:var(--k2-press-a) !important; }
-.rail-player .hw-play{
-  background:linear-gradient(180deg, var(--k2-press-a), var(--k2-press-b)) !important;
-  color:var(--k2-press-ink) !important;
-  -webkit-text-fill-color:var(--k2-press-ink) !important;
-}
-/* 进度条：方头滑轨 + 方形拉钮 */
-.rail-player .hw-progress{ height:6px !important; border:1px solid var(--k2-hair) !important; background:var(--k2-strip-2) !important; }
-.rail-player .hw-progress::-webkit-slider-thumb{ width:9px !important; height:14px !important; border-radius:0 !important; background:var(--k2-press-a) !important; border:1px solid var(--k2-edge) !important; }
-.rail-player .hw-progress::-moz-range-thumb{ width:9px !important; height:14px !important; border-radius:0 !important; background:var(--k2-press-a) !important; border:1px solid var(--k2-edge) !important; }
-.rail-player .hw-time{ font-family:var(--k2-font-nav) !important; letter-spacing:.02em !important; }
 /* ---------- 循环模式：三档一眼分清 ----------
    原来只有一个小圆点角标，列表循环和单曲循环几乎看不出差别。
    现在图标旁边直接写档位名，三档各有一种底色，下面再补一句它意味着什么。 */
@@ -8287,33 +8198,7 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   transform:none !important;
 }
 #toTop#toTop svg{ fill:currentColor !important; }
-/* ---------- 桌面右侧常驻栏：直接铺开的歌单 ----------
-   必须排在上面的基础骨架之后：媒体查询不加权重，
-   .page-container.page-container 的 display:flex 会把这里的 grid 顶掉。 */
-@media  (min-width:1024px){.page-container.page-container{
-    display:grid !important;
-    grid-template-columns:minmax(0,1fr) 300px !important;
-    grid-template-rows:minmax(0,1fr) !important;
-    column-gap:20px !important;
-    align-items:stretch !important;
-    max-width:1300px !important;
-  }
-.page-container > *{ grid-column:1; grid-row:1; }
-.music-rail{
-    grid-column:2;
-    grid-row:1;
-    min-height:0 !important;
-    display:flex !important;
-    flex-direction:column !important;
-    overflow:hidden !important;
-  }
-.music-rail .rail-player{ flex:1 1 auto; min-height:0; display:flex; }
-.music-rail .drawer-body{ padding:0 !important; }
-/* 播放器已经常驻在右侧，菜单里开抽屉的那项音乐就不再重复出现 */}
-@media  (max-width:1023px){.music-rail{ display:none !important; }}
-/* ---------- 右侧常驻栏与第一条说说顶部对齐 ----------
-   偈语上移后刊头没了，正文列只剩 #content 自己的外边距；
-   把它原本 12px 外边距 + 4px 内边距挪进容器顶边距，两列就同一条基线。 */
+/* 正文列顶边距：把它原本 12px 外边距 + 4px 内边距挪进容器顶边距 */
 .page-container{ padding-top:26px !important; }
 #content#content{ margin-top:0 !important; padding-top:0 !important; }
 /* ---------- 歌词搬进播放器：印在封面右侧，播放时取代歌曲信息 ----------
@@ -8417,27 +8302,9 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 }
 #imgBox .imgbox-view{ touch-action:none; }
 }</style>
-<style id="site-footer-y2k">/* ---------- 页脚：一行居中年份文字，无分隔线、无底色 ----------
-   页脚是 #mainScroll 的最后一个子元素，不进 .page-container：
-   那个容器在桌面断点是两列网格，多一个子元素会被 grid-row:1 拍到左上角、还会撑坏行高。 */
-/* 正文容器原本靠 32px 底内边距给自己收口，不清掉就会在列表可视区和页脚之间留出一整条死带。 */
-.page-container{ padding-bottom:0 !important; }
-.site-footer{
-  flex:0 0 auto !important;
-  height:fit-content !important;
-  align-self:stretch;
-  margin:6px 0 0;
-  padding:5px 0 2px;
-  color:var(--k2-mute);
-  font:.72rem/1.4 var(--k2-font-nav);
-  letter-spacing:.06em;
-  text-align:center;
-}
-@media  (max-width:760px){.site-footer{ padding:5px 0 0; }}
-</style>
 <style id="memo-list-panel-frame">/* ---------- 说说列表：整块面板 ----------
    撤掉每条说说自己的卡片描边 / 底色 / 投影，改为：
-   · ul.memo-list 整体套一个 1px 实线大矩形框 + 纸底色（与右侧常驻播放器 .music-rail 同款）；
+   · ul.memo-list 整体套一个 1px 实线大矩形框 + 纸底色；
    · 框内说说之间压一根实线发丝线（与播放器曲目行 .hw-pl-row 之间的分割线同款）；
    · 卡片本体只剩内边距，弹窗里的单条说说不受影响。
    双写 #content 抬权重，压过前面所有 html:is(...) #content ... 的 !important 卡片规则。 */
@@ -8669,9 +8536,6 @@ body{font-family:var(--font-family)!important;}
   overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;
   scrollbar-width:thin!important;scrollbar-color:var(--sp-line) transparent;
 }
-#feedScroll::-webkit-scrollbar,.rail-player .hw-pl-list::-webkit-scrollbar{display:block!important;width:5px!important;height:5px!important;}
-#feedScroll::-webkit-scrollbar-thumb,.rail-player .hw-pl-list::-webkit-scrollbar-thumb{background:var(--sp-line);border-radius:5px;}
-#feedScroll::-webkit-scrollbar-track,.rail-player .hw-pl-list::-webkit-scrollbar-track{background:transparent;}
 #feedScroll#feedScroll:has(#content ul.memo-list) > #sentinel{display:block;}
 #content#content{width:100%;padding:20px!important;color:var(--sp-ink)!important;}
 #content#content:has(> ul.memo-list){flex:none!important;min-height:auto!important;padding:0!important;}
@@ -8706,67 +8570,6 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
   border-radius:8px!important;background:var(--sp-panel)!important;color:var(--sp-muted)!important;box-shadow:none!important;
 }
 #toTop#toTop:hover{background:var(--sp-soft)!important;color:var(--sp-ink)!important;}
-.music-rail{
-  grid-column:1;grid-row:1;min-width:0;min-height:0;display:none;overflow:hidden;
-  border:1px solid var(--sp-line)!important;border-radius:14px!important;background:var(--sp-panel)!important;
-  box-shadow:none!important;color:var(--sp-ink)!important;
-}
-#musicRail .rail-player{
-  padding:15px 15px 12px!important;background:transparent!important;color:var(--sp-ink);font-family:var(--font-family)!important;
-  --bg:var(--sp-panel);--paper:var(--sp-panel);--text:var(--sp-ink);--text-main:var(--sp-ink);
-  --secondary-text:var(--sp-muted);--text-muted:var(--sp-muted);--border:var(--sp-line);--border-light:var(--sp-line);
-  --accent:var(--sp-ink);--accent-color:var(--sp-ink);--accent-dark:var(--sp-soft);--bg-player:var(--sp-soft);--dot-normal:var(--sp-line);
-}
-.rail-player .hw-pl-header{display:flex!important;align-items:center;gap:10px;margin:0 0 10px;padding:0 0 12px;border-bottom:1px solid var(--sp-line)!important;}
-.rail-player .hw-pl-cover{
-  width:56px!important;height:56px!important;aspect-ratio:auto;flex:0 0 56px!important;overflow:hidden;
-  border:0!important;border-radius:8px!important;background:var(--sp-soft)!important;
-}
-.rail-player .hw-pl-meta{flex:1;width:auto;min-width:0;}
-.rail-player .hw-pl-title{color:var(--sp-ink)!important;font-size:15px!important;line-height:1.4;}
-.rail-player .hw-pl-artist{margin-top:4px;color:var(--sp-muted)!important;font-size:12px!important;}
-.rail-player .hw-pl-count{margin-top:3px;color:var(--sp-muted)!important;font-size:11px!important;}
-.rail-player .hw-pl-lyric{flex:1;min-width:0;min-height:0;color:var(--sp-muted)!important;font-size:12px!important;}
-.rail-player .hw-pl-progress-row{gap:7px;margin:0 0 7px;}
-.rail-player .hw-time{min-width:30px;color:var(--sp-muted)!important;font:9px/1 var(--font-num)!important;}
-.rail-player .hw-progress{height:3px!important;border:0!important;border-radius:3px!important;background:var(--sp-line)!important;}
-.rail-player .hw-progress::-webkit-slider-thumb{width:10px!important;height:10px!important;border:0!important;border-radius:50%!important;background:var(--sp-ink)!important;}
-.rail-player .hw-progress::-moz-range-thumb{width:10px!important;height:10px!important;border:0!important;border-radius:50%!important;background:var(--sp-ink)!important;}
-.rail-player .hw-pl-controls{gap:7px;margin:0 0 9px;}
-.rail-player .hw-btn{
-  width:32px!important;height:32px!important;padding:5px!important;border:0!important;border-radius:8px!important;
-  background:transparent!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;box-shadow:none!important;
-  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease!important;
-}
-.rail-player .hw-btn:hover{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;box-shadow:none!important;transform:none!important;}
-.rail-player .hw-btn.active{color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;}
-.rail-player .hw-pl-repeat{gap:4px!important;padding:5px 6px!important;}
-.rail-player .hw-repeat-flag{font:9px/1.2 var(--font-family)!important;}
-.rail-player .hw-pl-repeat[data-repeat-mode="all"],.rail-player .hw-pl-repeat[data-repeat-mode="one"]{background:transparent!important;color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;border-color:transparent!important;}
-.rail-player .hw-pl-list{margin-top:0;padding-top:5px;border-top:1px solid var(--sp-line)!important;scrollbar-width:thin!important;scrollbar-color:var(--sp-line) transparent;}
-.rail-player .hw-pl-row{gap:7px;padding:8px 6px!important;border:0!important;border-radius:8px!important;}
-.rail-player .hw-pl-row:hover{background:var(--sp-soft)!important;}
-.rail-player .hw-pl-row-idx{width:17px;flex-basis:17px;color:var(--sp-muted)!important;font:10px/1 var(--font-num)!important;}
-.rail-player .hw-pl-row-thumb{width:30px;height:30px;flex-basis:30px;border:0;border-radius:5px;}
-.rail-player .hw-pl-row-title{color:var(--sp-ink)!important;font-size:12px!important;font-weight:400;}
-.rail-player .hw-pl-row-artist{margin-top:2px;color:var(--sp-muted)!important;font-size:10px!important;}
-.rail-player .hw-pl-row-playicon{color:var(--sp-ink)!important;}
-.rail-player .hw-pl-row.playing,.rail-player .hw-pl-row.playing:hover{border:0!important;background:transparent!important;box-shadow:inset 2px 0 0 var(--sp-accent)!important;}
-.rail-player .hw-pl-row.playing .hw-pl-row-idx,.rail-player .hw-pl-row.playing .hw-pl-row-title,.rail-player .hw-pl-row.playing .hw-pl-row-artist,.rail-player .hw-pl-row.playing .hw-pl-row-playicon{color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;}
-.site-footer{margin:8px 0 0;padding:0;color:var(--sp-muted);font:10px/1.4 var(--font-family);letter-spacing:.04em;}
-@media (min-width:761px){
-  .page-container.page-container{grid-template-columns:48px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;gap:14px!important;}
-  .nav-rail{grid-column:1;grid-row:1;padding-top:3px;}
-  .nav-rail .retro-primary{flex-direction:column;gap:9px;}
-  .nav-rail .tab-btn{width:42px;height:42px;}
-  .feed-col{grid-column:2;grid-row:1;}
-}
-@media (min-width:1024px){
-  .page-container.page-container{grid-template-columns:48px minmax(0,1fr) 300px!important;gap:14px!important;}
-  .music-rail{grid-column:3;grid-row:1;display:flex!important;flex-direction:column;}
-  #topBar .menu-li-music{display:none!important;}
-}
-@media (max-width:1023px){.music-rail{display:none!important;}}
 @media (max-width:760px){
   #mainScroll#mainScroll{padding-inline:4px!important;}
   #topBar .topbar-inner{padding:18px 0 13px;}
@@ -8784,158 +8587,157 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
   #content#content ul.memo-list{padding:0 14px!important;}
   #content#content ul.memo-list .memo-card{padding:15px 2px 19px!important;}
   #content .memo-card .memo-text{font-size:15px!important;line-height:1.8!important;}
-  .site-footer{margin-top:6px;}
 }
 @media (max-width:360px){
   #topBar .retro-online{display:none;}
   .nav-rail .tab-btn{width:34px;height:36px;}
 }
 
-#mainScroll#mainScroll #content#content :is(h1,h2,h3,h4,button,.btn,.badge,input,select,textarea){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(h1,h2,h3,h4,button,.btn,.badge,input,select,textarea){
   font-family:var(--font-family)!important;text-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content :is(h1,h2,h3,h4){color:var(--sp-ink)!important;}
-#mainScroll#mainScroll #content#content :is(button,.btn){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(h1,h2,h3,h4){color:var(--sp-ink)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(button,.btn){
   border:1px solid transparent!important;border-radius:9px!important;background:transparent!important;
   color:var(--sp-muted)!important;box-shadow:none!important;transform:none!important;font-weight:500!important;
   transition:background-color .16s ease,color .16s ease,border-color .16s ease!important;
 }
-#mainScroll#mainScroll #content#content :is(button,.btn):hover:not(:disabled){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(button,.btn):hover:not(:disabled){
   border-color:transparent!important;background:var(--sp-soft)!important;color:var(--sp-ink)!important;
   box-shadow:none!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content :is(button,.btn):active{transform:none!important;box-shadow:none!important;}
-#mainScroll#mainScroll #content#content :is(button,.btn):focus-visible{outline:2px solid var(--sp-accent)!important;outline-offset:2px;}
-#mainScroll#mainScroll #content#content .badge{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(button,.btn):active{transform:none!important;box-shadow:none!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(button,.btn):focus-visible{outline:2px solid var(--sp-accent)!important;outline-offset:2px;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .badge{
   border:1px solid transparent!important;border-radius:999px!important;background:transparent!important;
   color:var(--sp-muted)!important;box-shadow:none!important;font-weight:500!important;
 }
-#mainScroll#mainScroll #content#content :is(.input,.select,textarea){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.input,.select,textarea){
   border:1px solid transparent!important;border-radius:10px!important;background:var(--sp-soft)!important;
   color:var(--sp-ink)!important;box-shadow:none!important;outline:none!important;
 }
-#mainScroll#mainScroll #content#content :is(.input,.select,textarea):focus,
-#mainScroll#mainScroll #content#content .input:focus-within{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.input,.select,textarea):focus,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .input:focus-within{
   border-color:var(--sp-accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--sp-accent) 12%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .bm-search{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-search{
   border:0!important;background:transparent!important;color:var(--sp-ink)!important;box-shadow:none!important;outline:none!important;
 }
-#mainScroll#mainScroll #content#content :is(input,textarea)::placeholder{color:var(--sp-muted)!important;opacity:.75;}
-#mainScroll#mainScroll #content#content select option{background:var(--sp-panel);color:var(--sp-ink);}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(input,textarea)::placeholder{color:var(--sp-muted)!important;opacity:.75;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) select option{background:var(--sp-panel);color:var(--sp-ink);}
 
-#mainScroll#mainScroll #content#content label.btn:has(.mf-type),
-#mainScroll#mainScroll #content#content label.btn:has(.mf-range),
-#mainScroll#mainScroll #content#content label.btn:has(.mf-genre){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-type),
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-range),
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-genre){
   min-height:28px;height:28px;gap:5px;padding:0 10px!important;border:1px solid var(--sp-line)!important;
   border-radius:999px!important;background:transparent!important;color:var(--sp-muted)!important;
 }
-#mainScroll#mainScroll #content#content label.btn:has(.mf-type)::before,
-#mainScroll#mainScroll #content#content label.btn:has(.mf-range)::before,
-#mainScroll#mainScroll #content#content label.btn:has(.mf-genre)::before{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-type)::before,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-range)::before,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-genre)::before{
   content:"";flex:0 0 4px;width:4px;height:4px;border-radius:50%!important;background:var(--sp-accent);opacity:0;
 }
-#mainScroll#mainScroll #content#content label.btn:has(.mf-type:checked),
-#mainScroll#mainScroll #content#content label.btn:has(.mf-range:checked),
-#mainScroll#mainScroll #content#content label.btn:has(.mf-genre:checked){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-type:checked),
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-range:checked),
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-genre:checked){
   border-color:color-mix(in srgb,var(--sp-accent) 58%,var(--sp-line))!important;
   background:transparent!important;color:var(--sp-accent)!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content label.btn:has(.mf-type:checked)::before,
-#mainScroll#mainScroll #content#content label.btn:has(.mf-range:checked)::before,
-#mainScroll#mainScroll #content#content label.btn:has(.mf-genre:checked)::before{opacity:1;}
-#mainScroll#mainScroll #content#content label.btn:has(:checked) .badge{color:var(--sp-accent)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-type:checked)::before,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-range:checked)::before,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(.mf-genre:checked)::before{opacity:1;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.btn:has(:checked) .badge{color:var(--sp-accent)!important;}
 
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip{
   min-height:30px;padding:7px 9px!important;border:0!important;border-radius:7px!important;
   background:transparent!important;color:var(--sp-muted)!important;box-shadow:none!important;
   font-size:12px!important;font-weight:500!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip:hover{
   background:var(--sp-soft)!important;color:var(--sp-ink)!important;box-shadow:none!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip.active{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip.active{
   border:0!important;background:transparent!important;color:var(--sp-accent)!important;
   box-shadow:inset 0 -2px 0 var(--sp-accent)!important;font-weight:600!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip.active:hover{background:var(--sp-soft)!important;color:var(--sp-accent)!important;}
-#mainScroll#mainScroll #content#content .milli-btn{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip.active:hover{background:var(--sp-soft)!important;color:var(--sp-accent)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .milli-btn{
   width:30px;height:30px;padding:0;border:0!important;background:transparent!important;
   color:var(--sp-muted)!important;box-shadow:none!important;font:400 18px/1 var(--font-family)!important;
 }
-#mainScroll#mainScroll #content#content .milli-btn:disabled{opacity:.28;box-shadow:none!important;}
-#mainScroll#mainScroll #content#content .sticky{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .milli-btn:disabled{opacity:.28;box-shadow:none!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .sticky{
   background:color-mix(in srgb,var(--sp-panel) 92%,transparent)!important;box-shadow:none!important;
 }
 
 #mainScroll#mainScroll .pager-btns .pager-btn,
-#mainScroll#mainScroll #content#content .pager-btns .pager-btn{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .pager-btns .pager-btn{
   border:0!important;border-radius:7px!important;background:transparent!important;color:var(--sp-muted)!important;
   box-shadow:none!important;transform:none!important;font-family:var(--font-family)!important;font-weight:500!important;
 }
 #mainScroll#mainScroll .pager-btns .pager-btn:hover:not(:disabled):not(.is-active),
-#mainScroll#mainScroll #content#content .pager-btns .pager-btn:hover:not(:disabled):not(.is-active){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .pager-btns .pager-btn:hover:not(:disabled):not(.is-active){
   background:var(--sp-soft)!important;color:var(--sp-ink)!important;box-shadow:none!important;transform:none!important;
 }
 #mainScroll#mainScroll .pager-btns .pager-btn.is-active,
-#mainScroll#mainScroll #content#content .pager-btns .pager-btn.is-active{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .pager-btns .pager-btn.is-active{
   border:0!important;background:transparent!important;color:var(--sp-accent)!important;
   box-shadow:inset 0 -2px 0 var(--sp-accent)!important;font-weight:600!important;
 }
 #mainScroll#mainScroll .pager-btns .pager-gap{color:var(--sp-muted)!important;}
 
-#mainScroll#mainScroll #content#content .photo-item,
-#mainScroll#mainScroll #content#content .photo-item a{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .photo-item,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .photo-item a{
   border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content .photo-item a{transition:opacity .18s ease!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .photo-item a{transition:opacity .18s ease!important;}
 /* 淡出只在浅色当 hover 反馈：暗色下图片本来就压到 .7，
    降低透明度会让底下的紫色桌面透上来，看着反而像“亮了一下” */
-html[data-theme="light"] #mainScroll#mainScroll #content#content .photo-item a:hover{opacity:.86;box-shadow:none!important;transform:none!important;}
-#mainScroll#mainScroll #content#content .photo-item img{
+html[data-theme="light"] :is(#mainScroll#mainScroll #content#content, .fullpop-body) .photo-item a:hover{opacity:.86;box-shadow:none!important;transform:none!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .photo-item img{
   border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content .poster-card{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card{
   border:1px solid var(--sp-line)!important;border-radius:0!important;background:transparent!important;
   box-shadow:none!important;transform:none!important;transition:none!important;
 }
-#mainScroll#mainScroll #content#content .poster-card:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card:hover{
   border-color:var(--sp-line)!important;background:transparent!important;box-shadow:none!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content .poster-card figure{background:var(--sp-soft)!important;}
-#mainScroll#mainScroll #content#content .poster-card img{border:0!important;border-radius:0!important;box-shadow:none!important;}
-html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #content#content :is(.photo-item,.poster-card) img{filter:brightness(.7)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card figure{background:var(--sp-soft)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card img{border:0!important;border-radius:0!important;box-shadow:none!important;}
+html:is([data-theme="dark"],[data-theme="halloween"]) :is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.photo-item,.poster-card) img{filter:brightness(.7)!important;}
 /* 查看窗在 #content 之外，上面那些降亮度规则管不到它，这里单独补一层，
    和正文缩略图保持同一档，免得点开后被原图的亮度闪一下 */
 html:is([data-theme="dark"],[data-theme="halloween"]) #imgBox .imgbox-view img{filter:brightness(.7);}
 
-#mainScroll#mainScroll #content#content ul.list{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) ul.list{
   border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .list-row{border-color:var(--sp-line)!important;border-radius:8px!important;transition:background-color .16s ease;}
-#mainScroll#mainScroll #content#content .list-row:hover{background:var(--sp-soft)!important;}
-#mainScroll#mainScroll #content#content .list-row :is(.size-10,.size-9){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .list-row{border-color:var(--sp-line)!important;border-radius:8px!important;transition:background-color .16s ease;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .list-row:hover{background:var(--sp-soft)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .list-row :is(.size-10,.size-9){
   border:0!important;border-radius:10px!important;background:var(--sp-soft)!important;color:var(--sp-accent)!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-body,.bm-body) a{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-body,.bm-body) a{
   color:var(--sp-ink)!important;text-decoration:none!important;background:transparent!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-body,.bm-body) a:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-body,.bm-body) a:hover{
   background:var(--sp-soft)!important;color:var(--sp-ink)!important;text-decoration:none!important;
 }
-#mainScroll#mainScroll #content#content .bm-body a>div:first-child{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body a>div:first-child{
   border:0!important;border-radius:10px!important;background:var(--sp-soft)!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .bm-body .badge{border:0!important;background:transparent!important;color:var(--sp-muted)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body .badge{border:0!important;background:transparent!important;color:var(--sp-muted)!important;}
 
-#mainScroll#mainScroll #content#content .wc-root>.rounded-2xl{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .wc-root>.rounded-2xl{
   border:1px solid var(--sp-line)!important;border-radius:14px!important;background:transparent!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .wc-daybox{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .wc-daybox{
   border:0!important;border-radius:10px!important;background:var(--sp-soft)!important;color:var(--sp-accent)!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content #wcResult>div,
-#mainScroll#mainScroll #content#content #wcReminders>div{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) #wcResult>div,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) #wcReminders>div{
   border:0!important;border-radius:10px!important;background:var(--sp-soft)!important;box-shadow:none!important;
 }
 
@@ -9065,12 +8867,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;background:transparent!important;
 }
 .feed-col{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;min-width:0!important;min-height:0!important;overflow:hidden!important;}
-@media (min-width:1024px){
-  .page-container.page-container{grid-template-columns:minmax(0,1fr) 240px!important;}
-  .music-rail{grid-column:2!important;grid-row:1!important;display:flex!important;flex-direction:column!important;}
-  .retro-tools .menu-li-music{display:none!important;}
-}
-@media (max-width:1023px){.music-rail{display:none!important;}}
 
 /* ---------- 卡片头部：刊头在左、工具在右，下面一条横排分类 ---------- */
 .feed-head{flex:0 0 auto!important;padding:20px 20px 16px!important;border-bottom:1px solid var(--sp-line)!important;}
@@ -9195,10 +8991,10 @@ html[data-theme="light"] ::selection{ background:rgba(31,122,107,.22)!important;
 html:is([data-theme="dark"],[data-theme="halloween"]) #bgOrbs{background-image:url('dark.jpg')!important;}
 #mainScroll#mainScroll{background:transparent!important;}
 
-/* ---------- 玻璃面板：左大卡片 + 右侧播放器 ----------
+/* ---------- 玻璃面板：左大卡片（播放器已并入顶栏音乐键的抽屉） ----------
    站点里有一条 #mainScroll#mainScroll * 的直角清零（双 id + !important），
    凡落在它 scope 内的圆角都要用更高的 id 权重压回去。 */
-#mainScroll#mainScroll .feed-col,#mainScroll#mainScroll .music-rail{
+#mainScroll#mainScroll .feed-col{
   background:var(--gl-panel)!important;
   -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
   border:1px solid var(--gl-border)!important;border-radius:18px!important;
@@ -9245,117 +9041,114 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #bgOrbs{background-image:u
 #mainScroll#mainScroll .nav-rail .tab-btn::before{content:none!important;}
 
 /* ---------- 播放列表：当前行橙色霓虹 ---------- */
-.rail-player .hw-pl-row.playing,.rail-player .hw-pl-row.playing:hover,
 .music-drawer .hw-pl-row.playing,.music-drawer .hw-pl-row.playing:hover{
   background:color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gl-warm) 50%,transparent),0 0 14px color-mix(in srgb,var(--gl-warm) 22%,transparent)!important;
 }
-.rail-player .hw-pl-row.playing .hw-pl-row-idx,.rail-player .hw-pl-row.playing .hw-pl-row-title,
-.rail-player .hw-pl-row.playing .hw-pl-row-playicon,
 .music-drawer .hw-pl-row.playing .hw-pl-row-idx,.music-drawer .hw-pl-row.playing .hw-pl-row-title,
 .music-drawer .hw-pl-row.playing .hw-pl-row-playicon{
   color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
 }
 
 /* ---------- 说说：日期小胶囊 + 字距微调 ---------- */
-#mainScroll#mainScroll #content#content .memo-tape-date{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .memo-tape-date{
   padding:3px 9px!important;border:1px solid var(--sp-line)!important;border-radius:999px!important;
   background:var(--sp-soft)!important;
 }
-#mainScroll#mainScroll .rail-player .hw-pl-row,#musicDrawer#musicDrawer .hw-pl-row{border-radius:10px!important;}
+#musicDrawer#musicDrawer .hw-pl-row{border-radius:10px!important;}
 #content .memo-card .memo-text{letter-spacing:.015em!important;}
 
 /* ---------- 热搜 / 书签筛选条：玻璃胶囊工具栏，选中＝暖橙霓虹（同导航盒） ----------
    热搜与书签选中都带 .active，未选中无 .active；统一用 .active 判定。
    这些部件落在 #content 直角清零与 personal-space 扁平规则里，要用四 id 权重压回。 */
-#mainScroll#mainScroll #content#content .sticky{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .sticky{
   background:var(--gl-panel)!important;
   -webkit-backdrop-filter:blur(18px) saturate(1.4)!important;backdrop-filter:blur(18px) saturate(1.4)!important;
   border:1px solid var(--gl-border)!important;border-radius:16px!important;
   box-shadow:var(--gl-shadow)!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip{
   min-height:30px;padding:7px 12px!important;
   border:1px solid var(--gl-border)!important;border-radius:999px!important;
   background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
   color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;box-shadow:none!important;
   font-size:12px!important;font-weight:500!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip:hover{
   border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;
   background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
   box-shadow:0 0 12px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;transform:none!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip.active{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip.active{
   border:1px solid color-mix(in srgb,var(--gl-warm) 60%,transparent)!important;
   background:color-mix(in srgb,var(--gl-warm) 8%,transparent)!important;
   color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
   box-shadow:0 0 14px color-mix(in srgb,var(--gl-warm) 30%,transparent),inset 0 0 10px color-mix(in srgb,var(--gl-warm) 10%,transparent)!important;
   font-weight:600!important;
 }
-#mainScroll#mainScroll #content#content :is(.hot-tabs,.bm-cats) .tag-chip.active:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(.hot-tabs,.bm-cats) .tag-chip.active:hover{
   background:color-mix(in srgb,var(--gl-warm) 12%,transparent)!important;
   color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
 }
 /* 搜索框：玻璃胶囊，聚焦紫色微光 */
-#mainScroll#mainScroll #content#content label.input:has(.bm-search){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.input:has(.bm-search){
   background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
   border:1px solid var(--gl-border)!important;border-radius:999px!important;box-shadow:none!important;
   color:var(--sp-ink)!important;
   -webkit-backdrop-filter:blur(12px)!important;backdrop-filter:blur(12px)!important;
 }
-#mainScroll#mainScroll #content#content label.input:has(.bm-search):focus-within{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) label.input:has(.bm-search):focus-within{
   border-color:color-mix(in srgb,var(--gl-glow) 55%,var(--gl-border))!important;
   box-shadow:0 0 14px color-mix(in srgb,var(--gl-glow) 28%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .bm-search{color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
-#mainScroll#mainScroll #content#content .bm-search::placeholder{color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-search{color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-search::placeholder{color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
 /* 左右切换键 / 刷新键：圆形玻璃钮 */
-#mainScroll#mainScroll #content#content .milli-btn{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .milli-btn{
   width:30px;height:30px;padding:0;
   border:1px solid var(--gl-border)!important;border-radius:999px!important;
   background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
   color:var(--sp-muted)!important;box-shadow:none!important;font:400 18px/1 var(--font-family)!important;
 }
-#mainScroll#mainScroll #content#content .milli-btn:hover:not(:disabled){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .milli-btn:hover:not(:disabled){
   border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;color:var(--sp-ink)!important;
   box-shadow:0 0 10px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .milli-btn:disabled{opacity:.28;box-shadow:none!important;}
-#mainScroll#mainScroll #content#content .hot-refresh{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .milli-btn:disabled{opacity:.28;box-shadow:none!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-refresh{
   border:1px solid var(--gl-border)!important;border-radius:999px!important;
   background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
   color:var(--sp-muted)!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .hot-refresh:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-refresh:hover{
   border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;color:var(--sp-ink)!important;
   box-shadow:0 0 10px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
 }
 
 /* ---------- 进度条：紫→橙渐变填充，发光-thumb，粒子画布 ---------- */
-.rail-player .hw-progress,.music-drawer .hw-progress{
+.music-drawer .hw-progress{
   -webkit-appearance:none!important;appearance:none!important;
   height:6px!important;border:0!important;border-radius:999px!important;outline:none!important;
   background:linear-gradient(90deg,var(--gl-glow) 0%,var(--gl-warm) var(--p,0%),var(--gl-track) var(--p,0%),var(--gl-track) 100%)!important;
   box-shadow:0 0 10px color-mix(in srgb,var(--gl-glow) 30%,transparent)!important;
   cursor:var(--cursor-pointer);
 }
-.rail-player .hw-progress::-webkit-slider-runnable-track,.music-drawer .hw-progress::-webkit-slider-runnable-track{
+.music-drawer .hw-progress::-webkit-slider-runnable-track{
   height:6px!important;background:transparent!important;border:0!important;
 }
-.rail-player .hw-progress::-webkit-slider-thumb,.music-drawer .hw-progress::-webkit-slider-thumb{
+.music-drawer .hw-progress::-webkit-slider-thumb{
   -webkit-appearance:none!important;appearance:none!important;
   width:12px!important;height:12px!important;margin-top:-3px!important;border:0!important;border-radius:50%!important;
   background:#fff!important;box-shadow:0 0 8px var(--gl-glow),0 0 3px rgba(255,255,255,.9)!important;
 }
-.rail-player .hw-progress::-moz-range-track,.music-drawer .hw-progress::-moz-range-track{
+.music-drawer .hw-progress::-moz-range-track{
   height:6px!important;background:transparent!important;border:0!important;
 }
-.rail-player .hw-progress::-moz-range-thumb,.music-drawer .hw-progress::-moz-range-thumb{
+.music-drawer .hw-progress::-moz-range-thumb{
   width:12px!important;height:12px!important;border:0!important;border-radius:50%!important;
   background:#fff!important;box-shadow:0 0 8px var(--gl-glow),0 0 3px rgba(255,255,255,.9)!important;
 }
-#mainScroll#mainScroll .rail-player .hw-progress,#musicDrawer#musicDrawer .hw-progress{border-radius:999px!important;}
+#musicDrawer#musicDrawer .hw-progress{border-radius:999px!important;}
 .hw-pl-progress-row,.hw-progress-row{position:relative!important;}
 canvas.hw-pfx{
   position:absolute;left:0;top:-16px;width:100%;height:calc(100% + 16px);
@@ -9365,7 +9158,7 @@ canvas.hw-pfx{
 /* ---------- 手机音乐抽屉与弹层/常驻栏同材质 ----------
    抽屉此前还穿着更早的 g- 玻璃层（粉描边方按钮、Space Mono 数字、虚线分隔），
    而标签抽屉与右侧常驻播放器都已是 gl 面板 + sp 排版，手机一开抽屉就串味。
-   外壳照 #tagBar 的「弹层同材质」来（右侧滑出，圆角留在左侧），内部照 .rail-player 重铺；
+   外壳照 #tagBar 的「弹层同材质」来（右侧滑出，圆角留在左侧），内部排版与常驻栏时代的重铺一脉相承；
    选择器全部钉在 #musicDrawer 上，桌面常驻栏一行不沾。 */
 #musicDrawer#musicDrawer{
   background:var(--gl-panel)!important;
@@ -9606,7 +9399,7 @@ canvas.hw-pfx{
 
 <style id="hot-bookmark-glass-sidebar">
 /* 热搜 / 书签：左侧筛选栏 + 右侧内容区，统一当前紫夜玻璃皮肤 */
-#mainScroll#mainScroll #content#content .split-view{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
   display:grid!important;
   grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
   align-items:start!important;
@@ -9614,7 +9407,7 @@ canvas.hw-pfx{
   width:100%!important;
   min-width:0!important;
 }
-#mainScroll#mainScroll #content#content .split-side{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
   position:sticky!important;
   top:12px!important;
   display:flex!important;
@@ -9632,7 +9425,7 @@ canvas.hw-pfx{
   backdrop-filter:none!important;
   box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .split-side-head{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side-head{
   display:flex!important;
   align-items:center!important;
   justify-content:space-between!important;
@@ -9641,13 +9434,13 @@ canvas.hw-pfx{
   padding:0 2px 10px!important;
   border-bottom:1px solid var(--sp-line)!important;
 }
-#mainScroll#mainScroll #content#content .split-side-title{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side-title{
   color:var(--sp-ink)!important;
   font-size:.88rem!important;
   font-weight:700!important;
   letter-spacing:.08em!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-list{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
   display:flex!important;
   flex-direction:column!important;
   gap:4px!important;
@@ -9656,7 +9449,7 @@ canvas.hw-pfx{
   overscroll-behavior:contain!important;
   padding:1px 2px 2px!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{
   position:relative!important;
   display:flex!important;
   align-items:center!important;
@@ -9676,26 +9469,26 @@ canvas.hw-pfx{
   cursor:var(--cursor-pointer)!important;
   transition:background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row:hover{
   background:var(--sp-soft)!important;
   border-color:color-mix(in srgb,var(--gl-glow) 30%,transparent)!important;
   color:var(--sp-ink)!important;
   -webkit-text-fill-color:var(--sp-ink)!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row.active{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row.active{
   background:color-mix(in srgb,var(--gl-warm) 10%,transparent)!important;
   border-color:color-mix(in srgb,var(--gl-warm) 52%,transparent)!important;
   color:var(--gl-warm)!important;
   -webkit-text-fill-color:var(--gl-warm)!important;
   box-shadow:0 0 14px color-mix(in srgb,var(--gl-warm) 18%,transparent),inset 0 0 10px color-mix(in srgb,var(--gl-warm) 7%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row-name{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row-name{
   min-width:0!important;
   overflow:hidden!important;
   text-overflow:ellipsis!important;
   white-space:nowrap!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row-count{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row-count{
   flex:0 0 auto!important;
   min-width:1.5em!important;
   text-align:right!important;
@@ -9705,7 +9498,7 @@ canvas.hw-pfx{
   font-size:.72rem!important;
   font-variant-numeric:tabular-nums!important;
 }
-#mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side label.input:has(.bm-search){
   width:100%!important;
   min-height:36px!important;
   height:36px!important;
@@ -9718,11 +9511,11 @@ canvas.hw-pfx{
   -webkit-backdrop-filter:blur(14px) saturate(1.4)!important;
   backdrop-filter:blur(14px) saturate(1.4)!important;
 }
-#mainScroll#mainScroll #content#content .split-side label.input:focus-within{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side label.input:focus-within{
   border-color:color-mix(in srgb,var(--gl-glow) 58%,var(--gl-border))!important;
   box-shadow:0 0 14px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .split-side .bm-search{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .bm-search{
   min-width:0!important;
   background:transparent!important;
   border:0!important;
@@ -9731,12 +9524,12 @@ canvas.hw-pfx{
   -webkit-text-fill-color:var(--sp-ink)!important;
   font-size:.78rem!important;
 }
-#mainScroll#mainScroll #content#content .split-side .bm-search::placeholder{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .bm-search::placeholder{
   color:var(--sp-muted)!important;
   -webkit-text-fill-color:var(--sp-muted)!important;
   opacity:.8!important;
 }
-#mainScroll#mainScroll #content#content .split-side .hot-refresh{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .hot-refresh{
   width:30px!important;
   height:30px!important;
   min-height:30px!important;
@@ -9746,58 +9539,58 @@ canvas.hw-pfx{
   color:var(--sp-muted)!important;
   box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .split-side .hot-refresh:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .hot-refresh:hover{
   color:var(--gl-warm)!important;
   border-color:color-mix(in srgb,var(--gl-warm) 55%,transparent)!important;
   background:color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .split-main{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main{
   min-width:0!important;
   width:100%!important;
 }
-#mainScroll#mainScroll #content#content .hot-body,
-#mainScroll#mainScroll #content#content .bm-body{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body{
   min-width:0!important;
   padding:4px 2px 12px!important;
 }
-#mainScroll#mainScroll #content#content .hot-body > p,
-#mainScroll#mainScroll #content#content .bm-body > p{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body > p,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body > p{
   padding:3px 10px 10px!important;
   color:var(--sp-muted)!important;
   font-size:.72rem!important;
 }
-#mainScroll#mainScroll #content#content .hot-body a,
-#mainScroll#mainScroll #content#content .bm-body a{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body a,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body a{
   border-bottom:1px solid var(--sp-line)!important;
   border-radius:9px!important;
   color:var(--sp-ink)!important;
   transition:background .16s ease,border-color .16s ease!important;
 }
-#mainScroll#mainScroll #content#content .hot-body a:last-child,
-#mainScroll#mainScroll #content#content .bm-body a:last-child{border-bottom-color:transparent!important;}
-#mainScroll#mainScroll #content#content .hot-body a:hover,
-#mainScroll#mainScroll #content#content .bm-body a:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body a:last-child,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body a:last-child{border-bottom-color:transparent!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body a:hover,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body a:hover{
   background:var(--sp-soft)!important;
   border-bottom-color:color-mix(in srgb,var(--gl-glow) 35%,transparent)!important;
 }
 @media(max-width:700px){
-  #mainScroll#mainScroll #content#content .split-view{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
     grid-template-columns:minmax(0,1fr)!important;
     gap:12px!important;
   }
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:relative!important;
     top:auto!important;
     max-height:none!important;
     padding:11px!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     display:grid!important;
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     gap:5px!important;
     max-height:190px!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{
     min-width:0!important;
     min-height:36px!important;
     padding:7px 8px!important;
@@ -9805,7 +9598,7 @@ canvas.hw-pfx{
   }
 }
 /* ---------- v2：筛选栏独立滚动 + 强化紫夜玻璃质感 ---------- */
-#mainScroll#mainScroll #content#content .split-side{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
   /* 明确给侧栏一个独立高度，避免高度跟随右侧内容一起增长 */
   height:min(720px,calc(100dvh - 170px))!important;
   min-height:260px!important;
@@ -9828,7 +9621,7 @@ canvas.hw-pfx{
     inset 0 1px 0 rgba(255,255,255,.22),
     inset 0 -1px 0 rgba(255,255,255,.045)!important;
 }
-#mainScroll#mainScroll #content#content .split-side::before{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side::before{
   content:""!important;
   position:absolute!important;
   inset:0!important;
@@ -9839,11 +9632,11 @@ canvas.hw-pfx{
     radial-gradient(ellipse at 8% 0%,rgba(255,255,255,.16),transparent 48%),
     linear-gradient(110deg,rgba(255,255,255,.045),transparent 42%,rgba(172,132,255,.055))!important;
 }
-#mainScroll#mainScroll #content#content .split-side > *{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side > *{
   position:relative!important;
   z-index:1!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-list{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
   flex:1 1 auto!important;
   min-height:0!important;
   max-height:none!important;
@@ -9856,31 +9649,31 @@ canvas.hw-pfx{
   scrollbar-color:transparent transparent!important;
   padding:3px 3px 8px!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-list::-webkit-scrollbar{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list::-webkit-scrollbar{
   display:none!important;
   width:0!important;
   height:0!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{
   background:linear-gradient(110deg,rgba(255,255,255,.035),rgba(255,255,255,.012))!important;
   border-color:rgba(255,255,255,.045)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row:hover{
   background:linear-gradient(110deg,
     color-mix(in srgb,var(--gl-glow) 17%,transparent),
     rgba(255,255,255,.055))!important;
   border-color:color-mix(in srgb,var(--gl-glow) 38%,transparent)!important;
   box-shadow:0 0 18px color-mix(in srgb,var(--gl-glow) 15%,transparent),inset 0 1px 0 rgba(255,255,255,.10)!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row.active{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row.active{
   background:linear-gradient(110deg,
     color-mix(in srgb,var(--gl-warm) 15%,transparent),
     color-mix(in srgb,var(--gl-glow) 9%,transparent))!important;
   border-color:color-mix(in srgb,var(--gl-warm) 58%,transparent)!important;
   box-shadow:0 0 18px color-mix(in srgb,var(--gl-warm) 20%,transparent),inset 0 1px 0 rgba(255,255,255,.12)!important;
 }
-#mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side label.input:has(.bm-search){
   background:linear-gradient(115deg,rgba(255,255,255,.12),rgba(255,255,255,.035)),
     color-mix(in srgb,var(--gl-panel) 72%,transparent)!important;
   border-color:color-mix(in srgb,var(--gl-border) 85%,rgba(255,255,255,.35))!important;
@@ -9889,12 +9682,12 @@ canvas.hw-pfx{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 4px 16px rgba(0,0,0,.08)!important;
 }
 @media(max-width:700px){
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     height:auto!important;
     min-height:0!important;
     max-height:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     flex:0 1 auto!important;
     display:grid!important;
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
@@ -9903,7 +9696,7 @@ canvas.hw-pfx{
   }
 }
 @media(prefers-reduced-motion:reduce){
-  #mainScroll#mainScroll #content#content .split-side .side-row{transition:none!important;}
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{transition:none!important;}
 }
 </style>
 
@@ -9911,11 +9704,11 @@ canvas.hw-pfx{
 <style id="hot-bookmark-glass-sidebar-v3">
 /* v3：侧栏外框首屏完整呈现；只有分类/平台列表像播放器歌单一样独立滚动 */
 @media (min-width:701px){
-  #mainScroll#mainScroll #content#content .split-view{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
     align-items:start!important;
     grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
   }
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:sticky!important;
     top:112px!important; /* 避开固定顶部导航 */
     align-self:start!important;
@@ -9935,18 +9728,18 @@ canvas.hw-pfx{
     backdrop-filter:none!important;
     box-shadow:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side-head{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side-head{
     flex:0 0 auto!important;
     min-height:38px!important;
     padding:1px 2px 11px!important;
     border-bottom:1px solid rgba(255,255,255,.16)!important;
     box-shadow:0 1px 0 rgba(0,0,0,.08)!important;
   }
-  #mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side label.input:has(.bm-search){
     flex:0 0 38px!important;
     margin-top:2px!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     display:flex!important;
     flex:1 1 0!important;
     min-height:0!important;
@@ -9962,10 +9755,10 @@ canvas.hw-pfx{
     mask-image:linear-gradient(to bottom,transparent 0,#000 9px,#000 calc(100% - 9px),transparent 100%);
     -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9px,#000 calc(100% - 9px),transparent 100%);
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list::-webkit-scrollbar{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list::-webkit-scrollbar{
     display:none!important;width:0!important;height:0!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{
     flex:0 0 auto!important;
     background:linear-gradient(115deg,rgba(255,255,255,.075),rgba(255,255,255,.018))!important;
     border-color:rgba(255,255,255,.075)!important;
@@ -9973,14 +9766,14 @@ canvas.hw-pfx{
   }
 }
 @media(max-width:700px){
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:relative!important;
     top:auto!important;
     height:auto!important;
     min-height:0!important;
     max-height:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     flex:0 1 auto!important;
     height:auto!important;
     max-height:230px!important;
@@ -9996,7 +9789,7 @@ canvas.hw-pfx{
 /* V4：左右两栏同高、同起点；左侧筛选与右侧列表各自独立滚动。
    不再使用 sticky 的 top 偏移，也不让右侧内容高度决定左侧外框高度。 */
 @media (min-width:701px){
-  #mainScroll#mainScroll #content#content .split-view{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
     display:grid!important;
     grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
     grid-template-rows:minmax(0,1fr)!important;
@@ -10007,7 +9800,7 @@ canvas.hw-pfx{
     max-height:calc(100dvh - 150px)!important;
     overflow:hidden!important;
   }
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:relative!important;
     inset:auto!important;
     align-self:stretch!important;
@@ -10018,7 +9811,7 @@ canvas.hw-pfx{
     margin:0!important;
     overflow:hidden!important;
   }
-  #mainScroll#mainScroll #content#content .split-main{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main{
     align-self:stretch!important;
     width:100%!important;
     height:100%!important;
@@ -10031,10 +9824,10 @@ canvas.hw-pfx{
     -webkit-overflow-scrolling:touch!important;
     scrollbar-width:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-main::-webkit-scrollbar{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main::-webkit-scrollbar{
     display:none!important;width:0!important;height:0!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     flex:1 1 0!important;
     min-height:0!important;
     height:0!important;
@@ -10047,21 +9840,21 @@ canvas.hw-pfx{
   }
 }
 @media (max-width:700px){
-  #mainScroll#mainScroll #content#content .split-view{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
     display:flex!important;flex-direction:column!important;
     height:auto!important;min-height:0!important;max-height:none!important;
     overflow:visible!important;align-items:stretch!important;
   }
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:relative!important;inset:auto!important;
     width:100%!important;height:auto!important;
     min-height:0!important;max-height:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     flex:0 1 auto!important;height:auto!important;
     max-height:220px!important;overflow-y:auto!important;
   }
-  #mainScroll#mainScroll #content#content .split-main{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main{
     width:100%!important;height:auto!important;max-height:none!important;
     min-height:0!important;overflow:visible!important;
   }
@@ -10094,7 +9887,7 @@ canvas.hw-pfx{
     padding:14px!important;
     overflow:hidden!important;
   }
-  #mainScroll#mainScroll #content#content .split-view{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
     display:grid!important;
     grid-template-columns:minmax(156px,180px) minmax(0,1fr)!important;
     grid-template-rows:minmax(0,1fr)!important;
@@ -10108,7 +9901,7 @@ canvas.hw-pfx{
     overflow:hidden!important;
   }
   /* 左侧：整个筛选面板是外框，标题/搜索固定，只有分类列表滚动 */
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:relative!important;
     inset:auto!important;
     align-self:stretch!important;
@@ -10124,11 +9917,11 @@ canvas.hw-pfx{
     overflow:hidden!important;
     box-sizing:border-box!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .split-side-head,
-  #mainScroll#mainScroll #content#content .split-side > label.input{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .split-side-head,
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side > label.input{
     flex:0 0 auto!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     display:flex!important;
     flex:1 1 0!important;
     flex-direction:column!important;
@@ -10141,7 +9934,7 @@ canvas.hw-pfx{
     -webkit-overflow-scrolling:touch!important;
   }
   /* 右侧：同样是一整个固定外框；热搜/书签列表只在内部滚动 */
-  #mainScroll#mainScroll #content#content .split-main{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main{
     position:relative!important;
     display:flex!important;
     flex-direction:column!important;
@@ -10164,8 +9957,8 @@ canvas.hw-pfx{
     backdrop-filter:none!important;
     box-shadow:none!important;
   }
-  #mainScroll#mainScroll #content#content .hot-body,
-  #mainScroll#mainScroll #content#content .bm-body{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body,
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body{
     flex:1 1 auto!important;
     width:100%!important;
     min-width:0!important;
@@ -10195,21 +9988,21 @@ canvas.hw-pfx{
     min-height:0!important;
     overflow:visible!important;
   }
-  #mainScroll#mainScroll #content#content .split-view{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
     height:auto!important;
     min-height:0!important;
     overflow:visible!important;
   }
-  #mainScroll#mainScroll #content#content .split-side,
-  #mainScroll#mainScroll #content#content .split-main{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side,
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main{
     height:auto!important;
     max-height:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-main{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main{
     overflow:visible!important;
   }
-  #mainScroll#mainScroll #content#content .hot-body,
-  #mainScroll#mainScroll #content#content .bm-body{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body,
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body{
     height:auto!important;
     max-height:none!important;
     overflow:visible!important;
@@ -10224,7 +10017,7 @@ canvas.hw-pfx{
 /* Final polish: one coherent glass sidebar, quieter category rows, clean rounded clipping.
    Visual-only overrides; platform/category selection and scrolling logic remain untouched. */
 @media (min-width:701px){
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:relative!important;
     inset:auto!important;
     align-self:stretch!important;
@@ -10254,7 +10047,7 @@ canvas.hw-pfx{
       inset 0 1px 0 rgba(255,255,255,.16),
       inset 0 -1px 0 rgba(255,255,255,.035)!important;
   }
-  #mainScroll#mainScroll #content#content .split-side::before{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side::before{
     content:""!important;
     position:absolute!important;
     inset:0!important;
@@ -10265,11 +10058,11 @@ canvas.hw-pfx{
       linear-gradient(180deg,rgba(255,255,255,.045),transparent 28%),
       radial-gradient(ellipse at 100% 100%,color-mix(in srgb,var(--gl-glow) 8%,transparent),transparent 55%)!important;
   }
-  #mainScroll#mainScroll #content#content .split-side > *{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side > *{
     position:relative!important;
     z-index:1!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .split-side-head{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .split-side-head{
     display:flex!important;
     align-items:center!important;
     justify-content:space-between!important;
@@ -10280,13 +10073,13 @@ canvas.hw-pfx{
     border-bottom:1px solid color-mix(in srgb,var(--gl-border) 70%,transparent)!important;
     box-shadow:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side-title{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side-title{
     color:var(--sp-ink)!important;
     font-size:.9rem!important;
     font-weight:700!important;
     letter-spacing:.12em!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     display:flex!important;
     flex:1 1 0!important;
     flex-direction:column!important;
@@ -10303,7 +10096,7 @@ canvas.hw-pfx{
     mask-image:none!important;
     -webkit-mask-image:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{
     position:relative!important;
     display:flex!important;
     flex:0 0 auto!important;
@@ -10326,14 +10119,14 @@ canvas.hw-pfx{
     font-weight:500!important;
     transition:background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row:hover{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row:hover{
     background:color-mix(in srgb,var(--gl-glow) 10%,rgba(255,255,255,.035))!important;
     border-color:color-mix(in srgb,var(--gl-glow) 24%,transparent)!important;
     color:var(--sp-ink)!important;
     -webkit-text-fill-color:var(--sp-ink)!important;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row.active{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row.active{
     background:linear-gradient(100deg,
       color-mix(in srgb,var(--gl-warm) 13%,transparent),
       color-mix(in srgb,var(--gl-glow) 7%,transparent))!important;
@@ -10343,13 +10136,13 @@ canvas.hw-pfx{
     box-shadow:inset 2px 0 0 var(--gl-warm),0 0 13px color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
     font-weight:650!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row-name{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row-name{
     min-width:0!important;
     overflow:hidden!important;
     text-overflow:ellipsis!important;
     white-space:nowrap!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row-count{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row-count{
     flex:0 0 auto!important;
     min-width:1.6em!important;
     text-align:right!important;
@@ -10359,7 +10152,7 @@ canvas.hw-pfx{
     font-size:.7rem!important;
     font-variant-numeric:tabular-nums!important;
   }
-  #mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side label.input:has(.bm-search){
     display:flex!important;
     flex:0 0 37px!important;
     align-items:center!important;
@@ -10376,11 +10169,11 @@ canvas.hw-pfx{
     -webkit-backdrop-filter:blur(12px) saturate(1.35)!important;
     backdrop-filter:blur(12px) saturate(1.35)!important;
   }
-  #mainScroll#mainScroll #content#content .split-side label.input:focus-within{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side label.input:focus-within{
     border-color:color-mix(in srgb,var(--gl-glow) 48%,var(--gl-border))!important;
     box-shadow:0 0 12px color-mix(in srgb,var(--gl-glow) 16%,transparent),inset 0 1px 0 rgba(255,255,255,.1)!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .bm-search{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .bm-search{
     min-width:0!important;
     background:transparent!important;
     border:0!important;
@@ -10390,12 +10183,12 @@ canvas.hw-pfx{
     -webkit-text-fill-color:var(--sp-ink)!important;
     font-size:.76rem!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .bm-search::placeholder{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .bm-search::placeholder{
     color:var(--sp-muted)!important;
     -webkit-text-fill-color:var(--sp-muted)!important;
     opacity:.72!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .hot-refresh{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .hot-refresh{
     width:30px!important;height:30px!important;min-height:30px!important;
     padding:0!important;
     border:1px solid var(--gl-border)!important;
@@ -10404,7 +10197,7 @@ canvas.hw-pfx{
     color:var(--sp-muted)!important;
     box-shadow:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .hot-refresh:hover{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .hot-refresh:hover{
     color:var(--gl-warm)!important;
     border-color:color-mix(in srgb,var(--gl-warm) 48%,transparent)!important;
     background:color-mix(in srgb,var(--gl-warm) 9%,transparent)!important;
@@ -10413,25 +10206,24 @@ canvas.hw-pfx{
 }
 /* Glass surfaces with rounded corners must clip their own contents, not expose
    rectangular compositor/backdrop-filter edges around the radius. */
-#mainScroll#mainScroll .feed-col,
-#mainScroll#mainScroll .music-rail{
+#mainScroll#mainScroll .feed-col{
   border-radius:16px!important;
   overflow:hidden!important;
   isolation:isolate!important;
   background-clip:padding-box!important;
   -webkit-background-clip:padding-box!important;
 }
-#mainScroll#mainScroll #content#content .split-side{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
   border-radius:15px!important;
   overflow:hidden!important;
   isolation:isolate!important;
   background-clip:padding-box!important;
 }
-#mainScroll#mainScroll #content#content .split-side::before{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side::before{
   border-radius:inherit!important;
 }
 @media(max-width:700px){
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     position:relative!important;
     inset:auto!important;
     width:100%!important;
@@ -10441,7 +10233,7 @@ canvas.hw-pfx{
     padding:11px!important;
     border-radius:13px!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-list{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
     display:grid!important;
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     flex:0 1 auto!important;
@@ -10452,7 +10244,7 @@ canvas.hw-pfx{
     mask-image:none!important;
     -webkit-mask-image:none!important;
   }
-  #mainScroll#mainScroll #content#content .split-side .side-row{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{
     min-width:0!important;
     min-height:36px!important;
     padding:7px 8px!important;
@@ -10465,7 +10257,7 @@ canvas.hw-pfx{
 
 <style id="hot-bookmark-outline-only-final">
 /* 热搜 / 书签左栏：改成播放器歌单式的透明分区，只留轮廓，不再叠加第二层玻璃底色 */
-#mainScroll#mainScroll #content#content .split-side{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
   background:transparent!important;
   background-image:none!important;
   -webkit-backdrop-filter:none!important;
@@ -10476,48 +10268,48 @@ canvas.hw-pfx{
   overflow:hidden!important;
   isolation:auto!important;
 }
-#mainScroll#mainScroll #content#content .split-side::before{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side::before{
   content:none!important;
   display:none!important;
   background:none!important;
 }
-#mainScroll#mainScroll #content#content .split-side .split-side-head{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .split-side-head{
   background:transparent!important;
   box-shadow:none!important;
   border-bottom:1px solid color-mix(in srgb,var(--gl-border) 58%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-list{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
   background:transparent!important;
   box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row{
   background:transparent!important;
   border-color:transparent!important;
   box-shadow:none!important;
   border-radius:8px!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row:hover{
   background:color-mix(in srgb,var(--gl-glow) 7%,transparent)!important;
   border-color:color-mix(in srgb,var(--gl-border) 42%,transparent)!important;
   box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .split-side .side-row.active{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-row.active{
   background:color-mix(in srgb,var(--gl-warm) 8%,transparent)!important;
   border-color:color-mix(in srgb,var(--gl-warm) 27%,transparent)!important;
   box-shadow:inset 2px 0 0 color-mix(in srgb,var(--gl-warm) 82%,transparent)!important;
 }
-#mainScroll#mainScroll #content#content .split-side label.input:has(.bm-search){
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side label.input:has(.bm-search){
   background:transparent!important;
   -webkit-backdrop-filter:none!important;
   backdrop-filter:none!important;
   box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .split-side .hot-refresh{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .hot-refresh{
   background:transparent!important;
   box-shadow:none!important;
 }
 @media(max-width:700px){
-  #mainScroll#mainScroll #content#content .split-side{
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side{
     background:transparent!important;
     -webkit-backdrop-filter:none!important;
     backdrop-filter:none!important;
@@ -10531,12 +10323,11 @@ canvas.hw-pfx{
 
 <style id="home-panels-rounded-glass-fix">
 /*
- * 首页说说区与播放器：修复圆角处暗色矩形接缝。
+ * 首页说说区：修复圆角处暗色矩形接缝。
  * 将背景、描边和 backdrop-filter 放到独立的圆角伪元素上，
  * 内容层保持透明并位于其上方，避免滤镜直接作用于滚动容器。
  */
-#mainScroll#mainScroll .feed-col,
-#mainScroll#mainScroll .music-rail{
+#mainScroll#mainScroll .feed-col{
   position:relative!important;
   border:0!important;
   border-radius:8px!important;
@@ -10550,8 +10341,7 @@ canvas.hw-pfx{
 }
 
 /* 独立玻璃底层：圆角、背景、模糊和描边在同一图层内完成 */
-#mainScroll#mainScroll .feed-col::before,
-#mainScroll#mainScroll .music-rail::before{
+#mainScroll#mainScroll .feed-col::before{
   content:""!important;
   display:block!important;
   position:absolute!important;
@@ -10569,13 +10359,11 @@ canvas.hw-pfx{
 }
 
 /* 内容层不再绘制第二块矩形底色 */
-#mainScroll#mainScroll .feed-col > *,
-#mainScroll#mainScroll .music-rail > *{
+#mainScroll#mainScroll .feed-col > *{
   position:relative;
   z-index:1;
 }
-#mainScroll#mainScroll #feedScroll,
-#mainScroll#mainScroll #musicRail .rail-player{
+#mainScroll#mainScroll #feedScroll{
   background:transparent!important;
   background-image:none!important;
   box-shadow:none!important;
@@ -10583,14 +10371,12 @@ canvas.hw-pfx{
 
 /* 小屏布局继续使用更紧凑的圆角 */
 @media(max-width:700px){
-  #mainScroll#mainScroll .feed-col,
-  #mainScroll#mainScroll .music-rail{
+  #mainScroll#mainScroll .feed-col{
     border-radius:7px!important;
     clip-path:inset(0 round 7px);
     -webkit-clip-path:inset(0 round 7px);
   }
-  #mainScroll#mainScroll .feed-col::before,
-  #mainScroll#mainScroll .music-rail::before{
+  #mainScroll#mainScroll .feed-col::before{
     border-radius:7px!important;
   }
 }
@@ -10602,8 +10388,7 @@ canvas.hw-pfx{
    小屏两块是通栏的，投影没有落点，维持原样。 */
 @media(min-width:701px){
   .page-container.page-container{ overflow:visible!important; }
-  #mainScroll#mainScroll .feed-col,
-  #mainScroll#mainScroll .music-rail{
+  #mainScroll#mainScroll .feed-col{
     clip-path:none!important;
     -webkit-clip-path:none!important;
     box-shadow:var(--gl-float)!important;
@@ -10615,7 +10400,7 @@ canvas.hw-pfx{
    排名数字去掉后每行前面没有任何元素了，原来压在行底的那根发丝线就成了满屏横线，
    整屏像一张表格；改成纯文字行，行与行只靠留白分开。
    hover 沿用书签列表 / 歌单行那套柔光底，再把字提到主色，不再画线。 */
-#mainScroll#mainScroll #content#content .hot-body a{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body a{
   display:block!important;
   padding:6px 10px!important;
   border-bottom:0!important;border-radius:8px!important;
@@ -10626,14 +10411,14 @@ canvas.hw-pfx{
   box-shadow:none!important;
   transition:color .16s ease,background-color .16s ease!important;
 }
-#mainScroll#mainScroll #content#content .hot-body a:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body a:hover{
   background:var(--sp-soft)!important;
   color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
   box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .hot-body a[href="#"]{pointer-events:none!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body a[href="#"]{pointer-events:none!important;}
 @media(max-width:700px){
-  #mainScroll#mainScroll #content#content .hot-body a{font-size:14.5px!important;padding:6px 9px!important;}
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body a{font-size:14.5px!important;padding:6px 9px!important;}
 }
 </style>
 <style id="poster-polaroid">
@@ -10641,7 +10426,7 @@ canvas.hw-pfx{
    材质直接复用图片查看窗那套 --po-* token，两处拍立得是同一张纸。
    照片四周走窄边、下面留一条宽头，片名 / 原名 / 日期写在宽头里；
    卡片里的按钮（类型徽章、豆瓣）一律不碰。 */
-#mainScroll#mainScroll #content#content .poster-card{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card{
   padding:8px 8px 0!important;
   border:1px solid var(--po-edge)!important;border-radius:4px!important;
   background:var(--po-paper)!important;
@@ -10654,7 +10439,7 @@ canvas.hw-pfx{
    不补的话一 hover 相纸就没了，露出底下的壁纸。
    不套 @media (hover:hover)：手机点中元素也会挂 :hover，套上就只有 PC 拿得到这圈光，
    手机上剩下的只有那层把相纸清透明的旧规则。 */
-#mainScroll#mainScroll #content#content .poster-card:hover{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card:hover{
   background:var(--po-paper)!important;
   border-color:var(--po-glow)!important;
   box-shadow:
@@ -10662,17 +10447,222 @@ canvas.hw-pfx{
     0 0 0 1px var(--po-glow),0 0 18px 2px var(--po-glow),0 0 42px -2px var(--po-glow),
     var(--po-shadow-card)!important;
 }
-html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #content#content .poster-card:hover img{
+html:is([data-theme="dark"],[data-theme="halloween"]) :is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card:hover img{
   filter:brightness(.86)!important;
 }
-#mainScroll#mainScroll #content#content .poster-card figure{background:transparent!important;}
-#mainScroll#mainScroll #content#content .poster-card img{
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card figure{background:transparent!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-card img{
   border:1px solid var(--po-photo)!important;border-radius:2px!important;box-shadow:none!important;
 }
-#mainScroll#mainScroll #content#content .poster-caption{padding:9px 4px 10px!important;}
-#mainScroll#mainScroll #content#content .poster-caption h3{color:var(--sp-ink)!important;}
-#mainScroll#mainScroll #content#content .poster-caption p{color:var(--po-caption)!important;opacity:.82!important;}
-#mainScroll#mainScroll #content#content .poster-caption .poster-date{color:var(--po-caption)!important;opacity:.72!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-caption{padding:9px 4px 10px!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-caption h3{color:var(--sp-ink)!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-caption p{color:var(--po-caption)!important;opacity:.82!important;}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .poster-caption .poster-date{color:var(--po-caption)!important;opacity:.72!important;}
+</style>
+<style id="normal-page-flow">
+/* ============================================================
+   普通网页化：滚动还给文档
+   原壳子：witcher 层把 html/body 锁死（height:100% + overflow:hidden），
+   #mainScroll 钉满视口，只有 #feedScroll 一个内滚容器——手机浏览器看不到
+   文档在滚，底栏永远不收，页头也吃不到状态栏安全区。
+   现在全部还原成普通文档流：内容撑多高页面就多高，滚动条回到网页右缘；
+   顶部内边距走 env(safe-area-inset-top)，内容从刘海/时钟下面开始排。
+   ============================================================ */
+html,
+body{
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+#mainScroll#mainScroll{
+  position:relative !important;
+  inset:auto !important;
+  margin:0 !important;
+  scrollbar-width:auto !important;
+  height:auto !important;
+  min-height:0 !important;
+  display:block !important;
+  overflow:visible !important;
+  padding-top:calc(env(safe-area-inset-top, 0px) + 10px) !important;
+  padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 30px) !important;
+}
+.page-container.page-container{
+  display:block !important;
+  flex:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+/* #feedScroll 的旧覆盖都带 :has() 权重更高，这里凑三段 id 压回自然流 */
+#mainScroll#mainScroll #feedScroll#feedScroll{
+  display:block !important;
+  flex:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+/* ---------- 回到顶部：贴网页右缘，不再量说说卡片的边 ---------- */
+#toTop#toTop{
+  position:fixed !important;
+  right:12px !important;
+  bottom:max(18px, calc(env(safe-area-inset-bottom, 0px) + 12px)) !important;
+}
+/* ---------- 热搜/书签：双面板不再锁视口各自内滚，跟着页面一起滚 ---------- */
+@media (min-width:701px){
+  #feedScroll#feedScroll:has(#content > .split-view){
+    display:block !important;
+    height:auto !important;
+    overflow:visible !important;
+  }
+  #content#content:has(> .split-view){
+    height:auto !important;
+    min-height:0 !important;
+    overflow:visible !important;
+  }
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-view{
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side,
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-main{
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .hot-body,
+  :is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body{
+    flex:none !important;
+    height:auto !important;
+    min-height:0 !important;
+    overflow:visible !important;
+  }
+}
+/* 手机端分类芯片原来压在 220px 小框里自己滚，放开让页面滚 */
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .side-list{
+  flex:0 0 auto !important;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+/* ---------- 版权并入刊头 motto 行右侧 ---------- */
+.retro-copyright{
+  margin-left:14px;
+  color:var(--sp-muted);
+  opacity:.72;
+  letter-spacing:.06em;
+  white-space:nowrap;
+}
+/* ---------- 弹层层叠：标签抽屉遮罩抬过回顶按钮（z120），与音乐抽屉/搜索弹窗同层 ---------- */
+.tag-drawer-overlay{ z-index:10000 !important; }
+#tagBar.tag-drawer{ z-index:10001 !important; }
+</style>
+<style id="dock-pop">
+/* ============================================================
+   底部 dock + 全屏弹窗（热搜/书签/看过/想看/世界时间）
+   正文只剩 dock 的首页/相册/摘录三个文档视图，其余全部进弹窗
+   自己滚：打开期间 html.pop-lock 锁死文档滚动，弹窗关闭恢复，
+   两边滚动条互不干扰；弹窗各自记住滚动位置，关了再开原位恢复。
+   dock 沿用 .nav-rail 的图标键样式，只补固定定位、玻璃壳和标签。
+   ============================================================ */
+html{ scrollbar-gutter:stable; }
+html.pop-lock,
+html.pop-lock body{ overflow:hidden !important; }
+/* 正文底部给常驻 dock 让位 */
+#mainScroll#mainScroll{ padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 104px) !important; }
+
+/* ---------- 刊头吸顶 ----------
+   sticky 相对最近的滚动容器生效，.feed-col 的 overflow:hidden（hidden 也算滚动容器）会把吸顶截死在面板里；
+   内容层实测不外溢（见 home-panels-rounded-glass-fix 的注释），放开它：
+   桌面圆角由 ::before 玻璃底自带的 border-radius 兜住，移动端仍有 clip-path 裁角，gl-float 投影照落桌布 */
+#mainScroll#mainScroll .feed-col{ overflow:visible !important; }
+.feed-head{
+  position:sticky !important; top:0 !important; z-index:80 !important;
+  /* 同色叠三层把不透明度抬到 ~94%：底下滚过大号正文时残影读不出来，dock/弹层共用的 --gl-panel 本体不动 */
+  background-color:var(--gl-panel) !important;
+  background-image:linear-gradient(var(--gl-panel),var(--gl-panel)),linear-gradient(var(--gl-panel),var(--gl-panel)) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5) !important; backdrop-filter:blur(22px) saturate(1.5) !important;
+}
+
+/* ---------- dock ---------- */
+.nav-rail.dock-bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:90;
+  display:flex; justify-content:center; min-width:0; pointer-events:none;
+  padding:0 10px calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
+  overflow:visible !important;
+}
+/* sp 层对 .nav-rail .retro-primary/.tab-btn 的旧规则全是 !important（7 列 grid、按钮描边盒），dock 这边逐条压回 */
+.nav-rail.dock-bar .retro-primary{
+  pointer-events:auto;
+  display:flex !important; grid-template-columns:none !important;
+  align-items:stretch; gap:2px !important; margin:0 !important; padding:6px 10px !important;
+  border-radius:22px !important; background:var(--gl-panel); border:1px solid var(--gl-border);
+  box-shadow:var(--gl-shadow);
+  backdrop-filter:blur(22px) saturate(1.5); -webkit-backdrop-filter:blur(22px) saturate(1.5);
+}
+.nav-rail.dock-bar .retro-primary>li{ display:flex !important; margin:0 !important; padding:0 !important; }
+.nav-rail.dock-bar .tab-btn{
+  flex-direction:column !important; gap:3px !important; width:auto !important; min-width:58px; height:auto !important; min-height:54px !important;
+  padding:8px 10px !important; border-radius:14px !important;
+  border:1px solid transparent !important; background:transparent !important; box-shadow:none !important;
+}
+.nav-rail.dock-bar .tab-btn .iconify{ font-size:20px !important; }
+.nav-rail.dock-bar .tab-btn .nav-label{
+  display:block !important; font-size:10px !important; line-height:1.2; letter-spacing:.14em !important; font-weight:400 !important;
+}
+.nav-rail.dock-bar .tab-btn:hover{
+  border-color:transparent !important; background:transparent !important; box-shadow:none !important; transform:none !important;
+  color:var(--sp-accent) !important; -webkit-text-fill-color:var(--sp-accent) !important;
+}
+.nav-rail.dock-bar .tab-btn.active{
+  border-color:transparent !important; background:transparent !important; box-shadow:none !important;
+  color:var(--sp-accent) !important; -webkit-text-fill-color:var(--sp-accent) !important;
+}
+/* 选中圆点指示条的原规则钉在 #mainScroll 里，dock 在外头，这里补一份 */
+.nav-rail.dock-bar .tab-btn::before{
+  content:""; position:absolute; left:50%; bottom:3px; width:4px; height:4px; margin-left:-2px;
+  border-radius:50% !important; background:var(--sp-accent); opacity:0; pointer-events:none;
+}
+.nav-rail.dock-bar .tab-btn.active::before{ opacity:1; }
+@media (max-width:700px){
+  #toTop#toTop{ bottom:calc(env(safe-area-inset-bottom, 0px) + 88px) !important; }
+}
+
+/* ---------- 全屏弹窗 ---------- */
+.fullpop-overlay{
+  position:fixed; inset:0; z-index:10000;
+  background:rgba(35,27,19,.32);
+  backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+  opacity:0; pointer-events:none; transition:opacity .28s ease;
+}
+.fullpop-overlay.open{ opacity:1; pointer-events:auto; }
+.fullpop{
+  position:fixed; inset:0; z-index:10001; display:flex; flex-direction:column;
+  margin:clamp(6px, 1.5vw, 16px); border-radius:18px !important; overflow:hidden;
+  background:var(--gl-panel); border:1px solid var(--gl-border); box-shadow:var(--gl-shadow);
+  backdrop-filter:blur(22px) saturate(1.5); -webkit-backdrop-filter:blur(22px) saturate(1.5);
+  color:var(--sp-ink);
+  opacity:0; pointer-events:none; transform:translateY(16px) scale(.985);
+  transition:opacity .28s ease, transform .28s ease;
+}
+.fullpop.open{ opacity:1; pointer-events:auto; transform:none; }
+.fullpop-head{
+  flex:none; display:flex; align-items:center; gap:10px;
+  padding:calc(env(safe-area-inset-top, 0px) + 13px) 18px 13px;
+  border-bottom:1px solid var(--sp-line);
+}
+.fullpop-icon{ font-size:20px; color:var(--sp-accent); }
+.fullpop-title{ flex:1; margin:0; font-size:1.02rem; font-weight:700; letter-spacing:.06em; }
+.fullpop-close{
+  appearance:none; border:0; background:transparent; color:inherit;
+  width:34px; height:34px; border-radius:10px !important; display:grid; place-items:center;
+  font-size:20px; cursor:var(--cursor-pointer); transition:color .15s ease;
+}
+.fullpop-close:hover{ color:var(--sp-accent); }
+.fullpop-body{
+  flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+  padding:6px 16px calc(env(safe-area-inset-bottom, 0px) + 26px);
+}
 </style>
 <script id="poster-tint">
 /* ---------- 影视卡取色：相纸材质跟着海报主色走 ----------
