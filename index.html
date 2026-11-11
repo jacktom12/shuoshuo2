@@ -2182,22 +2182,6 @@ function tapeTime(rawDate) {
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
 
-/* 稳定伪随机：同一条说说每次渲染位置一致，但不同内容自然分散 */
-function tapePlacement(m) {
-  const key = String(m.id || '') + '|' + String(m.rawDate || '') + '|' + String(m.content || '').slice(0, 80);
-  let hash = 2166136261;
-  for (let i = 0; i < key.length; i++) {
-    hash ^= key.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  const unit = (hash >>> 0) / 4294967295;
-  const unit2 = ((Math.imul(hash ^ 0x9e3779b9, 1103515245) >>> 0) / 4294967295);
-  return {
-    left: (7 + unit * 61).toFixed(2) + '%',
-    rotate: (-3.2 + unit2 * 6.4).toFixed(2) + 'deg'
-  };
-}
-
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
@@ -2216,15 +2200,13 @@ ${renderImages(images)}`;
   if (plain) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
-  // 胶带颜色随第一个标签；位置由内容生成稳定伪随机值，不按条目序号循环
+  // 胶带颜色随第一个标签
   const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
   const dateText = tapeTime(m.rawDate);
-  const placement = tapePlacement(m);
-  const tapeStyle = `left:${placement.left}; transform:rotate(${placement.rotate});`;
   return `
   <li class="fade-up memo-item" style="${anim}">
     <article class="memo-card" style="${tape}">
-      ${dateText ? `<span class="memo-tape-date" style="${tapeStyle}" aria-label="发布时间">${dateText}</span>` : ''}
+      ${dateText ? `<span class="memo-tape-date" aria-label="发布时间"><span aria-hidden="true" class="iconify" data-icon="lucide:clock"></span>${dateText}</span>` : ''}
       ${body}
     </article>
   </li>`;
@@ -8957,6 +8939,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   --gl-shadow:0 12px 36px rgba(60,70,100,.18),0 0 24px rgba(31,122,107,.10);
   --sp-bg:#e9edf1;--sp-panel:var(--gl-panel);--sp-ink:#26232e;--sp-muted:#5b6a65;
   --sp-line:rgba(31,84,74,.16);--sp-soft:rgba(31,122,107,.10);--sp-on-ink:#fff;--sp-accent:#17635a;
+  /* 内容之间的分隔线：--sp-line 再淡一档。派生自它，两套主题自动跟着走 */
+  --gl-hair:color-mix(in srgb,var(--sp-line) 46%,transparent);
   /* 面板投影：只往下走，横向用负 spread 收住，免得在窄缝里被切出硬边 */
   --gl-float:0 2px 5px rgba(23,52,46,.10),0 14px 24px -12px rgba(23,52,46,.26),0 30px 54px -22px rgba(23,52,46,.24);
   --gl-rim:rgba(255,255,255,.85);
@@ -9050,10 +9034,16 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #bgOrbs{background-image:u
   color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
 }
 
-/* ---------- 说说：日期小胶囊 + 字距微调 ---------- */
+/* ---------- 说说：时间＝时钟图标 + 极简文字，不再是胶囊 ---------- */
 :is(#mainScroll#mainScroll #content#content, .fullpop-body) .memo-tape-date{
-  padding:3px 9px!important;border:1px solid var(--sp-line)!important;border-radius:999px!important;
-  background:var(--sp-soft)!important;
+  display:inline-flex!important;align-items:center!important;gap:5px!important;
+  padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  font:11px/1.4 var(--font-num)!important;letter-spacing:.02em!important;
+}
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .memo-tape-date .iconify{
+  flex:none!important;font-size:12px!important;opacity:.75;
 }
 #musicDrawer#musicDrawer .hw-pl-row{border-radius:10px!important;}
 #content .memo-card .memo-text{letter-spacing:.015em!important;}
@@ -10684,6 +10674,50 @@ html.pop-lock body{ overflow:hidden !important; }
     -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
   }
 }
+</style>
+<style id="hairline-breath">
+/* ---------- 分隔线：从「一道线」退成「一口气」 ----------
+   横线原来跟容器外框共用 --sp-line（浅 .16 / 暗 .22），压在玻璃面板上读成表格线，
+   把说说切成一格一格。这里只把「内容之间的分隔」换成 --gl-hair，让留白去做分隔；
+   容器外框 --gl-border、选中指示条、滚动条滑块一律不动。
+   放在最后一层，逐条压过 sp / gl 里同权重的 !important。 */
+
+/* 说说之间 */
+#content#content ul.memo-list > li{ border-bottom-color:var(--gl-hair)!important; }
+/* 正文里作者自己写的 ---：y2k 层把它画成 8px 粉色虚线条（border:0，光改颜色没用），
+   连高度和渐变底一起撤掉，收回同一档发丝线 */
+hr,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) hr{
+  height:0!important;border:0!important;border-top:1px solid var(--gl-hair)!important;
+  background:none!important;opacity:1!important;border-radius:0!important;
+}
+/* 刊头底线 / 全屏弹窗标题栏 */
+.feed-head,
+.fullpop-head{ border-bottom-color:var(--gl-hair)!important; }
+/* 热搜 / 书签侧栏标题 */
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side-head,
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .split-side .split-side-head{
+  border-bottom-color:var(--gl-hair)!important;
+}
+/* 书签列表行：hover 那根跟着收，免得静止几乎看不见、一悬停就跳出一道亮线 */
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body a{ border-bottom-color:var(--gl-hair)!important; }
+:is(#mainScroll#mainScroll #content#content, .fullpop-body) .bm-body a:hover{
+  border-bottom-color:color-mix(in srgb,var(--gl-glow) 16%,transparent)!important;
+}
+/* 标签抽屉：头部 + 标签行 */
+#tagBar#tagBar .tag-drawer-head,
+#tagBar#tagBar .tag-drawer-list .tag-chip{ border-bottom-color:var(--gl-hair)!important; }
+/* 音乐抽屉：标题栏 / 歌单头 / 列表顶线 */
+#musicDrawer .drawer-header,
+#musicDrawer .hw-pl-header{ border-bottom-color:var(--gl-hair)!important; }
+#musicDrawer .hw-pl-list{ border-top-color:var(--gl-hair)!important; }
+/* 歌词浮窗标题栏 */
+#hwLyricsFloat .hw-lyrics-float-bar{ border-bottom-color:var(--gl-hair)!important; }
+/* 搜索弹窗 / 说说详情弹窗：输入行、详情栏、底部键位条 */
+#cmdkOverlay#cmdkOverlay :is(.cmdk-input-row,.cmdk-memo-bar),
+#cmdkMemoModal#cmdkMemoModal :is(.cmdk-input-row,.cmdk-memo-bar){ border-bottom-color:var(--gl-hair)!important; }
+#cmdkOverlay#cmdkOverlay .cmdk-footer,
+#cmdkMemoModal#cmdkMemoModal .cmdk-footer{ border-top-color:var(--gl-hair)!important; }
 </style>
 <script id="poster-tint">
 /* ---------- 影视卡取色：相纸材质跟着海报主色走 ----------
