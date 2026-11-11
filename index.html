@@ -1184,6 +1184,49 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 .retro-nav-row{display:block;padding:2px 8px 4px;}#topBar .topbar-nav{width:100%;}#topBar .retro-primary{justify-content:flex-start;flex-wrap:wrap;}#topBar .retro-primary>li{flex:1 1 auto;justify-content:center;}#topBar .retro-primary>li+li::before{position:absolute;left:0;}
 #topBar .tab-btn{min-height:40px;padding:5px 8px;font-size:12px!important;}#topBar .retro-tools{justify-content:flex-end;border-top:1px dotted var(--home-line);padding-top:1px;}#topBar .retro-tools .tab-btn{min-height:36px;padding-inline:9px;}.page-container.page-container{padding-top:15px!important;}}
 @media(max-width:380px){.retro-motto{display:none;}#topBar .retro-primary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));}#topBar .retro-primary>li:nth-child(4n+1)::before{display:none;}#topBar .retro-tools .tab-btn{padding-inline:7px;}}
+</style>
+<style id="ios-hidden-backdrop-fix">
+/* iOS Safari：关闭态的全屏遮罩/抽屉若只 opacity:0 或移到屏外，元素仍留在渲染树里，
+   它们身上的 backdrop-filter 会持续参与合成、干扰底栏背景采样（地址栏外那圈白块）。
+   图片查看窗 / 搜索用 display:none 关闭、彻底退出渲染树，所以没这问题。
+   这里给关闭态补 visibility:hidden，让关闭态不绘制、不合成，等效 display:none 的干净；
+   visibility 延迟到各自淡出/滑出结束再翻，打开立即显形，动画观感原样。
+   放在 head：首帧就把关闭态藏掉，避免加载初期遮罩仍参与合成被 iOS 采样进底栏。
+   选择器带 id 权重，压过 body 里各皮肤层同属性的低权重规则。
+   只改可见性与 transition，开关类名 / 滚动锁 / 滚动恢复 / 焦点等 JS 逻辑一行不动。 */
+#popOverlay.fullpop-overlay,
+#popPanel.fullpop,
+#musicDrawerOverlay.music-drawer-overlay,
+#musicDrawer.music-drawer,
+#tagDrawerOverlay.tag-drawer-overlay,
+#tagBar.tag-drawer{ visibility:hidden; }
+#popOverlay.fullpop-overlay.open,
+#popPanel.fullpop.open,
+#musicDrawerOverlay.music-drawer-overlay.open,
+#musicDrawer.music-drawer.open,
+#tagDrawerOverlay.tag-drawer-overlay.open,
+#tagBar.tag-drawer.open{ visibility:visible; }
+#popOverlay.fullpop-overlay{ transition:opacity .28s ease, visibility 0s linear .28s; }
+#popOverlay.fullpop-overlay.open{ transition:opacity .28s ease, visibility 0s; }
+#popPanel.fullpop{ transition:opacity .28s ease, transform .28s ease, visibility 0s linear .28s; }
+#popPanel.fullpop.open{ transition:opacity .28s ease, transform .28s ease, visibility 0s; }
+#musicDrawerOverlay.music-drawer-overlay{ transition:opacity .3s ease, visibility 0s linear .3s; }
+#musicDrawerOverlay.music-drawer-overlay.open{ transition:opacity .3s ease, visibility 0s; }
+#musicDrawer.music-drawer{ transition:transform .35s cubic-bezier(.22,1,.36,1), visibility 0s linear .35s; }
+#musicDrawer.music-drawer.open{ transition:transform .35s cubic-bezier(.22,1,.36,1), visibility 0s; }
+#tagDrawerOverlay.tag-drawer-overlay{ transition:opacity .28s ease, visibility 0s linear .28s; }
+#tagDrawerOverlay.tag-drawer-overlay.open{ transition:opacity .28s ease, visibility 0s; }
+#tagBar.tag-drawer{ transition:transform .38s cubic-bezier(.22,1,.36,1), visibility 0s linear .38s; }
+#tagBar.tag-drawer.open{ transition:transform .38s cubic-bezier(.22,1,.36,1), visibility 0s; }
+/* 不依赖过渡的保险：关闭态立刻摘掉 backdrop-filter（iOS 底栏白块的根源是这些
+   关闭态遮罩/抽屉身上的 backdrop 合成层）。visibility 过渡若被节流也不影响这一条。
+   打开态 :not(.open) 不命中，磨砂照旧；仅淡出那一瞬不带模糊，观感差异极小。 */
+#popOverlay.fullpop-overlay:not(.open),
+#popPanel.fullpop:not(.open),
+#musicDrawerOverlay.music-drawer-overlay:not(.open),
+#musicDrawer#musicDrawer.music-drawer:not(.open),
+#tagDrawerOverlay.tag-drawer-overlay:not(.open),
+#tagBar#tagBar.tag-drawer:not(.open){ -webkit-backdrop-filter:none!important; backdrop-filter:none!important; }
 </style></head>
 <body class="min-h-screen paper-bg text-base-content">
 <div id="bgOrbs" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
