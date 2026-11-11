@@ -8982,8 +8982,11 @@ html:is([data-theme="dark"],[data-theme="halloween"]){
 }
 /* 划词选中：浅色跟自己的青绿走，不再沿用暗色那一族的粉 */
 html[data-theme="light"] ::selection{ background:rgba(31,122,107,.22)!important; color:var(--sp-ink)!important; }
-/* 壁纸固定层：bgOrbs 原本只有暗色显示，这里两主题都铺图，光斑继续漂在图上 */
-#bgOrbs{display:block!important;background:url('light.jpg') center/cover no-repeat!important;}
+/* 壁纸固定层：bgOrbs 原本只有暗色显示，这里两主题都铺图，光斑继续漂在图上。
+   高度钉死在大视口（100lvh，100vh 兜底）：iOS 收底栏时布局视口长高，但 fixed 层
+   在滚动中不跟着重排，inset:0 会在新露出的底部留一条白；钉大视口高度就永远铺满，
+   底栏收展都不露底。桌面 100vh＝布局视口，无变化。 */
+#bgOrbs{display:block!important;bottom:auto;height:100vh;height:100lvh;background:url('light.jpg') center/cover no-repeat!important;}
 html:is([data-theme="dark"],[data-theme="halloween"]) #bgOrbs{background-image:url('dark.jpg')!important;}
 #mainScroll#mainScroll{background:transparent!important;}
 
