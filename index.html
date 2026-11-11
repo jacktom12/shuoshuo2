@@ -1188,8 +1188,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 <body class="min-h-screen paper-bg text-base-content">
 <div id="bgOrbs" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
 <main id="mainScroll">
-<!-- ============ 两列：左大卡片（刊头+工具+分类+说说列表）｜右常驻播放器 ============ -->
-<!-- 刊头与工具不再独占顶部横栏，收进左卡片头部，列表与播放器向上吃掉那块空间 -->
+<!-- ============ 单列：刊头 + 导航工具行 + 说说列表 ============ -->
+<!-- 五个视图键与音乐、工具下拉同处刊头右侧一行，页面底部不再有任何常驻栏 -->
 <div class="page-container">
   <section aria-label="站点内容" class="feed-col">
     <header class="feed-head" id="feedHead">
@@ -1198,24 +1198,33 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
           <div class="retro-identity"><span class="retro-site-name">文</span><span class="retro-site-slash">/</span><span class="retro-site-desc">碎碎念</span></div>
           <span class="retro-motto">人生就是座监狱<span class="retro-online"> · dead inside</span><span class="retro-copyright">©<span id="siteFooterYear"></span></span></span>
         </div>
-        <ul aria-label="网站工具" class="retro-tools">
-          <li><button aria-label="热搜" class="tab-btn" data-view="hot" type="button"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></button></li>
-          <li><button aria-label="书签" class="tab-btn" data-view="bookmarks" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></button></li>
-          <li><button aria-label="世界时间" class="tab-btn" data-view="worldtime" type="button"><span class="iconify" data-icon="lucide:clock-3"></span><span class="nav-label">世界时间</span></button></li>
-          <li>
-            <button aria-controls="tagBar" aria-expanded="false" aria-label="标签" class="tab-btn" id="tagDrawerOpen" type="button">
-              <span class="iconify" data-icon="lucide:tags"></span><span class="nav-label">标签</span><span class="text-xs hidden" id="tagSelectedCount"></span>
-            </button>
-          </li>
+        <ul aria-label="站点导航与工具" class="retro-tools">
+          <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
+          <li><button aria-label="相册" class="tab-btn" data-view="photos" type="button"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">相册</span></button></li>
+          <li><button aria-label="看过" class="tab-btn" data-view="watched" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button></li>
+          <li><button aria-label="想看" class="tab-btn" data-view="watchlist" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button></li>
+          <li><button aria-label="摘录" class="tab-btn" data-view="clips" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button></li>
           <li class="menu-li-music">
             <button aria-label="音乐" class="tab-btn music-trigger" type="button"><span class="iconify" data-icon="lucide:music-2"></span><span class="nav-label">音乐</span><span class="hidden" id="musicDot"></span></button>
           </li>
-          <li><button aria-label="快速搜索（Ctrl+K）" class="tab-btn cmdk-open" type="button"><span class="iconify" data-icon="lucide:search"></span><span class="nav-label">搜索</span></button></li>
-          <li>
-            <button aria-label="深色模式" aria-pressed="false" class="tab-btn theme-toggle" id="themeToggleBtn" title="当前浅色模式，点击切换到深色模式" type="button">
-              <span aria-hidden="true" class="theme-icon-stack"><span class="iconify theme-icon-sun" data-icon="lucide:sun"></span><span class="iconify theme-icon-moon" data-icon="lucide:moon"></span></span>
-              <span class="nav-label">主题</span>
+          <li class="tools-drop-li">
+            <button aria-controls="toolsMenu" aria-expanded="false" aria-haspopup="true" aria-label="工具" class="tab-btn tools-drop-btn" id="toolsMenuBtn" type="button">
+              <span class="iconify" data-icon="lucide:sliders-horizontal"></span><span class="nav-label">工具</span><span aria-hidden="true" class="iconify tools-caret" data-icon="lucide:chevron-down"></span>
             </button>
+            <div aria-label="工具" class="tools-menu" id="toolsMenu" role="menu">
+              <button class="tab-btn tools-item" data-view="worldtime" role="menuitem" type="button"><span class="iconify" data-icon="lucide:clock-3"></span><span class="nav-label">世界时间</span></button>
+              <button class="tab-btn tools-item" data-view="hot" role="menuitem" type="button"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></button>
+              <button class="tab-btn tools-item" data-view="bookmarks" role="menuitem" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></button>
+              <span aria-hidden="true" class="tools-sep"></span>
+              <button aria-controls="tagBar" aria-expanded="false" class="tab-btn tools-item" id="tagDrawerOpen" role="menuitem" type="button">
+                <span class="iconify" data-icon="lucide:tags"></span><span class="nav-label">标签</span><span class="text-xs hidden" id="tagSelectedCount"></span>
+              </button>
+              <button aria-pressed="false" class="tab-btn tools-item theme-toggle" id="themeToggleBtn" role="menuitem" type="button" title="当前浅色模式，点击切换到深色模式">
+                <span aria-hidden="true" class="theme-icon-stack"><span class="iconify theme-icon-sun" data-icon="lucide:sun"></span><span class="iconify theme-icon-moon" data-icon="lucide:moon"></span></span>
+                <span class="nav-label">主题</span>
+              </button>
+              <button aria-label="快速搜索（Ctrl+K）" class="tab-btn tools-item cmdk-open" role="menuitem" type="button"><span class="iconify" data-icon="lucide:search"></span><span class="nav-label">搜索</span></button>
+            </div>
           </li>
         </ul>
       </div>
@@ -1234,16 +1243,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 </div>
 </main>
 <button aria-label="回到顶部" class="btn btn-circle btn-sm shadow-lg z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" id="toTop"><span class="iconify text-xl" data-icon="gg:pin-top"></span></button>
-<!-- ======================= 底部 dock：首页/相册/摘录切文档视图，看过/想开弹窗 ======================= -->
-<nav aria-label="主导航" class="nav-rail dock-bar" id="dockBar">
-  <ul class="retro-primary">
-    <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
-    <li><button aria-label="相册" class="tab-btn" data-view="photos" type="button"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">相册</span></button></li>
-    <li><button aria-label="看过" class="tab-btn" data-view="watched" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button></li>
-    <li><button aria-label="想看" class="tab-btn" data-view="watchlist" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button></li>
-    <li><button aria-label="摘录" class="tab-btn" data-view="clips" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button></li>
-  </ul>
-</nav>
 <!-- ============ 全屏弹窗：热搜/书签/看过/想看/世界时间，自带滚动不碰文档滚动条 ============ -->
 <div aria-hidden="true" class="fullpop-overlay" id="popOverlay"></div>
 <section aria-hidden="true" aria-modal="true" class="fullpop" id="popPanel" role="dialog">
@@ -2589,7 +2588,7 @@ function resetSay() {
   releaseSentinel(); // 哨兵若还留在旧列表框里，先还回内容列（下面 innerHTML 会连框一起清掉）
   scrollToTop(); // 先回顶部（视图切换渲染后恢复位置，筛选保持顶部）
   contentEl.innerHTML = skeletonNotes(3);
-  $('#endHint').classList.add('hidden');
+  $('#endHint')?.classList.add('hidden');
   loadSayPage(1, { replace: true });
 }
 
@@ -2599,7 +2598,7 @@ const MEMO_LIST_UL = '<ul class="memo-list">';
 async function loadSayPage(page, { replace = false } = {}) {
   if (state.loading) return;
   state.loading = true;
-  if (!replace) $('#loadingMore').classList.remove('hidden');
+  if (!replace) $('#loadingMore')?.classList.remove('hidden');
 
   try {
     // 并行：确保标签名加载 + 拉取说说数据，渲染前等待标签名就绪（避免卡片标签显示 id）
@@ -2641,7 +2640,7 @@ async function loadSayPage(page, { replace = false } = {}) {
     if (replace) applyRestore('say');
 
     const done = state.sayPage >= state.sayTotalPages;
-    $('#endHint').classList.toggle('hidden', !done || state.sayTotal === 0);
+    $('#endHint')?.classList.toggle('hidden', !done || state.sayTotal === 0);
     if (done) $('#endHint').textContent = state.selectedTags.size ? `— 筛选共 ${state.sayTotal} 条，到底啦 —` : `— 共 ${state.sayTotal} 条，到底啦 —`;
     if (state.view === 'say' && !done) {
       const remaining = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
@@ -2659,7 +2658,7 @@ async function loadSayPage(page, { replace = false } = {}) {
     }
   } finally {
     state.loading = false;
-    $('#loadingMore').classList.add('hidden');
+    $('#loadingMore')?.classList.add('hidden');
   }
 }
 
@@ -2843,7 +2842,7 @@ function parseClippings(text) {
 async function loadClips() {
   if (state.clipsCache) { renderClips(); return; }
   contentEl.innerHTML = skeletonCards(2);
-  $('#mediaPager').classList.add('hidden');
+  $('#mediaPager')?.classList.add('hidden');
   try {
     const res = await fetch('My Clippings.txt', { cache: 'no-cache' });
     if (!res.ok) throw new Error(res.status === 404 ? '未找到 My Clippings.txt，把它放在网站根目录（与 index.html 同级）' : `读取失败 (HTTP ${res.status})`);
@@ -3095,7 +3094,7 @@ let bmSearchTimer = null;
 async function loadBookmarks() {
   if (state.bookmarksCache) { renderBookmarks(); return; }
   contentEl.innerHTML = skeletonCards(2);
-  $('#mediaPager').classList.add('hidden');
+  $('#mediaPager')?.classList.add('hidden');
   try {
     let list;
     if (USE_MOCK) {
@@ -3592,8 +3591,8 @@ function showReminderToast(r) {
 /* ---------- 影视 ---------- */
 async function loadMedia(view) {
   contentEl.innerHTML = skeletonCards(2);
-  $('#mediaPager').classList.add('hidden');
-  $('#endHint').classList.add('hidden');
+  $('#mediaPager')?.classList.add('hidden');
+  $('#endHint')?.classList.add('hidden');
   try {
     if (!state.mediaCache[view]) {
       const res = await fetchData({ view });   // 每个视图只拉一次，之后筛选翻页全在前端
@@ -3614,7 +3613,7 @@ function renderMediaPage(view) {
 
   if (!all.length) {
     contentEl.innerHTML = emptyState(view === 'watched' ? '还没有看过的记录。' : '想看清单是空的。');
-    $('#mediaPager').classList.add('hidden');
+    $('#mediaPager')?.classList.add('hidden');
     applyRestore(view);
     return;
   }
@@ -3622,7 +3621,7 @@ function renderMediaPage(view) {
   if (!list.length) {
     contentEl.innerHTML = filterBar + emptyState('这个筛选条件下没有片子，放宽一点试试？');
     bindMediaFilterEvents(view);
-    $('#mediaPager').classList.add('hidden');
+    $('#mediaPager')?.classList.add('hidden');
     applyRestore(view);
     return;
   }
@@ -3681,9 +3680,9 @@ function renderMediaPage(view) {
         };
       });
     });
-    if (!popKind) $('#mediaPager').classList.remove('hidden');
+    if (!popKind) $('#mediaPager')?.classList.remove('hidden');
   } else if (!popKind) {
-    $('#mediaPager').classList.add('hidden');
+    $('#mediaPager')?.classList.add('hidden');
   }
 }
 
@@ -3735,6 +3734,9 @@ function syncTabActive(view) {
     t.classList.toggle('bg-base-300', on);
     t.classList.toggle('text-primary', on);
   });
+  // 当前视图藏在工具下拉里时，触发键也要亮，否则整行看不出选中态
+  const toolsBtn = document.getElementById('toolsMenuBtn');
+  if (toolsBtn) toolsBtn.classList.toggle('has-active', !!document.querySelector('#toolsMenu .tab-btn.active'));
 }
 
 function switchView(view) {
@@ -3749,8 +3751,8 @@ function switchView(view) {
 
   // 筛选条件按视图独立保存（mediaFilter[view]），切换菜单不再重置，切回时原样恢复
   state.view = view;
-  $('#mediaPager').classList.add('hidden');
-  $('#endHint').classList.add('hidden');
+  $('#mediaPager')?.classList.add('hidden');
+  $('#endHint')?.classList.add('hidden');
   syncTabActive(view);
 
   // 立即回顶部，避免旧视图滚动位置残留
@@ -3901,7 +3903,7 @@ function closeNav() {
 })();
 
 // 只绑定真正代表视图的菜单项；标签抽屉按钮没有 data-view，交给 initTagDrawer 自己处理
-// dock 与工具行里的弹窗键（热搜/书签/看过/想看/世界时间）开全屏弹窗，其余切文档视图
+// 刊头导航行与工具下拉里的弹窗键（热搜/书签/看过/想看/世界时间）开全屏弹窗，其余切文档视图
 document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
   t.addEventListener('click', () => {
     const v = t.dataset.view;
@@ -3910,6 +3912,62 @@ document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
     if (state.view !== v) switchView(v);
   });
 });
+
+/* ============================================================
+   工具下拉：世界时间/热搜/书签/标签/主题/搜索
+   各项自己的点击逻辑仍由原有绑定负责，这里只管开合与键盘走位
+============================================================ */
+(function initToolsMenu() {
+  const btn = document.getElementById('toolsMenuBtn');
+  const menu = document.getElementById('toolsMenu');
+  if (!btn || !menu) return;
+  const li = btn.closest('.tools-drop-li');
+  const items = () => Array.from(menu.querySelectorAll('.tools-item'));
+  const isOpen = () => menu.classList.contains('open');
+
+  function open(focusIndex) {
+    menu.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    if (focusIndex === undefined) return;
+    const list = items();
+    (list[focusIndex] || list[0])?.focus({ preventScroll: true });
+  }
+
+  function close() {
+    if (!isOpen()) return;
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    // 焦点还留在被隐藏的行里就送回触发键；抽屉/弹窗已经自己接管焦点的不动
+    if (menu.contains(document.activeElement)) btn.focus({ preventScroll: true });
+  }
+
+  btn.addEventListener('click', () => { isOpen() ? close() : open(); });
+
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); open(0); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); open(items().length - 1); }
+  });
+
+  menu.addEventListener('keydown', e => {
+    const list = items();
+    const i = list.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); list[(i + 1) % list.length]?.focus({ preventScroll: true }); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); list[(i - 1 + list.length) % list.length]?.focus({ preventScroll: true }); }
+    else if (e.key === 'Home') { e.preventDefault(); list[0]?.focus({ preventScroll: true }); }
+    else if (e.key === 'End') { e.preventDefault(); list[list.length - 1]?.focus({ preventScroll: true }); }
+    else if (e.key === 'Escape') { e.preventDefault(); close(); }
+  });
+
+  // 主题可以连着来回切，保持展开；其余各项一旦触发就收起
+  menu.addEventListener('click', e => {
+    const item = e.target.closest('.tools-item');
+    if (item && item.id !== 'themeToggleBtn') close();
+  });
+
+  li.addEventListener('focusout', e => { if (!li.contains(e.relatedTarget)) close(); });
+  document.addEventListener('pointerdown', e => { if (isOpen() && !li.contains(e.target)) close(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen()) close(); });
+})();
 
 /* ============================================================
    主题系统：仅浅色 / 深色两套，默认跟随系统，可手动切换
@@ -8485,29 +8543,7 @@ body{font-family:var(--font-family)!important;}
   flex:1 1 auto;min-height:0;display:grid!important;grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:auto minmax(0,1fr)!important;gap:10px!important;overflow:hidden;background:transparent!important;
 }
-.nav-rail{min-width:0;min-height:0;grid-column:1;grid-row:1;}
-.nav-rail .retro-primary{display:flex;flex-direction:row;align-items:center;gap:5px;margin:0;padding:0;list-style:none;}
-.nav-rail .retro-primary>li{display:flex;margin:0;padding:0;border:0;}
-.nav-rail .tab-btn{
-  appearance:none;position:relative;display:inline-flex;align-items:center;justify-content:center;
-  width:38px;height:38px;min-width:0;min-height:0;padding:0!important;border:1px solid transparent!important;
-  border-radius:9px!important;background:transparent!important;box-shadow:none!important;
-  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
-  font:16px/1 var(--font-family)!important;cursor:var(--cursor-pointer);transform:none!important;
-}
-.nav-rail .tab-btn .iconify{font-size:19px;}
-.nav-rail .tab-btn .nav-label{display:none;}
-#mainScroll#mainScroll .nav-rail .tab-btn::before{
-  content:"";position:absolute;left:50%;bottom:2px;width:4px;height:4px;margin-left:-2px;
-  border-radius:50%!important;background:var(--sp-accent);opacity:0;pointer-events:none;
-}
-.nav-rail .tab-btn:hover{color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;background:transparent!important;transform:none!important;}
-.nav-rail .tab-btn.active,.nav-rail .tab-btn.active.bg-base-300{
-  border-color:transparent!important;background:transparent!important;color:var(--sp-accent)!important;
-  -webkit-text-fill-color:var(--sp-accent)!important;box-shadow:none!important;font-weight:400!important;transform:none!important;
-}
-#mainScroll#mainScroll .nav-rail .tab-btn.active::before{opacity:1;}
-.nav-rail .tab-btn:focus-visible,#topBar .tab-btn:focus-visible{outline:2px solid var(--sp-muted)!important;outline-offset:2px;}
+#topBar .tab-btn:focus-visible{outline:2px solid var(--sp-muted)!important;outline-offset:2px;}
 .feed-col{
   position:relative;grid-column:1;grid-row:2;display:flex;flex-direction:column;min-width:0;min-height:0;
   overflow:hidden;border:1px solid var(--sp-line)!important;border-radius:14px!important;
@@ -8561,9 +8597,6 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
   #topBar .retro-tools{justify-content:center;gap:7px;}
   #topBar .retro-tools .tab-btn{width:34px;height:32px;min-height:32px;padding:4px!important;}
   #topBar .retro-tools .tab-btn .nav-label{display:none;}
-  .nav-rail{overflow-x:auto;scrollbar-width:none;}
-  .nav-rail .retro-primary{justify-content:space-between;gap:3px;}
-  .nav-rail .tab-btn{width:38px;height:38px;}
   #content#content{padding:15px!important;}
   #content#content:has(> ul.memo-list){padding:0!important;}
   #content#content ul.memo-list{padding:0 14px!important;}
@@ -8572,7 +8605,6 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
 }
 @media (max-width:360px){
   #topBar .retro-online{display:none;}
-  .nav-rail .tab-btn{width:34px;height:36px;}
 }
 
 :is(#mainScroll#mainScroll #content#content, .fullpop-body) :is(h1,h2,h3,h4,button,.btn,.badge,input,select,textarea){
@@ -8861,7 +8893,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
 .retro-motto{font:12px/1.5 var(--font-family)!important;letter-spacing:.06em!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
 .retro-online{font:inherit!important;}
 
-/* ---------- 工具：世界时间/标签/搜索/主题，落在刊头右侧 ---------- */
+/* ---------- 工具：导航五键 + 音乐 + 工具下拉，落在刊头右侧 ---------- */
 .retro-tools{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:2px!important;flex:0 1 auto!important;margin:0!important;padding:0!important;list-style:none!important;}
 .retro-tools>li{position:relative!important;display:flex!important;border:0!important;}
 .retro-tools .tab-btn{
@@ -8879,27 +8911,9 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
 .retro-tools #tagSelectedCount{font:10px var(--font-num);color:inherit;}
 #mainScroll#mainScroll .retro-tools #musicDot:not(.hidden){display:inline-block;width:5px;height:5px;border-radius:50%!important;background:var(--sp-accent);}
 
-/* ---------- 分类：从竖排图标条改成横排盒子（图标在上、名字在下） ---------- */
-.nav-rail{min-width:0!important;min-height:0!important;padding:14px 0 0!important;overflow:visible!important;}
-.nav-rail .retro-primary{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:8px!important;margin:0!important;padding:0!important;list-style:none!important;}
-.nav-rail .retro-primary>li{display:flex!important;min-width:0!important;margin:0!important;padding:0!important;border:0!important;}
-.nav-rail .tab-btn{
-  appearance:none!important;position:relative!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;
-  width:100%!important;height:auto!important;min-width:0!important;min-height:0!important;padding:12px 4px!important;
-  border:1px solid var(--sp-line)!important;border-radius:10px!important;background:transparent!important;box-shadow:none!important;
-  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;font:12px/1.2 var(--font-family)!important;cursor:var(--cursor-pointer)!important;transform:none!important;
-  transition:background-color .16s ease,color .16s ease,border-color .16s ease!important;
-}
-.nav-rail .tab-btn .iconify{font-size:20px!important;}
-.nav-rail .tab-btn .nav-label{display:block!important;color:inherit!important;-webkit-text-fill-color:inherit!important;font-size:12px!important;letter-spacing:.02em!important;}
-.nav-rail .tab-btn:hover{border-color:color-mix(in srgb,var(--sp-accent) 40%,var(--sp-line))!important;background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;transform:none!important;}
-.nav-rail .tab-btn.active,.nav-rail .tab-btn.active.bg-base-300{
-  border-color:color-mix(in srgb,var(--sp-accent) 55%,var(--sp-line))!important;background:transparent!important;
-  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;box-shadow:none!important;font-weight:600!important;transform:none!important;
-}
-.nav-rail .tab-btn:focus-visible,.retro-tools .tab-btn:focus-visible{outline:2px solid var(--sp-accent)!important;outline-offset:2px;}
+.retro-tools .tab-btn:focus-visible{outline:2px solid var(--sp-accent)!important;outline-offset:2px;}
 
-/* ---------- 窄屏：工具收成图标、分类盒子同比缩小 ---------- */
+/* ---------- 窄屏：导航键竖排图标+小字，一行放下七颗 ---------- */
 @media (max-width:760px){
   /* 面板四周的沟距收窄，列表拿到更多可用面积；内部留白与列数不动 */
   .page-container.page-container{padding-top:8px!important;}
@@ -8909,18 +8923,16 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   .retro-site-name{font-size:20px!important;}
   .retro-site-desc{font-size:18px!important;}
   .retro-motto{font-size:10px!important;}
-  .retro-tools{gap:0!important;}
-  .retro-tools .tab-btn{padding:5px 7px!important;}
-  .retro-tools .tab-btn .nav-label{display:none!important;}
-  .nav-rail{padding-top:12px!important;}
-  .nav-rail .retro-primary{gap:5px!important;}
-  .nav-rail .tab-btn{padding:9px 2px!important;gap:5px!important;border-radius:9px!important;}
-  .nav-rail .tab-btn .iconify{font-size:17px!important;}
-  .nav-rail .tab-btn .nav-label{font-size:10px!important;}
+  .retro-tools{flex:1 1 100%!important;justify-content:space-between!important;gap:0!important;}
+  .retro-tools .tab-btn{flex-direction:column!important;gap:3px!important;padding:5px 4px!important;}
+  .retro-tools .tab-btn .iconify{font-size:17px!important;}
+  .retro-tools .theme-icon-stack{width:17px!important;height:17px!important;}
+  .retro-tools .tab-btn .nav-label{display:block!important;font-size:10px!important;letter-spacing:.02em!important;}
+  .retro-tools .tools-caret{display:none!important;}
 }
 @media (max-width:360px){
   .retro-online{display:none!important;}
-  .nav-rail .tab-btn .nav-label{font-size:9px!important;}
+  .retro-tools .tab-btn .nav-label{font-size:9px!important;}
 }
 </style>
 <style id="glass-skin">
@@ -9005,24 +9017,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #bgOrbs{background-image:u
   color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
   box-shadow:0 0 16px color-mix(in srgb,var(--gl-glow) 20%,transparent)!important;transform:none!important;
 }
-
-/* ---------- 分类盒子：玻璃芯片，选中＝橙色霓虹描边 ---------- */
-#mainScroll#mainScroll .nav-rail .tab-btn{
-  background:color-mix(in srgb,var(--gl-panel) 55%,transparent)!important;
-  border:1px solid var(--gl-border)!important;border-radius:14px!important;
-}
-#mainScroll#mainScroll .nav-rail .tab-btn:hover{
-  border-color:color-mix(in srgb,var(--gl-glow) 45%,var(--gl-border))!important;
-  background:var(--sp-soft)!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
-  box-shadow:0 0 12px color-mix(in srgb,var(--gl-glow) 22%,transparent)!important;
-}
-#mainScroll#mainScroll .nav-rail .tab-btn.active,#mainScroll#mainScroll .nav-rail .tab-btn.active.bg-base-300{
-  border-color:color-mix(in srgb,var(--gl-warm) 60%,transparent)!important;
-  background:color-mix(in srgb,var(--gl-warm) 8%,transparent)!important;
-  color:var(--gl-warm)!important;-webkit-text-fill-color:var(--gl-warm)!important;
-  box-shadow:0 0 16px color-mix(in srgb,var(--gl-warm) 32%,transparent),inset 0 0 12px color-mix(in srgb,var(--gl-warm) 10%,transparent)!important;
-}
-#mainScroll#mainScroll .nav-rail .tab-btn::before{content:none!important;}
 
 /* ---------- 播放列表：当前行橙色霓虹 ---------- */
 .music-drawer .hw-pl-row.playing,.music-drawer .hw-pl-row.playing:hover{
@@ -10549,73 +10543,27 @@ body{
 </style>
 <style id="dock-pop">
 /* ============================================================
-   底部 dock + 全屏弹窗（热搜/书签/看过/想看/世界时间）
-   正文只剩 dock 的首页/相册/摘录三个文档视图，其余全部进弹窗
+   刊头吸顶 + 全屏弹窗（热搜/书签/看过/想看/世界时间）
+   首页/相册/摘录是文档视图，其余全部进弹窗
    自己滚：打开期间 html.pop-lock 锁死文档滚动，弹窗关闭恢复，
    两边滚动条互不干扰；弹窗各自记住滚动位置，关了再开原位恢复。
-   dock 沿用 .nav-rail 的图标键样式，只补固定定位、玻璃壳和标签。
    ============================================================ */
 html{ scrollbar-gutter:stable; }
 html.pop-lock,
 html.pop-lock body{ overflow:hidden !important; }
-/* 正文底部给常驻 dock 让位 */
-#mainScroll#mainScroll{ padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 104px) !important; }
 
 /* ---------- 刊头吸顶 ----------
    sticky 相对最近的滚动容器生效，.feed-col 的 overflow:hidden（hidden 也算滚动容器）会把吸顶截死在面板里；
    内容层实测不外溢（见 home-panels-rounded-glass-fix 的注释），放开它：
-   桌面圆角由 ::before 玻璃底自带的 border-radius 兜住，移动端仍有 clip-path 裁角，gl-float 投影照落桌布 */
+   桌面圆角由 ::before 玻璃底自带的 border-radius 兜住，移动端仍有 clip-path 裁角，gl-float 投影照落桌布。
+   工具下拉挂在刊头里，也靠这条 overflow 放开才不会被面板剪掉。 */
 #mainScroll#mainScroll .feed-col{ overflow:visible !important; }
 .feed-head{
   position:sticky !important; top:0 !important; z-index:80 !important;
-  /* 同色叠三层把不透明度抬到 ~94%：底下滚过大号正文时残影读不出来，dock/弹层共用的 --gl-panel 本体不动 */
+  /* 同色叠三层把不透明度抬到 ~94%：底下滚过大号正文时残影读不出来，弹层共用的 --gl-panel 本体不动 */
   background-color:var(--gl-panel) !important;
   background-image:linear-gradient(var(--gl-panel),var(--gl-panel)),linear-gradient(var(--gl-panel),var(--gl-panel)) !important;
   -webkit-backdrop-filter:blur(22px) saturate(1.5) !important; backdrop-filter:blur(22px) saturate(1.5) !important;
-}
-
-/* ---------- dock ---------- */
-.nav-rail.dock-bar{
-  position:fixed; left:0; right:0; bottom:0; z-index:90;
-  display:flex; justify-content:center; min-width:0; pointer-events:none;
-  padding:0 10px calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
-  overflow:visible !important;
-}
-/* sp 层对 .nav-rail .retro-primary/.tab-btn 的旧规则全是 !important（7 列 grid、按钮描边盒），dock 这边逐条压回 */
-.nav-rail.dock-bar .retro-primary{
-  pointer-events:auto;
-  display:flex !important; grid-template-columns:none !important;
-  align-items:stretch; gap:2px !important; margin:0 !important; padding:6px 10px !important;
-  border-radius:22px !important; background:var(--gl-panel); border:1px solid var(--gl-border);
-  box-shadow:var(--gl-shadow);
-  backdrop-filter:blur(22px) saturate(1.5); -webkit-backdrop-filter:blur(22px) saturate(1.5);
-}
-.nav-rail.dock-bar .retro-primary>li{ display:flex !important; margin:0 !important; padding:0 !important; }
-.nav-rail.dock-bar .tab-btn{
-  flex-direction:column !important; gap:3px !important; width:auto !important; min-width:58px; height:auto !important; min-height:54px !important;
-  padding:8px 10px !important; border-radius:14px !important;
-  border:1px solid transparent !important; background:transparent !important; box-shadow:none !important;
-}
-.nav-rail.dock-bar .tab-btn .iconify{ font-size:20px !important; }
-.nav-rail.dock-bar .tab-btn .nav-label{
-  display:block !important; font-size:10px !important; line-height:1.2; letter-spacing:.14em !important; font-weight:400 !important;
-}
-.nav-rail.dock-bar .tab-btn:hover{
-  border-color:transparent !important; background:transparent !important; box-shadow:none !important; transform:none !important;
-  color:var(--sp-accent) !important; -webkit-text-fill-color:var(--sp-accent) !important;
-}
-.nav-rail.dock-bar .tab-btn.active{
-  border-color:transparent !important; background:transparent !important; box-shadow:none !important;
-  color:var(--sp-accent) !important; -webkit-text-fill-color:var(--sp-accent) !important;
-}
-/* 选中圆点指示条的原规则钉在 #mainScroll 里，dock 在外头，这里补一份 */
-.nav-rail.dock-bar .tab-btn::before{
-  content:""; position:absolute; left:50%; bottom:3px; width:4px; height:4px; margin-left:-2px;
-  border-radius:50% !important; background:var(--sp-accent); opacity:0; pointer-events:none;
-}
-.nav-rail.dock-bar .tab-btn.active::before{ opacity:1; }
-@media (max-width:700px){
-  #toTop#toTop{ bottom:calc(env(safe-area-inset-bottom, 0px) + 88px) !important; }
 }
 
 /* ---------- 全屏弹窗 ---------- */
@@ -10718,6 +10666,82 @@ hr,
 #cmdkMemoModal#cmdkMemoModal :is(.cmdk-input-row,.cmdk-memo-bar){ border-bottom-color:var(--gl-hair)!important; }
 #cmdkOverlay#cmdkOverlay .cmdk-footer,
 #cmdkMemoModal#cmdkMemoModal .cmdk-footer{ border-top-color:var(--gl-hair)!important; }
+</style>
+<style id="head-nav-tools">
+/* ---------- 刊头一行导航 ----------
+   原来固定在页面底部的 dock 撤掉了：它压住正文最后一条说说，
+   五个视图键（首页/相册/看过/想看/摘录）搬进刊头右侧那一行，
+   音乐仍是单独一颗，世界时间/热搜/书签/标签/主题/搜索收进「工具」下拉。
+   视图键沿用 .retro-tools 既有的裸键样式：静止灰、悬停主色、选中一根下划线。 */
+
+/* 视图键与音乐/工具之间的一口气，不是分栏线 */
+.retro-tools .menu-li-music{
+  margin-left:7px!important;padding-left:9px!important;
+  border-left:1px solid var(--gl-hair)!important;
+}
+.retro-tools .tools-caret{ font-size:12px!important;opacity:.55;transition:transform .18s ease,opacity .18s ease; }
+.retro-tools .tools-drop-btn[aria-expanded="true"] .tools-caret{ transform:rotate(180deg);opacity:.9; }
+/* 下拉里有选中项时，触发键跟着亮：告诉用户当前视图藏在工具里 */
+#mainScroll#mainScroll .retro-tools .tools-drop-btn.has-active{
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+  box-shadow:inset 0 -2px 0 var(--sp-accent)!important;
+}
+
+/* ---------- 下拉壳：跟标签抽屉 / 全屏弹窗同一块玻璃 ----------
+   面板里那条 #mainScroll#mainScroll * 直角清零是双 id，圆角要凑够权重才拿得回来 */
+#mainScroll#mainScroll .tools-menu{
+  position:absolute!important;top:calc(100% + 9px)!important;right:0!important;z-index:120!important;
+  display:flex!important;flex-direction:column!important;gap:1px!important;
+  min-width:184px!important;margin:0!important;padding:6px!important;list-style:none!important;
+  border:1px solid var(--gl-border)!important;border-radius:14px!important;
+  background:var(--gl-panel)!important;box-shadow:var(--gl-shadow)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
+  transform-origin:top right!important;
+  opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateY(-6px) scale(.97)!important;
+  transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s;
+}
+#mainScroll#mainScroll .tools-menu.open{
+  opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important;
+  transition:opacity .16s ease,transform .16s ease,visibility 0s;
+}
+#mainScroll#mainScroll .tools-menu .tools-sep{
+  display:block!important;height:1px!important;margin:5px 8px!important;
+  background:var(--gl-hair)!important;
+}
+#mainScroll#mainScroll .tools-menu .tools-item{
+  appearance:none!important;display:flex!important;flex-direction:row!important;
+  align-items:center!important;justify-content:flex-start!important;gap:9px!important;
+  width:100%!important;min-height:0!important;padding:8px 10px!important;
+  border:0!important;border-radius:9px!important;background:transparent!important;box-shadow:none!important;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+  font:12.5px/1.2 var(--font-family)!important;text-align:left!important;white-space:nowrap!important;
+  cursor:var(--cursor-pointer)!important;transform:none!important;
+  transition:background-color .15s ease,color .15s ease,box-shadow .15s ease!important;
+}
+#mainScroll#mainScroll .tools-menu .tools-item .iconify{ font-size:15px!important;color:var(--sp-muted);transition:color .15s ease; }
+#mainScroll#mainScroll .tools-menu .tools-item .theme-icon-stack{ width:15px!important;height:15px!important; }
+#mainScroll#mainScroll .tools-menu .tools-item .nav-label{ flex:1 1 auto!important;font-size:12.5px!important;letter-spacing:.02em!important; }
+#mainScroll#mainScroll .tools-menu .tools-item:hover,
+#mainScroll#mainScroll .tools-menu .tools-item:focus-visible{
+  background:var(--sp-soft)!important;box-shadow:none!important;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+}
+#mainScroll#mainScroll .tools-menu .tools-item:hover .iconify,
+#mainScroll#mainScroll .tools-menu .tools-item:focus-visible .iconify{ color:var(--sp-accent); }
+/* 选中＝左侧一根细线，不铺色块（同导航盒 / 热搜选中的处理） */
+#mainScroll#mainScroll .tools-menu .tools-item.active{
+  background:transparent!important;
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+  box-shadow:inset 2px 0 0 var(--sp-accent)!important;
+}
+#mainScroll#mainScroll .tools-menu .tools-item.active .iconify{ color:var(--sp-accent); }
+#mainScroll#mainScroll .tools-menu #tagSelectedCount{ font:10px var(--font-num)!important;color:var(--sp-accent); }
+
+/* ---------- 窄屏：七颗键图标在上、名字在下，平分整行 ---------- */
+@media (max-width:760px){
+  .retro-tools .menu-li-music{ margin-left:0!important;padding-left:0!important;border-left:0!important; }
+  #mainScroll#mainScroll .tools-menu{ top:calc(100% + 7px)!important;min-width:172px!important; }
+}
 </style>
 <script id="poster-tint">
 /* ---------- 影视卡取色：相纸材质跟着海报主色走 ----------
