@@ -2291,8 +2291,16 @@ function tapeTime(rawDate) {
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
 
-// 说说卡片索引：more 按钮按 id 取回完整说说（含解析好的正文与图片），渲染全文弹窗
+// 说说卡片索引：more 按钮按 id 取回这条说说的正文（弹窗只展开文字，图不重复铺）
 const sayMemoIndex = new Map();
+
+// 卡片正文可见字数（去掉 HTML 标签与所有空白）：正文短于 50 字没必要「读全文」
+const plainLenBox = document.createElement('div');
+function plainTextLength(html) {
+  plainLenBox.innerHTML = html || '';
+  return (plainLenBox.textContent || '').replace(/\s+/g, '').length;
+}
+const SAY_EXPAND_MIN = 50;
 
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
@@ -2306,7 +2314,8 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   const anim = `animation-delay:${Math.min(idx * 40, 400)}ms`;
 
   if (plain) {
-    const body = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>\n${renderImages(images)}`;
+    // 全文弹窗正文：字号/行高交给 CSS（.say-detail-text），跟卡片截断正文同一号字
+    const body = `<div class="memo-text say-detail-text">${html}</div>\n${renderImages(images)}`;
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
 
@@ -2325,17 +2334,22 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   } else {
     cover = `<div class="say-cover say-cover-empty"><span aria-hidden="true" class="iconify say-cover-glyph" data-icon="lucide:quote"></span></div>`;
   }
+  // 正文不足 50 字：卡片已经把话说完了，不给 more（有图没图一样对待）
+  const canExpand = plainTextLength(html) >= SAY_EXPAND_MIN;
+  const foot = canExpand
+    ? `<div class="say-foot">
+        <button class="say-more" type="button" data-say-more="${escapeHtml(m.id)}" aria-label="展开这条说说的全文文字" title="读全文"><span aria-hidden="true" class="iconify say-more-ico" data-icon="material-symbols:read-more-rounded"></span></button>
+      </div>`
+    : '';
   return `
   <li class="fade-up memo-item say-item" style="${anim}">
-    <article class="memo-card say-card" data-id="${escapeHtml(m.id)}" style="${tape}">
+    <article class="memo-card say-card${images.length ? '' : ' say-card--text'}" data-id="${escapeHtml(m.id)}" style="${tape}">
       ${cover}
       <div class="say-body">
         ${dateHtml}
         <div class="memo-text say-text">${html}</div>
       </div>
-      <div class="say-foot">
-        <button class="say-more" type="button" data-say-more="${escapeHtml(m.id)}" aria-label="展开这条说说全文"><svg class="say-more-dots" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg><span>more</span></button>
-      </div>
+      ${foot}
     </article>
   </li>`;
 }
@@ -4431,7 +4445,8 @@ function openSayDetail(id, opener) {
   const rec = sayMemoIndex.get(id);
   if (!rec) return;
   sayDetailOpener = opener || null;
-  sayDetailBody.innerHTML = `<div class="say-detail-wrap">${memoCard(rec.m, 0, { plain: true, parsed: rec.parsed, imgs: rec.imgs })}</div>`;
+  // 只给文字：图已经在卡片封面上有，弹窗里再铺一遍九宫格是重复，还得多滚一屏
+  sayDetailBody.innerHTML = `<div class="say-detail-wrap">${memoCard(rec.m, 0, { plain: true, parsed: rec.parsed, imgs: [] })}</div>`;
   sayDetailModal.classList.add('open');
   sayDetailModal.setAttribute('aria-hidden', 'false');
   document.documentElement.classList.add('pop-lock');   // 与全屏弹窗同款文档滚动锁
@@ -11135,10 +11150,12 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   font:11px/1.4 var(--font-num) !important; letter-spacing:.02em !important; text-shadow:none !important;
 }
 #mainScroll#mainScroll #content#content .say-card .memo-tape-date .iconify{ font-size:12px !important; opacity:.8 !important; }
+/* 正文字号跟全文弹窗（.say-detail-text）统一到 17px / 1.6：
+   卡内截断与点 more 后的全文同一号字，读的时候不换视觉节奏 */
 #mainScroll#mainScroll #content#content .say-card .say-text{
   flex:0 0 auto !important; margin:0 !important;
   color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
-  font-size:14px !important; line-height:1.6 !important; letter-spacing:.01em !important;
+  font-size:17px !important; line-height:1.6 !important; letter-spacing:.01em !important;
   display:-webkit-box !important; -webkit-box-orient:vertical !important;
   -webkit-line-clamp:4 !important; line-clamp:4 !important;
   min-height:6.4em !important; overflow:hidden !important;
@@ -11169,18 +11186,17 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   color:var(--say-ink) !important; border-radius:4px !important; padding:.05em .3em !important; font-size:.88em !important;
 }
 
-/* ---------- 卡脚：more 按钮（替换原播放键位置） ---------- */
+/* ---------- 卡脚：more 按钮（圆形的读全文图标键，正文 ≥50 字才出现） ---------- */
 #mainScroll#mainScroll #content#content .say-card .say-foot{
   display:flex !important; align-items:center !important;
   flex:0 0 auto !important; margin-top:auto !important; padding:10px 4px 2px !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-more{
-  display:inline-flex !important; align-items:center !important; gap:6px !important;
-  padding:6px 14px !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  width:32px !important; height:32px !important; padding:0 !important;
   border:1px solid var(--say-line) !important; border-radius:999px !important;
   background:var(--say-btn-bg) !important;
   color:var(--say-btn-ink) !important; -webkit-text-fill-color:var(--say-btn-ink) !important;
-  font:600 12px/1 var(--font-family) !important; letter-spacing:.03em !important;
   cursor:var(--cursor-pointer) !important; transform:none !important; box-shadow:none !important;
   transition:background-color .18s ease, border-color .18s ease, color .18s ease !important;
 }
@@ -11189,7 +11205,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important; transform:none !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-more:focus-visible{ outline:2px solid var(--say-glow) !important; outline-offset:2px !important; }
-#mainScroll#mainScroll #content#content .say-card .say-more .say-more-dots{ flex:none !important; opacity:.85 !important; }
+#mainScroll#mainScroll #content#content .say-card .say-more .say-more-ico{ font-size:20px !important; line-height:1 !important; opacity:.9 !important; }
+#mainScroll#mainScroll #content#content .say-card .say-more:hover .say-more-ico{ opacity:1 !important; }
 
 /* ---------- 全文弹窗：独立玻璃面板，复用站点玻璃 token ---------- */
 .say-detail-overlay{
@@ -11227,6 +11244,10 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
 .say-detail-body::-webkit-scrollbar-thumb:hover{ background:var(--sp-accent); }
 .say-detail-wrap .memo-entry{ max-width:none !important; margin:0 !important; padding:0 !important; }
 .say-detail-wrap .memo-text{ color:var(--sp-ink) !important; -webkit-text-fill-color:var(--sp-ink) !important; }
+/* 全文正文字号：与卡片截断正文（.say-text）同一号 17px / 1.6，点 more 前后字不跳
+   ——原来靠 Tailwind 任意值 text-[17px] leading-relaxed，实测运行时没生成、退回根字号 16.5px，
+   这里写成显式 CSS，两边都钉死，不依赖工具类 */
+.say-detail-wrap .say-detail-text{ font-size:17px !important; line-height:1.6 !important; letter-spacing:.01em !important; }
 
 /* ---------- 响应式：平板两列、手机一列（手机窄屏两列会把长文挤成块，整行铺开更舒展） ---------- */
 @media (max-width:900px){
@@ -11238,11 +11259,17 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   #mainScroll#mainScroll #content#content .say-card .say-cover{ border-radius:9px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-body{ padding:9px 3px 0 !important; }
   #mainScroll#mainScroll #content#content .say-card .say-text{
-    font-size:13px !important; -webkit-line-clamp:3 !important; line-clamp:3 !important; min-height:4.8em !important;
+    font-size:17px !important; -webkit-line-clamp:3 !important; line-clamp:3 !important; min-height:4.8em !important;
   }
   #mainScroll#mainScroll #content#content .say-card .say-cover-glyph{ font-size:44px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-foot{ padding:8px 3px 2px !important; }
-  #mainScroll#mainScroll #content#content .say-card .say-more{ padding:5px 12px !important; font-size:11px !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-more{ width:30px !important; height:30px !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-more .say-more-ico{ font-size:19px !important; }
+  /* 纯文字说说：手机是一行一列，不用为了跟别卡等高而留引号占位封面——整块去掉，
+     卡片直接裹住文字（PC 三列要等高，仍保留那块引号封面，只在手机上撤） */
+  #mainScroll#mainScroll #content#content .say-card.say-card--text > .say-cover-empty{ display:none !important; }
+  #mainScroll#mainScroll #content#content .say-card.say-card--text .say-text{ min-height:0 !important; }
+  #mainScroll#mainScroll #content#content .say-card.say-card--text .say-body{ padding-top:2px !important; }
 }
 @media (prefers-reduced-motion:reduce){
   #mainScroll#mainScroll #content#content .say-card,
