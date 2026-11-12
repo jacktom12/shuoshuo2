@@ -1718,6 +1718,8 @@ function initImgBox() {
   const footEl = document.getElementById('imgBoxFoot');
   const cyclePrevBtn = document.getElementById('imgBoxCyclePrev');
   const cycleNextBtn = document.getElementById('imgBoxCycleNext');
+  const frame = box.querySelector('.imgbox-frame');
+  let lastRaw = null;   // 当前这张图的主色，换主题时按新明度重染用
   let natural = { w: 0, h: 0 };
   let zoom = 1;
   let fitZoom = 1;
@@ -1838,6 +1840,19 @@ function initImgBox() {
     label();
   }
 
+  // 相纸跟着当前这张图的主色走：切图（step→open）每次都重染，不同图不同色。
+  // 异步探针可能慢于切图，img.dataset.src!==src 时丢弃这次结果，免得染到已经翻过去的那张。
+  function paintFrame(src) {
+    const apply = raw => {
+      if (img.dataset.src !== src) return;
+      lastRaw = raw;
+      if (window.__polaroidTint) window.__polaroidTint.paint(frame, raw);
+      frame.classList.toggle('lb-tinted', !!raw);
+    };
+    if (window.__polaroidTint) window.__polaroidTint.resolveColor(src, apply);
+    else apply(null);
+  }
+
   function open(src, trigger) {
     opener = trigger || null;
     // 必须在设置 img.src 之前定好位置：图已缓存时 ready() 会同步跑到底部说明那一行
@@ -1872,6 +1887,7 @@ function initImgBox() {
     };
     img.onerror = () => { footEl.textContent = '图片打不开'; slideIn = 0; animating = false; };
     img.dataset.src = src;
+    paintFrame(src);   // 相纸取色与显示加载并行，缓存命中即时、探针异步淡入
     img.src = src;
     if (img.complete) ready();
     else img.addEventListener('load', ready, { once: true });
@@ -1881,6 +1897,10 @@ function initImgBox() {
   function close() {
     box.classList.add('hidden');
     img.removeAttribute('src');
+    img.removeAttribute('data-src');   // 仍在路上的取色探针回调会被 paintFrame 守卫丢弃，不会染到已关的窗
+    lastRaw = null;
+    frame.classList.remove('lb-tinted');
+    if (window.__polaroidTint) window.__polaroidTint.paint(frame, null);
     resetTransform();
     slideIn = 0; animating = false;
     if (opener && opener.focus) opener.focus();
@@ -1891,6 +1911,12 @@ function initImgBox() {
   box.addEventListener('click', e => { if (e.target === box) close(); });
   cyclePrevBtn.addEventListener('click', () => step(-1));
   cycleNextBtn.addEventListener('click', () => step(1));
+  // 看图中途换主题：按新明度把当前这张图的主色重染一遍（paint 在调用时读主题）
+  new MutationObserver(() => {
+    if (box.classList.contains('hidden') || !window.__polaroidTint) return;
+    window.__polaroidTint.paint(frame, lastRaw);
+    frame.classList.toggle('lb-tinted', !!lastRaw);
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   // 放大后按住左键拖拽平移：view 本身就是滚动容器，拖拽＝反向改它的
   // scrollLeft/scrollTop，图片跟着手走。scroll-behavior 不会被 html 继承下来，
   // 所以这里是即时滚动，够跟手也够顺。
@@ -11205,6 +11231,28 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   #mainScroll#mainScroll #content#content .say-card:hover .say-cover img{ transform:none !important; }
 }
 </style>
+<style id="lightbox-tint">
+/* ============================================================
+   灯箱相纸取色：拍立得框跟着「当前这张图」的主色走，切图（左右箭头/方向键/滑动）
+   每次都重染——一条说说里红图切到蓝图，框色也跟着换，沉浸式观看。
+   染色本身复用 poster-tint 的 paint（影视卡那套 --po-* token，脚本写在 .imgbox-frame
+   内联样式上），这里只管 ① 颜色变化平滑过渡 ② 取到色时给框一圈同色柔光。
+   只在鼠标设备（PC / 带鼠标的平板）生效：移动端无框满屏那套透明相纸一字不动。
+   ============================================================ */
+@media (hover:hover) and (pointer:fine){
+  #imgBox .imgbox-frame{
+    transition:background-color .4s ease, border-color .4s ease, box-shadow .4s ease;
+  }
+  #imgBox .imgbox-foot{ transition:color .4s ease; }
+  /* 取到主色才加柔光；黑白 / 跨域采不到色时退回默认相纸，跟原来一模一样 */
+  #imgBox .imgbox-frame.lb-tinted{
+    box-shadow:var(--po-shadow), 0 0 46px -4px var(--po-glow);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #imgBox .imgbox-frame, #imgBox .imgbox-foot{ transition:none !important; }
+}
+</style>
 <script id="poster-tint">
 /* ---------- 影视卡取色：相纸材质跟着海报主色走 ----------
    canvas 缩样读像素就行，但图必须是无污染的：本地同源 jpg 天然满足，线上的 TMDB 图
@@ -11351,6 +11399,26 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   function tintAll() {
     document.querySelectorAll('.poster-card figure img, .say-card .say-cover-item img').forEach(resolve);
   }
+
+  /* 灯箱相纸取色桥：按 src 取主色——缓存命中同步回（封面图早被采过），否则用一张独立的
+     crossorigin Image 探针采样，绝不碰灯箱显示用的那张 img：跨域图床不给 CORS 头时只是
+     探针采不到色、退回默认相纸，显示/缩放/手势全不受影响。paint 复用影视卡那套 --po-* 染色，
+     灯箱相纸跟海报卡同一套材质语言，不同图不同色、切图跟着换。 */
+  function resolveColor(src, cb) {
+    if (!src) return cb(null);
+    if (rawBySrc.has(src)) return cb(rawBySrc.get(src));
+    const probe = new Image();
+    probe.crossOrigin = 'anonymous';
+    probe.onload = () => {
+      let raw = null;
+      try { raw = sample(probe); } catch { raw = null; }
+      rawBySrc.set(src, raw);
+      cb(raw);
+    };
+    probe.onerror = () => { rawBySrc.set(src, null); cb(null); };
+    probe.src = src;
+  }
+  window.__polaroidTint = { paint, resolveColor };
 
   let queued = false;
   const rerun = () => {
