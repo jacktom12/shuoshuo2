@@ -1404,6 +1404,17 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 <div class="cmdk-results" id="cmdkMemoBody"></div>
 </div>
 </div>
+<!-- ======================= 说说全文弹窗：卡片 more 按钮打开，独立于搜索面板 ======================= -->
+<div aria-hidden="true" class="say-detail-overlay" id="sayDetailModal">
+  <div aria-label="说说详情" aria-modal="true" class="say-detail-panel" role="dialog">
+    <div class="say-detail-bar">
+      <span aria-hidden="true" class="iconify say-detail-ico" data-icon="mdi:chat-processing-outline"></span>
+      <span class="say-detail-title">说说详情</span>
+      <button aria-label="关闭" class="say-detail-close" id="sayDetailClose" type="button"><span aria-hidden="true" class="iconify" data-icon="lucide:x"></span></button>
+    </div>
+    <div class="say-detail-body" id="sayDetailBody"></div>
+  </div>
+</div>
 <script>
 /* ============================================================
    配置 & 环境检测
@@ -2232,6 +2243,9 @@ function tapeTime(rawDate) {
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
 
+// 说说卡片索引：more 按钮按 id 取回完整说说（含解析好的正文与图片），渲染全文弹窗
+const sayMemoIndex = new Map();
+
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
   const { html } = parsed || parseContent(m.content);
@@ -2242,22 +2256,38 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
     images = parsedImages.length ? parsedImages : extraImages;
   }
   const anim = `animation-delay:${Math.min(idx * 40, 400)}ms`;
-  const textDiv = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>`;
-
-  const body = `${textDiv}
-${renderImages(images)}`;
 
   if (plain) {
+    const body = `<div class="memo-text text-[17px] leading-relaxed">${html}</div>\n${renderImages(images)}`;
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
-  // 胶带颜色随第一个标签
+
+  // 卡片化（苹果播客式）：首图做封面，其余图隐藏但留在 .memo-image-grid 里供灯箱翻页；
+  // 无图说说用主题色封面 + 引号装饰。卡片底色由 poster-tint 脚本按首图主色染。
   const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
   const dateText = tapeTime(m.rawDate);
+  const dateHtml = dateText ? `<span class="memo-tape-date" aria-label="发布时间"><span aria-hidden="true" class="iconify" data-icon="lucide:clock"></span>${dateText}</span>` : '';
+  let cover;
+  if (images.length) {
+    const first = images[0];
+    // 其余图只留 data-src（不加载缩略图），灯箱按需取原图；hidden 仍被 collectGroup 收进翻页组
+    const rest = images.slice(1).map(img => `<div class="strip-item say-extra" hidden><img alt="${escapeHtml(img.alt || '')}" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" /></div>`).join('');
+    const badge = images.length > 1 ? `<span class="say-count" aria-hidden="true"><span class="iconify" data-icon="lucide:images"></span>${images.length}</span>` : '';
+    cover = `<div class="say-cover"><div class="memo-image-grid say-grid" data-count="${images.length}"><div class="strip-item say-cover-item"><img src="${escapeHtml(first.url)}" alt="${escapeHtml(first.alt || '')}" loading="lazy" decoding="async" crossorigin="anonymous" data-imgbox data-src="${escapeHtml(first.url)}" /></div>${rest}</div>${badge}</div>`;
+  } else {
+    cover = `<div class="say-cover say-cover-empty"><span aria-hidden="true" class="iconify say-cover-glyph" data-icon="lucide:quote"></span></div>`;
+  }
   return `
-  <li class="fade-up memo-item" style="${anim}">
-    <article class="memo-card" style="${tape}">
-      ${dateText ? `<span class="memo-tape-date" aria-label="发布时间"><span aria-hidden="true" class="iconify" data-icon="lucide:clock"></span>${dateText}</span>` : ''}
-      ${body}
+  <li class="fade-up memo-item say-item" style="${anim}">
+    <article class="memo-card say-card" data-id="${escapeHtml(m.id)}" style="${tape}">
+      ${cover}
+      <div class="say-body">
+        ${dateHtml}
+        <div class="memo-text say-text">${html}</div>
+      </div>
+      <div class="say-foot">
+        <button class="say-more" type="button" data-say-more="${escapeHtml(m.id)}" aria-label="展开这条说说全文"><svg class="say-more-dots" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg><span>more</span></button>
+      </div>
     </article>
   </li>`;
 }
@@ -2665,8 +2695,7 @@ async function loadSayPage(page, { replace = false } = {}) {
       const parsed = parseContent(m.content);
       const imgs = parsed.images.length ? parsed.images
         : (Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : []);
-      // 连续单图说说：左右交替（计数器只在单图时翻转）
-
+      sayMemoIndex.set(m.id, { m, parsed, imgs });   // more 按钮按 id 取回全文
       return memoCard(m, i, { parsed, imgs });
     }).join('');
     if (replace) {
@@ -4344,6 +4373,43 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     cmdkExec(cmdk.active);
   }
+});
+
+/* ---------- 说说卡片 more：全文弹窗（独立于搜索面板，复用 memoCard plain 渲染） ---------- */
+const sayDetailModal = $('#sayDetailModal');
+const sayDetailBody = $('#sayDetailBody');
+let sayDetailOpener = null;
+function openSayDetail(id, opener) {
+  const rec = sayMemoIndex.get(id);
+  if (!rec) return;
+  sayDetailOpener = opener || null;
+  sayDetailBody.innerHTML = `<div class="say-detail-wrap">${memoCard(rec.m, 0, { plain: true, parsed: rec.parsed, imgs: rec.imgs })}</div>`;
+  sayDetailModal.classList.add('open');
+  sayDetailModal.setAttribute('aria-hidden', 'false');
+  document.documentElement.classList.add('pop-lock');   // 与全屏弹窗同款文档滚动锁
+  sayDetailBody.scrollTop = 0;
+  $('#sayDetailClose')?.focus({ preventScroll: true });
+}
+function closeSayDetail() {
+  if (!sayDetailModal.classList.contains('open')) return;
+  sayDetailModal.classList.remove('open');
+  sayDetailModal.setAttribute('aria-hidden', 'true');
+  document.documentElement.classList.remove('pop-lock');
+  sayDetailBody.innerHTML = '';
+  sayDetailOpener?.focus?.({ preventScroll: true });
+  sayDetailOpener = null;
+}
+document.addEventListener('click', e => {
+  const more = e.target.closest('[data-say-more]');
+  if (more) { e.preventDefault(); openSayDetail(more.dataset.sayMore, more); return; }
+  if (e.target.closest('#sayDetailClose')) { closeSayDetail(); return; }
+  if (e.target === sayDetailModal) closeSayDetail();   // 点遮罩关闭
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !sayDetailModal.classList.contains('open')) return;
+  const imgBox = $('#imgBox');
+  if (imgBox && !imgBox.classList.contains('hidden')) return;   // 灯箱开着时先让灯箱的 Esc 处理
+  closeSayDetail();
 });
 
 /* ---------- 回到顶部 ---------- */
@@ -10889,6 +10955,256 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
   #mainScroll#mainScroll .feed-banner:hover .banner-media{ transform:none; }
 }
 </style>
+<style id="say-card-grid">
+/* ============================================================
+   说说列表卡片化（苹果播客式）：整块时间线改成等高大小的彩色卡片网格。
+   · 首图做方形封面，多图右上角计数徽章；无图说说用主题色封面 + 引号装饰；
+   · 卡片底色取首图主色（poster-tint 脚本染），无图 / 取不到色退回主题色；
+   · 正文定高截断，more 按钮开全文弹窗；hover 一圈柔光，不抬起。
+   选择器钉 #mainScroll#mainScroll #content#content（四 id）压过前面所有
+   （2,2,1）的 .memo-card 直角 / 透明 / 发丝线重置；网格容器用双 id 靠源序压。
+   ============================================================ */
+#content#content ul.memo-list{
+  display:grid !important;
+  grid-template-columns:repeat(3, minmax(0,1fr)) !important;
+  gap:16px !important;
+  align-items:stretch !important;
+  width:100% !important; max-width:none !important;
+  margin:0 !important; padding:6px 20px 12px !important;
+  border:0 !important; border-radius:0 !important;
+  background:transparent !important; box-shadow:none !important;
+  overflow:visible !important;
+}
+#content#content ul.memo-list > li.say-item{
+  display:block !important; min-width:0 !important;
+  margin:0 !important; padding:0 !important;
+  border:0 !important; background:transparent !important; box-shadow:none !important;
+}
+/* 哨兵 / 错误框等非卡片直接子节点：横跨整行，落在网格下方 */
+#content#content ul.memo-list > div{ grid-column:1 / -1 !important; }
+
+/* ---------- 卡片本体：主题色默认（无图 / 取色失败时的兜底） ---------- */
+#mainScroll#mainScroll #content#content .say-card{
+  --say-bg:color-mix(in srgb, var(--sp-accent) 13%, #fff);
+  --say-cover:color-mix(in srgb, var(--sp-accent) 20%, #fff);
+  --say-ink:var(--sp-ink);
+  --say-muted:var(--sp-muted);
+  --say-line:color-mix(in srgb, var(--sp-ink) 14%, transparent);
+  --say-glyph:color-mix(in srgb, var(--sp-accent) 52%, var(--sp-ink));
+  --say-glow:color-mix(in srgb, var(--sp-accent) 50%, transparent);
+  --say-btn-bg:color-mix(in srgb, var(--sp-ink) 6%, transparent);
+  --say-btn-hover:color-mix(in srgb, var(--sp-ink) 12%, transparent);
+  --say-btn-ink:var(--sp-ink);
+  --say-shadow:0 1px 2px rgba(23,60,50,.10),0 10px 22px -14px rgba(23,60,50,.30);
+  position:relative !important;
+  display:flex !important; flex-direction:column !important;
+  width:100% !important; height:100% !important;
+  margin:0 !important; padding:12px !important;
+  border:1px solid var(--say-line) !important; border-radius:16px !important;
+  background:var(--say-bg) !important;
+  box-shadow:var(--say-shadow) !important;
+  color:var(--say-ink) !important;
+  overflow:hidden !important; transform:none !important;
+  transition:box-shadow .26s ease, border-color .26s ease, background-color .26s ease !important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #content#content .say-card{
+  --say-bg:color-mix(in srgb, var(--sp-accent) 22%, var(--sp-bg));
+  --say-cover:color-mix(in srgb, var(--sp-accent) 30%, var(--sp-bg));
+  --say-line:color-mix(in srgb, var(--sp-ink) 16%, transparent);
+  --say-glyph:color-mix(in srgb, var(--sp-accent) 70%, var(--sp-ink));
+  --say-glow:color-mix(in srgb, var(--sp-accent) 55%, transparent);
+  --say-btn-bg:color-mix(in srgb, var(--sp-ink) 12%, transparent);
+  --say-btn-hover:color-mix(in srgb, var(--sp-ink) 20%, transparent);
+  --say-shadow:0 1px 2px rgba(0,0,0,.5),0 12px 24px -14px rgba(0,0,0,.7);
+}
+/* hover：一圈柔光（取色卡用首图主色），不抬起、不铺色块；封面图轻微推近 */
+#mainScroll#mainScroll #content#content .say-card:hover{
+  background:var(--say-bg) !important;
+  border-color:var(--say-glow) !important;
+  box-shadow:0 0 0 1px var(--say-glow),0 0 18px 1px var(--say-glow),var(--say-shadow) !important;
+  transform:none !important;
+}
+
+/* ---------- 封面：方形，首图填满裁切 ---------- */
+#mainScroll#mainScroll #content#content .say-card .say-cover{
+  position:relative !important;
+  width:100% !important; aspect-ratio:1 / 1 !important;
+  flex:0 0 auto !important;
+  border-radius:11px !important; overflow:hidden !important;
+  background:var(--say-cover) !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-grid{
+  display:block !important; width:100% !important; height:100% !important;
+  max-width:none !important; margin:0 !important; padding:0 !important; gap:0 !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-cover-item{
+  display:block !important; width:100% !important; height:100% !important;
+  aspect-ratio:auto !important; margin:0 !important; padding:0 !important;
+  border:0 !important; border-radius:0 !important; background:transparent !important;
+  box-shadow:none !important; transform:none !important; cursor:zoom-in !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-extra{ display:none !important; }
+#mainScroll#mainScroll #content#content .say-card .say-cover img{
+  display:block !important; width:100% !important; height:100% !important;
+  max-width:100% !important; max-height:none !important;
+  object-fit:cover !important; aspect-ratio:auto !important;
+  border:0 !important; border-radius:0 !important; box-shadow:none !important;
+  transform:none !important; cursor:zoom-in !important;
+  transition:transform .45s cubic-bezier(.22,.9,.32,1), filter .26s ease !important;
+}
+#mainScroll#mainScroll #content#content .say-card:hover .say-cover img{ transform:scale(1.045) !important; }
+/* 多图计数徽章：点击穿透到封面图（pointer-events:none），引导点开灯箱 */
+#mainScroll#mainScroll #content#content .say-card .say-count{
+  position:absolute !important; top:8px !important; right:8px !important; z-index:3 !important;
+  display:inline-flex !important; align-items:center !important; gap:4px !important;
+  padding:3px 8px !important; border:0 !important; border-radius:999px !important;
+  background:rgba(10,8,18,.55) !important;
+  -webkit-backdrop-filter:blur(6px) !important; backdrop-filter:blur(6px) !important;
+  color:#fff !important; -webkit-text-fill-color:#fff !important;
+  font:600 11px/1 var(--font-num) !important; letter-spacing:.02em !important;
+  box-shadow:0 1px 4px rgba(0,0,0,.3) !important; pointer-events:none !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-count .iconify{ font-size:12px !important; }
+/* 无图封面：主题色块 + 引号装饰 */
+#mainScroll#mainScroll #content#content .say-card .say-cover-empty{
+  display:flex !important; align-items:center !important; justify-content:center !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-cover-glyph{
+  font-size:56px !important; color:var(--say-glyph) !important; opacity:.5 !important;
+}
+
+/* ---------- 卡身：时间 + 定高截断正文 ---------- */
+#mainScroll#mainScroll #content#content .say-card .say-body{
+  display:flex !important; flex-direction:column !important;
+  flex:1 1 auto !important; min-height:0 !important;
+  padding:11px 4px 0 !important;
+}
+#mainScroll#mainScroll #content#content .say-card .memo-tape-date{
+  display:inline-flex !important; align-items:center !important; gap:5px !important;
+  width:fit-content !important; margin:0 0 7px !important; padding:0 !important;
+  border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important;
+  color:var(--say-muted) !important; -webkit-text-fill-color:var(--say-muted) !important;
+  font:11px/1.4 var(--font-num) !important; letter-spacing:.02em !important; text-shadow:none !important;
+}
+#mainScroll#mainScroll #content#content .say-card .memo-tape-date .iconify{ font-size:12px !important; opacity:.8 !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text{
+  flex:0 0 auto !important; margin:0 !important;
+  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
+  font-size:14px !important; line-height:1.6 !important; letter-spacing:.01em !important;
+  display:-webkit-box !important; -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:4 !important; line-clamp:4 !important;
+  min-height:6.4em !important; overflow:hidden !important;
+  word-break:break-word !important; overflow-wrap:anywhere !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-text p{ margin:0 0 .4em !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text p:last-child{ margin-bottom:0 !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6){
+  font-size:1em !important; font-weight:700 !important; margin:0 0 .3em !important;
+  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
+  border:0 !important; padding:0 !important; text-decoration:none !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6)::before,
+#mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6)::after{ content:none !important; display:none !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text :is(ul,ol){ margin:0 0 .4em !important; padding-left:1.3em !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text blockquote{
+  margin:0 0 .4em !important; padding-left:.7em !important;
+  border-left:2px solid var(--say-line) !important; color:var(--say-muted) !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-text a{
+  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
+  background:transparent !important; padding:0 !important; border-radius:0 !important;
+  text-decoration:underline !important; text-decoration-color:var(--say-line) !important; text-underline-offset:2px !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-text a::after{ content:none !important; display:none !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text code{
+  background:color-mix(in srgb, var(--say-ink) 10%, transparent) !important;
+  color:var(--say-ink) !important; border-radius:4px !important; padding:.05em .3em !important; font-size:.88em !important;
+}
+
+/* ---------- 卡脚：more 按钮（替换原播放键位置） ---------- */
+#mainScroll#mainScroll #content#content .say-card .say-foot{
+  display:flex !important; align-items:center !important;
+  flex:0 0 auto !important; margin-top:auto !important; padding:10px 4px 2px !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-more{
+  display:inline-flex !important; align-items:center !important; gap:6px !important;
+  padding:6px 14px !important;
+  border:1px solid var(--say-line) !important; border-radius:999px !important;
+  background:var(--say-btn-bg) !important;
+  color:var(--say-btn-ink) !important; -webkit-text-fill-color:var(--say-btn-ink) !important;
+  font:600 12px/1 var(--font-family) !important; letter-spacing:.03em !important;
+  cursor:var(--cursor-pointer) !important; transform:none !important; box-shadow:none !important;
+  transition:background-color .18s ease, border-color .18s ease, color .18s ease !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-more:hover{
+  background:var(--say-btn-hover) !important; border-color:var(--say-glow) !important;
+  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important; transform:none !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-more:focus-visible{ outline:2px solid var(--say-glow) !important; outline-offset:2px !important; }
+#mainScroll#mainScroll #content#content .say-card .say-more .say-more-dots{ flex:none !important; opacity:.85 !important; }
+
+/* ---------- 全文弹窗：独立玻璃面板，复用站点玻璃 token ---------- */
+.say-detail-overlay{
+  position:fixed; inset:0; z-index:10000; display:none;
+  align-items:flex-start; justify-content:center; padding:10vh 16px 16px;
+  background:rgba(8,6,16,.5); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+}
+.say-detail-overlay.open{ display:flex; }
+.say-detail-panel{
+  width:min(620px,100%); max-height:80vh; display:flex; flex-direction:column;
+  background:var(--gl-panel); -webkit-backdrop-filter:blur(22px) saturate(1.5); backdrop-filter:blur(22px) saturate(1.5);
+  border:1px solid var(--gl-border); border-radius:16px !important;
+  box-shadow:var(--gl-shadow); overflow:hidden; animation:fadeUp .18s ease both;
+}
+.say-detail-bar{
+  display:flex; align-items:center; gap:8px; flex:0 0 auto;
+  padding:12px 16px; border-bottom:1px solid var(--gl-hair); color:var(--sp-ink);
+}
+.say-detail-ico{ font-size:18px; color:var(--sp-accent); }
+.say-detail-title{ font:600 14px/1.2 var(--font-family); color:var(--sp-ink); letter-spacing:.02em; }
+.say-detail-close{
+  margin-left:auto; width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center;
+  border:0; border-radius:8px !important; background:transparent; color:var(--sp-muted);
+  cursor:var(--cursor-pointer); transition:background-color .16s ease, color .16s ease;
+}
+.say-detail-close:hover{ background:var(--sp-soft); color:var(--sp-ink); }
+.say-detail-close .iconify{ font-size:18px; }
+.say-detail-body{
+  flex:1 1 auto; min-height:0; overflow-y:auto; padding:14px 18px 18px;
+  color:var(--sp-ink); scrollbar-width:thin; scrollbar-color:var(--sp-line) transparent;
+}
+.say-detail-body::-webkit-scrollbar{ width:8px; }
+.say-detail-body::-webkit-scrollbar-track{ background:transparent; }
+.say-detail-body::-webkit-scrollbar-thumb{ background:var(--sp-line); border-radius:8px !important; }
+.say-detail-body::-webkit-scrollbar-thumb:hover{ background:var(--sp-accent); }
+.say-detail-wrap .memo-entry{ max-width:none !important; margin:0 !important; padding:0 !important; }
+.say-detail-wrap .memo-text{ color:var(--sp-ink) !important; -webkit-text-fill-color:var(--sp-ink) !important; }
+
+/* ---------- 响应式：平板两列、手机两列、极窄一列 ---------- */
+@media (max-width:900px){
+  #content#content ul.memo-list{ grid-template-columns:repeat(2, minmax(0,1fr)) !important; }
+}
+@media (max-width:760px){
+  #content#content ul.memo-list{ gap:12px !important; padding:4px 8px 8px !important; }
+  #mainScroll#mainScroll #content#content .say-card{ padding:10px !important; border-radius:14px !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-cover{ border-radius:9px !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-body{ padding:9px 3px 0 !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-text{
+    font-size:13px !important; -webkit-line-clamp:3 !important; line-clamp:3 !important; min-height:4.8em !important;
+  }
+  #mainScroll#mainScroll #content#content .say-card .say-cover-glyph{ font-size:44px !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-foot{ padding:8px 3px 2px !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-more{ padding:5px 12px !important; font-size:11px !important; }
+}
+@media (max-width:360px){
+  #content#content ul.memo-list{ grid-template-columns:1fr !important; }
+}
+@media (prefers-reduced-motion:reduce){
+  #mainScroll#mainScroll #content#content .say-card,
+  #mainScroll#mainScroll #content#content .say-card .say-cover img{ transition:none !important; }
+  #mainScroll#mainScroll #content#content .say-card:hover .say-cover img{ transform:none !important; }
+}
+</style>
 <script id="poster-tint">
 /* ---------- 影视卡取色：相纸材质跟着海报主色走 ----------
    canvas 缩样读像素就行，但图必须是无污染的：本地同源 jpg 天然满足，线上的 TMDB 图
@@ -10899,6 +11215,21 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
 (function () {
   const rawBySrc = new Map();
   const VARS = ['--po-paper', '--po-edge', '--po-photo', '--po-caption', '--po-glow'];
+  /* 说说卡：只染跟色相走的这五个，ink/muted/按钮底沿用主题默认（浅石墨 / 暗浅字），
+     和淡调浅底 / 深调暗底天然拉开对比，无需再单独算前景色。 */
+  const SAY_VARS = ['--say-bg', '--say-cover', '--say-line', '--say-glyph', '--say-glow'];
+
+  function hsl2rgb(h, s, l) {
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [f(0), f(8), f(4)];
+  }
+  function lum(rgb) {
+    const f = c => c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4);
+    return .2126 * f(rgb[0]) + .7152 * f(rgb[1]) + .0722 * f(rgb[2]);
+  }
 
   function rgb2hsl(r, g, b) {
     r /= 255; g /= 255; b /= 255;
@@ -10969,19 +11300,56 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
     });
   }
 
+  /* 说说卡取色：暗色压成浓郁深色（相对亮度 ≤.15 保证浅字 ≥4.5:1），
+     浅色摊成淡调相纸色（跟站点湖绿主色的淡调一脉），色相/饱和跟着首图主色走。 */
+  function paintSay(card, raw) {
+    if (!raw) { SAY_VARS.forEach(v => card.style.removeProperty(v)); return; }
+    const dark = isDarkTheme(document.documentElement.dataset.theme);
+    const h = Math.round(raw.h);
+    const mix = .7 + .3 * raw.share;
+    if (dark) {
+      const s = Math.round(Math.min(64, Math.max(34, raw.s * 100)) * mix);
+      let l = 30;
+      while (lum(hsl2rgb(h, s, l)) > .15 && l > 14) l -= 2;
+      card.style.setProperty('--say-bg', `hsl(${h} ${s}% ${l}%)`);
+      card.style.setProperty('--say-cover', `hsl(${h} ${s}% ${Math.min(l + 8, 46)}%)`);
+      card.style.setProperty('--say-line', `hsl(${h} 40% 82% / .18)`);
+      card.style.setProperty('--say-glyph', `hsl(${h} 55% 76% / .5)`);
+      card.style.setProperty('--say-glow', `hsl(${h} 72% 60% / .5)`);
+    } else {
+      const s = Math.round(Math.min(50, Math.max(26, raw.s * 100)) * mix);
+      card.style.setProperty('--say-bg', `hsl(${h} ${s}% 86%)`);
+      card.style.setProperty('--say-cover', `hsl(${h} ${Math.min(s + 8, 58)}% 80%)`);
+      card.style.setProperty('--say-line', `hsl(${h} 30% 30% / .16)`);
+      card.style.setProperty('--say-glyph', `hsl(${h} 45% 38% / .55)`);
+      card.style.setProperty('--say-glow', `hsl(${h} 60% 45% / .45)`);
+    }
+  }
+
+  function paintSayBySrc(src, raw) {
+    document.querySelectorAll('.say-card').forEach(card => {
+      const img = card.querySelector('.say-cover-item img');
+      if (img && img.getAttribute('src') === src) paintSay(card, raw);
+    });
+  }
+
   function resolve(img) {
     const src = img.getAttribute('src');
     if (!src) return;
-    if (rawBySrc.has(src)) return void paintBySrc(src, rawBySrc.get(src));
+    const say = img.closest('.say-card');
+    if (rawBySrc.has(src)) {
+      const raw = rawBySrc.get(src);
+      return void (say ? paintSayBySrc(src, raw) : paintBySrc(src, raw));
+    }
     if (!img.complete || !img.naturalWidth) return;
     let raw = null;
     try { raw = sample(img); } catch { raw = null; }
     rawBySrc.set(src, raw);
-    paintBySrc(src, raw);
+    if (say) paintSayBySrc(src, raw); else paintBySrc(src, raw);
   }
 
   function tintAll() {
-    document.querySelectorAll('.poster-card figure img').forEach(resolve);
+    document.querySelectorAll('.poster-card figure img, .say-card .say-cover-item img').forEach(resolve);
   }
 
   let queued = false;
@@ -10993,14 +11361,14 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
 
   /* loading=lazy 的图要等真下载完才采得到；换主题得按新明度重推一遍 */
   document.addEventListener('load', e => {
-    if (e.target.tagName === 'IMG' && e.target.closest('.poster-card')) resolve(e.target);
+    if (e.target.tagName === 'IMG' && (e.target.closest('.poster-card') || e.target.closest('.say-card'))) resolve(e.target);
   }, true);
   /* 图床不给 CORS 头时，带 crossorigin 的 img 是整张加载失败的，不只是取不到色——
      所以摘掉属性用原始模式再要一次：裂图比素色相纸严重得多。只兜这一次，不会来回重试。 */
   document.addEventListener('error', e => {
     const img = e.target;
     if (img.tagName !== 'IMG' || !img.crossOrigin || img.dataset.rawRetry) return;
-    if (!img.closest('.poster-card')) return;
+    if (!img.closest('.poster-card') && !img.closest('.say-card')) return;
     img.dataset.rawRetry = '1';
     const src = img.getAttribute('src');
     img.removeAttribute('crossorigin');
