@@ -11228,12 +11228,12 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
 .say-detail-wrap .memo-entry{ max-width:none !important; margin:0 !important; padding:0 !important; }
 .say-detail-wrap .memo-text{ color:var(--sp-ink) !important; -webkit-text-fill-color:var(--sp-ink) !important; }
 
-/* ---------- 响应式：平板两列、手机两列、极窄一列 ---------- */
+/* ---------- 响应式：平板两列、手机一列（手机窄屏两列会把长文挤成块，整行铺开更舒展） ---------- */
 @media (max-width:900px){
   #content#content ul.memo-list{ grid-template-columns:repeat(2, minmax(0,1fr)) !important; }
 }
 @media (max-width:760px){
-  #content#content ul.memo-list{ gap:12px !important; padding:4px 8px 8px !important; }
+  #content#content ul.memo-list{ grid-template-columns:1fr !important; gap:12px !important; padding:4px 8px 8px !important; }
   #mainScroll#mainScroll #content#content .say-card{ padding:10px !important; border-radius:14px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-cover{ border-radius:9px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-body{ padding:9px 3px 0 !important; }
@@ -11243,9 +11243,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   #mainScroll#mainScroll #content#content .say-card .say-cover-glyph{ font-size:44px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-foot{ padding:8px 3px 2px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-more{ padding:5px 12px !important; font-size:11px !important; }
-}
-@media (max-width:360px){
-  #content#content ul.memo-list{ grid-template-columns:1fr !important; }
 }
 @media (prefers-reduced-motion:reduce){
   #mainScroll#mainScroll #content#content .say-card,
