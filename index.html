@@ -1797,7 +1797,21 @@ function initImgBox() {
   function step(delta) {
     const target = group[(groupIndex + delta + group.length) % group.length];
     if (!target) return;
-    open(srcOf(target), target);
+    if (isTouch()) {
+      open(srcOf(target), target);   // 移动端原样：箭头/键盘直接切，滑动手势走 swipeCommit
+    } else if (!animating) {
+      // PC 切图加滑出＋滑入：旧图先朝切图方向滑走，新图再从另一侧滑入，给相纸换色一段缓冲，
+      // 不再是「下一张啪地立刻出现、颜色慢半拍」那一下闪。动画期间忽略连点，免得叠动画。
+      animating = true;
+      view.style.overflow = 'hidden';   // 滑动位移会撑出横向滚动条，动画期间先裁掉，结束还原 auto
+      const newSrc = srcOf(target);
+      img.dataset.src = newSrc;         // 先认目标，让取色守卫放行
+      paintFrame(newSrc);               // 预热缓存同步命中：相纸 .4s 换色跟滑动同时起跑、同时收尾
+      img.style.transition = 'transform .18s cubic-bezier(.5,0,.75,.4)';
+      tX = -delta * view.clientWidth; tY = 0; applyTransform();
+      clearTimeout(animTimer);
+      animTimer = setTimeout(() => { slideIn = delta; open(newSrc, target); }, 180);
+    }
     // 焦点跟着箭头走，连按方向键时才不会跑到页面别的控件上
     const btn = delta < 0 ? cyclePrevBtn : cycleNextBtn;
     if (!btn.hidden) btn.focus();
@@ -1840,16 +1854,17 @@ function initImgBox() {
     label();
   }
 
-  // 相纸跟着当前这张图的主色走：切图（step→open）每次都重染，不同图不同色。
-  // 异步探针可能慢于切图，img.dataset.src!==src 时丢弃这次结果，免得染到已经翻过去的那张。
-  function paintFrame(src) {
+  // 相纸跟着当前这张图的主色走：切图（step→open→ready）每次都重染，不同图不同色。
+  // 在 ready() 里图已落地时调，直接采显示图本身——同源同步染色跟图同帧，跨域命中预热缓存。
+  // 异步探针万一慢于切图，img.dataset.src!==src 时丢弃这次结果，免得染到已经翻过去的那张。
+  function paintFrame(src, displayImg) {
     const apply = raw => {
       if (img.dataset.src !== src) return;
       lastRaw = raw;
       if (window.__polaroidTint) window.__polaroidTint.paint(frame, raw);
       frame.classList.toggle('lb-tinted', !!raw);
     };
-    if (window.__polaroidTint) window.__polaroidTint.resolveColor(src, apply);
+    if (window.__polaroidTint) window.__polaroidTint.resolveColor(src, apply, displayImg);
     else apply(null);
   }
 
@@ -1875,6 +1890,7 @@ function initImgBox() {
       if (img.dataset.src !== src) return;
       natural = { w: img.naturalWidth, h: img.naturalHeight };
       measureFit();
+      paintFrame(src, img);   // 图已落地：同源直接采显示图，染色跟图同帧；跨域命中进窗预热的缓存
       if (slideIn) {
         const dir = slideIn; slideIn = 0;
         tX = dir * view.clientWidth; applyTransform();
@@ -1882,12 +1898,16 @@ function initImgBox() {
         img.style.transition = 'transform .26s cubic-bezier(.22,.9,.32,1)';
         tX = 0; applyTransform();
         clearTimeout(animTimer);
-        animTimer = setTimeout(() => { img.style.transition = 'none'; animating = false; }, 270);
+        animTimer = setTimeout(() => { img.style.transition = 'none'; animating = false; view.style.overflow = ''; }, 270);
       }
     };
-    img.onerror = () => { footEl.textContent = '图片打不开'; slideIn = 0; animating = false; };
+    img.onerror = () => { footEl.textContent = '图片打不开'; slideIn = 0; animating = false; view.style.overflow = ''; };
     img.dataset.src = src;
-    paintFrame(src);   // 相纸取色与显示加载并行，缓存命中即时、探针异步淡入
+    // 进窗就把整组主色预热进缓存：之后切到任意一张取色都同步命中，相纸跟图同帧换色不闪。
+    // 跨域图床显示图采不了色（canvas 污染），全靠这一步提前用探针算好；顺带把图字节也拉进缓存。
+    if (window.__polaroidTint && group.length > 1) {
+      group.forEach(t => { const s = srcOf(t); if (s) window.__polaroidTint.resolveColor(s, () => {}); });
+    }
     img.src = src;
     if (img.complete) ready();
     else img.addEventListener('load', ready, { once: true });
@@ -1902,7 +1922,7 @@ function initImgBox() {
     frame.classList.remove('lb-tinted');
     if (window.__polaroidTint) window.__polaroidTint.paint(frame, null);
     resetTransform();
-    slideIn = 0; animating = false;
+    slideIn = 0; animating = false; view.style.overflow = '';
     if (opener && opener.focus) opener.focus();
     opener = null;
   }
@@ -1956,6 +1976,7 @@ function initImgBox() {
   img.addEventListener('dblclick', () => {
     if (isTouch()) return;  // 移动端双击走触摸手势里的判定，不吃兼容鼠标事件
     if (dragMoved) return;  // 这一下是拖拽不是双击，别顺手切了缩放
+    if (animating) return;  // 滑动动画期间不缩放
     setZoom(Math.abs(zoom - 1) < 0.01 ? fitZoom : 1);
   });
   // 滚轮缩放：一档等于点一次 +/−；下限就是刚点开时的适配比例，
@@ -1963,6 +1984,7 @@ function initImgBox() {
   box.addEventListener('wheel', e => {
     if (!natural.w) return;
     e.preventDefault();
+    if (animating) return;   // 滑动动画期间不缩放，免得清掉还原 overflow 的定时器
     setZoom(e.deltaY < 0 ? zoom * 1.25 : zoom / 1.25, fitZoom);
   }, { passive: false });
 
@@ -11400,22 +11422,36 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
     document.querySelectorAll('.poster-card figure img, .say-card .say-cover-item img').forEach(resolve);
   }
 
-  /* 灯箱相纸取色桥：按 src 取主色——缓存命中同步回（封面图早被采过），否则用一张独立的
-     crossorigin Image 探针采样，绝不碰灯箱显示用的那张 img：跨域图床不给 CORS 头时只是
-     探针采不到色、退回默认相纸，显示/缩放/手势全不受影响。paint 复用影视卡那套 --po-* 染色，
-     灯箱相纸跟海报卡同一套材质语言，不同图不同色、切图跟着换。 */
-  function resolveColor(src, cb) {
+  /* 灯箱相纸取色桥：按 src 取主色，三条路按优先级走——
+     ① 缓存命中（封面早被采过 / 进窗预热过）→ 同步回，切图相纸跟图同帧换色，不闪。
+     ② 给了已加载的显示图且同源 → 直接采它，结果跟图同一帧落地（黑白返回 null 也是有效结果）。
+        跨域显示图没带 crossorigin，canvas 被污染会抛——抛了才落到 ③，绝不硬采。
+     ③ 独立 crossorigin Image 探针：不碰灯箱显示用的那张 img，图床不给 CORS 头时只是探针
+        采不到色、退回默认相纸，显示/缩放/手势全不受影响。同一 src 并发只发一张探针，回调排队。
+     paint 复用影视卡那套 --po-* 染色，灯箱相纸跟海报卡同一套材质语言。 */
+  const pendingColor = new Map();
+  function resolveColor(src, cb, displayImg) {
     if (!src) return cb(null);
     if (rawBySrc.has(src)) return cb(rawBySrc.get(src));
+    if (displayImg && displayImg.complete && displayImg.naturalWidth) {
+      try {
+        const raw = sample(displayImg);   // null=黑白（有效）；跨域污染会抛，落到探针
+        rawBySrc.set(src, raw);
+        return cb(raw);
+      } catch { /* 跨域污染：走探针 */ }
+    }
+    if (pendingColor.has(src)) { pendingColor.get(src).push(cb); return; }
+    const cbs = [cb];
+    pendingColor.set(src, cbs);
+    const done = raw => {
+      rawBySrc.set(src, raw);
+      pendingColor.delete(src);
+      cbs.forEach(f => f(raw));
+    };
     const probe = new Image();
     probe.crossOrigin = 'anonymous';
-    probe.onload = () => {
-      let raw = null;
-      try { raw = sample(probe); } catch { raw = null; }
-      rawBySrc.set(src, raw);
-      cb(raw);
-    };
-    probe.onerror = () => { rawBySrc.set(src, null); cb(null); };
+    probe.onload = () => { let raw = null; try { raw = sample(probe); } catch { raw = null; } done(raw); };
+    probe.onerror = () => done(null);
     probe.src = src;
   }
   window.__polaroidTint = { paint, resolveColor };
