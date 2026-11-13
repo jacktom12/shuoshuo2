@@ -1236,7 +1236,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
     <header class="feed-head" id="feedHead">
       <div class="feed-head-top">
         <div class="retro-masthead">
-          <div class="retro-identity"><span class="retro-site-name">文</span><span class="retro-site-slash">/</span><span class="retro-site-desc">碎碎念</span></div>
+          <div class="retro-identity"><span class="head-avatar-slot" id="headAvatarSlot" aria-hidden="true"><span class="head-avatar"><img src="profile.png" alt="" decoding="async"></span></span><span class="retro-site-name">文</span><span class="retro-site-slash">/</span><span class="retro-site-desc">碎碎念</span></div>
         </div>
         <ul aria-label="站点导航与工具" class="retro-tools">
           <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
@@ -11611,6 +11611,352 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   const content = document.getElementById('content');
   if (content) new MutationObserver(rerun).observe(content, { childList: true, subtree: true });
   rerun();
+})();
+</script>
+
+<style id="nav-capsule-avatar-dock">
+/* ============================================================
+   最后一层微调：
+   1) 导航选中态：整按钮宽的 2px inset 底边 → 文字齐宽的 2px 紫色发光胶囊；
+      未选中 60% 透明，选中用两套主题各自最高对比的正文色。
+   2) 封面头像/题句：深色不再顶着白框白字，改成淡紫细边 + 冷紫白字；
+      浅色保留暖白相纸感，两套主题配色明确不同。
+   3) 头像停靠：封面被吸顶刊头吞掉时，头像从封面左下角 FLIP 飞进
+      「文 / 碎碎念」左侧，滚回来再飞回去；其它视图常驻刊头。
+   ============================================================ */
+:root{
+  --cap-core:#8b5cf6;
+  --cap-halo:rgba(139,92,246,.40);
+  --head-ring:rgba(139,92,246,.62);   /* 刊头头像：浅底上要看得见，用紫边 */
+  --head-halo:rgba(139,92,246,.30);
+  --fly-ring:rgba(255,250,238,.80);   /* 飞行途中仍是封面那圈暖白，落地后换成紫边 */
+  --head-avatar-size:28px;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]){
+  --cap-core:#c9aaff;
+  --cap-halo:rgba(178,141,255,.58);
+  --head-ring:rgba(206,178,255,.50);
+  --head-halo:rgba(178,141,255,.62);
+  --fly-ring:rgba(206,178,255,.50);
+}
+@media (max-width:760px){ :root{--head-avatar-size:24px;} }
+
+/* ---------- 1. 胶囊指示器 ---------- */
+#mainScroll#mainScroll .retro-tools > li > .tab-btn{
+  opacity:.6!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease,border-color .16s ease,opacity .2s ease!important;
+}
+#mainScroll#mainScroll .retro-tools > li > .tab-btn:hover,
+#mainScroll#mainScroll .retro-tools > li > .tab-btn[aria-expanded="true"],
+#mainScroll#mainScroll .retro-tools > li > .tab-btn.active,
+#mainScroll#mainScroll .retro-tools > li > .tab-btn.has-active{ opacity:1!important; }
+#mainScroll#mainScroll .retro-tools > li > .tab-btn.active,
+#mainScroll#mainScroll .retro-tools > li > .tab-btn[data-view].active,
+#mainScroll#mainScroll .retro-tools > li > .tools-drop-btn.has-active{
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--sp-ink)!important;
+  -webkit-text-fill-color:var(--sp-ink)!important;
+}
+/* 胶囊挂在文字本身：宽度天生与文字齐平，不再横跨图标与内边距 */
+#mainScroll#mainScroll .retro-tools > li > .tab-btn > .nav-label{
+  position:relative!important;
+  display:inline-block!important;
+}
+#mainScroll#mainScroll .retro-tools > li > .tab-btn > .nav-label::after{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;right:0!important;bottom:-5px!important;
+  height:2px!important;
+  border-radius:2px!important;
+  background:var(--cap-core)!important;
+  box-shadow:0 0 5px 0 var(--cap-halo),0 0 11px 0 var(--cap-halo)!important;
+  opacity:0!important;
+  transform:scaleX(.6)!important;
+  transform-origin:center!important;
+  transition:opacity .22s ease,transform .28s cubic-bezier(.22,1,.36,1)!important;
+  pointer-events:none!important;
+}
+#mainScroll#mainScroll .retro-tools > li > .tab-btn.active > .nav-label::after,
+#mainScroll#mainScroll .retro-tools > li > .tab-btn.has-active > .nav-label::after{
+  opacity:1!important;transform:scaleX(1)!important;
+}
+@media (max-width:760px){
+  #mainScroll#mainScroll .retro-tools > li > .tab-btn > .nav-label::after{ bottom:-3px!important; }
+}
+
+/* ---------- 2. 刊头头像位 ----------
+   槽宽 0 → 展开，用负 margin 抵消 identity 的 9px gap；
+   头像自身始终贴在 identity 左边缘，展开前后几何不变，FLIP 终点才量得准。 */
+#feedHead#feedHead .retro-identity{ position:relative!important; }
+#feedHead#feedHead .head-avatar-slot{
+  flex:0 0 auto!important;
+  width:0!important;
+  margin-right:-9px!important;
+  align-self:center!important;
+  display:flex!important;align-items:center!important;
+  overflow:visible!important;
+  transition:width .42s cubic-bezier(.22,1,.36,1),margin-right .42s cubic-bezier(.22,1,.36,1)!important;
+}
+#feedHead#feedHead .head-avatar-slot.is-docked{
+  width:var(--head-avatar-size)!important;margin-right:0!important;
+}
+#feedHead#feedHead .head-avatar{
+  flex:0 0 var(--head-avatar-size)!important;
+  width:var(--head-avatar-size)!important;height:var(--head-avatar-size)!important;
+  box-sizing:border-box!important;
+  display:block!important;border-radius:50%!important;overflow:hidden!important;
+  border:1.5px solid var(--head-ring)!important;
+  background:#2a1636!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.32),0 0 14px -2px var(--head-halo)!important;
+  opacity:0!important;
+  transition:opacity .2s ease!important;
+}
+#feedHead#feedHead .head-avatar-slot.is-docked .head-avatar{
+  opacity:1!important;transition:opacity .18s ease!important;
+}
+#feedHead#feedHead .head-avatar-slot.is-flying .head-avatar{
+  opacity:0!important;transition:none!important;
+}
+#feedHead#feedHead .head-avatar img{
+  display:block!important;width:100%!important;height:100%!important;
+  object-fit:cover!important;border-radius:50%!important;
+}
+/* 飞行中的替身：脱离所有滚动容器，不会被 banner 的 overflow:hidden 剪掉 */
+.avatar-fly{
+  position:fixed!important;z-index:9000!important;pointer-events:none!important;
+  box-sizing:border-box!important;
+  border-radius:50%!important;overflow:hidden!important;
+  transform-origin:top left!important;
+  border:1.5px solid var(--fly-ring)!important;
+  background:#2a1636!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.4),0 0 18px -2px var(--head-halo)!important;
+  will-change:transform,opacity;
+}
+.avatar-fly img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%!important;}
+/* 停靠后封面这行内容一起收起：原头像只隐不删（布局不跳），
+   题句/版权/星标同步淡出，免得刊头底下留半行没头像的字 */
+#mainScroll#mainScroll .feed-banner.avatar-docked .banner-avatar{
+  opacity:0!important;
+  transition:transform .5s cubic-bezier(.22,1,.36,1),box-shadow .3s ease,border-color .3s ease,opacity .18s ease!important;
+}
+#mainScroll#mainScroll .feed-banner.avatar-docked:not(.is-returning) .banner-caption,
+#mainScroll#mainScroll .feed-banner.avatar-docked:not(.is-returning) .banner-mark{
+  opacity:0!important;
+  transition:opacity .18s ease!important;
+}
+/* 上拉返程：Banner 一露面题句就跟着淡入，不等头像落地（否则画面空一块） */
+#mainScroll#mainScroll .feed-banner.is-returning .banner-caption,
+#mainScroll#mainScroll .feed-banner.is-returning .banner-mark{
+  opacity:1!important;
+  transition:opacity .25s ease!important;
+}
+
+/* ---------- 3. 封面：深浅两套配色 ---------- */
+/* 深色：顶部亮边转紫，头像改淡紫细边 + 紫光，题句冷紫白 */
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner::after{
+  background:
+    linear-gradient(to top, rgba(8,4,22,.78) 0%, rgba(8,4,22,.32) 26%, transparent 54%),
+    linear-gradient(to bottom, rgba(198,168,255,.10), transparent 16%)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner .banner-avatar{
+  border:1.5px solid rgba(206,178,255,.50)!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.45),0 0 20px -2px rgba(178,141,255,.68),inset 0 0 0 1px rgba(255,255,255,.05)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner:hover .banner-avatar{
+  border-color:rgba(224,202,255,.74)!important;
+  box-shadow:0 2px 12px rgba(0,0,0,.45),0 0 26px -2px rgba(178,141,255,.82)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner .banner-line{
+  color:#efe4ff!important;text-shadow:0 1px 12px rgba(12,4,28,.8)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner .banner-copy{
+  color:rgba(222,203,255,.60)!important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner .banner-mark{
+  background:rgba(226,205,255,.90)!important;
+  filter:drop-shadow(0 0 5px rgba(178,141,255,.72))!important;
+}
+/* 浅色：暖白细边 + 奶白题句（不再是纯 #fff） */
+html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-avatar{
+  border:2px solid rgba(255,250,238,.78)!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.40),0 0 18px -3px rgba(255,240,214,.50)!important;
+}
+html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover .banner-avatar{
+  border-color:rgba(255,252,244,.92)!important;
+  box-shadow:0 2px 12px rgba(0,0,0,.42),0 0 24px -3px rgba(255,240,214,.72)!important;
+}
+html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-line{
+  color:#fff4de!important;text-shadow:0 1px 10px rgba(28,14,4,.66)!important;
+}
+html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-copy{
+  color:rgba(255,238,208,.66)!important;
+}
+html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
+  background:rgba(255,246,224,.90)!important;
+  filter:drop-shadow(0 0 5px rgba(255,240,208,.68))!important;
+}
+@media (prefers-reduced-motion:reduce){
+  #feedHead#feedHead .head-avatar-slot{transition:none!important;}
+  #feedHead#feedHead .head-avatar{transition:none!important;}
+}
+</style>
+<script>
+/* 头像无缝转移：封面头像 → 刊头头像（反向亦然） */
+(function avatarDock(){
+  const banner = document.getElementById('feedBanner');
+  const head   = document.getElementById('feedHead');
+  const slot   = document.getElementById('headAvatarSlot');
+  if (!banner || !head || !slot) return;
+  const navAvatar    = slot.querySelector('.head-avatar');
+  const bannerAvatar = banner.querySelector('.banner-avatar');
+  if (!navAvatar || !bannerAvatar) return;
+
+  const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rectOf = el => {
+    const r = el.getBoundingClientRect();
+    return { left:r.left, top:r.top, width:r.width, height:r.height };
+  };
+  const visible = () => !banner.classList.contains('hidden') && banner.offsetParent !== null;
+
+  let docked = null, lastVisible = null, flying = null, queued = false;
+
+  function clearFly(){
+    if (!flying) return;
+    if (flying.stop) flying.stop();
+    flying.el.remove();
+    flying = null;
+  }
+
+  /* 自己用 rAF 驱动，不写死终点：滚回顶部时页面还在动，落点必须每帧重新量，
+     否则替身会落在触发那一刻的旧坐标（看着像停在 Banner 中间），
+     等真头像在左下角现身又跳一次。淡出阶段也继续贴着目标，滚动没停也不脱节。 */
+  function launch(from, to, done, followEl){
+    clearFly();
+    const el = document.createElement('div');
+    el.className = 'avatar-fly';
+    const img = document.createElement('img');
+    img.src = 'profile.png'; img.alt = '';
+    el.appendChild(img);
+    el.style.left = from.left + 'px';
+    el.style.top = from.top + 'px';
+    el.style.width = from.width + 'px';
+    el.style.height = from.height + 'px';
+    document.body.appendChild(el);
+
+    const DUR = 520, FADE = 160;
+    const ease = t => 1 - Math.pow(1 - t, 4);   // 起步快、收尾轻
+    const t0 = performance.now();
+    let raf = 0, phase = 'flight', fadeAt = 0, landed = false;
+
+    const target = () => followEl ? rectOf(followEl) : to;
+    const place = e => {
+      const t = target();
+      const s = from.width ? t.width / from.width : .5;
+      const scale = 1 + (s - 1) * e;
+      const dx = (t.left - from.left) * e;
+      const dy = (t.top - from.top) * e;
+      el.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + scale + ')';
+    };
+    const land = () => {
+      if (landed) return;
+      landed = true;
+      phase = 'fade';
+      fadeAt = performance.now();
+      place(1);                   // 落地这一刻先对齐当前落点，再交棒给真头像
+      done();                     // 真头像开始淡入，与替身淡出交叠
+    };
+    const frame = now => {
+      if (phase === 'flight'){
+        const p = Math.min(1, (now - t0) / DUR);
+        place(ease(p));
+        if (p >= 1) land();
+      } else {
+        const q = Math.min(1, (now - fadeAt) / FADE);
+        place(1);
+        el.style.opacity = String(1 - q);
+        if (q >= 1){
+          el.remove();
+          if (flying && flying.el === el) flying = null;
+          return;
+        }
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    flying = {
+      el,
+      stop: () => cancelAnimationFrame(raf),
+      // rAF 被节流时，滚动事件也能立刻把替身拽回当前落点
+      track: () => place(phase === 'fade' ? 1 : ease(Math.min(1, (performance.now() - t0) / DUR)))
+    };
+    // 后台标签页 rAF 可能被暂停，兜底把动画状态和替身一起收干净
+    setTimeout(() => {
+      if (flying && flying.el === el){
+        land();
+        el.remove();
+        flying = null;
+      }
+    }, 1000);
+  }
+
+  function apply(next, instant){
+    docked = next;
+    clearFly();
+    slot.classList.remove('is-flying');
+    if (instant || reduce()){
+      slot.classList.toggle('is-docked', next);
+      banner.classList.toggle('avatar-docked', next);
+      banner.classList.remove('is-returning');
+      return;
+    }
+    if (next){
+      // 起飞点＝封面头像当前位置，落点＝刊头头像位（展开前后位置恒定）
+      const from = rectOf(bannerAvatar), to = rectOf(navAvatar);
+      slot.classList.add('is-docked', 'is-flying');
+      banner.classList.remove('is-returning');
+      banner.classList.add('avatar-docked');
+      launch(from, to, () => slot.classList.remove('is-flying'));
+    } else {
+      const from = rectOf(navAvatar), to = rectOf(bannerAvatar);
+      slot.classList.remove('is-docked');
+      slot.classList.add('is-flying');
+      banner.classList.add('is-returning');   // 题句先回来，头像由替身送回来
+      launch(from, to, () => {
+        slot.classList.remove('is-flying');
+        banner.classList.remove('avatar-docked', 'is-returning');
+      }, bannerAvatar);   // 反向：落点跟着还在滚动的 Banner 头像走
+    }
+  }
+
+  function update(forceInstant){
+    const vis = visible();
+    const changed = vis !== lastVisible;
+    lastVisible = vis;
+    let next;
+    if (!vis) {
+      next = true;                                  // 其它视图：常驻刊头
+    } else {
+      const hb = head.getBoundingClientRect().bottom;
+      const bb = banner.getBoundingClientRect().bottom;
+      // 封面头像贴在 banner 底部（约 70px 高），刚要被吸顶刊头吞掉时起飞；
+      // 滚回来多留 36px 滞回，免得在临界点来回跳。
+      next = docked ? (bb <= hb + 108) : (bb <= hb + 72);
+    }
+    if (next !== docked) apply(next, !!(forceInstant || changed || reduce()));
+  }
+
+  const onScroll = () => {
+    if (flying && flying.track) flying.track();
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; update(false); });
+  };
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', () => update(true), { passive:true });
+  new MutationObserver(() => update(true))
+    .observe(banner, { attributes:true, attributeFilter:['class'] });
+  requestAnimationFrame(() => update(true));
 })();
 </script>
 
