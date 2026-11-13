@@ -1151,7 +1151,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 .retro-site-name{font:700 25px/1.15 var(--k2-font-brand);letter-spacing:.14em;color:var(--home-ink);}
 .retro-site-slash{color:var(--home-line);font:16px Georgia,serif;}
 .retro-site-desc{font-size:12px;letter-spacing:.12em;color:var(--home-muted);}
-.retro-motto{font-size:11px;letter-spacing:.04em;color:var(--home-muted);}
 .retro-nav-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:3px 7px;}
 #topBar .topbar-nav{display:block;flex:0 1 auto;min-width:0;width:auto;background:none;}
 #topBar .topbar-menu{display:flex;align-items:center;flex-wrap:wrap;gap:0;list-style:none;padding:0;margin:0;overflow:visible;}
@@ -1179,10 +1178,10 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 .page-container.page-container{padding-top:20px!important;}
 @media(max-width:1100px){.retro-nav-row{gap:3px;}#topBar .tab-btn{padding-inline:8px;}}
 @media(max-width:800px){
-.retro-masthead{padding:12px 13px 9px;gap:8px;}.retro-site-name{font-size:22px;}.retro-site-desc{font-size:11px;}.retro-motto{font-size:10px;}
+.retro-masthead{padding:12px 13px 9px;gap:8px;}.retro-site-name{font-size:22px;}.retro-site-desc{font-size:11px;}
 .retro-nav-row{display:block;padding:2px 8px 4px;}#topBar .topbar-nav{width:100%;}#topBar .retro-primary{justify-content:flex-start;flex-wrap:wrap;}#topBar .retro-primary>li{flex:1 1 auto;justify-content:center;}#topBar .retro-primary>li+li::before{position:absolute;left:0;}
 #topBar .tab-btn{min-height:40px;padding:5px 8px;font-size:12px!important;}#topBar .retro-tools{justify-content:flex-end;border-top:1px dotted var(--home-line);padding-top:1px;}#topBar .retro-tools .tab-btn{min-height:36px;padding-inline:9px;}.page-container.page-container{padding-top:15px!important;}}
-@media(max-width:380px){.retro-motto{display:none;}#topBar .retro-primary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));}#topBar .retro-primary>li:nth-child(4n+1)::before{display:none;}#topBar .retro-tools .tab-btn{padding-inline:7px;}}
+@media(max-width:380px){#topBar .retro-primary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));}#topBar .retro-primary>li:nth-child(4n+1)::before{display:none;}#topBar .retro-tools .tab-btn{padding-inline:7px;}}
 </style>
 <style id="ios-hidden-backdrop-fix">
 /* iOS Safari：关闭态的全屏遮罩/抽屉若只 opacity:0 或移到屏外，元素仍留在渲染树里，
@@ -1238,7 +1237,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
       <div class="feed-head-top">
         <div class="retro-masthead">
           <div class="retro-identity"><span class="retro-site-name">文</span><span class="retro-site-slash">/</span><span class="retro-site-desc">碎碎念</span></div>
-          <span class="retro-motto"><span class="retro-copyright">©<span id="siteFooterYear"></span></span></span>
         </div>
         <ul aria-label="站点导航与工具" class="retro-tools">
           <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
@@ -1277,7 +1275,13 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
           <img src="banner.jpg" alt="夜色里的发光森林：紫色树影之间，一条青绿色小溪蜿蜒流过，萤火点点" decoding="async" onerror="this.closest('.feed-banner').classList.add('hidden')">
         </div>
         <figcaption>
-          <span class="banner-line">树深时见鹿，溪午不闻钟。</span>
+          <span class="banner-avatar" aria-hidden="true">
+            <img src="profile.png" alt="" width="56" height="56" decoding="async" onerror="this.closest('.banner-avatar').classList.add('hidden')">
+          </span>
+          <span class="banner-caption">
+            <span class="banner-line">树深时见鹿，溪午不闻钟。</span>
+            <span class="banner-copy">©<span id="siteFooterYear"></span></span>
+          </span>
           <span class="banner-mark" aria-hidden="true"></span>
         </figcaption>
       </figure>
@@ -8747,7 +8751,6 @@ body{font-family:var(--font-family)!important;}
 }
 #topBar .retro-site-slash{color:var(--sp-muted);font:15px/1 var(--font-family);}
 #topBar .retro-site-desc{font-size:18px;letter-spacing:.04em;}
-#topBar .retro-motto{color:var(--sp-muted);font:11px/1.5 var(--font-family);letter-spacing:.08em;}
 #topBar .retro-nav-row{position:absolute;top:27px;right:0;display:block;padding:0;}
 #topBar .retro-tools{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin:0;padding:0;border:0;list-style:none;}
 #topBar .retro-tools>li{position:relative;display:flex;border:0;}
@@ -8824,7 +8827,6 @@ html body .strip-wrap .memo-image-grid .strip-item,html body .strip-wrap .memo-i
   #mainScroll#mainScroll{padding-inline:4px!important;}
   #topBar .topbar-inner{padding:18px 0 13px;}
   #topBar .retro-site-name{font-size:18px;}#topBar .retro-site-desc{font-size:16px;}
-  #topBar .retro-motto{font-size:9px;letter-spacing:.04em;}
   #topBar .retro-nav-row{position:static;margin-top:12px;}
   #topBar .retro-tools{justify-content:center;gap:7px;}
   #topBar .retro-tools .tab-btn{width:34px;height:32px;min-height:32px;padding:4px!important;}
@@ -9120,7 +9122,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
 .retro-site-name{font:700 24px/1.15 var(--font-family)!important;letter-spacing:.06em!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
 .retro-site-slash{font:300 18px/1 var(--font-family)!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
 .retro-site-desc{font:700 22px/1.15 var(--font-family)!important;letter-spacing:.04em!important;color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;}
-.retro-motto{font:12px/1.5 var(--font-family)!important;letter-spacing:.06em!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;}
 
 /* ---------- 工具：导航五键 + 音乐 + 工具下拉，落在刊头右侧 ---------- */
 .retro-tools{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:2px!important;flex:0 1 auto!important;margin:0!important;padding:0!important;list-style:none!important;}
@@ -9151,7 +9152,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll{bac
   .feed-head-top{gap:10px!important;}
   .retro-site-name{font-size:20px!important;}
   .retro-site-desc{font-size:18px!important;}
-  .retro-motto{font-size:10px!important;}
   .retro-tools{flex:1 1 100%!important;justify-content:space-between!important;gap:0!important;}
   .retro-tools .tab-btn{flex-direction:column!important;gap:3px!important;padding:5px 4px!important;}
   .retro-tools .tab-btn .iconify{font-size:17px!important;}
@@ -10761,14 +10761,6 @@ body{
   max-height:none !important;
   overflow:visible !important;
 }
-/* ---------- 版权：刊头副行（丧气 motto 已撤，版权独立成行、左对齐） ---------- */
-.retro-copyright{
-  margin-left:0;
-  color:var(--sp-muted);
-  opacity:.72;
-  letter-spacing:.06em;
-  white-space:nowrap;
-}
 /* ---------- 弹层层叠：标签抽屉遮罩抬过回顶按钮（z120），与音乐抽屉/搜索弹窗同层 ---------- */
 .tag-drawer-overlay{ z-index:10000 !important; }
 #tagBar.tag-drawer{ z-index:10001 !important; }
@@ -11020,16 +11012,55 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
 }
 #mainScroll#mainScroll .feed-banner figcaption{
   position:absolute; left:0; right:0; bottom:0; z-index:2;
-  display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+  display:flex; align-items:flex-end; justify-content:flex-start; gap:12px;
   padding:14px 18px;
+}
+/* 题句 + 版权（©年份）排一行：句子在前，版权跟在后面，比句子淡一档。
+   flex:1 让题句吃掉头像与星标之间的空间，星标自然被顶到最右 */
+#mainScroll#mainScroll .feed-banner .banner-caption{
+  display:inline-flex; align-items:baseline; flex-wrap:wrap; gap:5px 10px;
+  flex:1 1 auto; min-width:0;
+  transition:transform .5s cubic-bezier(.22,1,.36,1);
 }
 #mainScroll#mainScroll .feed-banner .banner-line{
   color:#fff;
   font:500 15px/1.5 var(--font-family);
   letter-spacing:.12em;
   text-shadow:0 1px 10px rgba(0,0,0,.6);
-  transition:transform .5s cubic-bezier(.22,1,.36,1);
 }
+#mainScroll#mainScroll .feed-banner .banner-copy{
+  color:rgba(255,255,255,.62);
+  font:400 11px/1.5 var(--font-num);
+  letter-spacing:.08em; white-space:nowrap;
+  text-shadow:0 1px 8px rgba(0,0,0,.55);
+}
+/* 左下角头像：题句让到它右边，形成「人 → 诗 → 年份」一条阅读线。
+   profile.png 本身已经是圆的（四角是黑的），必须靠 50% 圆角容器裁掉黑角。
+   描边刻意不跟主题走白色：横幅大图在两套主题下是同一张暗调夜景，
+   圈要是跟着主题变暗/变彩，压在暗图上就糊掉了；跟着主题变的是外面那圈光晕 */
+#mainScroll#mainScroll .feed-banner .banner-avatar{
+  flex:0 0 auto !important;
+  width:56px !important; height:56px !important;
+  margin-bottom:1px !important;
+  border-radius:50% !important; overflow:hidden !important;
+  border:2px solid rgba(255,253,247,.86) !important;
+  background:#2a1636 !important;
+  box-shadow:0 2px 10px rgba(0,0,0,.42), 0 0 18px -2px rgba(255,255,255,.18) !important;
+  box-shadow:0 2px 10px rgba(0,0,0,.42), 0 0 20px -2px color-mix(in srgb, var(--sp-accent) 62%, transparent) !important;
+  transition:transform .5s cubic-bezier(.22,1,.36,1), box-shadow .3s ease, border-color .3s ease !important;
+}
+/* 悬停时圈和光晕跟着主题色亮一档 */
+#mainScroll#mainScroll .feed-banner:hover .banner-avatar{
+  border-color:#fff !important;
+  box-shadow:0 2px 12px rgba(0,0,0,.45), 0 0 26px -2px color-mix(in srgb, var(--sp-accent) 82%, transparent) !important;
+}
+#mainScroll#mainScroll .feed-banner .banner-avatar.hidden{ display:none !important; }
+#mainScroll#mainScroll .feed-banner .banner-avatar img{
+  display:block !important; width:100% !important; height:100% !important;
+  object-fit:cover !important; border-radius:50% !important;
+  transform:none !important; animation:none !important;
+}
+#mainScroll#mainScroll .feed-banner:hover .banner-avatar{ transform:scale(1.04); }
 /* 右下角一颗小萤火（纯 CSS 四角星，不依赖图标字体） */
 #mainScroll#mainScroll .feed-banner .banner-mark{
   flex:0 0 auto; width:11px; height:11px; margin-bottom:3px;
@@ -11042,7 +11073,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
   box-shadow:var(--gl-float), 0 0 0 1px var(--gl-border), 0 0 36px -4px color-mix(in srgb, var(--sp-accent) 48%, transparent);
 }
 #mainScroll#mainScroll .feed-banner:hover .banner-media{ transform:scale(1.045); }
-#mainScroll#mainScroll .feed-banner:hover .banner-line{ transform:translateY(-2px); }
+#mainScroll#mainScroll .feed-banner:hover .banner-caption{ transform:translateY(-2px); }
 
 @keyframes banner-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
 @keyframes banner-drift{ from{transform:scale(1.06) translate(0,0);} to{transform:scale(1.10) translate(-1%,-1.5%);} }
@@ -11058,8 +11089,11 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
 /* 手机：跟说说列对齐（14px 框内留白），圆角收到图片同款 9px，画幅放高 */
 @media (max-width:760px){
   #mainScroll#mainScroll .feed-banner{ margin:14px 14px 2px; border-radius:9px!important; aspect-ratio:16/10; }
-  #mainScroll#mainScroll .feed-banner figcaption{ padding:11px 13px; }
+  #mainScroll#mainScroll .feed-banner figcaption{ padding:11px 13px; gap:10px; }
+  #mainScroll#mainScroll .feed-banner .banner-avatar{ width:44px !important; height:44px !important; border-width:2px !important; }
+  #mainScroll#mainScroll .feed-banner .banner-caption{ gap:4px 8px; }
   #mainScroll#mainScroll .feed-banner .banner-line{ font-size:13px; letter-spacing:.08em; }
+  #mainScroll#mainScroll .feed-banner .banner-copy{ font-size:10px; letter-spacing:.06em; }
   #mainScroll#mainScroll .feed-banner .banner-mark{ width:9px; height:9px; }
 }
 @media (prefers-reduced-motion:reduce){
