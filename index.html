@@ -2336,11 +2336,7 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   }
   // 正文不足 50 字：卡片已经把话说完了，不给 more（有图没图一样对待）
   const canExpand = plainTextLength(html) >= SAY_EXPAND_MIN;
-  const foot = canExpand
-    ? `<div class="say-foot">
-        <button class="say-more" type="button" data-say-more="${escapeHtml(m.id)}" aria-label="展开这条说说的全文文字" title="读全文"><span aria-hidden="true" class="iconify say-more-ico" data-icon="material-symbols:read-more-rounded"></span></button>
-      </div>`
-    : '';
+  const foot = canExpand ? sayMoreFoot(m.id) : '';
   return `
   <li class="fade-up memo-item say-item" style="${anim}">
     <article class="memo-card say-card${images.length ? '' : ' say-card--text'}" data-id="${escapeHtml(m.id)}" style="${tape}">
@@ -2352,6 +2348,13 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
       ${foot}
     </article>
   </li>`;
+}
+
+// 卡脚的读全文按钮（memoCard 渲染 & 字数不够但排版被切时补挂，两处共用）
+function sayMoreFoot(id) {
+  return `<div class="say-foot">
+        <button class="say-more" type="button" data-say-more="${escapeHtml(id)}" aria-label="展开这条说说的全文文字" title="读全文"><span aria-hidden="true" class="iconify say-more-ico" data-icon="material-symbols:read-more-rounded"></span></button>
+      </div>`;
 }
 
 function skeletonNotes(n = 3) {
@@ -2723,7 +2726,55 @@ function releaseSentinel() {
 
 function bindCardInteractions() {
   contentEl.querySelectorAll('.memo-tag').forEach(el => { el.onclick = () => toggleTag(el.dataset.tag); });
+  markSayTextClip(contentEl);
 }
+
+/* 卡片正文按 CSS 定高裁切后，把裁切线收到「最后一行完整的字」：
+   带 markdown 的说说里段落/列表有 margin，折行不会落在整数行的位置上，
+   直接按高度切经常切掉半行字（只露上半个字，糊成一片）。这里逐行量文本盒，
+   取最后一个完整落在可视区里的行，把 max-height 收到那里；剩下的交给底部细渐隐。 */
+function markSayTextClip(root) {
+  (root || contentEl).querySelectorAll('.say-card .say-text').forEach(el => {
+    el.style.removeProperty('max-height');          // 复位，按 CSS 的高度重量一次
+    el.style.removeProperty('min-height');
+    el.classList.remove('is-clipped');
+    if (el.scrollHeight - el.clientHeight <= 1) return;   // 没超出：原样
+
+    // 字数没到 50 但被排版切掉了（几段短句、列表撑高）也要给出口，别让字读不全
+    const card = el.closest('.say-card');
+    if (card && card.dataset.id && !card.querySelector('.say-more')) card.insertAdjacentHTML('beforeend', sayMoreFoot(card.dataset.id));
+
+    const box = el.getBoundingClientRect();
+    let cut = 0;
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const rc of range.getClientRects()) {
+        if (rc.height <= 2) continue;              // 空行/零高盒跳过
+        const top = rc.top - box.top;
+        const bottom = rc.bottom - box.top;
+        // 只要这一行在预算高度内露过头，就把它整行放出来（宁可高出一行，也不切半行字）
+        if (top < el.clientHeight - 1 && bottom > cut) cut = bottom;
+      }
+    }
+    // 样式表那边是 max-height:6.4em / min-height:6.4em 双 !important 撑着卡片等高，
+    // 内联也带 important 才压得住；min-height 必须一起放开，否则它会把 max-height 抬回去
+    if (cut > 0) {
+      el.style.setProperty('min-height', '0px', 'important');
+      el.style.setProperty('max-height', Math.ceil(cut + 2) + 'px', 'important');
+    }
+    el.classList.add('is-clipped');
+  });
+}
+let sayClipTimer = 0;
+function scheduleSayTextClip() {
+  clearTimeout(sayClipTimer);
+  sayClipTimer = setTimeout(() => markSayTextClip(contentEl), 160);
+}
+window.addEventListener('resize', scheduleSayTextClip);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => markSayTextClip(contentEl));
 
 function resetSay() {
   state.sayPage = 1;
@@ -11151,28 +11202,46 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
 }
 #mainScroll#mainScroll #content#content .say-card .memo-tape-date .iconify{ font-size:12px !important; opacity:.8 !important; }
 /* 正文字号跟全文弹窗（.say-detail-text）统一到 17px / 1.6：
-   卡内截断与点 more 后的全文同一号字，读的时候不换视觉节奏 */
+   卡内截断与点 more 后的全文同一号字，读的时候不换视觉节奏。
+   截断走 max-height + overflow：原来用 -webkit-line-clamp / -webkit-box，带 markdown 的说说
+   （p + ul + li 这些块级子元素）在里面会被压扁，行与行叠在一起；换成块级正常排版后按高度裁，
+   再由 JS 给「真的超出」的卡片打 is-clipped 做底部渐隐，既盖住被裁的半行也提示还有下文 */
 #mainScroll#mainScroll #content#content .say-card .say-text{
   flex:0 0 auto !important; margin:0 !important;
   color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
   font-size:17px !important; line-height:1.6 !important; letter-spacing:.01em !important;
-  display:-webkit-box !important; -webkit-box-orient:vertical !important;
-  -webkit-line-clamp:4 !important; line-clamp:4 !important;
-  min-height:6.4em !important; overflow:hidden !important;
+  display:block !important;
+  max-height:6.4em !important; min-height:6.4em !important;
+  overflow:hidden !important;
   word-break:break-word !important; overflow-wrap:anywhere !important;
 }
-#mainScroll#mainScroll #content#content .say-card .say-text p{ margin:0 0 .4em !important; }
+/* 裁切线由 JS 收到「最后一行完整的字」之后再切（见 markSayTextClip）：
+   段落/列表的 margin 会把折行推到整数行之外，纯靠 max-height 常常切掉半行字。
+   这里只留一点点渐隐收边，最后一行还是清楚的 */
+#mainScroll#mainScroll #content#content .say-card .say-text.is-clipped{
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - .45em),transparent) !important;
+  mask-image:linear-gradient(180deg,#000 calc(100% - .45em),transparent) !important;
+}
+/* markdown 排版：段落/列表之间留口气，别挤成一坨；标点符号跟着正文色 */
+#mainScroll#mainScroll #content#content .say-card .say-text p{ margin:0 0 .5em !important; }
 #mainScroll#mainScroll #content#content .say-card .say-text p:last-child{ margin-bottom:0 !important; }
 #mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6){
-  font-size:1em !important; font-weight:700 !important; margin:0 0 .3em !important;
+  font-size:1.03em !important; font-weight:700 !important; margin:0 0 .3em !important; line-height:1.45 !important;
   color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
   border:0 !important; padding:0 !important; text-decoration:none !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6)::before,
 #mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6)::after{ content:none !important; display:none !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text :is(ul,ol){ margin:0 0 .4em !important; padding-left:1.3em !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text :is(ul,ol){
+  margin:0 0 .5em !important; padding-left:1.15em !important; list-style-position:outside !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-text li{ margin:.12em 0 !important; padding-left:.15em !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text li::marker{ color:var(--say-muted) !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text li :is(ul,ol){ margin:.1em 0 !important; }
+#mainScroll#mainScroll #content#content .say-card .say-text strong,
+#mainScroll#mainScroll #content#content .say-card .say-text b{ font-weight:700 !important; color:var(--say-ink) !important; }
 #mainScroll#mainScroll #content#content .say-card .say-text blockquote{
-  margin:0 0 .4em !important; padding-left:.7em !important;
+  margin:0 0 .5em !important; padding-left:.7em !important;
   border-left:2px solid var(--say-line) !important; color:var(--say-muted) !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-text a{
@@ -11258,8 +11327,10 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   #mainScroll#mainScroll #content#content .say-card{ padding:10px !important; border-radius:14px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-cover{ border-radius:9px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-body{ padding:9px 3px 0 !important; }
+  /* 手机一列，卡片各占一行、不存在等高对齐问题：正文不再预留占位高度，
+     多短的文字就收多高（有图没图一样），卡底不会挂一大片空白 */
   #mainScroll#mainScroll #content#content .say-card .say-text{
-    font-size:17px !important; -webkit-line-clamp:3 !important; line-clamp:3 !important; min-height:4.8em !important;
+    font-size:17px !important; max-height:4.8em !important; min-height:0 !important;
   }
   #mainScroll#mainScroll #content#content .say-card .say-cover-glyph{ font-size:44px !important; }
   #mainScroll#mainScroll #content#content .say-card .say-foot{ padding:8px 3px 2px !important; }
@@ -11268,7 +11339,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   /* 纯文字说说：手机是一行一列，不用为了跟别卡等高而留引号占位封面——整块去掉，
      卡片直接裹住文字（PC 三列要等高，仍保留那块引号封面，只在手机上撤） */
   #mainScroll#mainScroll #content#content .say-card.say-card--text > .say-cover-empty{ display:none !important; }
-  #mainScroll#mainScroll #content#content .say-card.say-card--text .say-text{ min-height:0 !important; }
   #mainScroll#mainScroll #content#content .say-card.say-card--text .say-body{ padding-top:2px !important; }
 }
 @media (prefers-reduced-motion:reduce){
