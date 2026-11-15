@@ -2410,8 +2410,16 @@ function mediaCard(m, idx) {
     : '<span class="badge badge-xs badge-accent">电影</span>';
   return `
   <div class="poster-card fade-up card bg-base-100 shadow-sm border border-base-300/50 overflow-hidden" style="animation-delay:${Math.min(idx * 30, 300)}ms">
-    <figure class="relative aspect-[2/3] bg-base-300">
-      <img src="${escapeHtml(m.poster_path)}" alt="${escapeHtml(m.title)}" loading="lazy" crossorigin="anonymous" class="w-full h-full object-cover" />
+    <figure class="relative aspect-[2/3] bg-base-300 poster-figure is-loading">
+      <div class="poster-ph" aria-hidden="true">
+        <span class="poster-ph-perf poster-ph-perf-t"></span>
+        <span class="poster-ph-badge"><span class="iconify poster-ph-icon" data-icon="material-symbols:movie-rounded" aria-hidden="true"></span></span>
+        <span class="poster-ph-title">${escapeHtml(m.title)}</span>
+        <span class="poster-ph-note">封面载入中…</span>
+        <span class="poster-ph-perf poster-ph-perf-b"></span>
+      </div>
+      <img src="${escapeHtml(m.poster_path)}" alt="${escapeHtml(m.title)}" loading="lazy" decoding="async" crossorigin="anonymous" class="poster-img w-full h-full object-cover" />
+      <button type="button" class="poster-ph-retry" aria-label="重新加载封面">重新加载</button>
     </figure>
     <div class="poster-caption p-1.5 sm:p-2">
       <h3 class="font-semibold text-[12px] leading-snug line-clamp-1" title="${escapeHtml(m.title)}">${escapeHtml(m.title)}</h3>
@@ -11546,8 +11554,79 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
     if (say) paintSayBySrc(src, raw); else paintBySrc(src, raw);
   }
 
+  /* ---------- 影视封面：占位状态 / 自动重试 / 淡入 ----------
+     裂图两个来源：CDN 偶发抽风，以及带 crossorigin 的图床没回 CORS 头。
+     两种都不该让用户看见破图标：图没落地就一直挂占位、img 全程不露脸；
+     失败先摘 CORS 再要一次，还不行隔一会儿换 query 再要一次，
+     最后留一张可点的胶片卡，手动重试不限次数。 */
+  const COVER_MAX_AUTO = 2;
+  const coverFig = img => img.closest('.poster-figure');
+  function coverSetNote(fig, text) {
+    const note = fig.querySelector('.poster-ph-note');
+    if (note) note.textContent = text;
+  }
+  function coverLoaded(img) {
+    const fig = coverFig(img);
+    if (!fig || !img.naturalWidth) return;
+    clearTimeout(img._coverTimer);
+    fig.classList.remove('is-loading', 'is-failed');
+    fig.classList.add('is-loaded');
+  }
+  function coverFailed(img) {
+    const fig = coverFig(img);
+    if (!fig) return false;
+    const tries = Number(img.dataset.coverTries || 0);
+    if (tries >= COVER_MAX_AUTO) {
+      fig.classList.remove('is-loading', 'is-loaded');
+      fig.classList.add('is-failed');
+      coverSetNote(fig, '封面暂不可用');
+      return true;
+    }
+    if (!img.dataset.coverSrc) img.dataset.coverSrc = img.getAttribute('src') || '';
+    const src = img.dataset.coverSrc;
+    img.dataset.coverTries = String(tries + 1);
+    fig.classList.remove('is-loaded', 'is-failed');
+    fig.classList.add('is-loading');
+    coverSetNote(fig, '正在重新载入…');
+    /* 第一次多半是图床没给 CORS 头：摘掉 crossorigin，用普通模式再要一次 */
+    if (img.crossOrigin) img.removeAttribute('crossorigin');
+    clearTimeout(img._coverTimer);
+    img._coverTimer = setTimeout(() => {
+      if (!img.isConnected) return;
+      /* 第二次换个 query，绕开可能存在的失败缓存；CDN 一般忽略多余参数 */
+      const next = tries === 0 ? src : src + (src.includes('?') ? '&' : '?') + '_cr=' + (tries + 1);
+      img.setAttribute('src', next);
+    }, tries === 0 ? 120 : 1100);
+    return true;
+  }
+  function coverRetryManual(img) {
+    const fig = coverFig(img);
+    if (!fig) return;
+    clearTimeout(img._coverTimer);
+    img.dataset.coverTries = '0';
+    const src = img.dataset.coverSrc || img.getAttribute('src') || '';
+    fig.classList.remove('is-failed', 'is-loaded');
+    fig.classList.add('is-loading');
+    coverSetNote(fig, '正在重新载入…');
+    if (img.crossOrigin) img.removeAttribute('crossorigin');
+    img.setAttribute('src', src + (src.includes('?') ? '&' : '?') + '_cr=' + Date.now());
+  }
+  /* 失败态下，按钮和整张占位卡都能点 */
+  document.addEventListener('click', e => {
+    if (!(e.target instanceof Element)) return;
+    const hit = e.target.closest('.poster-ph-retry, .poster-figure.is-failed > .poster-ph');
+    if (!hit) return;
+    const fig = hit.closest('.poster-figure');
+    const img = fig && fig.querySelector('.poster-img');
+    if (img && fig.classList.contains('is-failed')) coverRetryManual(img);
+  }, true);
+
   function tintAll() {
     document.querySelectorAll('.poster-card figure img, .say-card .say-cover-item img').forEach(resolve);
+    /* 缓存命中时 load 可能早于监听注册：补一次状态兜底 */
+    document.querySelectorAll('.poster-figure > .poster-img').forEach(img => {
+      if (img.complete && img.naturalWidth) coverLoaded(img);
+    });
   }
 
   /* 灯箱相纸取色桥：按 src 取主色，三条路按优先级走——
@@ -11593,14 +11672,19 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
 
   /* loading=lazy 的图要等真下载完才采得到；换主题得按新明度重推一遍 */
   document.addEventListener('load', e => {
-    if (e.target.tagName === 'IMG' && (e.target.closest('.poster-card') || e.target.closest('.say-card'))) resolve(e.target);
+    const img = e.target;
+    if (img.tagName !== 'IMG') return;
+    if (img.classList.contains('poster-img')) coverLoaded(img);
+    if (img.closest('.poster-card') || img.closest('.say-card')) resolve(img);
   }, true);
-  /* 图床不给 CORS 头时，带 crossorigin 的 img 是整张加载失败的，不只是取不到色——
-     所以摘掉属性用原始模式再要一次：裂图比素色相纸严重得多。只兜这一次，不会来回重试。 */
+  /* 影视卡统一走 coverFailed（占位 + 自动重试，不再露裂图）；
+     说说卡保留原来那次「图床不给 CORS 头就摘掉属性再要一次」的降级。 */
   document.addEventListener('error', e => {
     const img = e.target;
-    if (img.tagName !== 'IMG' || !img.crossOrigin || img.dataset.rawRetry) return;
-    if (!img.closest('.poster-card') && !img.closest('.say-card')) return;
+    if (img.tagName !== 'IMG') return;
+    if (coverFailed(img)) return;
+    if (!img.crossOrigin || img.dataset.rawRetry) return;
+    if (!img.closest('.say-card')) return;
     img.dataset.rawRetry = '1';
     const src = img.getAttribute('src');
     img.removeAttribute('crossorigin');
@@ -11799,6 +11883,91 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 @media (prefers-reduced-motion:reduce){
   #feedHead#feedHead .head-avatar-slot{transition:none!important;}
   #feedHead#feedHead .head-avatar{transition:none!important;}
+}
+</style>
+<style id="poster-placeholder">
+/* ============================================================
+   影视封面占位：加载中 / 加载失败都留一张「胶片卡」，绝不让浏览器露裂图。
+   图片没成功落地前 .poster-img 全程隐藏，占位层自带渐变、场记板图标、
+   胶片齿孔和片名；成功淡入，失败给一个可点的「重新加载」。
+   ============================================================ */
+.poster-figure { position: relative; isolation: isolate; }
+/* 没落地：img 连同裂图小图标 / alt 文字一起藏掉 */
+.poster-figure:not(.is-loaded) > .poster-img { opacity: 0 !important; visibility: hidden !important; }
+.poster-figure > .poster-img { transition: opacity .38s ease; }
+.poster-figure.is-loaded > .poster-img { opacity: 1; visibility: visible; }
+
+.poster-ph {
+  position: absolute; inset: 0; z-index: 1; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 9px; padding: 18px 14px; text-align: center;
+  color: color-mix(in oklch, var(--color-base-content) 62%, transparent);
+  background:
+    radial-gradient(95% 58% at 50% -6%, color-mix(in oklch, var(--color-primary) 20%, transparent), transparent 74%),
+    linear-gradient(158deg,
+      color-mix(in oklch, var(--color-base-300) 90%, var(--color-primary) 10%),
+      color-mix(in oklch, var(--color-base-200) 94%, var(--color-base-content) 6%));
+  transition: opacity .34s ease, visibility .34s ease;
+}
+/* 加载中：一层缓慢扫过的柔光 */
+.poster-ph::after {
+  content: ""; position: absolute; inset: -40%;
+  background: linear-gradient(105deg, transparent 42%, rgb(255 255 255 / .07) 50%, transparent 58%);
+  transform: translateX(-60%);
+  animation: posterSheen 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes posterSheen { 0%, 12% { transform: translateX(-60%); } 62%, 100% { transform: translateX(60%); } }
+.poster-figure.is-loaded > .poster-ph { opacity: 0; visibility: hidden; pointer-events: none; }
+.poster-figure.is-failed > .poster-ph::after { animation: none; opacity: 0; }
+
+/* 上下两排胶片齿孔 */
+.poster-ph-perf {
+  position: absolute; left: 10px; right: 10px; height: 7px;
+  background: repeating-linear-gradient(90deg, currentColor 0 7px, transparent 7px 17px);
+  opacity: .14; border-radius: 2px;
+}
+.poster-ph-perf-t { top: 9px; }
+.poster-ph-perf-b { bottom: 9px; }
+
+.poster-ph-badge {
+  width: 54px; height: 54px; border-radius: 17px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  color: color-mix(in oklch, var(--color-primary) 62%, var(--color-base-content));
+  background: color-mix(in oklch, var(--color-primary) 15%, transparent);
+  border: 1px solid color-mix(in oklch, var(--color-primary) 32%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .10), 0 8px 22px -12px color-mix(in oklch, var(--color-primary) 70%, transparent);
+  animation: posterBreathe 2.8s ease-in-out infinite;
+}
+/* iconify 会把 span 换成 svg；两种形态都给尺寸，替换前后不跳版 */
+.poster-ph-badge > svg, .poster-ph-badge > .iconify { width: 28px; height: 28px; font-size: 28px; }
+@keyframes posterBreathe { 0%, 100% { transform: translateY(0); opacity: .78; } 50% { transform: translateY(-3px); opacity: 1; } }
+.poster-figure.is-failed .poster-ph-badge { animation: none; opacity: .9; }
+
+.poster-ph-title {
+  font-size: 12px; font-weight: 600; line-height: 1.45; max-width: 100%;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  opacity: .9;
+}
+.poster-ph-note { font-size: 10px; letter-spacing: .02em; opacity: .52; }
+
+.poster-ph-retry {
+  display: none; position: absolute; z-index: 3; left: 50%; bottom: 13%;
+  transform: translateX(-50%);
+  appearance: none; border: 1px solid color-mix(in oklch, var(--color-primary) 42%, transparent);
+  background: color-mix(in oklch, var(--color-primary) 20%, transparent);
+  color: var(--color-base-content);
+  font-size: 10px; line-height: 1; padding: 7px 12px; border-radius: 999px;
+  cursor: var(--cursor-pointer, pointer); white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+.poster-ph-retry:hover { background: color-mix(in oklch, var(--color-primary) 36%, transparent); }
+.poster-figure.is-failed > .poster-ph-retry { display: inline-flex; }
+.poster-figure.is-failed > .poster-ph { cursor: var(--cursor-pointer, pointer); }
+
+@media (prefers-reduced-motion: reduce) {
+  .poster-ph::after, .poster-ph-badge { animation: none !important; }
+  .poster-figure > .poster-img { transition: none !important; }
 }
 </style>
 <script>
