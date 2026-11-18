@@ -2295,16 +2295,8 @@ function tapeTime(rawDate) {
   return (t.getMonth() + 1) + '月' + t.getDate() + '日';
 }
 
-// 说说卡片索引：more 按钮按 id 取回这条说说的正文（弹窗只展开文字，图不重复铺）
+// 说说卡片索引：按 id 取回整条说说（搜索/详情入口用）
 const sayMemoIndex = new Map();
-
-// 卡片正文可见字数（去掉 HTML 标签与所有空白）：正文短于 50 字没必要「读全文」
-const plainLenBox = document.createElement('div');
-function plainTextLength(html) {
-  plainLenBox.innerHTML = html || '';
-  return (plainLenBox.textContent || '').replace(/\s+/g, '').length;
-}
-const SAY_EXPAND_MIN = 50;
 
 function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   // parsed / imgs：loadSayPage 已解析的正文与合并好的图片数组；未提供时（如搜索弹窗）自行处理
@@ -2323,50 +2315,42 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
     return `<article class="memo-entry fade-up" style="${anim}">${body}</article>`;
   }
 
-  // 卡片化（苹果播客式）：首图做封面，其余图隐藏但留在 .memo-image-grid 里供灯箱翻页；
-  // 无图说说不留封面、只在正文上方点一个小引号。卡片底色由 poster-tint 脚本按首图主色染。
-  const tape = m.tags && m.tags.length ? `--tape: var(--color-${tagColor(m.tags[0])}); ` : '';
+  // 时间 + 正文 + 图片，一条一条往下排（不再套卡片）；纯文字说说在时间前点一个小引号
   const dateText = tapeTime(m.rawDate);
   const dateHtml = dateText ? `<span class="memo-tape-date" aria-label="发布时间"><span aria-hidden="true" class="iconify" data-icon="lucide:clock"></span>${dateText}</span>` : '';
-  let cover;
-  if (images.length) {
-    const first = images[0];
-    // 其余图只留 data-src（不加载缩略图），灯箱按需取原图；hidden 仍被 collectGroup 收进翻页组
-    const rest = images.slice(1).map(img => `<div class="strip-item say-extra" hidden><img alt="${escapeHtml(img.alt || '')}" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" /></div>`).join('');
-    const badge = images.length > 1 ? `<span class="say-count" aria-hidden="true"><span class="iconify" data-icon="lucide:images"></span>${images.length}</span>` : '';
-    cover = `<div class="say-cover"><div class="memo-image-grid say-grid" data-count="${images.length}"><div class="strip-item say-cover-item"><img src="${escapeHtml(first.url)}" alt="${escapeHtml(first.alt || '')}" loading="lazy" decoding="async" crossorigin="anonymous" data-imgbox data-src="${escapeHtml(first.url)}" /></div>${rest}</div>${badge}</div>`;
-  } else {
-    // 纯文字卡不再挂一块方块引号封面：改成正文上方一个很小的引号，紧挨着字（见 .say-quote）
-    cover = '';
-  }
-  // 标题行：小引号（仅纯文字卡有）+ 时间
+  // 时间行：纯文字说说前面点一个小引号，有图的直接给时间
   const meta = `<div class="say-meta">${images.length ? '' : '<span aria-hidden="true" class="iconify say-quote" data-icon="mdi:format-quote-close"></span>'}${dateHtml}</div>`;
-  // 正文不足 50 字：卡片已经把话说完了，不给 more（有图没图一样对待）
-  const canExpand = plainTextLength(html) >= SAY_EXPAND_MIN;
-  // 纯文字卡：先把卡片交给正文（PC 上撑满到跟同行的图卡等高），真的溢出才补 more
-  // ——按钮由 markSayTextClip 按实际裁切决定，这里只留一个空槽，没按钮时 .is-empty 把槽收掉
-  const foot = images.length
-    ? (canExpand ? sayMoreFoot(m.id) : '')
-    : '<div class="say-foot say-foot--slot is-empty"></div>';
   return `
   <li class="fade-up memo-item say-item" style="${anim}">
-    <article class="memo-card say-card${images.length ? '' : ' say-card--text'}" data-id="${escapeHtml(m.id)}" style="${tape}">
-      ${cover}
+    <article class="memo-card say-card${images.length ? '' : ' say-card--text'}" data-id="${escapeHtml(m.id)}">
       <div class="say-body">
         ${meta}
         <div class="memo-text say-text">${html}</div>
+        ${sayPhotoGrid(images)}
       </div>
-      ${foot}
     </article>
   </li>`;
 }
 
-// 卡脚的读全文按钮（memoCard 渲染 & 字数不够但排版被切时补挂，两处共用）
-function sayMoreBtn(id) {
-  return `<button class="say-more" type="button" data-say-more="${escapeHtml(id)}" aria-label="展开这条说说的全文文字" title="读全文"><span aria-hidden="true" class="iconify say-more-ico" data-icon="material-symbols:read-more-rounded"></span></button>`;
-}
-function sayMoreFoot(id) {
-  return `<div class="say-foot">${sayMoreBtn(id)}</div>`;
+/* 图片区（去卡片化）：铺满整行宽度，按数量分列；超过 4 张只铺前 4 张，
+   末张盖一层 +N 当入口，其余图仍留在同一个 .memo-image-grid 里（hidden），
+   灯箱的 collectGroup 会按组把隐藏的那些也收进来，翻页照样能看到全部。
+   · n=1：铺满宽度但限高 640、保持原比例居中，不裁切
+   · n=2~4：一行平分宽度，统一 6:5 等高裁切（图片本身不拉伸） */
+const SAY_PHOTO_MAX = 4;
+function sayPhotoGrid(images) {
+  if (!images.length) return '';
+  const n = images.length;
+  const show = Math.min(n, SAY_PHOTO_MAX);
+  const mode = n === 1 ? 'single' : 'grid';
+  const cell = (img, i) => {
+    const more = i === show - 1 && n > show ? `<span class="say-ph-more" aria-hidden="true">+${n - show}</span>` : '';
+    return `<div class="say-ph">${more}<img src="${escapeHtml(img.url)}" alt="${escapeHtml(img.alt || '')}" loading="lazy" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" /></div>`;
+  };
+  const rest = images.slice(show)
+    .map(img => `<div class="say-ph" hidden><img alt="${escapeHtml(img.alt || '')}" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" /></div>`)
+    .join('');
+  return `<div class="memo-image-grid say-photos" data-mode="${mode}" data-count="${n}" style="--say-cols:${n === 1 ? 1 : show}">${images.slice(0, show).map(cell).join('')}${rest}</div>`;
 }
 
 function skeletonNotes(n = 3) {
@@ -2746,98 +2730,7 @@ function releaseSentinel() {
 
 function bindCardInteractions() {
   contentEl.querySelectorAll('.memo-tag').forEach(el => { el.onclick = () => toggleTag(el.dataset.tag); });
-  markSayTextClip(contentEl);
 }
-
-/* 「这一行是不是全是纯文字」CSS 判断不了，这里按 offsetTop 分组成行补类：
-   · 整行都是纯文字（.say-row-textonly）：卡片高度只剩文字自己说了算，撑满没意义，
-     回到「50 字优先」的定高截断；
-   · 同行有图卡（.say-fill）：纯文字卡的高度必须完全交给图卡，否则文字一多就把整行撑高，
-     连图卡一起拉长（grid 行高取该行最高的 item）。contain:size 让卡片本身不按内容报高度，
-     stretch 到行高后再由 flex 把正文填满，真的写不下才裁。
-   手机单列一行一张卡，不存在同行对照，直接跳过。 */
-function markSayTextOnlyRows(root) {
-  const ul = (root || contentEl).querySelector('ul.memo-list');
-  if (!ul) return;
-  const items = [...ul.children].filter(el => el.classList && el.classList.contains('say-item'));
-  items.forEach(li => li.classList.remove('say-row-textonly', 'say-fill'));
-  if (!items.length) return;
-  const cols = getComputedStyle(ul).gridTemplateColumns.split(' ').filter(Boolean).length;
-  if (cols < 2) return;
-
-  // 先按 offsetTop 分组（只读布局，不写 DOM），再统一上类
-  const groups = [];
-  let cur = [], base = null;
-  items.forEach(li => {
-    const t = li.offsetTop;
-    if (base === null) { base = t; cur = [li]; return; }
-    if (Math.abs(t - base) <= 2) { cur.push(li); return; }
-    groups.push(cur); base = t; cur = [li];
-  });
-  if (cur.length) groups.push(cur);
-
-  groups.forEach(row => {
-    const texts = row.filter(li => li.querySelector('.say-card--text'));
-    if (!texts.length) return;
-    if (texts.length === row.length) row.forEach(li => li.classList.add('say-row-textonly'));
-    else texts.forEach(li => li.classList.add('say-fill'));
-  });
-}
-
-/* 卡片正文按 CSS 定高裁切后，把裁切线收到「最后一行完整的字」：
-   带 markdown 的说说里段落/列表有 margin，折行不会落在整数行的位置上，
-   直接按高度切经常切掉半行字（只露上半个字，糊成一片）。这里逐行量文本盒，
-   取最后一个完整落在可视区里的行，把 max-height 收到那里；剩下的交给底部细渐隐。 */
-function markSayTextClip(root) {
-  const scope = root || contentEl;
-  markSayTextOnlyRows(scope);   // 先定「这一行是不是全是纯文字」，样式才量得出文字区高度
-  scope.querySelectorAll('.say-card .say-text').forEach(el => {
-    el.style.removeProperty('max-height');          // 复位，按 CSS 的高度重量一次
-    el.style.removeProperty('min-height');
-    el.classList.remove('is-clipped');
-    const card = el.closest('.say-card');
-    // 纯文字卡的空槽：动态补的按钮先撤掉，按「没有按钮」的最大文字区重量一次
-    const slot = card && card.querySelector('.say-foot--slot');
-    if (slot) { slot.innerHTML = ''; slot.classList.add('is-empty'); }
-    if (el.scrollHeight - el.clientHeight <= 1) return;   // 没超出：原样
-
-    // 字数没到 50 但被排版切掉了（几段短句、列表撑高）也要给出口，别让字读不全
-    if (card && card.dataset.id && !card.querySelector('.say-more')) {
-      if (slot) { slot.innerHTML = sayMoreBtn(card.dataset.id); slot.classList.remove('is-empty'); }
-      else card.insertAdjacentHTML('beforeend', sayMoreFoot(card.dataset.id));
-    }
-
-    const box = el.getBoundingClientRect();
-    let cut = 0;
-    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-    let node;
-    while ((node = walker.nextNode())) {
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      for (const rc of range.getClientRects()) {
-        if (rc.height <= 2) continue;              // 空行/零高盒跳过
-        const top = rc.top - box.top;
-        const bottom = rc.bottom - box.top;
-        // 只要这一行在预算高度内露过头，就把它整行放出来（宁可高出一行，也不切半行字）
-        if (top < el.clientHeight - 1 && bottom > cut) cut = bottom;
-      }
-    }
-    // 样式表那边是 max-height:6.4em / min-height:6.4em 双 !important 撑着卡片等高，
-    // 内联也带 important 才压得住；min-height 必须一起放开，否则它会把 max-height 抬回去
-    if (cut > 0) {
-      el.style.setProperty('min-height', '0px', 'important');
-      el.style.setProperty('max-height', Math.ceil(cut + 2) + 'px', 'important');
-    }
-    el.classList.add('is-clipped');
-  });
-}
-let sayClipTimer = 0;
-function scheduleSayTextClip() {
-  clearTimeout(sayClipTimer);
-  sayClipTimer = setTimeout(() => markSayTextClip(contentEl), 160);
-}
-window.addEventListener('resize', scheduleSayTextClip);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => markSayTextClip(contentEl));
 
 function resetSay() {
   state.sayPage = 1;
@@ -11164,191 +11057,136 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
 </style>
 <style id="say-card-grid">
 /* ============================================================
-   说说列表卡片化（苹果播客式）：整块时间线改成等高大小的彩色卡片网格。
-   · 首图做方形封面，多图右上角计数徽章；无图说说用主题色封面 + 引号装饰；
-   · 卡片底色取首图主色（poster-tint 脚本染），无图 / 取不到色退回主题色；
-   · 正文定高截断，more 按钮开全文弹窗；hover 一圈柔光，不抬起。
-   选择器钉 #mainScroll#mainScroll #content#content（四 id）压过前面所有
-   （2,2,1）的 .memo-card 直角 / 透明 / 发丝线重置；网格容器用双 id 靠源序压。
+   说说时间线（去卡片化）：不再有卡片框、底色、封面，一条一条往下读。
+   · 单列、宽度不变；纯文字和有图共用一套：时间行 → 正文 → 图片
+   · 正文一律完整输出（带 markdown），不截断、没有「读全文」
+   · 图片铺满整行：单图保持原比例、限高 640 居中不裁切；2~4 张一行平分、
+     6:5 等高裁切；超过 4 张只铺前 4 张，末张盖 +N，其余留在组里给灯箱翻页
+   选择器钉 #mainScroll#mainScroll #content#content（四 id）压过前面
+   .memo-card 的直角 / 透明 / 发丝线重置。
    ============================================================ */
 #content#content ul.memo-list{
-  display:grid !important;
-  grid-template-columns:repeat(3, minmax(0,1fr)) !important;
-  gap:16px !important;
-  align-items:stretch !important;
+  display:block !important;
   width:100% !important; max-width:none !important;
-  margin:0 !important; padding:6px 20px 12px !important;
+  margin:0 !important; padding:8px 20px 40px !important;
   border:0 !important; border-radius:0 !important;
   background:transparent !important; box-shadow:none !important;
   overflow:visible !important;
 }
 #content#content ul.memo-list > li.say-item{
   display:block !important; min-width:0 !important;
-  margin:0 !important; padding:0 !important;
-  border:0 !important; background:transparent !important; box-shadow:none !important;
+  margin:0 0 30px !important; padding:0 0 30px !important;
+  border:0 !important; border-bottom:1px solid color-mix(in srgb, var(--sp-ink) 10%, transparent) !important;
+  background:transparent !important; box-shadow:none !important;
 }
-/* 哨兵 / 错误框等非卡片直接子节点：横跨整行，落在网格下方 */
-#content#content ul.memo-list > div{ grid-column:1 / -1 !important; }
+#content#content ul.memo-list > li.say-item:last-of-type{
+  margin-bottom:0 !important; padding-bottom:12px !important;
+  border-bottom:0 !important;
+}
+/* 哨兵 / 错误框等非条目直接子节点 */
+#content#content ul.memo-list > div{ margin:0 !important; }
 
-/* ---------- 卡片本体：主题色默认（无图 / 取色失败时的兜底） ---------- */
+/* ---------- 条目本体：透明，无框无阴影 ---------- */
 #mainScroll#mainScroll #content#content .say-card{
-  --say-bg:color-mix(in srgb, var(--sp-accent) 13%, #fff);
-  --say-cover:color-mix(in srgb, var(--sp-accent) 20%, #fff);
-  --say-ink:var(--sp-ink);
-  --say-muted:var(--sp-muted);
-  --say-line:color-mix(in srgb, var(--sp-ink) 14%, transparent);
-  --say-glyph:color-mix(in srgb, var(--sp-accent) 52%, var(--sp-ink));
-  --say-glow:color-mix(in srgb, var(--sp-accent) 50%, transparent);
-  --say-btn-bg:color-mix(in srgb, var(--sp-ink) 6%, transparent);
-  --say-btn-hover:color-mix(in srgb, var(--sp-ink) 12%, transparent);
-  --say-btn-ink:var(--sp-ink);
-  --say-shadow:0 1px 2px rgba(23,60,50,.10),0 10px 22px -14px rgba(23,60,50,.30);
   position:relative !important;
-  display:flex !important; flex-direction:column !important;
-  width:100% !important; height:100% !important;
-  margin:0 !important; padding:12px !important;
-  border:1px solid var(--say-line) !important; border-radius:16px !important;
-  background:var(--say-bg) !important;
-  box-shadow:var(--say-shadow) !important;
-  color:var(--say-ink) !important;
-  overflow:hidden !important; transform:none !important;
-  transition:box-shadow .26s ease, border-color .26s ease, background-color .26s ease !important;
+  display:block !important; width:100% !important; height:auto !important;
+  margin:0 !important; padding:0 !important;
+  border:0 !important; border-radius:0 !important;
+  background:transparent !important; box-shadow:none !important;
+  color:var(--sp-ink) !important;
+  overflow:visible !important; transform:none !important;
+  transition:none !important;
 }
-html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #content#content .say-card{
-  --say-bg:color-mix(in srgb, var(--sp-accent) 22%, var(--sp-bg));
-  --say-cover:color-mix(in srgb, var(--sp-accent) 30%, var(--sp-bg));
-  --say-line:color-mix(in srgb, var(--sp-ink) 16%, transparent);
-  --say-glyph:color-mix(in srgb, var(--sp-accent) 70%, var(--sp-ink));
-  --say-glow:color-mix(in srgb, var(--sp-accent) 55%, transparent);
-  --say-btn-bg:color-mix(in srgb, var(--sp-ink) 12%, transparent);
-  --say-btn-hover:color-mix(in srgb, var(--sp-ink) 20%, transparent);
-  --say-shadow:0 1px 2px rgba(0,0,0,.5),0 12px 24px -14px rgba(0,0,0,.7);
-}
-/* hover：一圈柔光（取色卡用首图主色），不抬起、不铺色块；封面图轻微推近 */
 #mainScroll#mainScroll #content#content .say-card:hover{
-  background:var(--say-bg) !important;
-  border-color:var(--say-glow) !important;
-  box-shadow:0 0 0 1px var(--say-glow),0 0 18px 1px var(--say-glow),var(--say-shadow) !important;
-  transform:none !important;
+  border:0 !important; box-shadow:none !important;
+  background:transparent !important; transform:none !important;
 }
 
-/* ---------- 封面：方形，首图填满裁切 ---------- */
-#mainScroll#mainScroll #content#content .say-card .say-cover{
-  position:relative !important;
-  width:100% !important; aspect-ratio:1 / 1 !important;
-  flex:0 0 auto !important;
-  border-radius:11px !important; overflow:hidden !important;
-  background:var(--say-cover) !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-grid{
-  display:block !important; width:100% !important; height:100% !important;
-  max-width:none !important; margin:0 !important; padding:0 !important; gap:0 !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-cover-item{
-  display:block !important; width:100% !important; height:100% !important;
-  aspect-ratio:auto !important; margin:0 !important; padding:0 !important;
-  border:0 !important; border-radius:0 !important; background:transparent !important;
-  box-shadow:none !important; transform:none !important; cursor:zoom-in !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-extra{ display:none !important; }
-#mainScroll#mainScroll #content#content .say-card .say-cover img{
-  display:block !important; width:100% !important; height:100% !important;
-  max-width:100% !important; max-height:none !important;
-  object-fit:cover !important; aspect-ratio:auto !important;
-  border:0 !important; border-radius:0 !important; box-shadow:none !important;
-  transform:none !important; cursor:zoom-in !important;
-  transition:transform .45s cubic-bezier(.22,.9,.32,1), filter .26s ease !important;
-}
-#mainScroll#mainScroll #content#content .say-card:hover .say-cover img{ transform:scale(1.045) !important; }
-/* 多图计数徽章：点击穿透到封面图（pointer-events:none），引导点开灯箱 */
-#mainScroll#mainScroll #content#content .say-card .say-count{
-  position:absolute !important; top:8px !important; right:8px !important; z-index:3 !important;
-  display:inline-flex !important; align-items:center !important; gap:4px !important;
-  padding:3px 8px !important; border:0 !important; border-radius:999px !important;
-  background:rgba(10,8,18,.55) !important;
-  -webkit-backdrop-filter:blur(6px) !important; backdrop-filter:blur(6px) !important;
-  color:#fff !important; -webkit-text-fill-color:#fff !important;
-  font:600 11px/1 var(--font-num) !important; letter-spacing:.02em !important;
-  box-shadow:0 1px 4px rgba(0,0,0,.3) !important; pointer-events:none !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-count .iconify{ font-size:12px !important; }
-/* 无图封面：主题色块 + 引号装饰 */
-#mainScroll#mainScroll #content#content .say-card .say-cover-empty{
-  display:flex !important; align-items:center !important; justify-content:center !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-cover-glyph{
-  font-size:56px !important; color:var(--say-glyph) !important; opacity:.5 !important;
-}
-
-/* ---------- 卡身：标题行（小引号 + 时间）+ 正文 ---------- */
+/* ---------- 时间行（纯文字说说前面点一个小引号） ---------- */
 #mainScroll#mainScroll #content#content .say-card .say-body{
-  display:flex !important; flex-direction:column !important;
-  flex:1 1 auto !important; min-height:0 !important;
-  padding:11px 4px 0 !important;
+  display:block !important; height:auto !important; padding:0 !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-meta{
   display:flex !important; align-items:center !important; gap:7px !important;
-  flex:0 0 auto !important; margin:0 0 6px !important;
+  margin:0 0 10px !important;
 }
-/* 纯文字卡的引号：原来是整块方块封面顶在上面，现在缩成一个小引号紧挨正文，
-   只当视觉锚点用，不占高度也不抢行（完整文案见 .say-quote 生成处） */
 #mainScroll#mainScroll #content#content .say-card .say-quote{
   display:inline-block !important; flex:0 0 auto !important;
-  font-size:24px !important; line-height:1 !important;
-  color:var(--say-glyph) !important; opacity:1 !important;
-  transform:translateY(1px) !important;
+  font-size:22px !important; line-height:1 !important;
+  color:color-mix(in srgb, var(--sp-accent) 62%, var(--sp-ink)) !important;
+  opacity:.95 !important; transform:translateY(1px) !important;
 }
 #mainScroll#mainScroll #content#content .say-card .memo-tape-date{
   display:inline-flex !important; align-items:center !important; gap:5px !important;
   width:fit-content !important; margin:0 !important; padding:0 !important;
   border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important;
-  color:var(--say-muted) !important; -webkit-text-fill-color:var(--say-muted) !important;
+  color:var(--sp-muted) !important; -webkit-text-fill-color:var(--sp-muted) !important;
   font:11px/1.4 var(--font-num) !important; letter-spacing:.02em !important; text-shadow:none !important;
 }
 #mainScroll#mainScroll #content#content .say-card .memo-tape-date .iconify{ font-size:12px !important; opacity:.8 !important; }
-/* 正文字号跟全文弹窗（.say-detail-text）统一到 17px / 1.6：
-   卡内截断与点 more 后的全文同一号字，读的时候不换视觉节奏。
-   截断走 max-height + overflow：原来用 -webkit-line-clamp / -webkit-box，带 markdown 的说说
-   （p + ul + li 这些块级子元素）在里面会被压扁，行与行叠在一起；换成块级正常排版后按高度裁，
-   再由 JS 给「真的超出」的卡片打 is-clipped 做底部渐隐，既盖住被裁的半行也提示还有下文 */
+
+/* ---------- 正文：完整输出，不截断 ---------- */
 #mainScroll#mainScroll #content#content .say-card .say-text{
-  flex:0 0 auto !important; margin:0 !important;
-  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
-  font-size:17px !important; line-height:1.6 !important; letter-spacing:.01em !important;
+  flex:none !important;
+  max-height:none !important; min-height:0 !important;
+  overflow:visible !important; margin:0 !important; padding:0 !important;
+  color:var(--sp-ink) !important; -webkit-text-fill-color:var(--sp-ink) !important;
+  font-size:17px !important; line-height:1.75 !important; letter-spacing:.01em !important;
   display:block !important;
-  max-height:6.4em !important; min-height:6.4em !important;
-  overflow:hidden !important;
   word-break:break-word !important; overflow-wrap:anywhere !important;
 }
-/* 裁切线由 JS 收到「最后一行完整的字」之后再切（见 markSayTextClip）：
-   段落/列表的 margin 会把折行推到整数行之外，纯靠 max-height 常常切掉半行字。
-   这里只留一点点渐隐收边，最后一行还是清楚的 */
-#mainScroll#mainScroll #content#content .say-card .say-text.is-clipped{
-  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - .45em),transparent) !important;
-  mask-image:linear-gradient(180deg,#000 calc(100% - .45em),transparent) !important;
+
+/* ---------- 图片区：铺满整行宽度 ---------- */
+#mainScroll#mainScroll #content#content .say-card .say-photos{
+  display:grid !important;
+  grid-template-columns:repeat(var(--say-cols, 1), minmax(0, 1fr)) !important;
+  gap:6px !important;
+  width:100% !important; max-width:none !important;
+  margin:14px 0 0 !important; padding:0 !important;
+  overflow:visible !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-ph{
+  position:relative !important; display:block !important;
+  margin:0 !important; padding:0 !important;
+  border:0 !important; border-radius:8px !important;
+  overflow:hidden !important;
+  background:color-mix(in srgb, var(--sp-ink) 8%, transparent) !important;
+  aspect-ratio:6 / 5 !important;
+  cursor:zoom-in !important;
+}
+/* 第 5 张起只留给灯箱翻页，不上屏（hidden 要被上面的 display:block 压住，得单独钉回来） */
+#mainScroll#mainScroll #content#content .say-card .say-ph[hidden]{ display:none !important; }
+#mainScroll#mainScroll #content#content .say-card .say-ph img{
+  display:block !important; width:100% !important; height:100% !important;
+  max-width:none !important; max-height:none !important;
+  object-fit:cover !important; border:0 !important; border-radius:0 !important;
+  box-shadow:none !important; transform:none !important;
+  transition:transform .45s cubic-bezier(.22,.9,.32,1) !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-ph:hover img{ transform:scale(1.03) !important; }
+/* 单图：保持原比例、限高 640、居中，不裁切 */
+#mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph{
+  aspect-ratio:auto !important; background:transparent !important;
+  overflow:visible !important; text-align:center !important; border-radius:0 !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph img{
+  width:auto !important; height:auto !important;
+  max-width:100% !important; max-height:640px !important;
+  margin:0 auto !important; object-fit:contain !important;
+  border-radius:10px !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph:hover img{ transform:none !important; }
+/* +N：多图只铺前 4 张，末张盖一层当入口（点开照样进灯箱、按组翻页看全） */
+#mainScroll#mainScroll #content#content .say-card .say-ph-more{
+  position:absolute !important; inset:0 !important; z-index:2 !important;
+  display:flex !important; align-items:center !important; justify-content:center !important;
+  background:rgba(8,6,16,.52) !important;
+  -webkit-backdrop-filter:blur(2px) !important; backdrop-filter:blur(2px) !important;
+  color:#fff !important; -webkit-text-fill-color:#fff !important;
+  font:600 20px/1 var(--font-num) !important; letter-spacing:.02em !important;
+  pointer-events:none !important;
 }
 
-/* ---------- 纯文字卡：没有封面，正文先撑满整张卡 ----------
-   以前是不管卡片多高，正文一律在 6.4em（≈4 行 / 50 字）处截断，上面再顶一块方块引号；
-   现在把卡片交给文字：同行有图卡把卡片撑多高，文字就往下填多少，真的写不下才在底部渐隐
-   并补一个读全文按钮（按钮由 markSayTextClip 按实际裁切决定，见 .say-foot--slot）。 */
-#mainScroll#mainScroll #content#content .say-card.say-card--text > .say-cover-empty{ display:none !important; }
-#mainScroll#mainScroll #content#content .say-card.say-card--text .say-body{ padding-top:2px !important; }
-#mainScroll#mainScroll #content#content .say-card.say-card--text .say-text{
-  flex:1 1 auto !important;
-  max-height:none !important; min-height:0 !important;
-}
-/* 整行都是纯文字（这一行没有图卡撑高）：卡片高度只剩文字自己说了算，撑满没意义，
-   回到「50 字优先」的定高截断——短文案不留一大片空白，长文案照旧给读全文入口 */
-#mainScroll#mainScroll #content#content .say-item.say-row-textonly .say-card--text .say-text{
-  flex:0 0 auto !important;
-  max-height:6.4em !important; min-height:6.4em !important;
-}
-/* 同行有图卡：卡片高度全由图卡说了算，正文再多也不许把整行撑高（否则图卡跟着被拉长）。
-   contain:size 让卡片不按内容报高度，由 stretch 拿到行高，再由 flex 把正文填进去 */
-#mainScroll#mainScroll #content#content .say-item.say-fill > .say-card--text{
-  contain:size !important;
-}
 /* markdown 排版：段落/列表之间留口气，别挤成一坨；标点符号跟着正文色 */
 #mainScroll#mainScroll #content#content .say-card .say-text p{ margin:0 0 .5em !important; }
 #mainScroll#mainScroll #content#content .say-card .say-text p:last-child{ margin-bottom:0 !important; }
@@ -11381,31 +11219,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   background:color-mix(in srgb, var(--say-ink) 10%, transparent) !important;
   color:var(--say-ink) !important; border-radius:4px !important; padding:.05em .3em !important; font-size:.88em !important;
 }
-
-/* ---------- 卡脚：more 按钮（圆形的读全文图标键，正文 ≥50 字才出现） ---------- */
-#mainScroll#mainScroll #content#content .say-card .say-foot{
-  display:flex !important; align-items:center !important;
-  flex:0 0 auto !important; margin-top:auto !important; padding:10px 4px 2px !important;
-}
-/* 纯文字卡预留的卡脚槽：没按钮时整块收掉（不占高度、不留白），
-   一旦 markSayTextClip 判定文字真的被裁，按钮挂进来再撑开——槽位固定，位置不跳 */
-#mainScroll#mainScroll #content#content .say-card .say-foot--slot.is-empty{ display:none !important; }
-#mainScroll#mainScroll #content#content .say-card .say-more{
-  display:inline-flex !important; align-items:center !important; justify-content:center !important;
-  width:32px !important; height:32px !important; padding:0 !important;
-  border:1px solid var(--say-line) !important; border-radius:999px !important;
-  background:var(--say-btn-bg) !important;
-  color:var(--say-btn-ink) !important; -webkit-text-fill-color:var(--say-btn-ink) !important;
-  cursor:var(--cursor-pointer) !important; transform:none !important; box-shadow:none !important;
-  transition:background-color .18s ease, border-color .18s ease, color .18s ease !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-more:hover{
-  background:var(--say-btn-hover) !important; border-color:var(--say-glow) !important;
-  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important; transform:none !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-more:focus-visible{ outline:2px solid var(--say-glow) !important; outline-offset:2px !important; }
-#mainScroll#mainScroll #content#content .say-card .say-more .say-more-ico{ font-size:20px !important; line-height:1 !important; opacity:.9 !important; }
-#mainScroll#mainScroll #content#content .say-card .say-more:hover .say-more-ico{ opacity:1 !important; }
 
 /* ---------- 全文弹窗：独立玻璃面板，复用站点玻璃 token ---------- */
 .say-detail-overlay{
@@ -11448,36 +11261,31 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
    这里写成显式 CSS，两边都钉死，不依赖工具类 */
 .say-detail-wrap .say-detail-text{ font-size:17px !important; line-height:1.6 !important; letter-spacing:.01em !important; }
 
-/* ---------- 响应式：平板两列、手机一列（手机窄屏两列会把长文挤成块，整行铺开更舒展） ---------- */
-@media (max-width:900px){
-  #content#content ul.memo-list{ grid-template-columns:repeat(2, minmax(0,1fr)) !important; }
-}
+/* ---------- 手机：多图两列，正文小一号 ---------- */
 @media (max-width:760px){
-  #content#content ul.memo-list{ grid-template-columns:1fr !important; gap:12px !important; padding:4px 8px 8px !important; }
-  #mainScroll#mainScroll #content#content .say-card{ padding:10px !important; border-radius:14px !important; }
-  #mainScroll#mainScroll #content#content .say-card .say-cover{ border-radius:9px !important; }
-  #mainScroll#mainScroll #content#content .say-card .say-body{ padding:9px 3px 0 !important; }
-  /* 手机一列，卡片各占一行、不存在等高对齐问题：正文不再预留占位高度，
-     多短的文字就收多高（有图没图一样），卡底不会挂一大片空白 */
-  #mainScroll#mainScroll #content#content .say-card .say-text{
-    font-size:17px !important; max-height:4.8em !important; min-height:0 !important;
+  #content#content ul.memo-list{ padding:4px 14px 26px !important; }
+  #content#content ul.memo-list > li.say-item{ margin-bottom:24px !important; padding-bottom:24px !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-text{ font-size:16.5px !important; line-height:1.7 !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-photos{
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:4px !important; margin-top:11px !important;
   }
-  #mainScroll#mainScroll #content#content .say-card .say-cover-glyph{ font-size:44px !important; }
-  #mainScroll#mainScroll #content#content .say-card .say-foot{ padding:8px 3px 2px !important; }
-  #mainScroll#mainScroll #content#content .say-card .say-more{ width:30px !important; height:30px !important; }
-  #mainScroll#mainScroll #content#content .say-card .say-more .say-more-ico{ font-size:19px !important; }
-  /* 纯文字说说：手机一列，没有同行图卡撑高，正文也不该被 flex 拉满——仍按 4.8em 截断，
-     卡片直接裹住文字，短文案不留空 */
-  #mainScroll#mainScroll #content#content .say-card.say-card--text .say-body{ padding-top:2px !important; }
-  #mainScroll#mainScroll #content#content .say-card.say-card--text .say-text{
-    flex:0 0 auto !important;
-    max-height:4.8em !important; min-height:0 !important;
+  /* 三张按朋友圈的习惯排成一行三等分，别掉一张到第二行占半格 */
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-count="3"]{
+    grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
   }
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"]{
+    grid-template-columns:1fr !important;
+  }
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph img{
+    max-height:560px !important; border-radius:9px !important;
+  }
+  #mainScroll#mainScroll #content#content .say-card .say-ph-more{ font-size:17px !important; }
 }
 @media (prefers-reduced-motion:reduce){
   #mainScroll#mainScroll #content#content .say-card,
-  #mainScroll#mainScroll #content#content .say-card .say-cover img{ transition:none !important; }
-  #mainScroll#mainScroll #content#content .say-card:hover .say-cover img{ transform:none !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-ph img{ transition:none !important; }
+  #mainScroll#mainScroll #content#content .say-card .say-ph:hover img{ transform:none !important; }
 }
 </style>
 <style id="lightbox-tint">
@@ -11512,9 +11320,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
 (function () {
   const rawBySrc = new Map();
   const VARS = ['--po-paper', '--po-edge', '--po-photo', '--po-caption', '--po-glow'];
-  /* 说说卡：只染跟色相走的这五个，ink/muted/按钮底沿用主题默认（浅石墨 / 暗浅字），
-     和淡调浅底 / 深调暗底天然拉开对比，无需再单独算前景色。 */
-  const SAY_VARS = ['--say-bg', '--say-cover', '--say-line', '--say-glyph', '--say-glow'];
 
   function hsl2rgb(h, s, l) {
     s /= 100; l /= 100;
@@ -11597,52 +11402,17 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
     });
   }
 
-  /* 说说卡取色：暗色压成浓郁深色（相对亮度 ≤.15 保证浅字 ≥4.5:1），
-     浅色摊成淡调相纸色（跟站点湖绿主色的淡调一脉），色相/饱和跟着首图主色走。 */
-  function paintSay(card, raw) {
-    if (!raw) { SAY_VARS.forEach(v => card.style.removeProperty(v)); return; }
-    const dark = isDarkTheme(document.documentElement.dataset.theme);
-    const h = Math.round(raw.h);
-    const mix = .7 + .3 * raw.share;
-    if (dark) {
-      const s = Math.round(Math.min(64, Math.max(34, raw.s * 100)) * mix);
-      let l = 30;
-      while (lum(hsl2rgb(h, s, l)) > .15 && l > 14) l -= 2;
-      card.style.setProperty('--say-bg', `hsl(${h} ${s}% ${l}%)`);
-      card.style.setProperty('--say-cover', `hsl(${h} ${s}% ${Math.min(l + 8, 46)}%)`);
-      card.style.setProperty('--say-line', `hsl(${h} 40% 82% / .18)`);
-      card.style.setProperty('--say-glyph', `hsl(${h} 55% 76% / .5)`);
-      card.style.setProperty('--say-glow', `hsl(${h} 72% 60% / .5)`);
-    } else {
-      const s = Math.round(Math.min(50, Math.max(26, raw.s * 100)) * mix);
-      card.style.setProperty('--say-bg', `hsl(${h} ${s}% 86%)`);
-      card.style.setProperty('--say-cover', `hsl(${h} ${Math.min(s + 8, 58)}% 80%)`);
-      card.style.setProperty('--say-line', `hsl(${h} 30% 30% / .16)`);
-      card.style.setProperty('--say-glyph', `hsl(${h} 45% 38% / .55)`);
-      card.style.setProperty('--say-glow', `hsl(${h} 60% 45% / .45)`);
-    }
-  }
-
-  function paintSayBySrc(src, raw) {
-    document.querySelectorAll('.say-card').forEach(card => {
-      const img = card.querySelector('.say-cover-item img');
-      if (img && img.getAttribute('src') === src) paintSay(card, raw);
-    });
-  }
-
   function resolve(img) {
     const src = img.getAttribute('src');
     if (!src) return;
-    const say = img.closest('.say-card');
     if (rawBySrc.has(src)) {
-      const raw = rawBySrc.get(src);
-      return void (say ? paintSayBySrc(src, raw) : paintBySrc(src, raw));
+      return void paintBySrc(src, rawBySrc.get(src));
     }
     if (!img.complete || !img.naturalWidth) return;
     let raw = null;
     try { raw = sample(img); } catch { raw = null; }
     rawBySrc.set(src, raw);
-    if (say) paintSayBySrc(src, raw); else paintBySrc(src, raw);
+    paintBySrc(src, raw);
   }
 
   /* ---------- 影视封面：占位状态 / 自动重试 / 淡入 ----------
@@ -11713,7 +11483,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
   }, true);
 
   function tintAll() {
-    document.querySelectorAll('.poster-card figure img, .say-card .say-cover-item img').forEach(resolve);
+    document.querySelectorAll('.poster-card figure img').forEach(resolve);
     /* 缓存命中时 load 可能早于监听注册：补一次状态兜底 */
     document.querySelectorAll('.poster-figure > .poster-img').forEach(img => {
       if (img.complete && img.naturalWidth) coverLoaded(img);
@@ -11766,7 +11536,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll #co
     const img = e.target;
     if (img.tagName !== 'IMG') return;
     if (img.classList.contains('poster-img')) coverLoaded(img);
-    if (img.closest('.poster-card') || img.closest('.say-card')) resolve(img);
+    if (img.closest('.poster-card')) resolve(img);
   }, true);
   /* 影视卡统一走 coverFailed（占位 + 自动重试，不再露裂图）；
      说说卡保留原来那次「图床不给 CORS 头就摘掉属性再要一次」的降级。 */
