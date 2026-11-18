@@ -11198,39 +11198,9 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
   pointer-events:none !important;
 }
 
-/* markdown 排版：段落/列表之间留口气，别挤成一坨；标点符号跟着正文色 */
-#mainScroll#mainScroll #content#content .say-card .say-text p{ margin:0 0 .5em !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text p:last-child{ margin-bottom:0 !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6){
-  font-size:1.03em !important; font-weight:700 !important; margin:0 0 .3em !important; line-height:1.45 !important;
-  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
-  border:0 !important; padding:0 !important; text-decoration:none !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6)::before,
-#mainScroll#mainScroll #content#content .say-card .say-text :is(h1,h2,h3,h4,h5,h6)::after{ content:none !important; display:none !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text :is(ul,ol){
-  margin:0 0 .5em !important; padding-left:1.15em !important; list-style-position:outside !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-text li{ margin:.12em 0 !important; padding-left:.15em !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text li::marker{ color:var(--say-muted) !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text li :is(ul,ol){ margin:.1em 0 !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text strong,
-#mainScroll#mainScroll #content#content .say-card .say-text b{ font-weight:700 !important; color:var(--say-ink) !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text blockquote{
-  margin:0 0 .5em !important; padding-left:.7em !important;
-  border-left:2px solid var(--say-line) !important; color:var(--say-muted) !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-text a{
-  color:var(--say-ink) !important; -webkit-text-fill-color:var(--say-ink) !important;
-  background:transparent !important; padding:0 !important; border-radius:0 !important;
-  text-decoration:underline !important; text-decoration-color:var(--say-line) !important; text-underline-offset:2px !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-text a::after{ content:none !important; display:none !important; }
-#mainScroll#mainScroll #content#content .say-card .say-text code{
-  background:color-mix(in srgb, var(--say-ink) 10%, transparent) !important;
-  color:var(--say-ink) !important; border-radius:4px !important; padding:.05em .3em !important; font-size:.88em !important;
-}
-
+/* markdown 正文一律走全局 .memo-text 那套（h2 水彩笔涂划、h3 下划线、h4 波浪线、
+   链接色与 ↗、引用色块、列表缩进），这里不再把标题压成同一号、也不再把装饰关掉。
+   去卡片化后正文是完整展示的，就该按原来的排版渲染。 */
 /* ---------- 全文弹窗：独立玻璃面板，复用站点玻璃 token ---------- */
 .say-detail-overlay{
   position:fixed; inset:0; z-index:10000; display:none;
