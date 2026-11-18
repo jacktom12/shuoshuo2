@@ -11201,6 +11201,21 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
 /* markdown 正文一律走全局 .memo-text 那套（h2 水彩笔涂划、h3 下划线、h4 波浪线、
    链接色与 ↗、引用色块、列表缩进），这里不再把标题压成同一号、也不再把装饰关掉。
    去卡片化后正文是完整展示的，就该按原来的排版渲染。 */
+
+/* 正文链接：全局那套是把文字直接染成亮粉 #ff67c7，一整段里只有它跳出来太吵。
+   改成跟正文同色 + 一道 1.5px 淡粉下划线，悬停才亮成主题色——认得出是链接，但不抢戏。 */
+#mainScroll#mainScroll #content#content .say-card .say-text a{
+  color:var(--sp-ink) !important; -webkit-text-fill-color:var(--sp-ink) !important;
+  background:transparent !important; padding:0 !important; border-radius:0 !important;
+  text-decoration:underline !important;
+  text-decoration-color:color-mix(in srgb, var(--g-accent) 62%, transparent) !important;
+  text-decoration-thickness:1.5px !important; text-underline-offset:3px !important;
+  transition:color .18s ease, text-decoration-color .18s ease !important;
+}
+#mainScroll#mainScroll #content#content .say-card .say-text a:hover{
+  color:var(--g-accent) !important; -webkit-text-fill-color:var(--g-accent) !important;
+  text-decoration-color:var(--g-accent) !important;
+}
 /* ---------- 全文弹窗：独立玻璃面板，复用站点玻璃 token ---------- */
 .say-detail-overlay{
   position:fixed; inset:0; z-index:10000; display:none;
