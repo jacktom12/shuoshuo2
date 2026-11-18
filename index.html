@@ -2350,7 +2350,7 @@ function sayPhotoGrid(images) {
   const rest = images.slice(show)
     .map(img => `<div class="say-ph" hidden><img alt="${escapeHtml(img.alt || '')}" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" /></div>`)
     .join('');
-  return `<div class="memo-image-grid say-photos" data-mode="${mode}" data-count="${n}" style="--say-cols:${n === 1 ? 1 : show}">${images.slice(0, show).map(cell).join('')}${rest}</div>`;
+  return `<div class="memo-image-grid say-photos" data-mode="${mode}" data-count="${n}" style="--say-cols:${n === 1 ? 4 : show}">${images.slice(0, show).map(cell).join('')}${rest}</div>`;
 }
 
 function skeletonNotes(n = 3) {
@@ -11164,18 +11164,11 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
   transition:transform .45s cubic-bezier(.22,.9,.32,1) !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-ph:hover img{ transform:scale(1.03) !important; }
-/* 单图：保持原比例、限高 640、居中，不裁切 */
+/* 单图：不铺满整行（那会变成一张巨图），按 4 列网格跨 2 格，
+   尺寸跟「两张图那种」一格一致（约半行宽、6:5 裁切），靠左排 */
 #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph{
-  aspect-ratio:auto !important; background:transparent !important;
-  overflow:visible !important; text-align:center !important; border-radius:0 !important;
+  grid-column:span 2 !important;
 }
-#mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph img{
-  width:auto !important; height:auto !important;
-  max-width:100% !important; max-height:640px !important;
-  margin:0 auto !important; object-fit:contain !important;
-  border-radius:10px !important;
-}
-#mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph:hover img{ transform:none !important; }
 /* +N：多图只铺前 4 张，末张盖一层当入口（点开照样进灯箱、按组翻页看全） */
 #mainScroll#mainScroll #content#content .say-card .say-ph-more{
   position:absolute !important; inset:0 !important; z-index:2 !important;
@@ -11274,11 +11267,16 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
   #mainScroll#mainScroll #content#content .say-card .say-photos[data-count="3"]{
     grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
   }
+  /* 手机屏窄，单图铺满整行（6:5 裁切），不要再缩成半格 */
   #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"]{
     grid-template-columns:1fr !important;
   }
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph{
+    grid-column:auto !important;
+  }
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph,
   #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph img{
-    max-height:560px !important; border-radius:9px !important;
+    border-radius:9px !important;
   }
   #mainScroll#mainScroll #content#content .say-card .say-ph-more{ font-size:17px !important; }
 }
