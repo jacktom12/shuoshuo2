@@ -1872,6 +1872,24 @@ function initImgBox() {
     else apply(null);
   }
 
+  /* 灯箱是铺满视口的暗遮罩，手机浏览器的地址栏是半透明浮层，会把这层暗色透出来，
+     看起来像「地址栏那里多了一块蒙版」。这里在开窗期间把 theme-color 临时切成遮罩同色，
+     让地址栏整块变暗、跟遮罩连成一片；关窗还原（不碰站点主题切换）。
+     注意：这层遮罩本身不是手势判定用的——手势走 pointer 事件 + touch-action:none。 */
+  const themeMetas = [...document.querySelectorAll('meta[name="theme-color"]')];
+  let themeSaved = null;
+  function dimBrowserChrome(on) {
+    if (!themeMetas.length) return;
+    if (on) {
+      if (themeSaved) return;
+      themeSaved = themeMetas.map(m => m.getAttribute('content'));
+      themeMetas.forEach(m => m.setAttribute('content', '#0c0610'));
+    } else if (themeSaved) {
+      themeMetas.forEach((m, i) => m.setAttribute('content', themeSaved[i]));
+      themeSaved = null;
+    }
+  }
+
   function open(src, trigger) {
     opener = trigger || null;
     // 必须在设置 img.src 之前定好位置：图已缓存时 ready() 会同步跑到底部说明那一行
@@ -1879,6 +1897,7 @@ function initImgBox() {
     groupIndex = group.indexOf(trigger);
     updateNav();
     box.classList.remove('hidden');
+    dimBrowserChrome(true);
     footEl.textContent = '正在载入…';
     img.style.width = 'auto';
     img.style.cursor = '';
@@ -1920,6 +1939,7 @@ function initImgBox() {
 
   function close() {
     box.classList.add('hidden');
+    dimBrowserChrome(false);
     img.removeAttribute('src');
     img.removeAttribute('data-src');   // 仍在路上的取色探针回调会被 paintFrame 守卫丢弃，不会染到已关的窗
     lastRaw = null;
@@ -2020,12 +2040,12 @@ function initImgBox() {
       else { slideIn = 0; animating = false; }
     }, 200);
   }
-  // 上滑过了线就让它飞完：图继续上移并收到 0.9，背景同步淡到全透，动画结束再真关窗
-  function dismissCommit() {
+  // 上滑 / 下滑过了线就让它飞完：图顺着方向继续移出去并收到 0.9，背景同步淡到全透，动画结束再真关窗
+  function dismissCommit(dir = -1) {
     animating = true;
     img.style.transition = 'transform .2s cubic-bezier(.5,0,.75,.4)';
     mask.style.transition = 'opacity .2s linear';
-    tY = -view.clientHeight * .9; dScale = .9; applyTransform();
+    tY = dir * view.clientHeight * .9; dScale = .9; applyTransform();
     veil(0);
     clearTimeout(animTimer);
     animTimer = setTimeout(close, 200);
@@ -2073,10 +2093,10 @@ function initImgBox() {
       if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
       if (tScale > 1.01) gesture.mode = 'pan';
       else if (group.length > 1 && Math.abs(dx) > Math.abs(dy) * 1.2) gesture.mode = 'swipe';
-      // 没放大时的上滑＝退出：满屏后点图外不好够着，往上拽就当成关窗的手势。
-      // 只认向上，往下仍然不做事，免得想切图的手势被误判成退出。
-      else if (dy < 0 && Math.abs(dy) > Math.abs(dx) * 1.2) gesture.mode = 'dismiss';
-      else gesture.mode = 'dead';   // 适配比例下的竖向滑动不做事，touch-action 已禁掉页面滚动
+      // 没放大时的上滑 / 下滑都算退出：满屏后点图外不好够着，往上下拽就当成关窗的手势。
+      // 左右留给切图，所以竖向位移要比横向明显（1.2 倍）才算，免得切图被误判成退出。
+      else if (Math.abs(dy) > Math.abs(dx) * 1.2) gesture.mode = 'dismiss';
+      else gesture.mode = 'dead';   // 适配比例下的横向微斜滑动不做事，touch-action 已禁掉页面滚动
     }
     if (gesture.mode === 'pan') {
       const c = clampOffset(gesture.tx0 + dx, gesture.ty0 + dy, tScale);
@@ -2086,9 +2106,9 @@ function initImgBox() {
       swipeSamples.push({ x: p.x, t: performance.now() });
       if (swipeSamples.length > 6) swipeSamples.shift();
     } else if (gesture.mode === 'dismiss') {
-      // 图跟手上移，越往上拽收得越小、背景越淡，两个量都按半屏高归一
+      // 图跟手上下移，拽得越远收得越小、背景越淡，两个量都按半屏高归一
       tX = 0; tY = gesture.ty0 + dy;
-      const k = Math.min(1, -tY / (view.clientHeight * .5));
+      const k = Math.min(1, Math.abs(tY) / (view.clientHeight * .5));
       dScale = 1 - .1 * k;
       applyTransform(); veil(1 - .62 * k);
       upSamples.push({ y: p.y, t: performance.now() });
@@ -2146,9 +2166,10 @@ function initImgBox() {
         const a = upSamples[0], b = upSamples[upSamples.length - 1];
         if (b.t > a.t) v = (b.y - a.y) / (b.t - a.t);
       }
-      // 拽过半屏的十四分之一，或者手速够快（哪怕只挪了一点）就放手让它走
-      if (tY < -view.clientHeight * .14 || (v < -.45 && tY < -24)) dismissCommit();
-      else {
+      // 拽过半屏的十四分之一（上下都算），或者手速够快（哪怕只挪了一点）就放手让它走
+      if (Math.abs(tY) > view.clientHeight * .14 || (Math.abs(v) > .45 && Math.abs(tY) > 24)) {
+        dismissCommit(tY > 0 ? 1 : -1);
+      } else {
         img.style.transition = 'transform .22s cubic-bezier(.22,.9,.32,1)';
         mask.style.transition = 'opacity .22s ease-out';
         tY = gesture.ty0; dScale = 1; applyTransform(); veil(1);
