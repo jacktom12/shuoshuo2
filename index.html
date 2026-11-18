@@ -2371,7 +2371,7 @@ function sayPhotoGrid(images) {
   const rest = images.slice(show)
     .map(img => `<div class="say-ph" hidden><img alt="${escapeHtml(img.alt || '')}" decoding="async" data-imgbox data-src="${escapeHtml(img.url)}" /></div>`)
     .join('');
-  return `<div class="memo-image-grid say-photos" data-mode="${mode}" data-count="${n}" style="--say-cols:${n === 1 ? 4 : show}">${images.slice(0, show).map(cell).join('')}${rest}</div>`;
+  return `<div class="memo-image-grid say-photos" data-mode="${mode}" data-count="${n}">${images.slice(0, show).map(cell).join('')}${rest}</div>`;
 }
 
 function skeletonNotes(n = 3) {
@@ -11157,10 +11157,12 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
   word-break:break-word !important; overflow-wrap:anywhere !important;
 }
 
-/* ---------- 图片区：铺满整行宽度 ---------- */
+/* ---------- 图片区：一律按 4 等分铺满整行 ----------
+   不管这条说说几张图，格子宽度都按「4 张」切：1 张占 1 格、2 张占 2 格，
+   右边空出来的地方就空着。这样每条说说的图大小统一，不会因为只有一张就变大。 */
 #mainScroll#mainScroll #content#content .say-card .say-photos{
   display:grid !important;
-  grid-template-columns:repeat(var(--say-cols, 1), minmax(0, 1fr)) !important;
+  grid-template-columns:repeat(4, minmax(0, 1fr)) !important;
   gap:6px !important;
   width:100% !important; max-width:none !important;
   margin:14px 0 0 !important; padding:0 !important;
@@ -11185,11 +11187,6 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
   transition:transform .45s cubic-bezier(.22,.9,.32,1) !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-ph:hover img{ transform:scale(1.03) !important; }
-/* 单图：不铺满整行（那会变成一张巨图），按 4 列网格跨 2 格，
-   尺寸跟「两张图那种」一格一致（约半行宽、6:5 裁切），靠左排 */
-#mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph{
-  grid-column:span 2 !important;
-}
 /* +N：多图只铺前 4 张，末张盖一层当入口（点开照样进灯箱、按组翻页看全） */
 #mainScroll#mainScroll #content#content .say-card .say-ph-more{
   position:absolute !important; inset:0 !important; z-index:2 !important;
