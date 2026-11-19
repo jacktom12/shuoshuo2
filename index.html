@@ -8541,11 +8541,17 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
 }
 @media  (max-width:600px){#imgBox .imgbox-frame{ max-width:96vw; max-height:92vh; }}
-/* 移动端手势接管：浏览器不再抢滚动/页面缩放，长按不弹系统菜单 */
-@media (hover:none) and (pointer:coarse){
+/* 移动端满屏样式：真机走 (pointer:coarse)，桌面把窗口缩窄模拟手机时走 (max-width:640px)，
+   两条路都套同一套「无框满屏 + 实色遮罩」，本地预览所见即真机所得。
+   手势逻辑仍只认 isTouch()=coarse，桌面模拟依旧用鼠标那套平移/双击，不冲突。 */
+@media (hover:none) and (pointer:coarse), (max-width:640px){
 /* 无框满屏：相纸边距、说明行、边框全撤，图片在整个视口里适配居中，
    点图外 backdrop 关窗（tap 判定在 JS 里），框本体不再贡献任何视觉 */
 #imgBox#imgBox{ padding:0; }
+/* 遮罩改不透明：原来是 rgba(...,.74) 半透明，底层页面会透上来——浅色主题透出大片白、
+   深色主题透出大片黑，正是图外那块「白/黑区域」的来源。改成实色后底层完全遮住，
+   深浅模式观感一致，也跟地址栏的 #0c0610 连成一片。veil() 仍用 opacity 做上滑淡出，不受影响。 */
+#imgBox .imgbox-mask{ background:#0c0610; }
 #imgBox .imgbox-frame{
   width:100vw; height:100vh; height:100dvh;
   max-width:none; max-height:none;
