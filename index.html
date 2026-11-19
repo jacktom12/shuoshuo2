@@ -1730,6 +1730,9 @@ function initImgBox() {
   let opener = null;
   let group = [];
   let groupIndex = -1;
+  // 图外 tap 关窗后，浏览器为这次 tap 合成的 click 会落到刚露出的底层缩略图上，
+  // 被下面的「打开图片」委托接住误开别的图。记一个截止时间，把那一次穿透吞掉。
+  let suppressOpenUntil = 0;
 
   // —— 移动端手势（仅粗指针设备生效，PC 的宽度+滚动路径原样保留）——
   // 捏合缩放走 transform：布局尺寸钉在适配比例，tScale=1 就是刚点开的样子。
@@ -2132,15 +2135,17 @@ function initImgBox() {
     }
     if (pointers.size > 0) return;
     if (gesture.mode === 'wait' && performance.now() - gesture.t0 < 300) {
-      // 快击只在图上有效：双击放大 8%，再双击回到适配比例。
-      // 图外不再关窗——满屏后遮罩外的空白正压在别的说说的缩略图上，
-      // 一按就误开别人的图；退出改走上滑手势。
-      if (gesture.target !== img) { gesture = null; return; }
+      // 图外短按＝退出查看器：满屏空白归 view 全屏接管，点它不会透传到底层缩略图，放心关。
+      // 上滑退出、左右滑动切图、图上双击、双指捏合这些手势都保持原样，这里只接管「短按空白」。
+      if (gesture.target !== img) {
+        suppressOpenUntil = performance.now() + 500;  // 吞掉这次 tap 随后合成的穿透 click
+        close(); gesture = null; return;
+      }
       const now = performance.now();
       if (now - lastTap.t < 350 && Math.hypot(gesture.x0 - lastTap.x, gesture.y0 - lastTap.y) < 32) {
         lastTap.t = 0;
         if (tScale > 1.01) settleFit();
-        else touchZoom(1.08, gesture.x0, gesture.y0, true);
+        else touchZoom(2.2, gesture.x0, gesture.y0, true);   // 双击放大到 2.2 倍，别只放大 8% 一点点
       } else {
         lastTap = { t: now, x: gesture.x0, y: gesture.y0 };
       }
@@ -2197,6 +2202,9 @@ function initImgBox() {
 
   // 委托到动态渲染的内容上：带 data-imgbox 的就是可点开的图
   document.addEventListener('click', e => {
+    // 刚从图外点击关窗：这次 click 是浏览器为那次 tap 合成的，命中了底下刚露出的缩略图，
+    // 不是用户真想开新图。吞掉，免得关一张又误开另一张。
+    if (performance.now() < suppressOpenUntil) { e.preventDefault(); return; }
     const trigger = e.target.closest('[data-imgbox]');
     if (!trigger) return;
     e.preventDefault();
@@ -8474,6 +8482,9 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
   display:flex; align-items:center; justify-content:center;
   padding:min(4vw, 28px);
 }
+/* 移动端点图外空白时，浏览器会给被点的 div 盖一层点按高亮（浅色主题下就是一块白方块），
+   透在半透明遮罩上格外扎眼。body 上的 transparent 不会继承进来，这里对查看器整棵子树关掉。 */
+#imgBox, #imgBox *{ -webkit-tap-highlight-color: transparent; }
 #imgBox#imgBox.hidden{ display:none !important; }
 #imgBox .imgbox-mask{ position:absolute; inset:0; background:rgba(12,6,16,.74); }
 /* 拍立得的边距：上左右 16px 窄边，下面那条宽头由 .imgbox-foot 的固定高度给出 */
