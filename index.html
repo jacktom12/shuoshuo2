@@ -1875,9 +1875,11 @@ function initImgBox() {
     else apply(null);
   }
 
-  /* 灯箱是铺满视口的暗遮罩，手机浏览器的地址栏是半透明浮层，会把这层暗色透出来，
-     看起来像「地址栏那里多了一块蒙版」。这里在开窗期间把 theme-color 临时切成遮罩同色，
-     让地址栏整块变暗、跟遮罩连成一片；关窗还原（不碰站点主题切换）。
+  /* 灯箱是铺满视口的遮罩，手机浏览器的地址栏是半透明浮层，会把这层颜色透出来，
+     看起来像「地址栏那里多了一块蒙版」。这里在开窗期间把 theme-color 临时切成遮罩同色
+     （深色 #0c0610 / 浅色相纸淡调，直接读 computed style，CSS 是唯一出处），
+     让地址栏跟遮罩连成一片；关窗还原（不碰站点主题切换）。
+     PC 半透明遮罩读出来是 rgba(...)，不能拿去染地址栏，退回原来的深色。
      注意：这层遮罩本身不是手势判定用的——手势走 pointer 事件 + touch-action:none。 */
   const themeMetas = [...document.querySelectorAll('meta[name="theme-color"]')];
   let themeSaved = null;
@@ -1885,8 +1887,10 @@ function initImgBox() {
     if (!themeMetas.length) return;
     if (on) {
       if (themeSaved) return;
+      const bg = getComputedStyle(mask).backgroundColor;
+      const color = /^rgb\(/.test(bg) ? bg : '#0c0610';
       themeSaved = themeMetas.map(m => m.getAttribute('content'));
-      themeMetas.forEach(m => m.setAttribute('content', '#0c0610'));
+      themeMetas.forEach(m => m.setAttribute('content', color));
     } else if (themeSaved) {
       themeMetas.forEach((m, i) => m.setAttribute('content', themeSaved[i]));
       themeSaved = null;
@@ -8548,10 +8552,11 @@ html:is([data-theme="light"], [data-theme="dark"], [data-theme="halloween"]) #ma
 /* 无框满屏：相纸边距、说明行、边框全撤，图片在整个视口里适配居中，
    点图外 backdrop 关窗（tap 判定在 JS 里），框本体不再贡献任何视觉 */
 #imgBox#imgBox{ padding:0; }
-/* 遮罩改不透明：原来是 rgba(...,.74) 半透明，底层页面会透上来——浅色主题透出大片白、
-   深色主题透出大片黑，正是图外那块「白/黑区域」的来源。改成实色后底层完全遮住，
-   深浅模式观感一致，也跟地址栏的 #0c0610 连成一片。veil() 仍用 opacity 做上滑淡出，不受影响。 */
+/* 遮罩改不透明：原来是 rgba(...,.74) 半透明，底层页面会透上来，图外区域颜色不受控。
+   实色后底层完全遮住：深色仍是 #0c0610，浅色跟相纸 token 走湖绿淡调（不是纯白），
+   各自跟 dimBrowserChrome() 染的地址栏连成一片。veil() 仍用 opacity 做上滑淡出，不受影响。 */
 #imgBox .imgbox-mask{ background:#0c0610; }
+html[data-theme="light"] #imgBox .imgbox-mask{ background:var(--po-paper); }
 #imgBox .imgbox-frame{
   width:100vw; height:100vh; height:100dvh;
   max-width:none; max-height:none;
@@ -10911,35 +10916,56 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
 #mainScroll#mainScroll .tools-menu{
   position:absolute!important;top:calc(100% + 9px)!important;right:0!important;z-index:120!important;
   display:flex!important;flex-direction:column!important;gap:1px!important;
-  min-width:184px!important;margin:0!important;padding:6px!important;list-style:none!important;
+  /* 宽度跟着最宽那行内容走（条目已居中，不再留两侧大片空白）；
+     绝对定位 + right:0 的 shrink-to-fit 就是 max-content，标签计数徽章出现时自然变宽 */
+  margin:0!important;padding:6px!important;list-style:none!important;
   border:1px solid var(--gl-border)!important;border-radius:14px!important;
   background:var(--gl-menu)!important;box-shadow:var(--gl-shadow)!important;
   -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
   transform-origin:top right!important;
-  opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateY(-6px) scale(.97)!important;
+  opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateY(-8px) scale(.96)!important;
   transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s;
 }
+/* 开：外壳带一点回弹地落下来，菜单项再逐条 cascading 跟上（延迟写在 .open 的 --d 里）；
+   关：外壳和条目一起快速收走，不留拖尾 */
 #mainScroll#mainScroll .tools-menu.open{
   opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important;
-  transition:opacity .16s ease,transform .16s ease,visibility 0s;
+  transition:opacity .22s ease,transform .34s cubic-bezier(.22,1.2,.36,1),visibility 0s;
 }
 #mainScroll#mainScroll .tools-menu .tools-sep{
   display:block!important;height:1px!important;margin:5px 8px!important;
   background:var(--gl-hair)!important;
+  transform:scaleX(.35);opacity:0;transition:opacity .12s ease,transform .12s ease;
+}
+#mainScroll#mainScroll .tools-menu.open .tools-sep{
+  transform:none;opacity:1;
+  transition:opacity .3s ease .12s,transform .3s cubic-bezier(.22,1.2,.36,1) .12s;
 }
 #mainScroll#mainScroll .tools-menu .tools-item{
   appearance:none!important;display:flex!important;flex-direction:row!important;
-  align-items:center!important;justify-content:flex-start!important;gap:9px!important;
+  align-items:center!important;justify-content:center!important;gap:9px!important;
   width:100%!important;min-height:0!important;padding:8px 10px!important;
   border:0!important;border-radius:9px!important;background:transparent!important;box-shadow:none!important;
   color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
-  font:12.5px/1.2 var(--font-family)!important;text-align:left!important;white-space:nowrap!important;
-  cursor:var(--cursor-pointer)!important;transform:none!important;
-  transition:background-color .15s ease,color .15s ease,box-shadow .15s ease!important;
+  font:12.5px/1.2 var(--font-family)!important;text-align:center!important;white-space:nowrap!important;
+  cursor:var(--cursor-pointer)!important;
+  opacity:0;transform:translateY(-6px)!important;
+  transition:background-color .15s ease,color .15s ease,box-shadow .15s ease,opacity .12s ease,transform .12s ease!important;
 }
+#mainScroll#mainScroll .tools-menu.open .tools-item{
+  opacity:1;transform:none!important;
+  transition:background-color .15s ease,color .15s ease,box-shadow .15s ease,
+    opacity .3s ease var(--d,0s),transform .3s cubic-bezier(.22,1.2,.36,1) var(--d,0s)!important;
+}
+/* 逐条入场的节拍：分隔线占第 4 个子位，跳过它接着数 */
+#mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(2){ --d:.04s; }
+#mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(3){ --d:.08s; }
+#mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(5){ --d:.13s; }
+#mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(6){ --d:.17s; }
+#mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(7){ --d:.21s; }
 #mainScroll#mainScroll .tools-menu .tools-item .iconify{ font-size:15px!important;color:var(--sp-muted);transition:color .15s ease; }
 #mainScroll#mainScroll .tools-menu .tools-item .theme-icon-stack{ width:15px!important;height:15px!important; }
-#mainScroll#mainScroll .tools-menu .tools-item .nav-label{ flex:1 1 auto!important;font-size:12.5px!important;letter-spacing:.02em!important; }
+#mainScroll#mainScroll .tools-menu .tools-item .nav-label{ flex:0 0 auto!important;font-size:12.5px!important;letter-spacing:.02em!important; }
 #mainScroll#mainScroll .tools-menu .tools-item:hover,
 #mainScroll#mainScroll .tools-menu .tools-item:focus-visible{
   background:var(--sp-soft)!important;box-shadow:none!important;
@@ -10959,7 +10985,12 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
 /* ---------- 窄屏：七颗键图标在上、名字在下，平分整行 ---------- */
 @media (max-width:760px){
   .retro-tools .menu-li-music{ margin-left:0!important;padding-left:0!important;border-left:0!important; }
-  #mainScroll#mainScroll .tools-menu{ top:calc(100% + 7px)!important;min-width:172px!important; }
+  #mainScroll#mainScroll .tools-menu{ top:calc(100% + 7px)!important; }
+}
+@media (prefers-reduced-motion:reduce){
+  #mainScroll#mainScroll .tools-menu,
+  #mainScroll#mainScroll .tools-menu .tools-item,
+  #mainScroll#mainScroll .tools-menu .tools-sep{ transition:none!important; }
 }
 </style>
 <style id="feed-banner">
