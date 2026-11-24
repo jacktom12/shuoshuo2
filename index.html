@@ -1509,14 +1509,23 @@ function openDouban(m) {
   }
   resolveDouban(m).then(go);
 }
-function prefetchDouban(list) {
+function prefetchDouban(list, box) {
   if (!Array.isArray(list)) return;
+  const container = box || contentEl;
   let i = 0;
   const run = async () => {
     while (i < list.length) {
+      const idx = i;                 // 先记下卡片索引，对应 data-douban-idx
       const m = list[i++];
-      if (m && !resolvedDoubanUrl(m) && !doubanMissed.has(doubanKey(m))) {
+      if (!m) continue;
+      if (!resolvedDoubanUrl(m) && !doubanMissed.has(doubanKey(m))) {
         await resolveDouban(m, 4000);
+      }
+      // 解析成功后回填链接：右键「在新标签页打开」/中键点击也直达详情页
+      const direct = resolvedDoubanUrl(m);
+      if (direct) {
+        const a = container.querySelector(`a[data-douban-idx="${idx}"]`);
+        if (a) a.href = direct;
       }
     }
   };
@@ -3929,7 +3938,7 @@ function renderMediaPage(view) {
       if (m) openDouban(m);
     };
   });
-  prefetchDouban(slice);
+  prefetchDouban(slice, contentEl);
   applyRestore(view);
 
   if (pages > 1) {
