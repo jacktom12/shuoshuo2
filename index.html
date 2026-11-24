@@ -1489,24 +1489,50 @@ async function resolveDouban(m, timeoutMs = 5000) {
     return doubanFallbackUrl(m);      // worker 暂时不可用，退回搜索
   }
 }
+// 生成"正在打开豆瓣"的加载页（blob URL 打开即带内容，不会白屏；深浅主题跟随站点）
+function doubanLoadingUrl(m) {
+  const theme = document.documentElement.dataset.theme || 'light';
+  const dark = theme !== 'light';
+  const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const title = esc(m && m.title);
+  const bg = dark ? '#140b22' : '#fff5f8';
+  const glow = dark ? 'rgba(69,201,94,.10)' : 'rgba(43,166,64,.08)';
+  const fg = dark ? '#e9e2ee' : '#3d3240';
+  const muted = dark ? '#9d8fab' : '#8c7d8e';
+  const track = dark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.09)';
+  const accent = dark ? '#45c95e' : '#2ba640';
+  const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>正在打开豆瓣…</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,${glow},${bg} 70%);color:${fg};font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px 32px;text-align:center;max-width:min(90vw,360px)}
+.loader{position:relative;width:64px;height:64px}
+.ring{position:absolute;inset:0;border:3px solid ${track};border-top-color:${accent};border-radius:50%;animation:spin .8s linear infinite}
+.mark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;color:${accent}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.title{font-size:15px;line-height:1.5;opacity:.9;word-break:break-all}
+.hint{font-size:12px;color:${muted};letter-spacing:.06em}
+@media(prefers-reduced-motion:reduce){.ring{animation-duration:2s}}
+</style></head><body><div class="wrap"><div class="loader"><div class="ring"></div><span class="mark">豆</span></div><div class="title">${title}</div><div class="hint">正在打开豆瓣…</div></div></body></html>`;
+  return URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+}
 function openDouban(m) {
-  // 先同步开标签页，避免 await 之后被浏览器当成弹窗拦掉
-  let win = null;
-  try { win = window.open('', '_blank'); } catch {}
+  // 命中缓存：点击同步上下文里直接开详情，零中间态
+  const direct = resolvedDoubanUrl(m);
+  if (direct) return window.open(direct, '_blank', 'noopener');
+  // 未命中：同步开一个成品加载页占住标签位（避免 await 后被当弹窗拦掉），查完再导航过去
+  let win = null, blobUrl = null;
+  try {
+    blobUrl = doubanLoadingUrl(m);
+    win = window.open(blobUrl, '_blank');
+    if (blobUrl) setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  } catch {}
   const go = url => {
     if (win) {
       try { win.location.href = url; return; } catch {}
     }
     window.open(url, '_blank', 'noopener');
   };
-  const direct = resolvedDoubanUrl(m);
-  if (direct) return go(direct);
-  if (win) {
-    try {
-      win.document.write('<!doctype html><meta charset="utf-8"><title>正在查找豆瓣条目…</title><body style="font:14px system-ui;background:#141414;color:#eee;padding:32px">正在查找豆瓣条目…</body>');
-      win.document.close();
-    } catch {}
-  }
   resolveDouban(m).then(go);
 }
 function prefetchDouban(list, box) {
@@ -3932,11 +3958,20 @@ function renderMediaPage(view) {
   bindMediaFilterEvents(view);
   // 豆瓣按钮优先直达条目页；后台预热当前页，点的时候基本秒开
   contentEl.querySelectorAll('a[data-douban-idx]').forEach(a => {
+    const m = slice[Number(a.dataset.doubanIdx)];
+    if (!m) return;
     a.onclick = e => {
       e.preventDefault();
-      const m = slice[Number(a.dataset.doubanIdx)];
-      if (m) openDouban(m);
+      openDouban(m);
     };
+    // 方案B：鼠标移上按钮就提前解析，点击时基本都是缓存命中 → 零中间态
+    a.addEventListener('pointerenter', () => {
+      if (a.dataset.dbWarm) return;
+      a.dataset.dbWarm = '1';
+      if (!resolvedDoubanUrl(m) && !doubanMissed.has(doubanKey(m))) {
+        resolveDouban(m).then(url => { a.href = url; });
+      }
+    }, { passive: true });
   });
   prefetchDouban(slice, contentEl);
   applyRestore(view);
