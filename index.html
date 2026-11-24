@@ -1433,6 +1433,97 @@ const hostIsProd = location.hostname === PROD_HOST || location.hostname === 'www
 const USE_MOCK = forcedMode ? forcedMode === 'mock' : !hostIsProd;
 
 /* ============================================================
+   豆瓣直达：通过自建 Cloudflare Worker 的 /api/douban-search 服务端代查
+   （浏览器直连豆瓣会被 CORS 拦）。worker 放行本站与 localhost 来源，
+   所以线上/本地都能直接调；解析结果存 localStorage。查不到才回退关键词搜索。
+============================================================ */
+// 默认线上 worker；本地测试别的部署可加 ?doubanApi=https://xxx/api/douban-search 覆盖
+const DOUBAN_API = qs.get('doubanApi') || 'https://pub.199105.xyz/api/douban-search';
+const DOUBAN_CACHE_KEY = 'douban-subject-ids';
+let doubanIdCache = {};
+try { doubanIdCache = JSON.parse(localStorage.getItem(DOUBAN_CACHE_KEY) || '{}') || {}; } catch {}
+const doubanMissed = new Set();
+const doubanKey = m => `${m && m.title || ''}|${(m && m.release_date || '').slice(0, 4)}`;
+const doubanSubjectUrl = id => `https://movie.douban.com/subject/${id}/`;
+const doubanSearchUrl = title => `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(title || '')}`;
+const doubanFallbackUrl = m => (m && m.douban_url) || doubanSearchUrl(m && m.title);
+function resolvedDoubanUrl(m) {
+  if (!m) return null;
+  const id = doubanIdCache[doubanKey(m)] || m.douban_subject_id;
+  return id ? doubanSubjectUrl(id) : null;
+}
+function rememberDouban(m, data) {
+  if (!data || !data.precise || !data.id) return;
+  const id = String(data.id);
+  doubanIdCache[doubanKey(m)] = id;
+  if (m) m.douban_subject_id = id;
+  try { localStorage.setItem(DOUBAN_CACHE_KEY, JSON.stringify(doubanIdCache)); } catch {}
+}
+async function resolveDouban(m, timeoutMs = 5000) {
+  if (!m) return doubanFallbackUrl(m);
+  const direct = resolvedDoubanUrl(m);
+  if (direct) return direct;
+  if (doubanMissed.has(doubanKey(m))) return doubanFallbackUrl(m);
+  const params = new URLSearchParams({
+    q: m.title || '',
+    year: (m.release_date || '').slice(0, 4),
+    oq: m.original_title || '',
+  });
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    let res;
+    try {
+      // 本地开发页 origin 是 localhost，worker 已放行；线上是同源站点直连
+      res = await fetch(DOUBAN_API + '?' + params, { signal: ctl.signal, headers: { Accept: 'application/json' } });
+    } finally { clearTimeout(timer); }
+    if (!res.ok) throw new Error('worker HTTP ' + res.status);
+    const data = await res.json();
+    if (data && data.precise && data.id) {
+      rememberDouban(m, data);
+      return doubanSubjectUrl(data.id);
+    }
+    doubanMissed.add(doubanKey(m));   // 豆瓣确实没这个条目，本次会话不再重试
+    return (data && data.url) || doubanFallbackUrl(m);
+  } catch {
+    return doubanFallbackUrl(m);      // worker 暂时不可用，退回搜索
+  }
+}
+function openDouban(m) {
+  // 先同步开标签页，避免 await 之后被浏览器当成弹窗拦掉
+  let win = null;
+  try { win = window.open('', '_blank'); } catch {}
+  const go = url => {
+    if (win) {
+      try { win.location.href = url; return; } catch {}
+    }
+    window.open(url, '_blank', 'noopener');
+  };
+  const direct = resolvedDoubanUrl(m);
+  if (direct) return go(direct);
+  if (win) {
+    try {
+      win.document.write('<!doctype html><meta charset="utf-8"><title>正在查找豆瓣条目…</title><body style="font:14px system-ui;background:#141414;color:#eee;padding:32px">正在查找豆瓣条目…</body>');
+      win.document.close();
+    } catch {}
+  }
+  resolveDouban(m).then(go);
+}
+function prefetchDouban(list) {
+  if (!Array.isArray(list)) return;
+  let i = 0;
+  const run = async () => {
+    while (i < list.length) {
+      const m = list[i++];
+      if (m && !resolvedDoubanUrl(m) && !doubanMissed.has(doubanKey(m))) {
+        await resolveDouban(m, 4000);
+      }
+    }
+  };
+  Promise.allSettled([run(), run(), run()]);          // 3 路并发，worker 有边缘缓存，压力可控
+}
+
+/* ============================================================
    TMDB 题材映射（电影/剧集各自的题材集合，用于类型联动）
 ============================================================ */
 const GENRE_MAP = {
@@ -2452,7 +2543,7 @@ function mediaCard(m, idx) {
       <div class="flex items-center justify-between mt-1">
         <div class="flex items-center gap-1.5 min-w-0">
           ${typeBadge}
-          <a href="${escapeHtml(m.douban_url)}" target="_blank" rel="noopener" class="btn btn-xs btn-ghost btn-circle shrink-0" aria-label="豆瓣搜索" title="豆瓣搜索">
+          <a href="${escapeHtml(resolvedDoubanUrl(m) || doubanFallbackUrl(m))}" target="_blank" rel="noopener" data-douban-idx="${idx}" class="btn btn-xs btn-ghost btn-circle shrink-0" aria-label="打开豆瓣" title="豆瓣详情（查不到时自动搜索）">
             <span class="iconify text-base" data-icon="streamline-logos:douban-logo-block"></span>
           </a>
         </div>
@@ -3830,6 +3921,15 @@ function renderMediaPage(view) {
       </div>
     </div>`;
   bindMediaFilterEvents(view);
+  // 豆瓣按钮优先直达条目页；后台预热当前页，点的时候基本秒开
+  contentEl.querySelectorAll('a[data-douban-idx]').forEach(a => {
+    a.onclick = e => {
+      e.preventDefault();
+      const m = slice[Number(a.dataset.doubanIdx)];
+      if (m) openDouban(m);
+    };
+  });
+  prefetchDouban(slice);
   applyRestore(view);
 
   if (pages > 1) {
@@ -4287,7 +4387,7 @@ function cmdkMatch(q) {
       name: '影视', icon: 'mdi:movie-open-outline', cls: 'bg-secondary/10 text-secondary',
       items: kw ? [...(state.mediaCache.watched || []), ...(state.mediaCache.watchlist || [])]
         .filter(m => hit(m.title) || hit(m.original_title)).slice(0, 6).map(m =>
-          ({ type: 'link', title: m.title, sub: `${m.status === 'watched' ? '看过' : '想看'} · ${m.date} · ★${m.vote_average}`, url: m.douban_url, icon: 'mdi:movie-open-outline', cls: 'bg-secondary/10 text-secondary' })) : [],
+          ({ type: 'link', title: m.title, sub: `${m.status === 'watched' ? '看过' : '想看'} · ${m.date} · ★${m.vote_average}`, url: resolvedDoubanUrl(m) || m.douban_url, icon: 'mdi:movie-open-outline', cls: 'bg-secondary/10 text-secondary' })) : [],
       loading: !state.mediaCache.watched || !state.mediaCache.watchlist,
     },
   ];
