@@ -11489,26 +11489,41 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
   #mainScroll#mainScroll #content#content .say-card .say-ph img{ transition:none !important; }
   #mainScroll#mainScroll #content#content .say-card .say-ph:hover img{ transform:none !important; }
 }
-/* ---------- 单图说说：完整显示原图（按原比例缩放，不裁切） ----------
-   默认朋友圈网格是 6:5 + cover 裁切；但只有一张图时，用户要的是看全整张截图。
-   这里覆盖成：铺满整行、高度自适应、contain 完整显示，超长图限高避免撑爆。 */
-#mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"]{
-  grid-template-columns:minmax(0,1fr) !important;
-}
+/* ---------- 单图说说：完整显示原图（不裁切），手机/PC 通用基础 ---------- */
 #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph{
-  grid-column:1 / -1 !important;
   aspect-ratio:auto !important;
   height:auto !important;
   background:transparent !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph img{
-  width:100% !important; height:auto !important;
-  max-height:70vh !important;
+  height:auto !important;
   object-fit:contain !important;
   transform:none !important;
 }
 #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph:hover img{
   transform:none !important;
+}
+/* PC（方案A）：单图按原比例缩放到最大 420px、左对齐，不再铺满居中浪费空间。
+   改成 block + inline-block，让图片宽度随内容收缩并靠左；max-width/max-height
+   在替换元素上会保持宽高比，竖图限高、横图限宽，都是完整显示。 */
+@media (min-width:761px){
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"]{
+    display:block !important;
+    width:100% !important;
+    text-align:left !important;
+    grid-template-columns:none !important;
+  }
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph{
+    display:inline-block !important;
+    width:auto !important;
+    max-width:min(420px, 100%) !important;
+    vertical-align:top !important;
+  }
+  #mainScroll#mainScroll #content#content .say-card .say-photos[data-mode="single"] .say-ph img{
+    width:auto !important;
+    max-width:min(420px, 100%) !important;
+    max-height:70vh !important;
+  }
 }
 </style>
 <style id="lightbox-tint">
