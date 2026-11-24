@@ -1447,10 +1447,19 @@ const doubanKey = m => `${m && m.title || ''}|${(m && m.release_date || '').slic
 const doubanSubjectUrl = id => `https://movie.douban.com/subject/${id}/`;
 const doubanSearchUrl = title => `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(title || '')}`;
 const doubanFallbackUrl = m => (m && m.douban_url) || doubanSearchUrl(m && m.title);
+// 移动端：用豆瓣官方 Universal Link 直接拉起 App 的电影条目页；没装 App 则回落 H5
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
+}
+function doubanLaunchUrl(webUrl) {
+  if (!isMobileDevice()) return webUrl;
+  const m = String(webUrl || '').match(/movie\.douban\.com\/subject\/(\d+)/);
+  return m ? `https://www.douban.com/doubanapp/dispatch?uri=/movie/${m[1]}/` : webUrl;
+}
 function resolvedDoubanUrl(m) {
   if (!m) return null;
   const id = doubanIdCache[doubanKey(m)] || m.douban_subject_id;
-  return id ? doubanSubjectUrl(id) : null;
+  return id ? doubanLaunchUrl(doubanSubjectUrl(id)) : null;
 }
 function rememberDouban(m, data) {
   if (!data || !data.precise || !data.id) return;
@@ -1481,7 +1490,7 @@ async function resolveDouban(m, timeoutMs = 5000) {
     const data = await res.json();
     if (data && data.precise && data.id) {
       rememberDouban(m, data);
-      return doubanSubjectUrl(data.id);
+      return doubanLaunchUrl(doubanSubjectUrl(data.id));
     }
     doubanMissed.add(doubanKey(m));   // 豆瓣确实没这个条目，本次会话不再重试
     return (data && data.url) || doubanFallbackUrl(m);
@@ -1513,7 +1522,7 @@ body{display:flex;align-items:center;justify-content:center;background:radial-gr
 .title{font-size:15px;line-height:1.5;opacity:.9;word-break:break-all}
 .hint{font-size:12px;color:${muted};letter-spacing:.06em}
 @media(prefers-reduced-motion:reduce){.ring{animation-duration:2s}}
-</style></head><body><div class="wrap"><div class="loader"><div class="ring"></div><span class="mark">豆</span></div><div class="title">${title}</div><div class="hint">正在打开豆瓣…</div></div></body></html>`;
+</style></head><body><div class="wrap"><div class="loader"><div class="ring"></div><span class="mark">豆</span></div><div class="title">${title}</div><div class="hint">${isMobileDevice() ? '正在打开豆瓣 App…' : '正在打开豆瓣…'}</div></div></body></html>`;
   return URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
 }
 function openDouban(m) {
