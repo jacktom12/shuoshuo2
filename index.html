@@ -12228,5 +12228,97 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 })();
 </script>
 
+<style id="music-playlist-flat">
+/* ============ 音乐抽屉：扁平歌单列表（照截图那种） ============
+   去掉卡片、阴影和外层框：只有序号、带细边的方形封面、标题/歌手。
+   当前播放行只用很淡的底色 + 强调色文字区分，不再画任何 border。 */
+#musicDrawer#musicDrawer{
+  --mpl-ink: var(--sp-ink, var(--color-base-content));
+  --mpl-muted: var(--sp-muted, var(--secondary-text));
+  --mpl-accent: var(--sp-accent, var(--accent));
+  --mpl-line: color-mix(in srgb, var(--color-base-content) 12%, transparent);
+  --mpl-hover: color-mix(in srgb, var(--color-base-content) 8%, transparent);
+}
+/* 列表槽：透明、无框、无内阴影 */
+#musicDrawer#musicDrawer .hw-pl-list{
+  display:flex; flex-direction:column; gap:0;
+  padding:6px 0 12px !important;
+  margin-top:0 !important;
+  border:0 !important;
+  border-top:1px solid var(--gl-hair, var(--mpl-line)) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+/* 行：纯文字排版，不画卡片 */
+#musicDrawer#musicDrawer .hw-pl-row{
+  position:relative; flex:0 0 auto; min-height:46px;
+  gap:9px !important; padding:6px 4px !important;
+  border:0 !important; border-radius:8px !important; outline:0 !important;
+  background:transparent !important; box-shadow:none !important;
+  transition:background .16s ease !important;
+}
+#musicDrawer#musicDrawer .hw-pl-row:hover:not(.playing){
+  transform:none;
+  background:var(--mpl-hover) !important;
+}
+#musicDrawer#musicDrawer .hw-pl-row:active{ transform:none; }
+#musicDrawer#musicDrawer .hw-pl-row.playing,
+#musicDrawer#musicDrawer .hw-pl-row.playing:hover{
+  transform:none;
+  border:0 !important; outline:0 !important; border-radius:8px !important;
+  background:color-mix(in srgb, var(--mpl-accent) 12%, transparent) !important;
+  box-shadow:none !important;
+}
+/* 序号：纯数字 */
+#musicDrawer#musicDrawer .hw-pl-row-idx{
+  width:18px !important; height:auto; flex:0 0 18px !important;
+  display:inline-block; text-align:center;
+  border:0 !important; border-radius:0 !important;
+  background:transparent !important; box-shadow:none !important;
+  color:var(--mpl-muted) !important; -webkit-text-fill-color:var(--mpl-muted) !important;
+  font-family:var(--font-num, inherit); font-size:11px; font-weight:500; line-height:1.2;
+}
+/* 当前曲目文字跟强调色走 */
+#musicDrawer#musicDrawer .hw-pl-row.playing .hw-pl-row-idx,
+#musicDrawer#musicDrawer .hw-pl-row.playing .hw-pl-row-title,
+#musicDrawer#musicDrawer .hw-pl-row.playing .hw-pl-row-playicon{
+  color:var(--mpl-accent) !important; -webkit-text-fill-color:var(--mpl-accent) !important;
+}
+#musicDrawer#musicDrawer .hw-pl-row.playing .hw-pl-row-artist{
+  color:color-mix(in srgb, var(--mpl-accent) 72%, var(--mpl-muted)) !important;
+  -webkit-text-fill-color:color-mix(in srgb, var(--mpl-accent) 72%, var(--mpl-muted)) !important;
+}
+/* 封面：方形 + 一圈细边，跟截图一致 */
+#musicDrawer#musicDrawer .hw-pl-row-thumb{
+  width:36px !important; height:36px !important; flex:0 0 36px !important;
+  border:1px solid color-mix(in srgb, var(--color-base-content) 50%, transparent) !important;
+  border-radius:4px !important;
+  background:var(--color-base-200, transparent) !important;
+  box-shadow:none !important;
+}
+/* 文字：标题实、歌手退后 */
+#musicDrawer#musicDrawer .hw-pl-row-info{ min-width:0; }
+#musicDrawer#musicDrawer .hw-pl-row-title{
+  color:var(--mpl-ink) !important; -webkit-text-fill-color:var(--mpl-ink) !important;
+  font-size:13px !important; font-weight:600 !important; letter-spacing:0;
+}
+#musicDrawer#musicDrawer .hw-pl-row-artist{
+  margin-top:3px !important;
+  color:var(--mpl-muted) !important; -webkit-text-fill-color:var(--mpl-muted) !important;
+  font-size:11px !important; font-weight:400 !important;
+}
+/* 播放音符：一个朴素字符，不做圆章 */
+#musicDrawer#musicDrawer .hw-pl-row-playicon{
+  width:14px !important; height:auto; flex:0 0 14px !important;
+  display:inline-block; text-align:center;
+  border:0 !important; border-radius:0 !important;
+  background:transparent !important; box-shadow:none !important;
+  color:var(--mpl-accent) !important; -webkit-text-fill-color:var(--mpl-accent) !important;
+  font-size:12px; opacity:0;
+}
+#musicDrawer#musicDrawer .hw-pl-row.playing .hw-pl-row-playicon{ opacity:1 !important; }
+</style>
+
 </body>
 </html>
