@@ -1608,6 +1608,9 @@ const MOCK_MEMOS = (() => {
   const now = Date.now();
   const day = 864e5;
   const items = [
+    { d: 0.04, tags: ['tag_read'], c: '最近重看了一遍，还是会被那种「乱世里的小人物命运」戳到。李炳宪演得真好，眼神里全是戏。\n\n{movies:id=27059183}\n\n配乐也绝，听一遍就忘不掉。' },
+    { d: 0.03, tags: ['tag_music'], c: '深夜单曲循环。翻到《日不落》，前奏一响就想起好多年前的晚上。\n\n{music:id=\'209643\'}\n\n有些歌不用听懂歌词，氛围到了就够了。' },
+    { d: 0.02, tags: ['tag_read'], c: '翻完《志怪》，佐野诚子写的是六朝那些奇奇怪怪的小故事，短短一篇却有余味。\n\n{book:id=\'38521378\'}\n\n睡前读一两则，挺好。' },
     { d: 0.1, tags: ['tag_daily','tag_photo'], c: `傍晚在江边散步，风很大，云烧起来了。\n\n![晚霞](${mockImg('sunset1')})\n![](${mockImg('sunset2')})` },
     { d: 0.5, tags: ['tag_dev'], c: '把说说页的 Worker 又重构了一遍，标签筛选改成 SINTER 反索引取交集，速度快了不少。\n代码这东西，就是越写越顺手，也越写越觉得以前写的是💩。' },
     { d: 0.8, tags: ['tag_photo','tag_daily'], c: `江滩从傍晚走到天黑，一口气拍了十二张，九宫格装不下。\n\n![江滩的黄昏](${mockImg('rain1')})\n![](${mockImg('rain2')})\n![](${mockImg('rain3')})\n![](${mockImg('rain4')})\n![](${mockImg('rain5')})\n![](${mockImg('street1')})\n![](${mockImg('street2')})\n![](${mockImg('street3')})\n![](${mockImg('sunset1')})\n![](${mockImg('sunset2')})\n![](${mockImg('cat1', 800, 800)})\n![](${mockImg('sunrise', 1200, 800)})` },
@@ -1762,15 +1765,43 @@ function parseContent(raw) {
     return '\n';
   });
 
+  // Shortcode 卡片：{movies:id=27059183} / {music:id='1344618077'} / {book:id='38521378'}
+  // 先抽成占位符，避免被 marked 当普通文本转义；渲染后再由 hydrateShortcodes 填充。
+  const cards = [];
+  const scRe = /\{(movies|movie|music|book)\s*:\s*id\s*=\s*['"]?(\d{1,20})['"]?\s*\}/gi;
+  const text2 = text.replace(scRe, (m, kind, id) => {
+    const type = kind.toLowerCase() === 'movies' ? 'movie' : kind.toLowerCase();
+    const token = `\u0000SCPLACE${cards.length}\u0000`;
+    cards.push({ type, id });
+    return `\n${token}\n`;
+  });
+
+  // 书卡要复用「说说的内容」：去掉 shortcode 占位符、图片和剩余 markdown 标记，压成一段纯文本
+  const memoQuote = text2
+    .replace(/\u0000SCPLACE\d+\u0000/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/https?:\/\/[^\s<>"']+/g, ' ')
+    .replace(/[*_`#>~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 含书卡的说说：短评已经放进卡片，卡片外的正文不再重复渲染一遍。
+  // 只保留各 shortcode 占位符；图片走 images 数组由 sayPhotoGrid 单独渲染，不受影响。
+  const hasBookCard = cards.some(c => c.type === 'book');
+  const renderText = hasBookCard
+    ? cards.map((c, i) => `\u0000SCPLACE${i}\u0000`).join('\n\n')
+    : text2;
+
   let html;
   if (window.marked && typeof marked.parse === 'function') {
     try {
-      html = marked.parse(text, { gfm: true, breaks: true, extendedAutolinks: true });
+      html = marked.parse(renderText, { gfm: true, breaks: true, extendedAutolinks: true });
     } catch {
-      html = escapeHtml(text).replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+      html = escapeHtml(renderText).replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
     }
   } else {
-    html = escapeHtml(text)
+    html = escapeHtml(renderText)
       .replace(/(https?:\/\/[^\s&lt;&gt;"']+)/g, '<a href="$1">$1</a>')
       .replace(/\n{2,}/g, '<br><br>')
       .replace(/\n/g, '<br>');
@@ -1779,8 +1810,278 @@ function parseContent(raw) {
   // 正文里的所有链接统一在新标签页打开
   html = html.replace(/<a\s+/gi, '<a target="_blank" rel="noopener noreferrer" ');
 
+  // 把占位符换成卡片骨架（data 属性带类型/id，hydrateShortcodes 负责拉数据填充）
+  cards.forEach((c, i) => {
+    const token = `\u0000SCPLACE${i}\u0000`;
+    const label = { movie: '电影', music: '音乐', book: '图书' }[c.type] || '条目';
+    const icon = { movie: 'lucide:clapperboard', music: 'lucide:music-2', book: 'lucide:book-open' }[c.type] || 'lucide:link';
+    let cardInner;
+    if (c.type === 'music') {
+      cardInner = `<span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span><span class="sc-info"><span class="sc-meta"><span class="sc-title">加载中…</span><span class="sc-sub"></span></span><span class="sc-lyrics"></span></span><span class="sc-arrow">↗</span>`;
+    } else if (c.type === 'book') {
+      // 去掉「读书」标签；中部放说说正文；底部两行改成书名 / 作者，只有「查看」可跳转
+      cardInner = `<span class="sc-book-hero"><span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span><span class="sc-book-badge">图书</span></span>` +
+        `<span class="sc-book-body"><span class="sc-book-quote">${escapeHtml(memoQuote) || '…'}</span></span>` +
+        `<span class="sc-book-foot"><span class="sc-book-thumb"></span><span class="sc-book-meta"><span class="sc-book-app">加载中…</span><span class="sc-book-desc"></span></span><span class="sc-book-cta" role="button" tabindex="0" aria-label="查看条目详情">查看</span></span>`;
+    } else {
+      cardInner = `<span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span><span class="sc-info"><span class="sc-kicker">${label}</span><span class="sc-title">加载中…</span><span class="sc-sub"></span></span><span class="sc-arrow">↗</span>`;
+    }
+    // 书卡本身不可点、也不进 Tab 序列，焦点落在底部「查看」按钮上
+    const focusable = c.type === 'book' ? '' : 'role="link" tabindex="0"';
+    const skeleton = `<span class="sc-card sc-${c.type} sc-loading" data-sc-type="${c.type}" data-sc-id="${c.id}" ${focusable} aria-label="${label}卡片，加载中">${cardInner}<span class="sc-stub">${label} · ${c.id}</span></span>`;
+    html = html.split(token).join(skeleton);
+  });
+
   return { html, images };
 }
+
+/* ============================================================
+   Shortcode 卡片：{movies:id=xxx} / {music:id='xxx'} / {book:id='xxx'}
+   占位骨架由 parseContent 生成，这里统一拉 worker 元数据填充；
+   用 MutationObserver 兜住所有渲染入口（列表/详情/搜索），不用逐个改调用点。
+   ============================================================ */
+/* ---- 音乐卡右侧歌词：meting 的 LRC 接口 + 播放进度同步 ---- */
+const scLrcCache = new Map();
+const SC_META_LINE = /^(作词|作曲|编曲|制作|制作人|监制|演唱|原唱|混音|母带|出品|录音|和声|吉他|钢琴|弦乐|词|曲|编|唱)\s*[:：]/;
+
+function scParseLRC(text) {
+  const re = /\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
+  const out = [];
+  for (const line of String(text || '').split(/\r?\n/)) {
+    const tags = [...line.matchAll(re)];
+    if (!tags.length) continue;
+    const t = line.replace(re, '').trim();
+    if (!t || SC_META_LINE.test(t)) continue;   // 丢掉作词/作曲等制作信息
+    for (const m of tags) {
+      const frac = (m[3] || '').padEnd(3, '0').slice(0, 3);
+      out.push({ time: +m[1] * 60000 + +m[2] * 1000 + (frac ? +frac : 0), text: t });
+    }
+  }
+  return out.sort((a, b) => a.time - b.time);
+}
+function scLoadLyrics(id) {
+  if (!scLrcCache.has(id)) {
+    scLrcCache.set(id, fetch(`https://meting.zhheo.com/?server=netease&type=lrc&id=${encodeURIComponent(id)}`)
+      .then(r => r.text()).then(scParseLRC).catch(() => []));
+  }
+  return scLrcCache.get(id);
+}
+function scRenderLyrics(card, lines) {
+  const box = card.querySelector('.sc-lyrics');
+  if (!box || !card.isConnected) return;
+  if (!lines.length) { box.innerHTML = '<span class="sc-lyric-empty">暂无歌词</span>'; return; }
+  box.innerHTML = '<span class="sc-lyrics-inner">' +
+    lines.map(l => `<span class="sc-lyric-line">${escapeHtml(l.text)}</span>`).join('') +
+    '</span>';
+  card._scLyricLines = lines;
+  card._scLyricIdx = -1;
+}
+function scUpdateLyrics(card, st) {
+  const box = card.querySelector('.sc-lyrics');
+  const lines = card._scLyricLines;
+  if (!box || !lines || !lines.length) return;
+  if (!st.isPlaying || st.activeId !== 'ne-' + card.dataset.scId) return;
+  let idx = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].time <= st.position) idx = i; else break;
+  }
+  if (idx === card._scLyricIdx) return;
+  card._scLyricIdx = idx;
+  const els = box.querySelectorAll('.sc-lyric-line');
+  els.forEach((el, i) => el.classList.toggle('is-current', i === idx));
+  const cur = els[idx];
+  if (cur) box.scrollTop = Math.max(0, cur.offsetTop - (box.clientHeight - cur.offsetHeight) / 2);
+}
+
+const SC_API = qs.get('mediaApi') || 'https://pub.199105.xyz/api/media-card';
+const scCache = new Map();   // key: type:id -> Promise(data)
+const scDone = new WeakSet();
+
+function scFetch(type, id) {
+  const key = type + ':' + id;
+  if (!scCache.has(key)) {
+    scCache.set(key, fetch(`${SC_API}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`, {
+      headers: { Accept: 'application/json' },
+    }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .catch(err => ({ error: String(err.message || err) })));
+  }
+  return scCache.get(key);
+}
+
+function scLaunchUrl(data) {
+  const web = data.url;
+  // 移动端：复用豆瓣 Universal Link（看过/想看页同款），网易云用官方 App 定位协议
+  if (isMobileDevice()) {
+    const dm = String(web || '').match(/movie\.douban\.com\/subject\/(\d+)/);
+    if (dm) return `https://www.douban.com/doubanapp/dispatch?uri=/movie/${dm[1]}/`;
+    const bm = String(web || '').match(/book\.douban\.com\/subject\/(\d+)/);
+    if (bm) return `https://www.douban.com/doubanapp/dispatch?uri=/book/${bm[1]}/`;
+    const nm = String(web || '').match(/[?&]id=(\d+)/);
+    if (nm && /music\.163/.test(web)) return `https://music.163.com/#/song?id=${nm[1]}`;
+  }
+  return web;
+}
+
+function scFill(card, data) {
+  if (!card.isConnected || scDone.has(card)) return;
+  scDone.add(card);
+  card.classList.remove('sc-loading');
+  if (data.error || !data.title) {
+    card.classList.add('sc-failed');
+    card.setAttribute('aria-label', '卡片加载失败');
+    const errTitle = card.querySelector('.sc-title, .sc-book-app');
+    const errSub = card.querySelector('.sc-sub, .sc-book-desc');
+    if (errTitle) errTitle.textContent = data.error ? '加载失败' : '未找到条目';
+    if (errSub) errSub.textContent = data.error || '';
+    return;
+  }
+  const poster = card.querySelector('.sc-poster');
+  // 电影/图书直接贴封面；音乐卡的封面交给下面的唱片机（圆形裁切 + 抗覆盖规则兜住全局描边）
+  if (data.cover && card.dataset.scType !== 'music' && poster) {
+    const img = document.createElement('img');
+    img.src = data.cover;
+    img.alt = '';
+    img.decoding = 'async';
+    img.onerror = () => img.remove();
+    poster.appendChild(img);
+  }
+  if (card.dataset.scType === 'book' && data.cover) {
+    const thumb = card.querySelector('.sc-book-thumb');
+    if (thumb) thumb.style.backgroundImage = 'url("' + String(data.cover).replace(/["']/g, '') + '")';
+  }
+  // 书卡没有通用 .sc-title/.sc-sub：书名与作者落在底部 meta 的两行里
+  if (card.dataset.scType === 'book') {
+    const app = card.querySelector('.sc-book-app');
+    const desc = card.querySelector('.sc-book-desc');
+    if (app) app.textContent = data.title || '';
+    if (desc) desc.textContent = data.subtitle || '';
+  }
+  const titleEl = card.querySelector('.sc-title');
+  const subEl = card.querySelector('.sc-sub');
+  if (titleEl) titleEl.textContent = data.title || '';
+  if (subEl) subEl.textContent = data.subtitle || '';
+  if (data.rating) {
+    const score = parseFloat(data.rating).toFixed(1);
+    const kicker = card.querySelector('.sc-kicker');
+    if (kicker) kicker.innerHTML = '<span class="sc-star">★</span> ' + score;
+    // 书本卡左上角「现已推出」的位置改成评分
+    const badge = card.querySelector('.sc-book-badge');
+    if (badge) badge.textContent = '★ ' + score;
+  }
+  // 音乐卡：封面当唱片盘面（点击后旋转），播放按钮叠在封面中心
+  if (card.dataset.scType === 'music' && poster) {
+    const coverHtml = data.cover
+      ? '<img class="sc-cover" src="' + escapeHtml(data.cover) + '" alt="" />'
+      : '';
+    poster.innerHTML =
+      '<span class="sc-plate"><span class="sc-disc">' + coverHtml +
+      '<span class="sc-ring"></span></span></span>' +
+      '<span class="sc-arm"><span class="sc-arm-rod"></span><span class="sc-arm-head"></span></span>' +
+      '<span class="sc-play" title="点击播放" aria-label="播放这首歌" role="button" tabindex="0">' +
+      '<span class="sc-play-badge">' +
+      '<span class="iconify sc-icon-play" data-icon="lucide:play" aria-hidden="true"></span>' +
+      '<span class="iconify sc-icon-pause" data-icon="lucide:pause" aria-hidden="true"></span>' +
+      '</span></span>';
+    if (coverHtml) poster.classList.add('sc-has-cover');
+    const cover = poster.querySelector('.sc-cover');
+    if (cover) cover.onerror = () => { cover.remove(); poster.classList.remove('sc-has-cover'); };
+    // 新增的 iconify 占位符交给图标库扫描（本地图标包已补 lucide:play / pause）
+    if (window.Iconify && typeof Iconify.scanDOM === 'function') Iconify.scanDOM(poster);
+    const playBtn = poster.querySelector('.sc-play');
+    playBtn.addEventListener('click', async e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!window.HWPlayer || !window.HWPlayer.playNeteaseById) return;
+      // 先乐观切换让点击立刻有反馈，随后由播放器广播（play/pause 事件）校正成真实状态
+      const wasOn = card.classList.contains('sc-now-playing');
+      scSetPlaying(card, !wasOn);
+      const ok = await window.HWPlayer.playNeteaseById(card.dataset.scId);
+      if (!ok) scSetPlaying(card, wasOn);
+    });
+    // 右侧歌词：拉 LRC 渲染，失败或为空时显示「暂无歌词」
+    scLoadLyrics(card.dataset.scId).then(lines => scRenderLyrics(card, lines));
+  }
+  const label = { movie: '电影', music: '音乐', book: '图书' }[card.dataset.scType] || '条目';
+  card.setAttribute('aria-label', card.dataset.scType === 'book'
+    ? `图书：${data.title}，点击底部「查看」打开详情`
+    : `${label}：${data.title}，点击打开详情`);
+  card._scData = data;
+  card.href = scLaunchUrl(data);
+  if (card.tagName === 'A') card.setAttribute('target', '_blank'), card.setAttribute('rel', 'noopener noreferrer');
+}
+
+function hydrateShortcodes(root = document) {
+  root.querySelectorAll('.sc-card:not([data-sc-hydrated])').forEach(card => {
+    card.setAttribute('data-sc-hydrated', '1');
+    const type = card.dataset.scType, id = card.dataset.scId;
+    if (!type || !id) return;
+    scFetch(type, id).then(data => scFill(card, data));
+  });
+}
+
+// 点击卡片：PC 新标签打开网页，手机拉起 APP（失败回落网页）
+document.addEventListener('click', e => {
+  // 唱片机上的播放按钮只触发播放，不跳转
+  if (e.target.closest('.sc-play')) return;
+  const card = e.target.closest('.sc-card');
+  if (!card || !card._scData) return;
+  // 书卡只有底部「查看」是跳转入口：点封面 / 说说正文不跳转
+  if (card.classList.contains('sc-book') && !e.target.closest('.sc-book-cta')) return;
+  e.preventDefault();
+  const url = scLaunchUrl(card._scData);
+  if (url) window.open(url, '_blank', 'noopener');
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest && e.target.closest('.sc-card');
+  if (!card) return;
+  e.preventDefault();
+  const cta = card.classList.contains('sc-book') ? card.querySelector('.sc-book-cta') : null;
+  (cta || card).click();
+});
+
+// 全局兜底：任何 innerHTML 写入后自动填充新卡片
+if (window.MutationObserver) {
+  new MutationObserver(muts => {
+    for (const m of muts) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType !== 1) continue;
+        if (node.classList && node.classList.contains('sc-card')) hydrateShortcodes(node.parentNode || document);
+        else if (node.querySelectorAll) {
+          const hit = node.querySelectorAll('.sc-card:not([data-sc-hydrated])');
+          if (hit.length) hydrateShortcodes(node);
+        }
+      }
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
+}
+hydrateShortcodes(document);
+
+/* 播放器状态同步：只有「正在播放这首歌」时封面才转、按钮才显示暂停图标。
+   HWPlayer 的 play / pause / ended / 切歌都会广播 hwplayer:update；
+   60ms 合并连续广播并读最新 state，避免首次加载时 false→true 的闪烁。 */
+function scSetPlaying(card, on) {
+  card.classList.toggle('sc-now-playing', on);
+  const btn = card.querySelector('.sc-play');
+  if (btn) btn.setAttribute('aria-label', on ? '正在播放' : '播放这首歌');
+}
+function scSyncFromPlayer() {
+  if (!window.HWPlayer || !window.HWPlayer.getState) return;
+  const st = window.HWPlayer.getState() || {};
+  const cards = document.querySelectorAll('.sc-music');
+  cards.forEach(c => scUpdateLyrics(c, st));
+  if (st.isPlaying) {
+    cards.forEach(c => scSetPlaying(c, st.activeId === 'ne-' + c.dataset.scId));
+  } else if (st.position > 0) {
+    // 明确的暂停 / 播完：全部停转
+    cards.forEach(c => scSetPlaying(c, false));
+  }
+  // 刚切歌、音频还没开始播（position 为 0）时不动，保留点击的乐观状态
+}
+let scSyncTimer;
+document.addEventListener('hwplayer:update', () => {
+  clearTimeout(scSyncTimer);
+  scSyncTimer = setTimeout(scSyncFromPlayer, 60);
+});
 
 const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
 function animateValue(from, to, duration, onUpdate, onDone) {
@@ -2487,8 +2788,9 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   // 时间 + 正文 + 图片，一条一条往下排（不再套卡片）；纯文字说说在时间前点一个小引号
   const dateText = tapeTime(m.rawDate);
   const dateHtml = dateText ? `<span class="memo-tape-date" aria-label="发布时间"><span aria-hidden="true" class="iconify" data-icon="lucide:clock"></span>${dateText}</span>` : '';
-  // 时间行：纯文字说说前面点一个小引号，有图的直接给时间
-  const meta = `<div class="say-meta">${images.length ? '' : '<span aria-hidden="true" class="iconify say-quote" data-icon="mdi:format-quote-close"></span>'}${dateHtml}</div>`;
+  // 时间行：纯文字说说前面点一个小引号；有图的、以及正文已收进书卡的说说直接给时间
+  const bookOnly = /\{book\s*:\s*id\s*=/i.test(String(m.content || ''));
+  const meta = `<div class="say-meta">${images.length || bookOnly ? '' : '<span aria-hidden="true" class="iconify say-quote" data-icon="mdi:format-quote-close"></span>'}${dateHtml}</div>`;
   return `
   <li class="fade-up memo-item say-item" style="${anim}">
     <article class="memo-card say-card${images.length ? '' : ' say-card--text'}" data-id="${escapeHtml(m.id)}">
@@ -5840,6 +6142,24 @@ setTimeout(showReminderBanner, 1800);   // 首页提示最近的播放提醒
           parseShortcodes,
           mountAll,
           getState: () => ({ ...state }),
+          // 供说说 shortcode 卡片调用：传入网易云歌曲 id，直接播放/暂停
+          playNeteaseById: (id) => {
+            const sid = String(id || '').replace(/[^\d]/g, '');
+            if (!sid) return Promise.resolve(false);
+            return fetch(NETEASE_SONG_INFO_API(sid))
+              .then(r => r.json())
+              .then(json => {
+                const d = Array.isArray(json) ? json[0] : json;
+                if (!d || !d.url) return false;
+                playTrack({
+                  trackId: 'ne-' + sid, neteaseId: sid,
+                  title: d.name || '未知歌曲', artist: d.artist || '',
+                  album: d.album || '', cover: d.pic || '', audioUrl: d.url,
+                });
+                return true;
+              })
+              .catch(() => false);
+          },
         };
       })();
 </script>
@@ -12298,6 +12618,400 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   font-size:12px; opacity:0;
 }
 #musicDrawer#musicDrawer .hw-pl-row.playing .hw-pl-row-playicon{ opacity:1 !important; }
+</style>
+
+<!-- ============ Shortcode 卡片样式（电影票 / 唱片 / 书封） ============ -->
+<!-- ============ Shortcode 卡片样式（电影票 / 黑胶唱片 / 书封） ============ -->
+<style id="shortcode-cards">
+/* 通用骨架：半透明外框，文字跟随主题正文色 */
+.sc-card{
+  --sc-accent:#6f8a6c; --sc-line:rgba(171,196,170,.55);
+  display:inline-flex; align-items:stretch; gap:14px;
+  width:100%; max-width:520px; min-height:112px;
+  margin:10px 0; padding:12px 16px 12px 12px;
+  position:relative; cursor:pointer; user-select:none;
+  border:1px solid var(--sc-line); border-radius:14px;
+  background:rgba(171,196,170,.08);
+  color:var(--color-base-content);
+  font-family:var(--font-family, inherit); line-height:1.45; vertical-align:middle;
+  transition:transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.sc-card:hover{ transform:translateY(-2px); border-color:var(--sc-accent); background:rgba(171,196,170,.14); }
+.sc-card:focus-visible{ outline:2px solid var(--sc-accent); outline-offset:2px; }
+.sc-poster{
+  flex:0 0 64px; width:64px; min-height:88px; position:relative;
+  border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  background:rgba(103,93,80,.16);
+  color:var(--sc-accent); font-size:1.6rem;
+}
+.sc-poster img{ width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+.sc-poster .iconify{ opacity:.6; }
+.sc-info{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:4px; padding:2px 0; }
+.sc-kicker{
+  font:600 10px/1.2 var(--font-num, monospace); letter-spacing:.16em; text-transform:uppercase;
+  color:var(--sc-accent);
+}
+.sc-title{
+  font-size:1rem; font-weight:700; letter-spacing:.02em; color:var(--color-base-content);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.sc-sub{
+  font-size:.8rem; opacity:.7; line-height:1.45;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.sc-star{ color:#e8a317; }
+.sc-arrow{ flex:0 0 auto; align-self:flex-start; font:600 15px/1 var(--font-num, monospace); color:var(--sc-accent); opacity:.6; }
+.sc-stub{ display:none; }
+.sc-loading .sc-poster{ animation:sc-pulse 1.2s ease-in-out infinite alternate; }
+.sc-loading .sc-title{ opacity:.6; }
+@keyframes sc-pulse{ from{opacity:.55;} to{opacity:1;} }
+.sc-failed{ --sc-accent:#8a8a8a; --sc-line:rgba(138,138,138,.34); }
+
+/* 影视：票据外框；图书：书脊外框 */
+.sc-movie{
+  --sc-accent:#6a5cff; --sc-line:rgba(106,92,255,.45);
+  border-radius:10px;
+  -webkit-mask:
+    radial-gradient(circle 9px at 0 50%, transparent 98%, #000 100%) left / 51% 100% no-repeat,
+    radial-gradient(circle 9px at 100% 50%, transparent 98%, #000 100%) right / 51% 100% no-repeat;
+  -webkit-mask-composite:source-over;
+  mask:
+    radial-gradient(circle 9px at 0 50%, transparent 98%, #000 100%) left / 51% 100% no-repeat,
+    radial-gradient(circle 9px at 100% 50%, transparent 98%, #000 100%) right / 51% 100% no-repeat;
+  mask-composite:add;
+}
+/* 凹口弧线：mask 挖空的是半径 9px 的半圆，这里在半径 12px 处补一圈细描边，
+   浅色背景下也能看清票根左右两个缺口 */
+.sc-movie::before,
+.sc-movie::after{
+  content:""; position:absolute; top:50%; z-index:2; pointer-events:none;
+  width:24px; height:24px; margin-top:-12px;
+  border-radius:50%; border:1px solid var(--sc-line); background:transparent;
+}
+.sc-movie::before{ left:-12px; }
+.sc-movie::after{ right:-12px; }
+.sc-movie .sc-info{ border-left:1px dashed var(--sc-line); padding-left:12px; margin-left:-1px; }
+/* ===== 图书：竖版卡片（参考 App Store 推荐卡） =====
+   大封面 + 左上角评分角标 + 渐变信息区 + 底部缩略图/查看按钮 */
+.sc-book{
+  --sc-accent:#c9a8ff; --sc-line:rgba(255,255,255,.24);
+  width:240px; max-width:100%; min-height:0; height:auto;
+  flex-direction:column; align-items:stretch; gap:0;
+  margin:12px 0; padding:0; overflow:hidden;
+  border:1px solid rgba(255,255,255,.22); border-radius:20px;
+  background:#4a2b73; color:#fff;
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.55);
+  cursor:default;
+}
+.sc-book:hover{
+  transform:translateY(-3px); background:#4a2b73;
+  border-color:rgba(255,255,255,.42);
+  box-shadow:0 16px 36px -12px rgba(0,0,0,.62);
+}
+.sc-book-hero{ position:relative; height:190px; overflow:hidden; background:#2d1b45; flex:0 0 auto; }
+/* 封面下缘轻微溶进紫色信息区，避免图片和文案区之间出现硬切线 */
+.sc-book-hero::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:34px; z-index:2; pointer-events:none;
+  background:linear-gradient(to bottom, rgba(122,72,180,0), #7a48b4);
+}
+.sc-book .sc-poster{
+  position:absolute; inset:0; width:100%; height:100%; min-height:0; flex:none;
+  border-radius:0; border:0; overflow:hidden; background:#2d1b45;
+}
+.sc-book .sc-poster img{
+  width:100%; height:100%; object-fit:cover; object-position:center 22%;
+  border-radius:0; border:0; box-shadow:none;
+}
+.sc-book .sc-poster .iconify{ font-size:2.2rem; opacity:.4; }
+.sc-book-badge{
+  position:absolute; left:0; top:0; z-index:3;
+  padding:7px 16px 8px 14px;
+  background:#7c4dba; color:#fff;
+  font:700 12px/1.2 var(--font-num, monospace); letter-spacing:.04em;
+  border-radius:20px 0 16px 0;
+  box-shadow:2px 2px 8px rgba(0,0,0,.22);
+}
+.sc-book-body{
+  display:flex; flex-direction:column; gap:5px;
+  padding:15px 16px 18px;
+  background:linear-gradient(160deg, #7a48b4, #4d2c7d);
+}
+/* 原来放书名/作者的位置，现在直接放「说说的内容」 */
+.sc-book-quote{
+  font-size:.82rem; line-height:1.6; color:#fff; opacity:.94;
+  display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden;
+  word-break:break-word;
+  padding-left:10px; border-left:2px solid rgba(255,255,255,.38);
+}
+.sc-book-foot{
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px; background:#43266e;
+  border-top:1px solid rgba(255,255,255,.16);
+}
+.sc-book-thumb{
+  flex:0 0 34px; width:34px; height:34px; border-radius:8px;
+  background:#6b4a95 center/cover no-repeat;
+}
+.sc-book-meta{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.sc-book-app{
+  font-size:.78rem; font-weight:700; color:#fff;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sc-book-desc{
+  display:block; font-size:.7rem; color:rgba(255,255,255,.72);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sc-book-cta{
+  flex:0 0 auto; padding:7px 16px; border-radius:999px;
+  background:rgba(255,255,255,.2); color:#fff; font-size:.76rem; font-weight:700;
+  cursor:pointer;
+}
+.sc-book:hover .sc-book-cta{ background:rgba(255,255,255,.32); }
+
+/* ===== 音乐：封面当唱片盘面，点击后旋转；播放按钮叠在封面中心 =====
+   机座沿用 Uiverse.io by TheAbieza 的绿方块 / 唱臂 / 硬阴影，--sc-u 是缩放系数。 */
+.sc-music{
+  --sc-u:.5;
+  --sc-green:#ABC4AA; --sc-brown:#675D50; --sc-cream:#F3DEBA;
+  --sc-accent:#6f8a6c; --sc-line:rgba(171,196,170,.55);
+  border-radius:14px; padding-right:18px;
+}
+.sc-music .sc-poster{
+  flex:0 0 calc(175px * var(--sc-u)); width:calc(175px * var(--sc-u));
+  height:calc(175px * var(--sc-u)); min-height:0; aspect-ratio:1;
+  border:0; overflow:visible;
+  border-radius:calc(10px * var(--sc-u));
+  background:var(--sc-green);
+  box-shadow:calc(5px * var(--sc-u)) calc(5px * var(--sc-u)) 0 0 var(--sc-brown);
+  display:flex; align-items:center; justify-content:center;
+}
+.sc-music .sc-poster > .iconify{ display:none; }
+.sc-plate{ width:fit-content; height:fit-content; display:flex; align-items:center; justify-content:center; }
+/* 盘面：有封面就显示封面，没封面则露出深棕盘 + 米色断续纹 */
+.sc-disc{
+  position:relative; box-sizing:border-box; overflow:hidden;
+  width:calc(150px * var(--sc-u)); height:calc(150px * var(--sc-u));
+  border-radius:50%; background:var(--sc-brown);
+  border:calc(3px * var(--sc-u)) solid var(--sc-cream);
+  display:flex; align-items:center; justify-content:center;
+}
+.sc-cover{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; border-radius:50%; display:block;
+  /* 动画常驻但默认暂停：播放时 running，暂停时停在当前角度，不会跳回 0° */
+  animation:sc-spin 3.6s linear infinite; animation-play-state:paused;
+}
+.sc-ring{
+  position:absolute; inset:14%; border-radius:50%; pointer-events:none;
+  border:calc(3px * var(--sc-u)) solid transparent;
+  border-top-color:var(--sc-cream); border-bottom-color:var(--sc-cream);
+}
+.sc-has-cover .sc-ring{ display:none; }
+/* 唱臂：右下角斜搭到盘面，播放时落下一点 */
+.sc-arm{
+  position:absolute; right:0; bottom:0; z-index:3; pointer-events:none;
+  margin-right:calc(8px * var(--sc-u)); margin-bottom:calc(8px * var(--sc-u));
+  width:fit-content; height:fit-content;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  transform:rotate(-45deg); transition:transform .35s ease;
+}
+.sc-arm-rod{
+  width:calc(10px * var(--sc-u)); height:calc(55px * var(--sc-u));
+  background:var(--sc-cream); position:absolute; bottom:0;
+  margin-bottom:calc(5px * var(--sc-u)); border-radius:calc(3px * var(--sc-u));
+}
+.sc-arm-head{
+  width:calc(25px * var(--sc-u)); height:calc(25px * var(--sc-u));
+  border-radius:50%; background:var(--sc-cream); z-index:1;
+}
+.sc-now-playing .sc-arm{ transform:rotate(-38deg); }
+.sc-now-playing .sc-cover{ animation-play-state:running; }
+@keyframes sc-spin{ to{ transform:rotate(360deg); } }
+/* 整块唱片是播放热区，视觉按钮居中叠在封面上（不随封面旋转） */
+.sc-play{
+  position:absolute; inset:0; z-index:5; cursor:pointer;
+  background:transparent; border:0; box-shadow:none;
+  border-radius:calc(10px * var(--sc-u));
+  display:flex; align-items:center; justify-content:center;
+}
+.sc-play-badge{
+  width:calc(52px * var(--sc-u)); height:calc(52px * var(--sc-u));
+  border-radius:50%; background:var(--sc-cream);
+  border:calc(2px * var(--sc-u)) solid rgba(255,255,255,.85);
+  box-shadow:0 2px 6px rgba(0,0,0,.32);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--sc-brown);
+  transition:transform .18s ease, background .18s ease;
+}
+.sc-music .sc-poster:hover .sc-play-badge{ transform:scale(1.1); }
+.sc-play-badge .iconify{
+  width:calc(28px * var(--sc-u)); height:calc(28px * var(--sc-u)); display:block;
+}
+.sc-play-badge .sc-icon-pause{ display:none; }
+.sc-now-playing .sc-play-badge .sc-icon-play{ display:none; }
+.sc-now-playing .sc-play-badge .sc-icon-pause{ display:block; }
+
+/* ===== 音乐卡右侧：歌词 ===== */
+.sc-music .sc-info{ flex-direction:row; align-items:center; gap:18px; }
+.sc-music .sc-kicker{ display:none; }
+.sc-music .sc-meta{
+  flex:0 0 auto; min-width:0; max-width:40%;
+  display:flex; flex-direction:column; gap:3px;
+}
+.sc-music .sc-lyrics{
+  flex:1 1 auto; min-width:0; height:64px; overflow:hidden; position:relative;
+  font-size:.75rem; line-height:1.7; color:var(--color-base-content); opacity:.62;
+  scroll-behavior:smooth;
+  -webkit-mask-image:linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
+  mask-image:linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
+}
+.sc-lyrics-inner{ display:flex; flex-direction:column; padding:6px 0 18px; }
+.sc-lyric-line{
+  display:block; padding:0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:color .25s ease, opacity .25s ease;
+}
+.sc-lyric-line.is-current{ color:var(--sc-accent); opacity:1; font-weight:700; }
+.sc-lyric-empty{ display:block; padding:18px 2px; font-size:.72rem; opacity:.5; }
+
+/* ===== 抗覆盖 =====
+   页面里的复古主题写了 `* , *::before , *::after { border-radius:0 !important }`、
+   `#mainScroll #content * { border-radius:0 !important }` 和
+   `#content img { border:2px solid … !important }`，会把任何新组件的圆角清零、
+   给图片强加描边。这里用两位 id 的选择器把它们顶回去，且放在全站样式最后。 */
+:is(#content#content, #mainScroll#mainScroll) .sc-card{ border-radius:14px !important; border:1px solid var(--sc-line) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-movie{ border-radius:10px !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-movie::before,
+:is(#content#content, #mainScroll#mainScroll) .sc-movie::after{ border-radius:50% !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-poster{ border-radius:8px !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-poster img{ border:0 !important; box-shadow:none !important; border-radius:8px !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-music .sc-poster{
+  border:0 !important; border-radius:calc(10px * var(--sc-u)) !important;
+  background:var(--sc-green) !important;
+  box-shadow:calc(5px * var(--sc-u)) calc(5px * var(--sc-u)) 0 0 var(--sc-brown) !important;
+  overflow:visible !important;
+}
+:is(#content#content, #mainScroll#mainScroll) :is(.sc-disc,.sc-ring,.sc-arm-head,.sc-play-badge,.sc-cover){ border-radius:50% !important; }
+/* 封面是 img，要额外压掉 #content img 的描边与直角，以及深色主题的图片降亮度 */
+:is(#content#content, #mainScroll#mainScroll) .sc-music .sc-cover{
+  border:0 !important; box-shadow:none !important; filter:none !important;
+  border-radius:50% !important;
+}
+:is(#content#content, #mainScroll#mainScroll) .sc-arm-rod{ border-radius:calc(3px * var(--sc-u)) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-play{ border:0 !important; box-shadow:none !important; border-radius:calc(10px * var(--sc-u)) !important; }
+
+/* 浅色：票纸做实一点并加深框线，凹口透出页面底色才有对比（深色维持原样） */
+html[data-theme="light"] .sc-movie,
+html:not([data-theme="dark"]):not([data-theme="halloween"]) .sc-movie{
+  background:rgba(255,255,255,.5);
+  --sc-line:rgba(106,92,255,.62);
+}
+
+/* 书本竖版卡：压过全站直角化 / #content img 描边 / 窄屏 100% 宽 */
+:is(#content#content, #mainScroll#mainScroll) .sc-book{
+  border-radius:20px !important; border:1px solid rgba(255,255,255,.22) !important;
+  width:240px !important;
+}
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster,
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster img{
+  border-radius:0 !important; border:0 !important; box-shadow:none !important; filter:none !important;
+}
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-badge{ border-radius:20px 0 16px 0 !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-thumb{ border-radius:8px !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-cta{ border-radius:999px !important; }
+/* 紫色卡片里的文字固定浅色，别被主题切换 / .memo-text 的正文色染成深灰 */
+:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-badge,.sc-book-quote,.sc-book-app,.sc-book-desc,.sc-book-cta){
+  -webkit-text-fill-color:currentColor !important;
+}
+:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-badge,.sc-book-quote,.sc-book-app,.sc-book-cta){ color:#fff !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-desc{ color:rgba(255,255,255,.72) !important; }
+
+/* 主题：深色只提亮文字与框线，唱片配色保持原作的鼠尾草绿 / 深棕 / 米白 */
+html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(171,196,170,.10); }
+html:is([data-theme="dark"],[data-theme="halloween"]) .sc-movie{ --sc-accent:#9b8cff; --sc-line:rgba(155,140,255,.5); }
+html:is([data-theme="dark"],[data-theme="halloween"]) .sc-music{ --sc-accent:#c6ddc4; --sc-line:rgba(198,221,196,.5); }
+
+/* 手机：唱片整体缩小 */
+@media (max-width:640px){
+  .sc-music{ --sc-u:.42; }
+  .sc-card{ width:100%; min-height:96px; padding:9px 12px 9px 9px; gap:10px; }
+  .sc-poster{ flex-basis:56px; width:56px; min-height:76px; }
+  .sc-music .sc-poster{
+    flex-basis:calc(175px * var(--sc-u)); width:calc(175px * var(--sc-u));
+    height:calc(175px * var(--sc-u)); min-height:0;
+  }
+  .sc-music .sc-info{ flex-direction:column; align-items:flex-start; gap:2px; }
+  .sc-music .sc-meta{ max-width:none; }
+  .sc-music .sc-lyrics{ width:100%; height:34px; flex:0 0 auto; }
+  .sc-lyrics-inner{ padding:4px 0; }
+  .sc-title{ font-size:.94rem; }
+  .sc-sub{ font-size:.74rem; }
+
+  /* ===== 书卡手机端：整幅封面 + 紫色雾渐隐 =====
+     桌面端是「封面 / 渐紫信息区 / 底栏」三段拼接，窄屏里因为卡片被锁死 240px、
+     右边留白大，三段硬边就特别割裂。这里让封面铺满整张卡、从中段开始被紫色雾吞没，
+     说说正文、书名作者、查看按钮都落在同一张连续画面上，不再有分块边界。 */
+  :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-book{
+    width:100% !important; max-width:none !important;
+    height:340px; min-height:0; margin:14px 0;
+    padding:0 !important; gap:0;
+    display:flex !important; flex-direction:column; align-items:stretch;
+    border-radius:22px !important; border:1px solid rgba(255,255,255,.22) !important;
+    background:linear-gradient(180deg,#2b1943 0%,#3a2260 46%,#43266e 100%) !important;
+    box-shadow:0 14px 32px -14px rgba(0,0,0,.6);
+    isolation:isolate;
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-hero{
+    position:absolute; inset:0; z-index:0; height:100% !important;
+    background:#2b1943;
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster{
+    position:absolute; inset:0; width:100% !important; height:100% !important;
+    flex:none; background:transparent;
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster img{
+    width:100% !important; height:100% !important;
+    object-fit:cover; object-position:center 16%;
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-hero::after{
+    height:100% !important;
+    background:linear-gradient(180deg,
+      rgba(43,25,67,0) 0%,
+      rgba(43,25,67,.04) 28%,
+      rgba(58,34,96,.32) 46%,
+      rgba(62,36,102,.80) 62%,
+      #402568 78%,
+      #43266e 100%) !important;
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-badge{ z-index:4; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-body{
+    position:relative; z-index:3; margin-top:auto;
+    background:transparent; padding:0 18px 12px;
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-quote{
+    font-size:.84rem; line-height:1.62; -webkit-line-clamp:3;
+    text-shadow:0 1px 5px rgba(0,0,0,.55);
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-foot{
+    position:relative; z-index:3; background:transparent;
+    border-top:0 !important; padding:8px 16px 16px; gap:0;
+  }
+  /* 整张卡已经是封面，底部小缩略图在窄屏里是冗余，去掉让书名/作者更舒展 */
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-thumb{ display:none; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-app{
+    font-size:.88rem; text-shadow:0 1px 5px rgba(0,0,0,.55);
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-desc{
+    font-size:.72rem; text-shadow:0 1px 5px rgba(0,0,0,.55);
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-cta{
+    padding:8px 18px; background:rgba(255,255,255,.24);
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .sc-card,.sc-card:hover{ transition:none; transform:none; }
+  .sc-cover,.sc-loading .sc-poster{ animation:none; }
+}
 </style>
 
 </body>
