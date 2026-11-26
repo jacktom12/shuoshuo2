@@ -12770,7 +12770,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   --tk-tear-h:214px;
   width:360px; max-width:100%; min-height:0; height:auto;
   display:flex; flex-direction:column; align-items:stretch; gap:0;
-  margin:14px 0; padding:0 16px 0; overflow:hidden;
+  margin:14px 0; padding:0; overflow:hidden;
   border:1px solid var(--tk-line); border-radius:22px;
   background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg);
   color:var(--tk-ink);
@@ -12789,12 +12789,13 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   mask-composite:add;
 }
 .sc-movie:hover{ transform:translateY(-3px); border-color:var(--tk-accent); }
-/* 顶部大图：负 margin 抵消卡片左右内边距，直接铺满卡片顶端三边，
-   不再有自己的圆角 / 白边「外框」，顶部两角交给卡片 clip-path 裁出，
-   跟书卡 / 音乐卡一样是整幅画面。高度 202 = 原 190 + 抵消的 12px 顶部留白，
-   保证 202 + tear 半高 12 = 214px，凹口与虚线仍严格对齐。 */
+/* 顶部大图：卡片 padding 为 0，hero 靠 align-items:stretch 自然撑满整幅，
+   不用负 margin（Safari 在 flex 纵向布局里对负 margin 的处理会留下左右缝隙）。
+   自身零圆角，顶部两角交给卡片 clip-path 裁出，跟书卡 / 音乐卡一样是整幅画面。
+   高度 202 = 原 190 + 去掉的 12px 顶部留白，保证 202 + tear 半高 12 = 214px，
+   凹口与虚线仍严格对齐。下半部票纸元素各自用 margin 让出左右边距。 */
 .sc-ticket-hero{
-  position:relative; flex:0 0 202px; height:202px; margin:0 -16px;
+  position:relative; flex:0 0 202px; height:202px; margin:0;
   border-radius:0; overflow:hidden; background:var(--tk-soft);
 }
 .sc-ticket-shot{
@@ -12821,8 +12822,9 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   text-shadow:0 1px 6px rgba(0,0,0,.66);
 }
-/* 撕口虚线：左右延伸到票边，正好穿过两个半圆凹口 */
-.sc-ticket-tear{ position:relative; flex:0 0 24px; height:24px; margin:0 -16px; }
+/* 撕口虚线：tear 撑满卡片宽度，虚线内缩到距票边 16px；
+   ::after 的凹口细弧仍贴着票边 x=0 / 100% */
+.sc-ticket-tear{ position:relative; flex:0 0 24px; height:24px; margin:0; }
 .sc-ticket-tear::before{
   content:""; position:absolute; left:16px; right:16px; top:50%;
   border-top:1.5px dashed var(--tk-line);
@@ -12837,7 +12839,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 }
 /* 说说短评：跟书卡一样的引用竖线，颜色走主题主色 */
 .sc-ticket-quote{
-  margin:0 0 16px; padding:0 0 0 12px;
+  margin:0 16px 16px; padding:0 0 0 12px;
   border-left:2px solid var(--tk-accent);
   font-size:.86rem; line-height:1.72; color:var(--tk-ink);
   display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
@@ -12846,7 +12848,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 /* 电影信息：两列网格 */
 .sc-ticket-grid{
   display:grid; grid-template-columns:1fr 1fr; gap:13px 16px;
-  padding:14px 0 16px; border-top:1px solid var(--tk-line);
+  margin:0 16px; padding:14px 0 16px; border-top:1px solid var(--tk-line);
 }
 .sc-ticket-cell{ display:flex; flex-direction:column; gap:3px; min-width:0; }
 .sc-ticket-k{ font-size:.68rem; letter-spacing:.06em; color:var(--tk-muted); }
@@ -12857,7 +12859,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 /* 底部：电影海报缩略图 + 圆形详情按钮 */
 .sc-ticket-foot{
   display:flex; align-items:center; gap:12px;
-  padding:13px 0 15px; border-top:1.5px dashed var(--tk-line);
+  margin:0 16px; padding:13px 0 15px; border-top:1.5px dashed var(--tk-line);
 }
 .sc-movie .sc-poster{
   flex:0 0 42px; width:42px; height:60px; min-height:0;
@@ -13150,18 +13152,20 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   border-radius:22px !important; border:1px solid var(--tk-line) !important;
   background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg) !important;
   clip-path:inset(0 round 22px) !important;
-  width:360px !important; padding:0 16px 0 !important; gap:0 !important;
+  width:360px !important; padding:0 !important; gap:0 !important;
   display:flex !important; flex-direction:column; align-items:stretch;
 }
-/* 顶部大图铺满卡片：自身零圆角，由卡片的 clip-path 裁出上方两角 */
+/* 顶部大图铺满卡片：卡片 padding 全 0，hero 零圆角、零 margin，
+   靠 stretch 自然撑满，不依赖负 margin（Safari 会留缝） */
 :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-hero{
-  border-radius:0 !important; margin:0 -16px !important;
+  border-radius:0 !important; margin:0 !important;
+  width:100% !important;
   flex:0 0 202px !important; height:202px !important;
 }
 :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-cta{ border-radius:999px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-poster{ border-radius:7px !important; border:0 !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-poster img{
-  border:0 !important; border-radius:0 !important; box-shadow:none !important; filter:none !important;
+  border:0 !important; border-radius:0 !important; box-shadow:none !important;
 }
 /* 票根里的文字固定走主题色，别被复古主题 .memo-text 的米色 / 深色染色规则吃掉 */
 :is(#content#content, #mainScroll#mainScroll) .sc-movie :is(.sc-ticket-quote,.sc-ticket-k,.sc-ticket-v,.sc-ticket-foot-txt,.sc-ticket-cta,.sc-ticket-badge,.sc-title,.sc-ticket-hero-sub){
@@ -13200,9 +13204,10 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 :is(#content#content, #mainScroll#mainScroll) .sc-music .sc-lyric-line{ color:var(--mu-muted) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-music .sc-lyric-line.is-current{ color:var(--mu-accent) !important; }
 :is(#content#content, #mainScroll#mainScroll) :is(.sc-disc,.sc-ring,.sc-arm-head,.sc-play-badge,.sc-cover){ border-radius:50% !important; }
-/* 封面是 img，要额外压掉 #content img 的描边与直角，以及深色主题的图片降亮度 */
+/* 封面是 img，要额外压掉 #content img 的描边与直角；
+   filter 不再写 none，让它跟随全站深色主题的 brightness(.7) */
 :is(#content#content, #mainScroll#mainScroll) .sc-music .sc-cover{
-  border:0 !important; box-shadow:none !important; filter:none !important;
+  border:0 !important; box-shadow:none !important;
   border-radius:50% !important;
 }
 :is(#content#content, #mainScroll#mainScroll) .sc-arm-rod{ border-radius:calc(3px * var(--sc-u)) !important; }
@@ -13217,7 +13222,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster,
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster img{
-  border-radius:0 !important; border:0 !important; box-shadow:none !important; filter:none !important;
+  border-radius:0 !important; border:0 !important; box-shadow:none !important;
 }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-badge{ border-radius:6px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-thumb{ border-radius:8px !important; }
@@ -13239,6 +13244,18 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 :is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-cta,.sc-book-cta,.sc-music-cta){
   border-radius:999px !important;
   width:40px !important; height:40px !important; padding:0 !important;
+}
+
+/* ===== 深色主题：媒体卡片里的图片跟全站一起降亮度 =====
+   全站已有 `html:is([data-theme=dark],[data-theme=halloween]) .memo-card img{filter:brightness(.7)!important}`，
+   书卡封面 / 唱片封面 / 票根底部海报都是 <img>，去掉上面的 filter:none 覆盖后自动跟随。
+   票根顶部截图、书卡缩略图是 background-image 的 <span>，img 规则管不到，这里单独补；
+   音乐卡的整幅背景本身常驻 brightness(.72)，深色下再压到 .58 才看得出主题差异。 */
+html:is([data-theme="dark"],[data-theme="halloween"]) :is(#content#content,#mainScroll#mainScroll) :is(.sc-ticket-shot,.sc-book-thumb){
+  filter:brightness(.7) !important;
+}
+html:is([data-theme="dark"],[data-theme="halloween"]) :is(#content#content,#mainScroll#mainScroll) .sc-music-bg{
+  filter:blur(9px) brightness(.58) saturate(1.3) !important;
 }
 
 /* 主题：深色只提亮文字与框线，唱片配色保持原作的鼠尾草绿 / 深棕 / 米白 */
@@ -13328,15 +13345,16 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
   /* ===== 票根手机端：撑满内容区；凹口/虚线的垂直位置与 PC 保持一致 ===== */
   :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-movie{
     width:100% !important; max-width:none !important;
-    padding:0 14px 0 !important;
+    padding:0 !important;
     border-radius:20px !important;
     clip-path:inset(0 round 20px) !important;
   }
-  /* 手机端左右内边距是 14px，顶部大图的负 margin 同步收窄；高度仍 202px 保证凹口 214px */
-  :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-hero{ margin:0 -14px !important; }
-  :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-tear{ margin:0 -14px; }
+  /* 下半部票纸左右让出 14px；顶部大图仍由 stretch 撑满，零 margin / 零圆角 */
+  :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-hero{ margin:0 !important; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-quote{ margin:0 14px 16px; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-grid{ margin:0 14px; gap:12px; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-foot{ margin:0 14px; }
   :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-tear::before{ left:14px; right:14px; }
-  :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-grid{ gap:12px; }
 }
 @media (prefers-reduced-motion:reduce){
   .sc-card,.sc-card:hover{ transition:none; transform:none; }
