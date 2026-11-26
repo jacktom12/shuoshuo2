@@ -1272,7 +1272,8 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
     <div class="feed-scroll" id="feedScroll">
       <figure class="feed-banner hidden" id="feedBanner">
         <div class="banner-media">
-          <img src="banner.jpg" alt="夜色里的发光森林：紫色树影之间，一条青绿色小溪蜿蜒流过，萤火点点" decoding="async" onerror="this.closest('.feed-banner').classList.add('hidden')">
+          <img class="banner-art banner-art-dark" src="banner.jpg" alt="夜色里的发光森林：紫色树影之间，一条青绿色小溪蜿蜒流过，萤火点点" decoding="async" onerror="this.closest('.feed-banner').classList.add('hidden')">
+          <img class="banner-art banner-art-light" src="banner_light.png" alt="晨光里的森林溪流：绿树、粉紫花丛与洒落的光点" decoding="async" onerror="this.closest('.feed-banner').classList.add('hidden')">
         </div>
         <figcaption>
           <span class="banner-avatar" aria-hidden="true">
@@ -11169,7 +11170,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
 }
 #mainScroll#mainScroll .feed-banner .banner-media{
   position:absolute; inset:0; overflow:hidden;
-  transition:transform .8s cubic-bezier(.22,1,.36,1);
 }
 #mainScroll#mainScroll .feed-banner img{
   width:100%; height:100%; display:block;
@@ -11177,6 +11177,11 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
   transform:scale(1.06);
   animation:banner-drift 36s ease-in-out infinite alternate;
 }
+/* 两套明暗配图：默认浅色（与 :root 的 light 一致），深色主题切夜景 */
+#mainScroll#mainScroll .feed-banner .banner-art-light{ display:block; }
+#mainScroll#mainScroll .feed-banner .banner-art-dark{ display:none; }
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner .banner-art-light{ display:none; }
+html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner .banner-art-dark{ display:block; }
 /* 底部暗渐变托字 + 顶部一抹亮边 */
 #mainScroll#mainScroll .feed-banner::after{
   content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
@@ -11223,18 +11228,12 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
   box-shadow:0 2px 10px rgba(0,0,0,.42), 0 0 20px -2px color-mix(in srgb, var(--sp-accent) 62%, transparent) !important;
   transition:transform .5s cubic-bezier(.22,1,.36,1), box-shadow .3s ease, border-color .3s ease !important;
 }
-/* 悬停时圈和光晕跟着主题色亮一档 */
-#mainScroll#mainScroll .feed-banner:hover .banner-avatar{
-  border-color:#fff !important;
-  box-shadow:0 2px 12px rgba(0,0,0,.45), 0 0 26px -2px color-mix(in srgb, var(--sp-accent) 82%, transparent) !important;
-}
 #mainScroll#mainScroll .feed-banner .banner-avatar.hidden{ display:none !important; }
 #mainScroll#mainScroll .feed-banner .banner-avatar img{
   display:block !important; width:100% !important; height:100% !important;
   object-fit:cover !important; border-radius:50% !important;
   transform:none !important; animation:none !important;
 }
-#mainScroll#mainScroll .feed-banner:hover .banner-avatar{ transform:scale(1.04); }
 /* 右下角一颗小萤火（纯 CSS 四角星，不依赖图标字体） */
 #mainScroll#mainScroll .feed-banner .banner-mark{
   flex:0 0 auto; width:11px; height:11px; margin-bottom:3px;
@@ -11242,12 +11241,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
   clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);
   filter:drop-shadow(0 0 5px rgba(255,255,255,.65));
 }
-/* hover：一圈主题色柔光（不抬起不铺色块），画面微微推近，题句轻抬 */
-#mainScroll#mainScroll .feed-banner:hover{
-  box-shadow:var(--gl-float), 0 0 0 1px var(--gl-border), 0 0 36px -4px color-mix(in srgb, var(--sp-accent) 48%, transparent);
-}
-#mainScroll#mainScroll .feed-banner:hover .banner-media{ transform:scale(1.045); }
-#mainScroll#mainScroll .feed-banner:hover .banner-caption{ transform:translateY(-2px); }
 
 @keyframes banner-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
 @keyframes banner-drift{ from{transform:scale(1.06) translate(0,0);} to{transform:scale(1.10) translate(-1%,-1.5%);} }
@@ -11255,9 +11248,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
 /* 浅色：湖绿柔光收边，相纸感（题句白字压在暗图上，两套主题一致） */
 html[data-theme="light"] #mainScroll#mainScroll .feed-banner{
   box-shadow:var(--gl-float), 0 0 24px -6px rgba(23,99,90,.30);
-}
-html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
-  box-shadow:var(--gl-float), 0 0 0 1px var(--gl-border), 0 0 38px -4px rgba(23,99,90,.42);
 }
 
 /* 手机：跟说说列对齐（14px 框内留白），圆角收到图片同款 9px，画幅放高 */
@@ -11273,8 +11263,6 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover{
 @media (prefers-reduced-motion:reduce){
   #mainScroll#mainScroll .feed-banner{ animation:none; }
   #mainScroll#mainScroll .feed-banner img{ animation:none; transform:none; }
-  #mainScroll#mainScroll .feed-banner .banner-media{ transition:none; }
-  #mainScroll#mainScroll .feed-banner:hover .banner-media{ transform:none; }
 }
 </style>
 <style id="say-card-grid">
@@ -11946,10 +11934,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .fe
   border:1.5px solid rgba(206,178,255,.50)!important;
   box-shadow:0 2px 10px rgba(0,0,0,.45),0 0 20px -2px rgba(178,141,255,.68),inset 0 0 0 1px rgba(255,255,255,.05)!important;
 }
-html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner:hover .banner-avatar{
-  border-color:rgba(224,202,255,.74)!important;
-  box-shadow:0 2px 12px rgba(0,0,0,.45),0 0 26px -2px rgba(178,141,255,.82)!important;
-}
 html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .feed-banner .banner-line{
   color:#efe4ff!important;text-shadow:0 1px 12px rgba(12,4,28,.8)!important;
 }
@@ -11964,10 +11948,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]) #mainScroll#mainScroll .fe
 html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-avatar{
   border:2px solid rgba(255,250,238,.78)!important;
   box-shadow:0 2px 10px rgba(0,0,0,.40),0 0 18px -3px rgba(255,240,214,.50)!important;
-}
-html[data-theme="light"] #mainScroll#mainScroll .feed-banner:hover .banner-avatar{
-  border-color:rgba(255,252,244,.92)!important;
-  box-shadow:0 2px 12px rgba(0,0,0,.42),0 0 24px -3px rgba(255,240,214,.72)!important;
 }
 html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-line{
   color:#fff4de!important;text-shadow:0 1px 10px rgba(28,14,4,.66)!important;
