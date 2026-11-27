@@ -1608,6 +1608,7 @@ const MOCK_MEMOS = (() => {
   const now = Date.now();
   const day = 864e5;
   const items = [
+    { d: 0.046, tags: ['tag_dev'], c: `百度网盘资料包 · 文件清单\n\n整理的一批常用 PDF 和模板，百度网盘分享，打开完整链接就行；手机点按钮会拉起百度网盘，电脑上直接开网页。\n\n![文件列表](${mockImg('panlist')})\n\n{panfile:url=https://pan.baidu.com/s/1KqO0qVo2cDNBK_hKvZ584w?pwd=tbjh}` },
     { d: 0.045, tags: ['tag_dev'], c: `字体与图标素材包 · 文件清单\n\n整理好的字体与图标素材包，按目录分好了，直接打开就能看；手机点按钮会拉起夸克，电脑上直接开网页。\n\n![文件列表](${mockImg('panlist')})\n\n{panfile:url=https://pan.quark.cn/s/2a0705d402e9}` },
     { d: 0.04, tags: ['tag_read'], c: `最近重看了一遍，还是会被那种「乱世里的小人物命运」戳到。李炳宪演得真好，眼神里全是戏。\n\n{movies:id=27059183}\n\n{moviespan:url=https://pan.quark.cn/s/2a0705d402e9}\n\n配乐也绝，听一遍就忘不掉。\n\n![剧照](${mockImg('rain1')})` },
     { d: 0.03, tags: ['tag_music'], c: '深夜单曲循环。翻到《日不落》，前奏一响就想起好多年前的晚上。\n\n{music:id=\'209643\'}\n\n有些歌不用听懂歌词，氛围到了就够了。' },
@@ -1756,6 +1757,16 @@ function fmtDate(rawDate) {
   return s.length >= 16 ? s.slice(0, 16) : s;
 }
 
+// 一条文件说说只会有一个网盘 URL：按域名识别平台，卡片底部图标与文案跟着切换
+function scPanPlatform(url) {
+  try {
+    const host = new URL(String(url)).hostname.toLowerCase().replace(/^www\./, '');
+    if (/(^|\.)baidu\.com$/.test(host)) return { key: 'baidu', name: '百度网盘', icon: 'arcticons:baidu-netdisk' };
+    if (/(^|\.)quark\.cn$/.test(host)) return { key: 'quark', name: '夸克网盘', icon: 'arcticons:folder-cloud' };
+  } catch { /* 非法 URL 走下面的通用兜底 */ }
+  return { key: 'file', name: '网盘', icon: 'arcticons:folder-cloud' };
+}
+
 function parseContent(raw) {
   // 网盘资源 shortcode：{moviespan:url=https://pan.quark.cn/s/2a0705d402e9}
   // 它不是一张卡片，只是给同一条说说里的电影票根挂一个「网盘」跳转按钮，
@@ -1834,6 +1845,10 @@ function parseContent(raw) {
     const token = `\u0000SCPLACE${i}\u0000`;
     const label = { movie: '电影', music: '音乐', book: '图书', file: '网盘文件' }[c.type] || '条目';
     const icon = { movie: 'lucide:clapperboard', music: 'lucide:music-2', book: 'lucide:book-open', file: 'arcticons:folder-cloud' }[c.type] || 'lucide:link';
+    // 文件卡按 URL 域名切平台：左上角类型图标不变，底部缩略图图标 / 文案跟着换
+    const platform = c.type === 'file' ? scPanPlatform(c.url) : null;
+    const fileIcon = platform ? platform.icon : icon;
+    const platformName = platform ? platform.name : '';
     let cardInner;
     if (c.type === 'music') {
       // 音乐海报卡：模糊封面铺满整张卡 → 悬浮唱片 + 叠字 → 虚线 → 说说短评 → 动态歌词窗 → 详情
@@ -1854,16 +1869,15 @@ function parseContent(raw) {
         `<span class="sc-book-body"><span class="sc-book-quote">${escapeHtml(memoQuote) || '…'}</span></span>` +
         `<span class="sc-book-foot"><span class="sc-book-thumb"></span><span class="sc-book-meta"><span class="sc-book-app-row"><span class="sc-book-app">加载中…</span><span class="sc-book-badge">—</span></span><span class="sc-book-desc"></span></span><span class="sc-book-cta sc-cta" role="button" tabindex="0" aria-label="查看条目详情" title="查看条目详情"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
     } else if (c.type === 'file') {
-      // 网盘文件卡：整幅文件列表截图 + 说说标题/描述 + 透明详情按钮，视觉语言对齐影视票根
+      // 网盘文件卡：整幅文件列表截图 + 说说标题/描述 + 透明详情按钮，普通圆角卡不做票根
       cardInner =
         `<span class="sc-file-hero"><span class="sc-file-shot"></span>` +
           `<span class="sc-file-badge sc-corner" role="img" aria-label="网盘文件" title="网盘文件"><span class="iconify" data-icon="arcticons:folder-cloud"></span></span>` +
-          `<span class="sc-file-hero-txt"><span class="sc-title">${escapeHtml(fileTitle)}</span><span class="sc-file-hero-sub">夸克网盘 · 文件清单</span></span>` +
+          `<span class="sc-file-hero-txt"><span class="sc-title">${escapeHtml(fileTitle)}</span><span class="sc-file-hero-sub">${platformName} · 文件清单</span></span>` +
         `</span>` +
-        `<span class="sc-file-tear"></span>` +
         `<span class="sc-file-quote">${escapeHtml(fileDesc) || '…'}</span>` +
-        `<span class="sc-file-foot"><span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span>` +
-          `<span class="sc-file-foot-txt">夸克网盘 · 文件资源</span>` +
+        `<span class="sc-file-foot"><span class="sc-poster"><span class="iconify" data-icon="${fileIcon}"></span></span>` +
+          `<span class="sc-file-foot-txt">${platformName} · 文件资源</span>` +
           `<span class="sc-file-cta sc-cta" role="button" tabindex="0" aria-label="打开网盘文件" title="打开网盘文件"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
     } else {
       // 电影票根：顶部大图（说说里的截图）+ 叠字 → 虚线撕口 → 说说短评 → 电影信息 → 海报 + 详情
@@ -1891,8 +1905,9 @@ function parseContent(raw) {
     const shotAttr = c.type === 'movie' || c.type === 'file' ? ` data-sc-shot="${escapeHtml(images[0]?.url || '')}"` : '';
     const panAttr = c.type === 'movie' && panUrl ? ` data-sc-pan="${escapeHtml(panUrl)}"` : '';
     const urlAttr = c.type === 'file' ? ` data-sc-url="${escapeHtml(c.url)}"` : '';
+    const platformAttr = platform ? ` data-sc-platform="${platform.key}"` : '';
     const stubId = c.id || c.url || '';
-    const skeleton = `<span class="sc-card sc-${c.type} sc-loading" data-sc-type="${c.type}" data-sc-id="${escapeHtml(stubId)}"${shotAttr}${panAttr}${urlAttr} aria-label="${label}卡片，加载中">${cardInner}<span class="sc-stub">${label} · ${escapeHtml(stubId)}</span></span>`;
+    const skeleton = `<span class="sc-card sc-${c.type} sc-loading" data-sc-type="${c.type}" data-sc-id="${escapeHtml(stubId)}"${shotAttr}${panAttr}${urlAttr}${platformAttr} aria-label="${label}卡片，加载中">${cardInner}<span class="sc-stub">${label} · ${escapeHtml(stubId)}</span></span>`;
     html = html.split(token).join(skeleton);
   });
 
@@ -2106,7 +2121,8 @@ function scFillFile(card) {
   const shotEl = card.querySelector('.sc-file-shot');
   if (shotEl && shot) shotEl.style.backgroundImage = 'url("' + String(shot).replace(/["']/g, '') + '")';
   const title = card.querySelector('.sc-title')?.textContent || '网盘文件';
-  card.setAttribute('aria-label', `网盘文件：${title}，点击底部按钮打开夸克网盘`);
+  const platform = scPanPlatform(card.dataset.scUrl || '');
+  card.setAttribute('aria-label', `${platform.name}：${title}，点击底部按钮打开${platform.name}`);
 }
 
 function hydrateShortcodes(root = document) {
@@ -9326,10 +9342,12 @@ html:is([data-theme="dark"], [data-theme="halloween"]) .media-pager{ --pager-acc
 :root{
   --sp-bg:#f6f5f2;--sp-panel:#fffefb;--sp-ink:#232524;--sp-muted:#71736c;
   --sp-line:#dcdcd3;--sp-soft:#ecebe5;--sp-on-ink:#fffefb;--sp-accent:#7b2c6b;
+  --sc-corner-bg:rgba(255,255,255,.74);--sc-corner-line:rgba(35,37,36,.12);--sc-corner-shadow:0 1px 8px rgba(35,37,36,.10);
 }
 html:is([data-theme="dark"],[data-theme="halloween"]){
   --sp-bg:#140b22;--sp-panel:#1d1130;--sp-ink:#f6e9ff;--sp-muted:#a397a6;
   --sp-line:rgba(246,233,255,.24);--sp-soft:#26163f;--sp-on-ink:#180e2b;--sp-accent:#8be9ff;
+  --sc-corner-bg:rgba(22,16,30,.46);--sc-corner-line:rgba(246,233,255,.22);--sc-corner-shadow:0 1px 10px rgba(0,0,0,.28);
 }
 html,html:is([data-theme="light"],[data-theme="dark"],[data-theme="halloween"]) body{
   background-color:var(--sp-bg)!important;background-image:none!important;color:var(--sp-ink)!important;
@@ -12765,7 +12783,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   width:100%; max-width:520px; min-height:112px;
   margin:10px 0; padding:12px 16px 12px 12px;
   position:relative; cursor:pointer; user-select:none;
-  border:1px solid var(--sc-line); border-radius:14px;
+  border:1px solid var(--sc-line); border-radius:10px;
   background:rgba(171,196,170,.08);
   color:var(--color-base-content);
   font-family:var(--font-family, inherit); line-height:1.45; vertical-align:middle;
@@ -12810,9 +12828,10 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   position:absolute; left:0; top:0; z-index:4;
   width:42px; height:42px; padding:0;
   display:inline-flex; align-items:center; justify-content:center;
-  border:0; border-right:1px solid rgba(255,255,255,.26); border-bottom:1px solid rgba(255,255,255,.26);
-  border-radius:0 0 16px 0;
-  background:rgba(22,16,30,.38); color:#fff;
+  border:0; border-right:1px solid var(--sc-corner-line); border-bottom:1px solid var(--sc-corner-line);
+  border-radius:0 0 8px 0;
+  background:var(--sc-corner-bg); color:var(--sp-ink);
+  box-shadow:var(--sc-corner-shadow);
   -webkit-backdrop-filter:blur(9px) saturate(1.2); backdrop-filter:blur(9px) saturate(1.2);
 }
 .sc-corner .iconify{ font-size:23px; line-height:1; opacity:.96; }
@@ -12847,14 +12866,14 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   width:360px; max-width:100%; min-height:0; height:auto;
   display:flex; flex-direction:column; align-items:stretch; gap:0;
   margin:14px 0; padding:0; overflow:hidden;
-  border:1px solid var(--tk-line); border-radius:22px;
+  border:1px solid var(--tk-line); border-radius:10px;
   background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg);
   color:var(--tk-ink);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
   cursor:default;
   /* mask 的矩形图层会削平 border-radius，用 clip-path 补回圆角；
      mask 负责在左右撕口处挖出半圆，透出页面真实背景 */
-  clip-path:inset(0 round 22px);
+  clip-path:inset(0 round 10px);
   -webkit-mask:
     radial-gradient(circle 11px at 0 var(--tk-tear-h), transparent 98%, #000 100%) left / 51% 100% no-repeat,
     radial-gradient(circle 11px at 100% var(--tk-tear-h), transparent 98%, #000 100%) right / 51% 100% no-repeat;
@@ -12883,7 +12902,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,.04) 52%,rgba(0,0,0,.74) 100%);
 }
 /* 观影图标徽标：几何 / 玻璃质感走 .sc-corner，这里只定底色深浅 */
-.sc-ticket-badge{ background:rgba(18,12,26,.34); }
+.sc-ticket-badge{ background:var(--sc-corner-bg); }
 .sc-ticket-hero-txt{
   position:absolute; left:16px; right:16px; bottom:14px; z-index:3;
   display:flex; flex-direction:column; gap:4px;
@@ -12955,7 +12974,8 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 .sc-ticket-pan:hover{ opacity:1; }
 .sc-ticket-pan .iconify{ font-size:21px; }
 /* ===== 网盘文件：竖版文件卡 =====
-   跟影视票根同构：整幅截图 + 左上角图标 + 撕口虚线 + 说说描述 + 底部透明详情按钮。
+   整幅截图 + 左上角图标 + 说说描述 + 底部透明详情按钮。
+   不做票根：没有撕口 / 凹口 / 虚线，只保留圆角卡片和主题描边。
    截图来自说说第一张图；标题取正文首行、描述取其余正文；URL 来自 {panfile:url=...}。 */
 .sc-file{
   --tk-bg:var(--sp-bg,#fffefb);
@@ -12964,24 +12984,14 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   --tk-line:var(--sp-line,rgba(31,84,74,.18));
   --tk-accent:var(--sp-accent,#17635a);
   --tk-soft:var(--sp-soft,rgba(31,122,107,.10));
-  --tk-tear-h:214px;
   width:360px; max-width:100%; min-height:0; height:auto;
   display:flex; flex-direction:column; align-items:stretch; gap:0;
   margin:14px 0; padding:0; overflow:hidden;
-  border:1px solid var(--tk-line); border-radius:22px;
+  border:1px solid var(--tk-line); border-radius:10px;
   background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg);
   color:var(--tk-ink);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+  box-shadow:0 12px 30px -14px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.16);
   cursor:default;
-  clip-path:inset(0 round 22px);
-  -webkit-mask:
-    radial-gradient(circle 11px at 0 var(--tk-tear-h), transparent 98%, #000 100%) left / 51% 100% no-repeat,
-    radial-gradient(circle 11px at 100% var(--tk-tear-h), transparent 98%, #000 100%) right / 51% 100% no-repeat;
-  -webkit-mask-composite:source-over;
-  mask:
-    radial-gradient(circle 11px at 0 var(--tk-tear-h), transparent 98%, #000 100%) left / 51% 100% no-repeat,
-    radial-gradient(circle 11px at 100% var(--tk-tear-h), transparent 98%, #000 100%) right / 51% 100% no-repeat;
-  mask-composite:add;
 }
 .sc-file:hover{ transform:translateY(-3px); border-color:var(--tk-accent); }
 .sc-file-hero{
@@ -12996,7 +13006,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
   background:linear-gradient(180deg,rgba(0,0,0,.32) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,.04) 52%,rgba(0,0,0,.76) 100%);
 }
-.sc-file-badge{ background:rgba(18,12,26,.38); }
+.sc-file-badge{ background:var(--sc-corner-bg); }
 .sc-file-hero-txt{
   position:absolute; left:16px; right:16px; bottom:14px; z-index:3;
   display:flex; flex-direction:column; gap:4px;
@@ -13011,19 +13021,8 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   text-shadow:0 1px 6px rgba(0,0,0,.66);
 }
-.sc-file-tear{ position:relative; flex:0 0 24px; height:24px; margin:0; }
-.sc-file-tear::before{
-  content:""; position:absolute; left:16px; right:16px; top:50%;
-  border-top:1.5px dashed var(--tk-line);
-}
-.sc-file-tear::after{
-  content:""; position:absolute; inset:0; pointer-events:none; opacity:.65;
-  background:
-    radial-gradient(circle 16px at 0 50%, transparent 0 11px, var(--tk-accent) 11px 12.6px, transparent 13px),
-    radial-gradient(circle 16px at 100% 50%, transparent 0 11px, var(--tk-accent) 11px 12.6px, transparent 13px);
-}
 .sc-file-quote{
-  margin:0 16px 16px; padding:0 0 0 12px;
+  margin:16px 16px 12px; padding:0 0 0 12px;
   border-left:2px solid var(--tk-accent);
   font-size:.86rem; line-height:1.72; color:var(--tk-ink);
   display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
@@ -13031,7 +13030,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 }
 .sc-file-foot{
   display:flex; align-items:center; gap:10px;
-  margin:0 16px; padding:13px 0 15px; border-top:1.5px dashed var(--tk-line);
+  margin:0 16px; padding:12px 0 15px; border-top:1px solid var(--tk-line);
 }
 .sc-file .sc-poster{
   flex:0 0 42px; width:42px; height:42px; min-height:0;
@@ -13047,30 +13046,55 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 
 /* ===== 图书：竖版卡片（参考 App Store 推荐卡） =====
    大封面 + 左上角类型图标 + 渐变信息区 + 底部缩略图/书名评分/圆形详情按钮 */
+/* 书卡配色全部走 --bk-*：浅色是淡紫底深字，深色是深紫底浅字，不再写死一套颜色 */
 .sc-book{
-  --sc-accent:#c9a8ff; --sc-line:rgba(255,255,255,.24);
+  --bk-card:#f4eeff; --bk-hero:#e6dcf7;
+  --bk-body-a:#f4eeff; --bk-body-b:#e6dcf7; --bk-foot:#eee6fa;
+  --bk-ink:#3a2454; --bk-muted:#706080;
+  --bk-line:rgba(58,36,84,.14); --bk-line-strong:rgba(58,36,84,.22);
+  --bk-mark:rgba(123,44,107,.14);
+  --bk-veil-0:rgba(244,238,255,0); --bk-veil-1:rgba(244,238,255,.04);
+  --bk-veil-2:rgba(230,220,247,.32); --bk-veil-3:rgba(230,220,247,.80);
+  --bk-veil-4:#e6dcf7; --bk-veil-5:#eee6fa;
+  --bk-text-shadow:0 1px 5px rgba(255,255,255,.65);
+  --bk-shadow:0 12px 30px -12px rgba(74,43,115,.28);
+  --bk-shadow-hover:0 16px 36px -12px rgba(74,43,115,.34);
+  --sc-accent:var(--bk-ink); --sc-line:var(--bk-line-strong);
   width:240px; max-width:100%; min-height:0; height:auto;
   flex-direction:column; align-items:stretch; gap:0;
   margin:12px 0; padding:0; overflow:hidden;
-  border:1px solid rgba(255,255,255,.22); border-radius:20px;
-  background:#4a2b73; color:#fff;
-  box-shadow:0 12px 30px -12px rgba(0,0,0,.55);
+  border:1px solid var(--bk-line-strong); border-radius:10px;
+  background:var(--bk-card); color:var(--bk-ink);
+  box-shadow:var(--bk-shadow);
   cursor:default;
 }
-.sc-book:hover{
-  transform:translateY(-3px); background:#4a2b73;
-  border-color:rgba(255,255,255,.42);
-  box-shadow:0 16px 36px -12px rgba(0,0,0,.62);
+html:is([data-theme="dark"],[data-theme="halloween"]) .sc-book{
+  --bk-card:#3a2260; --bk-hero:#2b1943;
+  --bk-body-a:#55347f; --bk-body-b:#3a2260; --bk-foot:#43266e;
+  --bk-ink:#fff; --bk-muted:rgba(255,255,255,.72);
+  --bk-line:rgba(255,255,255,.16); --bk-line-strong:rgba(255,255,255,.24);
+  --bk-mark:rgba(43,25,67,.40);
+  --bk-veil-0:rgba(43,25,67,0); --bk-veil-1:rgba(43,25,67,.04);
+  --bk-veil-2:rgba(58,34,96,.32); --bk-veil-3:rgba(62,36,102,.80);
+  --bk-veil-4:#402568; --bk-veil-5:#43266e;
+  --bk-text-shadow:0 1px 5px rgba(0,0,0,.55);
+  --bk-shadow:0 12px 30px -12px rgba(0,0,0,.55);
+  --bk-shadow-hover:0 16px 36px -12px rgba(0,0,0,.62);
 }
-.sc-book-hero{ position:relative; height:190px; overflow:hidden; background:#2d1b45; flex:0 0 auto; }
-/* 封面下缘轻微溶进紫色信息区，避免图片和文案区之间出现硬切线 */
+.sc-book:hover{
+  transform:translateY(-3px); background:var(--bk-card);
+  border-color:var(--bk-line-strong);
+  box-shadow:var(--bk-shadow-hover);
+}
+.sc-book-hero{ position:relative; height:190px; overflow:hidden; background:var(--bk-hero); flex:0 0 auto; }
+/* 封面下缘轻微溶进信息区，避免图片和文案区之间出现硬切线 */
 .sc-book-hero::after{
   content:""; position:absolute; left:0; right:0; bottom:0; height:34px; z-index:2; pointer-events:none;
-  background:linear-gradient(to bottom, rgba(122,72,180,0), #7a48b4);
+  background:linear-gradient(to bottom, transparent, var(--bk-body-a));
 }
 .sc-book .sc-poster{
   position:absolute; inset:0; width:100%; height:100%; min-height:0; flex:none;
-  border-radius:0; border:0; overflow:hidden; background:#2d1b45;
+  border-radius:0; border:0; overflow:hidden; background:var(--bk-hero);
 }
 .sc-book .sc-poster img{
   width:100%; height:100%; object-fit:cover; object-position:center 22%;
@@ -13078,49 +13102,49 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 }
 .sc-book .sc-poster .iconify{ font-size:2.2rem; opacity:.4; }
 /* 图书类型图标徽标：与电影 / 音乐同款左上角切角玻璃 */
-.sc-book-mark{ background:rgba(43,25,67,.40); }
+.sc-book-mark{ background:var(--sc-corner-bg); }
 .sc-book-body{
   display:flex; flex-direction:column; gap:5px;
   padding:15px 16px 18px;
-  background:linear-gradient(160deg, #7a48b4, #4d2c7d);
+  background:linear-gradient(160deg, var(--bk-body-a), var(--bk-body-b));
 }
 /* 原来放书名/作者的位置，现在直接放「说说的内容」 */
 .sc-book-quote{
-  font-size:.82rem; line-height:1.6; color:#fff; opacity:.94;
+  font-size:.82rem; line-height:1.6; color:var(--bk-ink); opacity:.94;
   display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden;
   word-break:break-word;
-  padding-left:10px; border-left:2px solid rgba(255,255,255,.38);
+  padding-left:10px; border-left:2px solid var(--bk-line-strong);
 }
 .sc-book-foot{
   display:flex; align-items:center; gap:10px;
-  padding:12px 14px; background:#43266e;
-  border-top:1px solid rgba(255,255,255,.16);
+  padding:12px 14px; background:var(--bk-foot);
+  border-top:1px solid var(--bk-line);
 }
 .sc-book-thumb{
   flex:0 0 34px; width:34px; height:34px; border-radius:8px;
-  background:#6b4a95 center/cover no-repeat;
+  background:var(--bk-mark) center/cover no-repeat;
 }
 .sc-book-meta{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
 /* 书名与评分同排：书名可省略，评分 chip 不换行、不被挤掉 */
 .sc-book-app-row{ display:flex; align-items:center; gap:6px; min-width:0; }
 .sc-book-app{
   flex:1 1 auto; min-width:0;
-  font-size:.78rem; font-weight:700; color:#fff;
+  font-size:.78rem; font-weight:700; color:var(--bk-ink);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .sc-book-badge{
   flex:0 0 auto;
   padding:2px 6px; border-radius:6px;
-  background:rgba(255,255,255,.18); color:#fff;
+  background:var(--bk-mark); color:var(--bk-ink);
   font:700 .66rem/1.3 var(--font-num, monospace); letter-spacing:.02em;
   white-space:nowrap;
 }
 .sc-book-desc{
-  display:block; font-size:.7rem; color:rgba(255,255,255,.72);
+  display:block; font-size:.7rem; color:var(--bk-muted);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.sc-book-cta{ color:#fff; }
-.sc-book:hover .sc-book-cta{ background:rgba(255,255,255,.10); }
+.sc-book-cta{ color:var(--bk-ink); }
+.sc-book:hover .sc-book-cta{ background:var(--bk-mark); }
 
 /* ===== 音乐：整幅封面海报 + 悬浮唱片 + 动态歌词窗 =====
    封面放大模糊铺满整张卡并渐隐到主题票纸色，唱片、歌名、说说、歌词、查看
@@ -13139,7 +13163,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   display:flex; flex-direction:column; align-items:stretch; gap:0;
   position:relative; isolation:isolate; overflow:hidden;
   margin:14px 0; padding:0;
-  border:1px solid var(--mu-line); border-radius:22px;
+  border:1px solid var(--mu-line); border-radius:10px;
   background:var(--mu-bg); color:var(--mu-ink);
   cursor:default;
 }
@@ -13170,7 +13194,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   padding:14px 16px 16px;
 }
 /* 听歌图标居中，右下角三根均衡器条只在播放时亮起并跳动，代替原来的「正在播放」文字 */
-.sc-music-badge{ background:rgba(20,12,30,.42); }
+.sc-music-badge{ background:var(--sc-corner-bg); }
 .sc-music-eq{
   position:absolute; right:5px; bottom:4px;
   display:inline-flex; align-items:flex-end; gap:2px; height:7px;
@@ -13318,12 +13342,12 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
    `#mainScroll #content * { border-radius:0 !important }` 和
    `#content img { border:2px solid … !important }`，会把任何新组件的圆角清零、
    给图片强加描边。这里用两位 id 的选择器把它们顶回去，且放在全站样式最后。 */
-:is(#content#content, #mainScroll#mainScroll) .sc-card{ border-radius:14px !important; border:1px solid var(--sc-line) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-card{ border-radius:10px !important; border:1px solid var(--sc-line) !important; }
 /* 票根：压过全站直角化、.sc-card 的统一 14px 圆角，以及深色主题对 .sc-card 的背景覆盖 */
 :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-movie{
-  border-radius:22px !important; border:1px solid var(--tk-line) !important;
+  border-radius:10px !important; border:1px solid var(--tk-line) !important;
   background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg) !important;
-  clip-path:inset(0 round 22px) !important;
+  clip-path:inset(0 round 10px) !important;
   width:360px !important; padding:0 !important; gap:0 !important;
   display:flex !important; flex-direction:column; align-items:stretch;
 }
@@ -13346,14 +13370,14 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 :is(#content#content, #mainScroll#mainScroll) .sc-movie :is(.sc-ticket-quote,.sc-ticket-v){ color:var(--tk-ink) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-movie :is(.sc-ticket-k,.sc-ticket-foot-txt){ color:var(--tk-muted) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-cta{ color:var(--tk-accent) !important; }
-:is(#content#content, #mainScroll#mainScroll) .sc-movie :is(.sc-title,.sc-ticket-hero-sub,.sc-ticket-badge){ color:#fff !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-movie :is(.sc-title,.sc-ticket-hero-sub){ color:#fff !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-badge{ color:var(--sp-ink) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-poster{ border-radius:8px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-poster img{ border:0 !important; box-shadow:none !important; border-radius:8px !important; }
-/* 文件卡：跟票根同口径压过全站直角化 / 统一 14px 圆角 / 深色背景覆盖 */
+/* 文件卡：压过全站直角化 / 统一 14px 圆角 / 深色背景覆盖（普通圆角卡，不做票根裁切） */
 :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-file{
-  border-radius:22px !important; border:1px solid var(--tk-line) !important;
+  border-radius:10px !important; border:1px solid var(--tk-line) !important;
   background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg) !important;
-  clip-path:inset(0 round 22px) !important;
   width:360px !important; padding:0 !important; gap:0 !important;
   display:flex !important; flex-direction:column; align-items:stretch;
 }
@@ -13369,10 +13393,11 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-quote{ color:var(--tk-ink) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-foot-txt{ color:var(--tk-muted) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-cta{ color:var(--tk-accent) !important; }
-:is(#content#content, #mainScroll#mainScroll) .sc-file :is(.sc-title,.sc-file-hero-sub,.sc-file-badge){ color:#fff !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-file :is(.sc-title,.sc-file-hero-sub){ color:#fff !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-badge{ color:var(--sp-ink) !important; }
 /* 音乐海报卡：压过全站直角化 / .sc-card 统一 14px 圆角 / 深色主题的背景覆盖 */
 :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-music{
-  border-radius:22px !important; border:1px solid var(--mu-line) !important;
+  border-radius:10px !important; border:1px solid var(--mu-line) !important;
   background:var(--mu-bg) !important;
   width:360px !important; padding:0 !important; gap:0 !important;
   display:flex !important; flex-direction:column; align-items:stretch;
@@ -13389,7 +13414,8 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 :is(#content#content, #mainScroll#mainScroll) .sc-music :is(.sc-music-quote,.sc-music-foot-txt,.sc-music-badge,.sc-music-cta,.sc-title,.sc-sub,.sc-lyric-line,.sc-lyric-empty){
   -webkit-text-fill-color:currentColor !important;
 }
-:is(#content#content, #mainScroll#mainScroll) .sc-music :is(.sc-title,.sc-music-badge){ color:#fff !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-music .sc-title{ color:#fff !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-music .sc-music-badge{ color:var(--sp-ink) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-music .sc-sub{ color:rgba(255,255,255,.92) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-music .sc-music-quote{ color:var(--mu-ink) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-music :is(.sc-music-foot-txt,.sc-lyric-empty){ color:var(--mu-muted) !important; }
@@ -13410,7 +13436,7 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 
 /* 书本竖版卡：压过全站直角化 / #content img 描边 / 窄屏 100% 宽 */
 :is(#content#content, #mainScroll#mainScroll) .sc-book{
-  border-radius:20px !important; border:1px solid rgba(255,255,255,.22) !important;
+  border-radius:10px !important; border:1px solid var(--bk-line-strong) !important;
   width:240px !important;
 }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster,
@@ -13420,19 +13446,23 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-badge{ border-radius:6px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-thumb{ border-radius:8px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-cta{ border-radius:999px !important; }
-/* 紫色卡片里的文字固定浅色，别被主题切换 / .memo-text 的正文色染成深灰 */
+/* 书卡文字固定走 --bk-*，浅色主题深字 / 深色主题浅字，别被 .memo-text 染色 */
 :is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-badge,.sc-book-mark,.sc-book-quote,.sc-book-app,.sc-book-desc,.sc-book-cta){
   -webkit-text-fill-color:currentColor !important;
 }
-:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-badge,.sc-book-mark,.sc-book-quote,.sc-book-app,.sc-book-cta){ color:#fff !important; }
-:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-desc{ color:rgba(255,255,255,.72) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-badge,.sc-book-mark,.sc-book-quote,.sc-book-app,.sc-book-cta){ color:var(--bk-ink) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-desc{ color:var(--bk-muted) !important; }
 
 /* 左上角图标徽标 / 圆形详情按钮：统一压过全站 border-radius:0 !important，
    并固定尺寸，避免主题里的通用 span / button 规则把图标撑成长条 */
 :is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-badge,.sc-book-mark,.sc-music-badge,.sc-file-badge){
-  border-radius:0 0 16px 0 !important;
+  border-radius:0 0 8px 0 !important;
   width:42px !important; height:42px !important; padding:0 !important;
-  color:#fff !important; -webkit-text-fill-color:currentColor !important;
+  color:var(--sp-ink) !important; -webkit-text-fill-color:currentColor !important;
+}
+/* 书卡角标跟随书卡主题色，浅色下别再用白图标 */
+:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-mark{
+  color:var(--bk-ink) !important; -webkit-text-fill-color:currentColor !important;
 }
 :is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-cta,.sc-ticket-pan,.sc-book-cta,.sc-music-cta,.sc-file-cta){
   border-radius:999px !important;
@@ -13467,7 +13497,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
   .sc-sub{ font-size:.74rem; }
   :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-music{
     width:100% !important; max-width:none !important;
-    border-radius:20px !important;
+    border-radius:8px !important;
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-music .sc-lyrics{ height:84px; margin:0 14px 12px; }
   :is(#content#content, #mainScroll#mainScroll) .sc-music .sc-music-quote{ margin:0 14px 12px; }
@@ -13483,14 +13513,14 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
     height:340px; min-height:0; margin:14px 0;
     padding:0 !important; gap:0;
     display:flex !important; flex-direction:column; align-items:stretch;
-    border-radius:22px !important; border:1px solid rgba(255,255,255,.22) !important;
-    background:linear-gradient(180deg,#2b1943 0%,#3a2260 46%,#43266e 100%) !important;
-    box-shadow:0 14px 32px -14px rgba(0,0,0,.6);
+    border-radius:8px !important; border:1px solid var(--bk-line-strong) !important;
+    background:var(--bk-card) !important;
+    box-shadow:var(--bk-shadow-hover);
     isolation:isolate;
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-hero{
     position:absolute; inset:0; z-index:0; height:100% !important;
-    background:#2b1943;
+    background:var(--bk-hero);
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster{
     position:absolute; inset:0; width:100% !important; height:100% !important;
@@ -13503,12 +13533,12 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-hero::after{
     height:100% !important;
     background:linear-gradient(180deg,
-      rgba(43,25,67,0) 0%,
-      rgba(43,25,67,.04) 28%,
-      rgba(58,34,96,.32) 46%,
-      rgba(62,36,102,.80) 62%,
-      #402568 78%,
-      #43266e 100%) !important;
+      var(--bk-veil-0) 0%,
+      var(--bk-veil-1) 28%,
+      var(--bk-veil-2) 46%,
+      var(--bk-veil-3) 62%,
+      var(--bk-veil-4) 78%,
+      var(--bk-veil-5) 100%) !important;
   }
   /* 左上角图标要浮在整幅封面和紫色雾之上 */
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-mark{ z-index:4; }
@@ -13518,7 +13548,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-quote{
     font-size:.84rem; line-height:1.62; -webkit-line-clamp:3;
-    text-shadow:0 1px 5px rgba(0,0,0,.55);
+    text-shadow:var(--bk-text-shadow);
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-foot{
     position:relative; z-index:3; background:transparent;
@@ -13527,24 +13557,24 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
   /* 整张卡已经是封面，底部小缩略图在窄屏里是冗余，去掉让书名/作者更舒展 */
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-thumb{ display:none; }
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-app{
-    font-size:.88rem; text-shadow:0 1px 5px rgba(0,0,0,.55);
+    font-size:.88rem; text-shadow:var(--bk-text-shadow);
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-desc{
-    font-size:.72rem; text-shadow:0 1px 5px rgba(0,0,0,.55);
+    font-size:.72rem; text-shadow:var(--bk-text-shadow);
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-cta{
     background:transparent;
     -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
   }
-  /* 手机端书卡圆角更大，左上角徽标跟着卡片一起被裁 */
-  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-mark{ border-radius:0 0 18px 0 !important; }
+  /* 手机端书卡左上角徽标跟着卡片圆角一起被裁 */
+  :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-mark{ border-radius:0 0 8px 0 !important; }
 
   /* ===== 票根手机端：撑满内容区；凹口/虚线的垂直位置与 PC 保持一致 ===== */
   :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-movie{
     width:100% !important; max-width:none !important;
     padding:0 !important;
-    border-radius:20px !important;
-    clip-path:inset(0 round 20px) !important;
+    border-radius:8px !important;
+    clip-path:inset(0 round 8px) !important;
   }
   /* 下半部票纸左右让出 14px；顶部大图仍由 stretch 撑满，零 margin / 零圆角 */
   :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-hero{ margin:0 !important; }
@@ -13553,17 +13583,15 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
   :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-foot{ margin:0 14px; }
   :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-tear::before{ left:14px; right:14px; }
 
-  /* ===== 文件卡手机端：撑满内容区；凹口 / 虚线位置与 PC 保持一致 ===== */
+  /* ===== 文件卡手机端：撑满内容区，普通圆角卡，不做票根裁切 ===== */
   :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-file{
     width:100% !important; max-width:none !important;
     padding:0 !important;
-    border-radius:20px !important;
-    clip-path:inset(0 round 20px) !important;
+    border-radius:8px !important;
   }
   :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-hero{ margin:0 !important; }
-  :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-quote{ margin:0 14px 16px; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-quote{ margin:14px 14px 12px; }
   :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-foot{ margin:0 14px; }
-  :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-tear::before{ left:14px; right:14px; }
 }
 @media (prefers-reduced-motion:reduce){
   .sc-card,.sc-card:hover{ transition:none; transform:none; }
