@@ -1864,10 +1864,10 @@ function parseContent(raw) {
         `<span class="sc-lyrics"></span>` +
         `<span class="sc-music-foot"><span class="sc-music-foot-txt">♪ 网易云音乐</span><span class="sc-music-cta sc-cta" role="button" tabindex="0" aria-label="查看歌曲条目" title="查看歌曲条目"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
     } else if (c.type === 'book') {
-      // 左上角类型图标；中部说说正文；底部书名（右侧挂评分）/ 作者 + 圆形图标详情按钮
+      // 左上角类型图标；中部说说正文；底部书名 / 作者 + 圆形图标详情按钮
       cardInner = `<span class="sc-book-hero"><span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span><span class="sc-book-mark sc-corner" role="img" aria-label="图书" title="图书"><span class="iconify" data-icon="bxs:book"></span></span></span>` +
         `<span class="sc-book-body"><span class="sc-book-quote">${escapeHtml(memoQuote) || '…'}</span></span>` +
-        `<span class="sc-book-foot"><span class="sc-book-thumb"></span><span class="sc-book-meta"><span class="sc-book-app-row"><span class="sc-book-app">加载中…</span><span class="sc-book-badge">—</span></span><span class="sc-book-desc"></span></span><span class="sc-book-cta sc-cta" role="button" tabindex="0" aria-label="查看条目详情" title="查看条目详情"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
+        `<span class="sc-book-foot"><span class="sc-book-thumb"></span><span class="sc-book-meta"><span class="sc-book-app-row"><span class="sc-book-app">加载中…</span></span><span class="sc-book-desc"></span></span><span class="sc-book-cta sc-cta" role="button" tabindex="0" aria-label="查看条目详情" title="查看条目详情"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
     } else if (c.type === 'file') {
       // 网盘文件卡：整幅文件列表截图 + 说说标题/描述 + 透明详情按钮，普通圆角卡不做票根
       cardInner =
@@ -2061,9 +2061,6 @@ function scFill(card, data) {
     const score = parseFloat(data.rating).toFixed(1);
     const kicker = card.querySelector('.sc-kicker');
     if (kicker) kicker.innerHTML = '<span class="sc-star">★</span> ' + score;
-    // 书本评分跟在书名右侧（左上角已改成类型图标）
-    const badge = card.querySelector('.sc-book-badge');
-    if (badge) badge.textContent = '★ ' + score;
   }
   // 音乐卡：封面当唱片盘面（点击后旋转），播放按钮叠在封面中心
   if (card.dataset.scType === 'music' && poster) {
@@ -13116,28 +13113,21 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-book{
   padding-left:10px; border-left:2px solid var(--bk-line-strong);
 }
 .sc-book-foot{
-  display:flex; align-items:center; gap:10px;
-  padding:12px 14px; background:var(--bk-foot);
+  display:flex; align-items:center; gap:8px;
+  padding:12px 12px; background:var(--bk-foot);
   border-top:1px solid var(--bk-line);
 }
 .sc-book-thumb{
-  flex:0 0 34px; width:34px; height:34px; border-radius:8px;
+  flex:0 0 28px; width:28px; height:28px; border-radius:8px;
   background:var(--bk-mark) center/cover no-repeat;
 }
 .sc-book-meta{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
-/* 书名与评分同排：书名可省略，评分 chip 不换行、不被挤掉 */
+/* 书名独占整行：去掉评分 chip，长书名可以完整省略显示 */
 .sc-book-app-row{ display:flex; align-items:center; gap:6px; min-width:0; }
 .sc-book-app{
   flex:1 1 auto; min-width:0;
   font-size:.78rem; font-weight:700; color:var(--bk-ink);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.sc-book-badge{
-  flex:0 0 auto;
-  padding:2px 6px; border-radius:6px;
-  background:var(--bk-mark); color:var(--bk-ink);
-  font:700 .66rem/1.3 var(--font-num, monospace); letter-spacing:.02em;
-  white-space:nowrap;
 }
 .sc-book-desc{
   display:block; font-size:.7rem; color:var(--bk-muted);
@@ -13443,14 +13433,13 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-book{
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-poster img{
   border-radius:0 !important; border:0 !important; box-shadow:none !important;
 }
-:is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-badge{ border-radius:6px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-thumb{ border-radius:8px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-cta{ border-radius:999px !important; }
 /* 书卡文字固定走 --bk-*，浅色主题深字 / 深色主题浅字，别被 .memo-text 染色 */
-:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-badge,.sc-book-mark,.sc-book-quote,.sc-book-app,.sc-book-desc,.sc-book-cta){
+:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-mark,.sc-book-quote,.sc-book-app,.sc-book-desc,.sc-book-cta){
   -webkit-text-fill-color:currentColor !important;
 }
-:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-badge,.sc-book-mark,.sc-book-quote,.sc-book-app,.sc-book-cta){ color:var(--bk-ink) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-book :is(.sc-book-mark,.sc-book-quote,.sc-book-app,.sc-book-cta){ color:var(--bk-ink) !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-book .sc-book-desc{ color:var(--bk-muted) !important; }
 
 /* 左上角图标徽标 / 圆形详情按钮：统一压过全站 border-radius:0 !important，
