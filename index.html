@@ -1608,7 +1608,7 @@ const MOCK_MEMOS = (() => {
   const now = Date.now();
   const day = 864e5;
   const items = [
-    { d: 0.04, tags: ['tag_read'], c: `最近重看了一遍，还是会被那种「乱世里的小人物命运」戳到。李炳宪演得真好，眼神里全是戏。\n\n{movies:id=27059183}\n\n配乐也绝，听一遍就忘不掉。\n\n![剧照](${mockImg('rain1')})` },
+    { d: 0.04, tags: ['tag_read'], c: `最近重看了一遍，还是会被那种「乱世里的小人物命运」戳到。李炳宪演得真好，眼神里全是戏。\n\n{movies:id=27059183}\n\n{moviespan:url=https://pan.quark.cn/s/2a0705d402e9}\n\n配乐也绝，听一遍就忘不掉。\n\n![剧照](${mockImg('rain1')})` },
     { d: 0.03, tags: ['tag_music'], c: '深夜单曲循环。翻到《日不落》，前奏一响就想起好多年前的晚上。\n\n{music:id=\'209643\'}\n\n有些歌不用听懂歌词，氛围到了就够了。' },
     { d: 0.02, tags: ['tag_read'], c: '翻完《志怪》，佐野诚子写的是六朝那些奇奇怪怪的小故事，短短一篇却有余味。\n\n{book:id=\'38521378\'}\n\n睡前读一两则，挺好。' },
     { d: 0.1, tags: ['tag_daily','tag_photo'], c: `傍晚在江边散步，风很大，云烧起来了。\n\n![晚霞](${mockImg('sunset1')})\n![](${mockImg('sunset2')})` },
@@ -1756,7 +1756,14 @@ function fmtDate(rawDate) {
 }
 
 function parseContent(raw) {
-  const content = String(raw || '');
+  // 网盘资源 shortcode：{moviespan:url=https://pan.quark.cn/s/2a0705d402e9}
+  // 它不是一张卡片，只是给同一条说说里的电影票根挂一个「网盘」跳转按钮，
+  // 所以先从正文里摘掉（既不渲染成文字，也不会混进卡片里的短评），URL 存在卡片骨架上。
+  let panUrl = '';
+  const content = String(raw || '').replace(
+    /\{\s*moviespan\s*:\s*url\s*=\s*['"]?([^\s'"}]+)['"]?\s*\}/gi,
+    (m, u) => { if (!panUrl) panUrl = u.trim(); return '\n'; }
+  );
   const images = [];
   const imgRe = /!\[([^\]]*)\]\(\s*(https?:[^)\s]+?)\s*\)|(https?:\/\/[^\s<>"']+?\.(?:png|jpe?g|gif|webp|avif|bmp)(?:\?[^\s<>"']*)?)|<img[^>]+?src=["']([^"']+)["'][^>]*>/gi;
   const text = content.replace(imgRe, (m, alt, mdUrl, bareUrl, htmlUrl) => {
@@ -1766,6 +1773,7 @@ function parseContent(raw) {
   });
 
   // Shortcode 卡片：{movies:id=27059183} / {music:id='1344618077'} / {book:id='38521378'}
+  // 另有 {moviespan:url=...} 只在电影票根上挂一个网盘按钮，已在上面摘除、不是卡片。
   // 先抽成占位符，避免被 marked 当普通文本转义；渲染后再由 hydrateShortcodes 填充。
   const cards = [];
   const scRe = /\{(movies|movie|music|book)\s*:\s*id\s*=\s*['"]?(\d{1,20})['"]?\s*\}/gi;
@@ -1839,6 +1847,10 @@ function parseContent(raw) {
       const ticketCells = ['评分', '年份', '地区', '类型', '导演', '主演']
         .map(k => `<span class="sc-ticket-cell"><span class="sc-ticket-k">${k}</span><span class="sc-ticket-v">—</span></span>`)
         .join('');
+      // 有网盘资源才渲染按钮；跟详情按钮同款透明圆钮，紧挨在它左边
+      const panBtn = panUrl
+        ? `<span class="sc-ticket-pan sc-cta" role="button" tabindex="0" aria-label="打开网盘资源" title="打开网盘资源"><span class="iconify" data-icon="streamline-freehand-color:cloud-storage-drive"></span></span>`
+        : '';
       cardInner =
         `<span class="sc-ticket-hero"><span class="sc-ticket-shot"></span>` +
           `<span class="sc-ticket-badge sc-corner" role="img" aria-label="观影" title="观影"><span class="iconify" data-icon="arcticons:movie-creator"></span></span>` +
@@ -1847,13 +1859,15 @@ function parseContent(raw) {
         `<span class="sc-ticket-quote">${escapeHtml(memoQuote) || '…'}</span>` +
         `<span class="sc-ticket-grid">${ticketCells}</span>` +
         `<span class="sc-ticket-foot"><span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span>` +
-          `<span class="sc-ticket-foot-txt">豆瓣电影 · 条目详情</span>` +
+          `<span class="sc-ticket-foot-txt"></span>` +
+          panBtn +
           `<span class="sc-ticket-cta sc-cta" role="button" tabindex="0" aria-label="查看电影条目" title="查看电影条目"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
     }
     // 三类卡片都只有底部详情按钮是跳转入口 / 焦点入口，卡片本身不进 Tab 序列
     // 电影票根顶部大图：先用正文里的第一张图，生产数据在附件数组里，由 memoCard 的 data-shot 补足
     const shotAttr = c.type === 'movie' ? ` data-sc-shot="${escapeHtml(images[0]?.url || '')}"` : '';
-    const skeleton = `<span class="sc-card sc-${c.type} sc-loading" data-sc-type="${c.type}" data-sc-id="${c.id}"${shotAttr} aria-label="${label}卡片，加载中">${cardInner}<span class="sc-stub">${label} · ${c.id}</span></span>`;
+    const panAttr = c.type === 'movie' && panUrl ? ` data-sc-pan="${escapeHtml(panUrl)}"` : '';
+    const skeleton = `<span class="sc-card sc-${c.type} sc-loading" data-sc-type="${c.type}" data-sc-id="${c.id}"${shotAttr}${panAttr} aria-label="${label}卡片，加载中">${cardInner}<span class="sc-stub">${label} · ${c.id}</span></span>`;
     html = html.split(token).join(skeleton);
   });
 
@@ -1862,6 +1876,7 @@ function parseContent(raw) {
 
 /* ============================================================
    Shortcode 卡片：{movies:id=xxx} / {music:id='xxx'} / {book:id='xxx'}
+   附加资源：{moviespan:url=xxx} → 电影票根底部多一个网盘按钮（不拉元数据）
    占位骨架由 parseContent 生成，这里统一拉 worker 元数据填充；
    用 MutationObserver 兜住所有渲染入口（列表/详情/搜索），不用逐个改调用点。
    ============================================================ */
@@ -2046,8 +2061,10 @@ function scFill(card, data) {
     scLoadLyrics(card.dataset.scId).then(lines => scRenderLyrics(card, lines));
   }
   const label = { movie: '电影', music: '音乐', book: '图书' }[card.dataset.scType] || '条目';
-  const ctaLabel = card.querySelector('.sc-book-cta, .sc-ticket-cta, .sc-music-cta')
-    ? '点击底部详情按钮打开详情' : '点击打开详情';
+  const ctaLabel = card.querySelector('.sc-ticket-pan')
+    ? '点击底部按钮查看详情或打开网盘资源'
+    : card.querySelector('.sc-book-cta, .sc-ticket-cta, .sc-music-cta')
+      ? '点击底部详情按钮打开详情' : '点击打开详情';
   card.setAttribute('aria-label', `${label}：${data.title}，${ctaLabel}`);
   card._scData = data;
   card.href = scLaunchUrl(data);
@@ -2067,9 +2084,18 @@ function hydrateShortcodes(root = document) {
 document.addEventListener('click', e => {
   // 唱片机上的播放按钮只触发播放，不跳转
   if (e.target.closest('.sc-play')) return;
+  // 网盘资源按钮：URL 直接来自 shortcode 骨架，不依赖 worker 元数据是否加载完成；
+  // 跟详情按钮一样新开页面，手机上由夸克的 Universal Link 自行决定拉起 APP
+  const pan = e.target.closest('.sc-ticket-pan');
+  if (pan) {
+    e.preventDefault();
+    const url = pan.closest('.sc-card')?.dataset.scPan;
+    if (url && /^https?:\/\//i.test(url)) window.open(url, '_blank', 'noopener');
+    return;
+  }
   const card = e.target.closest('.sc-card');
   if (!card || !card._scData) return;
-  // 书卡 / 电影票根 / 音乐海报卡只有底部「查看」是跳转入口：点封面 / 唱片 / 说说正文不跳转
+  // 书卡 / 电影票根 / 音乐海报卡只有底部按钮是跳转入口：点封面 / 唱片 / 说说正文不跳转
   if (card.matches('.sc-book, .sc-movie, .sc-music') && !e.target.closest('.sc-book-cta, .sc-ticket-cta, .sc-music-cta')) return;
   e.preventDefault();
   const url = scLaunchUrl(card._scData);
@@ -2080,6 +2106,9 @@ document.addEventListener('keydown', e => {
   const card = e.target.closest && e.target.closest('.sc-card');
   if (!card) return;
   e.preventDefault();
+  // 焦点已经在某个按钮上时触发那个按钮（否则按 Enter 打开网盘会被误转发到详情按钮）
+  const hit = e.target.closest('.sc-book-cta, .sc-ticket-cta, .sc-music-cta, .sc-ticket-pan');
+  if (hit) { hit.click(); return; }
   const cta = card.matches('.sc-book, .sc-movie, .sc-music')
     ? card.querySelector('.sc-book-cta, .sc-ticket-cta, .sc-music-cta') : null;
   (cta || card).click();
@@ -12856,9 +12885,10 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   font-size:.84rem; font-weight:700; color:var(--tk-ink);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-/* 底部：电影海报缩略图 + 圆形详情按钮 */
+/* 底部：电影海报缩略图 + 网盘按钮 + 圆形详情按钮
+   原来的「豆瓣电影 · 条目详情」文字已去掉，空间让给网盘图标，两个按钮并排靠右 */
 .sc-ticket-foot{
-  display:flex; align-items:center; gap:12px;
+  display:flex; align-items:center; gap:10px;
   margin:0 16px; padding:13px 0 15px; border-top:1.5px dashed var(--tk-line);
 }
 .sc-movie .sc-poster{
@@ -12868,11 +12898,15 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 }
 .sc-movie .sc-poster img{ width:100%; height:100%; object-fit:cover; border-radius:0; border:0; }
 .sc-movie .sc-poster .iconify{ font-size:1.2rem; opacity:.5; }
-.sc-ticket-foot-txt{
-  flex:1 1 auto; min-width:0; font-size:.72rem; color:var(--tk-muted);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
+/* 只作弹性占位，不再放文字 */
+.sc-ticket-foot-txt{ flex:1 1 auto; min-width:0; }
 .sc-ticket-cta{ color:var(--tk-accent); }
+/* 网盘资源按钮：沿用透明圆钮，描边改成更中性的票纸线，让彩色图标自己唱主角 */
+.sc-ticket-pan{
+  color:var(--tk-accent); box-shadow:inset 0 0 0 1px var(--tk-line); opacity:.9;
+}
+.sc-ticket-pan:hover{ opacity:1; }
+.sc-ticket-pan .iconify{ font-size:21px; }
 /* ===== 图书：竖版卡片（参考 App Store 推荐卡） =====
    大封面 + 左上角类型图标 + 渐变信息区 + 底部缩略图/书名评分/圆形详情按钮 */
 .sc-book{
@@ -13241,9 +13275,13 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
   width:42px !important; height:42px !important; padding:0 !important;
   color:#fff !important; -webkit-text-fill-color:currentColor !important;
 }
-:is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-cta,.sc-book-cta,.sc-music-cta){
+:is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-cta,.sc-ticket-pan,.sc-book-cta,.sc-music-cta){
   border-radius:999px !important;
   width:40px !important; height:40px !important; padding:0 !important;
+}
+/* 网盘图标是彩色款：深色票纸上 #020202 的线条会糊掉，换成主题浅色，蓝色部分保留 */
+html:is([data-theme="dark"],[data-theme="halloween"]) :is(#content#content,#mainScroll#mainScroll) .sc-ticket-pan svg path[fill="#020202"]{
+  fill:var(--tk-ink) !important;
 }
 
 /* ===== 深色主题：媒体卡片里的图片跟全站一起降亮度 =====
