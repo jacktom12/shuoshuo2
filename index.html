@@ -1608,6 +1608,7 @@ const MOCK_MEMOS = (() => {
   const now = Date.now();
   const day = 864e5;
   const items = [
+    { d: 0.045, tags: ['tag_dev'], c: `字体与图标素材包 · 文件清单\n\n整理好的字体与图标素材包，按目录分好了，直接打开就能看；手机点按钮会拉起夸克，电脑上直接开网页。\n\n![文件列表](${mockImg('panlist')})\n\n{panfile:url=https://pan.quark.cn/s/2a0705d402e9}` },
     { d: 0.04, tags: ['tag_read'], c: `最近重看了一遍，还是会被那种「乱世里的小人物命运」戳到。李炳宪演得真好，眼神里全是戏。\n\n{movies:id=27059183}\n\n{moviespan:url=https://pan.quark.cn/s/2a0705d402e9}\n\n配乐也绝，听一遍就忘不掉。\n\n![剧照](${mockImg('rain1')})` },
     { d: 0.03, tags: ['tag_music'], c: '深夜单曲循环。翻到《日不落》，前奏一响就想起好多年前的晚上。\n\n{music:id=\'209643\'}\n\n有些歌不用听懂歌词，氛围到了就够了。' },
     { d: 0.02, tags: ['tag_read'], c: '翻完《志怪》，佐野诚子写的是六朝那些奇奇怪怪的小故事，短短一篇却有余味。\n\n{book:id=\'38521378\'}\n\n睡前读一两则，挺好。' },
@@ -1772,17 +1773,27 @@ function parseContent(raw) {
     return '\n';
   });
 
-  // Shortcode 卡片：{movies:id=27059183} / {music:id='1344618077'} / {book:id='38521378'}
+  // Shortcode 卡片：{movies:id=...} / {music:id='...'} / {book:id='...'} / {panfile:url=...}
   // 另有 {moviespan:url=...} 只在电影票根上挂一个网盘按钮，已在上面摘除、不是卡片。
   // 先抽成占位符，避免被 marked 当普通文本转义；渲染后再由 hydrateShortcodes 填充。
   const cards = [];
-  const scRe = /\{(movies|movie|music|book)\s*:\s*id\s*=\s*['"]?(\d{1,20})['"]?\s*\}/gi;
-  const text2 = text.replace(scRe, (m, kind, id) => {
-    const type = kind.toLowerCase() === 'movies' ? 'movie' : kind.toLowerCase();
+  const scRe = /\{(movies|movie|music|book)\s*:\s*id\s*=\s*['"]?(\d{1,20})['"]?\s*\}|\{\s*panfile\s*:\s*url\s*=\s*['"]?([^\s'"}]+)['"]?\s*\}/gi;
+  const text2 = text.replace(scRe, (m, kind, id, fileUrl) => {
     const token = `\u0000SCPLACE${cards.length}\u0000`;
-    cards.push({ type, id });
+    if (fileUrl) cards.push({ type: 'file', url: fileUrl.trim() });
+    else {
+      const lower = kind.toLowerCase();
+      cards.push({ type: lower === 'movies' ? 'movie' : lower, id });
+    }
     return `\n${token}\n`;
   });
+
+  // 文件卡没有 worker 元数据：正文首行当标题，其余文字当描述，截图走 images[0]
+  const memoLines = text2
+    .replace(/\u0000SCPLACE\d+\u0000/g, ' ')
+    .split(/\n+/).map(s => s.trim()).filter(Boolean);
+  const fileTitle = memoLines.shift() || '网盘文件';
+  const fileDesc = memoLines.join(' ') || '';
 
   // 书卡要复用「说说的内容」：去掉 shortcode 占位符、图片和剩余 markdown 标记，压成一段纯文本
   const memoQuote = text2
@@ -1794,9 +1805,9 @@ function parseContent(raw) {
     .replace(/\s+/g, ' ')
     .trim();
 
-  // 书卡 / 电影票根 / 音乐海报卡的说说：短评已经放进卡片，卡片外的正文不再重复渲染一遍。
-  // 只保留各 shortcode 占位符；图片走 images 数组，电影票根会把第一张收进票根顶部。
-  const inlineCard = cards.some(c => c.type === 'book' || c.type === 'movie' || c.type === 'music');
+  // 书卡 / 电影票根 / 音乐海报卡 / 文件卡的说说：短评已经放进卡片，卡片外的正文不再重复渲染一遍。
+  // 只保留各 shortcode 占位符；图片走 images 数组，电影票根 / 文件卡会把第一张收进卡片顶部。
+  const inlineCard = cards.some(c => c.type === 'book' || c.type === 'movie' || c.type === 'music' || c.type === 'file');
   const renderText = inlineCard
     ? cards.map((c, i) => `\u0000SCPLACE${i}\u0000`).join('\n\n')
     : text2;
@@ -1821,8 +1832,8 @@ function parseContent(raw) {
   // 把占位符换成卡片骨架（data 属性带类型/id，hydrateShortcodes 负责拉数据填充）
   cards.forEach((c, i) => {
     const token = `\u0000SCPLACE${i}\u0000`;
-    const label = { movie: '电影', music: '音乐', book: '图书' }[c.type] || '条目';
-    const icon = { movie: 'lucide:clapperboard', music: 'lucide:music-2', book: 'lucide:book-open' }[c.type] || 'lucide:link';
+    const label = { movie: '电影', music: '音乐', book: '图书', file: '网盘文件' }[c.type] || '条目';
+    const icon = { movie: 'lucide:clapperboard', music: 'lucide:music-2', book: 'lucide:book-open', file: 'arcticons:folder-cloud' }[c.type] || 'lucide:link';
     let cardInner;
     if (c.type === 'music') {
       // 音乐海报卡：模糊封面铺满整张卡 → 悬浮唱片 + 叠字 → 虚线 → 说说短评 → 动态歌词窗 → 详情
@@ -1842,6 +1853,18 @@ function parseContent(raw) {
       cardInner = `<span class="sc-book-hero"><span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span><span class="sc-book-mark sc-corner" role="img" aria-label="图书" title="图书"><span class="iconify" data-icon="bxs:book"></span></span></span>` +
         `<span class="sc-book-body"><span class="sc-book-quote">${escapeHtml(memoQuote) || '…'}</span></span>` +
         `<span class="sc-book-foot"><span class="sc-book-thumb"></span><span class="sc-book-meta"><span class="sc-book-app-row"><span class="sc-book-app">加载中…</span><span class="sc-book-badge">—</span></span><span class="sc-book-desc"></span></span><span class="sc-book-cta sc-cta" role="button" tabindex="0" aria-label="查看条目详情" title="查看条目详情"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
+    } else if (c.type === 'file') {
+      // 网盘文件卡：整幅文件列表截图 + 说说标题/描述 + 透明详情按钮，视觉语言对齐影视票根
+      cardInner =
+        `<span class="sc-file-hero"><span class="sc-file-shot"></span>` +
+          `<span class="sc-file-badge sc-corner" role="img" aria-label="网盘文件" title="网盘文件"><span class="iconify" data-icon="arcticons:folder-cloud"></span></span>` +
+          `<span class="sc-file-hero-txt"><span class="sc-title">${escapeHtml(fileTitle)}</span><span class="sc-file-hero-sub">夸克网盘 · 文件清单</span></span>` +
+        `</span>` +
+        `<span class="sc-file-tear"></span>` +
+        `<span class="sc-file-quote">${escapeHtml(fileDesc) || '…'}</span>` +
+        `<span class="sc-file-foot"><span class="sc-poster"><span class="iconify" data-icon="${icon}"></span></span>` +
+          `<span class="sc-file-foot-txt">夸克网盘 · 文件资源</span>` +
+          `<span class="sc-file-cta sc-cta" role="button" tabindex="0" aria-label="打开网盘文件" title="打开网盘文件"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
     } else {
       // 电影票根：顶部大图（说说里的截图）+ 叠字 → 虚线撕口 → 说说短评 → 电影信息 → 海报 + 详情
       const ticketCells = ['评分', '年份', '地区', '类型', '导演', '主演']
@@ -1863,11 +1886,13 @@ function parseContent(raw) {
           panBtn +
           `<span class="sc-ticket-cta sc-cta" role="button" tabindex="0" aria-label="查看电影条目" title="查看电影条目"><span class="iconify" data-icon="icon-park-outline:view-grid-detail"></span></span></span>`;
     }
-    // 三类卡片都只有底部详情按钮是跳转入口 / 焦点入口，卡片本身不进 Tab 序列
-    // 电影票根顶部大图：先用正文里的第一张图，生产数据在附件数组里，由 memoCard 的 data-shot 补足
-    const shotAttr = c.type === 'movie' ? ` data-sc-shot="${escapeHtml(images[0]?.url || '')}"` : '';
+    // 四类卡片都只有底部详情按钮是跳转入口 / 焦点入口，卡片本身不进 Tab 序列
+    // 电影票根 / 文件卡顶部大图：先用正文里的第一张图，生产数据在附件数组里，由 memoCard 的 data-shot 补足
+    const shotAttr = c.type === 'movie' || c.type === 'file' ? ` data-sc-shot="${escapeHtml(images[0]?.url || '')}"` : '';
     const panAttr = c.type === 'movie' && panUrl ? ` data-sc-pan="${escapeHtml(panUrl)}"` : '';
-    const skeleton = `<span class="sc-card sc-${c.type} sc-loading" data-sc-type="${c.type}" data-sc-id="${c.id}"${shotAttr}${panAttr} aria-label="${label}卡片，加载中">${cardInner}<span class="sc-stub">${label} · ${c.id}</span></span>`;
+    const urlAttr = c.type === 'file' ? ` data-sc-url="${escapeHtml(c.url)}"` : '';
+    const stubId = c.id || c.url || '';
+    const skeleton = `<span class="sc-card sc-${c.type} sc-loading" data-sc-type="${c.type}" data-sc-id="${escapeHtml(stubId)}"${shotAttr}${panAttr}${urlAttr} aria-label="${label}卡片，加载中">${cardInner}<span class="sc-stub">${label} · ${escapeHtml(stubId)}</span></span>`;
     html = html.split(token).join(skeleton);
   });
 
@@ -1875,9 +1900,9 @@ function parseContent(raw) {
 }
 
 /* ============================================================
-   Shortcode 卡片：{movies:id=xxx} / {music:id='xxx'} / {book:id='xxx'}
+   Shortcode 卡片：{movies:id=xxx} / {music:id='xxx'} / {book:id='xxx'} / {panfile:url=xxx}
    附加资源：{moviespan:url=xxx} → 电影票根底部多一个网盘按钮（不拉元数据）
-   占位骨架由 parseContent 生成，这里统一拉 worker 元数据填充；
+   占位骨架由 parseContent 生成；除文件卡外统一拉 worker 元数据填充；
    用 MutationObserver 兜住所有渲染入口（列表/详情/搜索），不用逐个改调用点。
    ============================================================ */
 /* ---- 音乐卡右侧歌词：meting 的 LRC 接口 + 播放进度同步 ---- */
@@ -2071,11 +2096,25 @@ function scFill(card, data) {
   if (card.tagName === 'A') card.setAttribute('target', '_blank'), card.setAttribute('rel', 'noopener noreferrer');
 }
 
+// 文件卡不走 worker：标题/描述已在骨架里，这里只补截图和跳转 URL
+function scFillFile(card) {
+  if (!card.isConnected || scDone.has(card)) return;
+  scDone.add(card);
+  card.classList.remove('sc-loading');
+  const owner = card.closest('[data-shot]');
+  const shot = (owner && owner.dataset.shot) || card.dataset.scShot || '';
+  const shotEl = card.querySelector('.sc-file-shot');
+  if (shotEl && shot) shotEl.style.backgroundImage = 'url("' + String(shot).replace(/["']/g, '') + '")';
+  const title = card.querySelector('.sc-title')?.textContent || '网盘文件';
+  card.setAttribute('aria-label', `网盘文件：${title}，点击底部按钮打开夸克网盘`);
+}
+
 function hydrateShortcodes(root = document) {
   root.querySelectorAll('.sc-card:not([data-sc-hydrated])').forEach(card => {
     card.setAttribute('data-sc-hydrated', '1');
     const type = card.dataset.scType, id = card.dataset.scId;
     if (!type || !id) return;
+    if (type === 'file') { scFillFile(card); return; }
     scFetch(type, id).then(data => scFill(card, data));
   });
 }
@@ -2093,10 +2132,18 @@ document.addEventListener('click', e => {
     if (url && /^https?:\/\//i.test(url)) window.open(url, '_blank', 'noopener');
     return;
   }
+  // 文件卡的 URL 同样直接来自 shortcode 骨架，不依赖任何元数据请求
+  const fileCta = e.target.closest('.sc-file-cta');
+  if (fileCta) {
+    e.preventDefault();
+    const url = fileCta.closest('.sc-card')?.dataset.scUrl;
+    if (url && /^https?:\/\//i.test(url)) window.open(url, '_blank', 'noopener');
+    return;
+  }
   const card = e.target.closest('.sc-card');
   if (!card || !card._scData) return;
-  // 书卡 / 电影票根 / 音乐海报卡只有底部按钮是跳转入口：点封面 / 唱片 / 说说正文不跳转
-  if (card.matches('.sc-book, .sc-movie, .sc-music') && !e.target.closest('.sc-book-cta, .sc-ticket-cta, .sc-music-cta')) return;
+  // 书卡 / 电影票根 / 音乐海报卡 / 文件卡只有底部按钮是跳转入口：点封面 / 唱片 / 说说正文不跳转
+  if (card.matches('.sc-book, .sc-movie, .sc-music, .sc-file') && !e.target.closest('.sc-book-cta, .sc-ticket-cta, .sc-music-cta, .sc-file-cta')) return;
   e.preventDefault();
   const url = scLaunchUrl(card._scData);
   if (url) window.open(url, '_blank', 'noopener');
@@ -2107,10 +2154,10 @@ document.addEventListener('keydown', e => {
   if (!card) return;
   e.preventDefault();
   // 焦点已经在某个按钮上时触发那个按钮（否则按 Enter 打开网盘会被误转发到详情按钮）
-  const hit = e.target.closest('.sc-book-cta, .sc-ticket-cta, .sc-music-cta, .sc-ticket-pan');
+  const hit = e.target.closest('.sc-book-cta, .sc-ticket-cta, .sc-music-cta, .sc-file-cta, .sc-ticket-pan');
   if (hit) { hit.click(); return; }
-  const cta = card.matches('.sc-book, .sc-movie, .sc-music')
-    ? card.querySelector('.sc-book-cta, .sc-ticket-cta, .sc-music-cta') : null;
+  const cta = card.matches('.sc-book, .sc-movie, .sc-music, .sc-file')
+    ? card.querySelector('.sc-book-cta, .sc-ticket-cta, .sc-music-cta, .sc-file-cta') : null;
   (cta || card).click();
 });
 
@@ -2861,12 +2908,12 @@ function memoCard(m, idx, { plain = false, parsed = null, imgs = null } = {}) {
   }
   const rawContent = String(m.content || '');
   // 正文已收进卡片的说说：时间行不再点「纯文字」小引号
-  const hasInlineCard = /\{(?:movies|movie|music|book)\s*:\s*id\s*=/i.test(rawContent);
-  // 电影票根：第一张自己的截图收进票根顶部，不再单独铺一条图片墙；多出来的图仍按原逻辑渲染
-  const isMovieCard = /\{(?:movies|movie)\s*:\s*id\s*=/i.test(rawContent);
-  const ticketShot = isMovieCard && images.length ? images[0] : null;
-  const outerImages = ticketShot ? images.slice(1) : images;
-  const shotAttr = ticketShot ? ` data-shot="${escapeHtml(ticketShot.url)}"` : '';
+  const hasInlineCard = /\{(?:movies|movie|music|book|panfile)\s*:/i.test(rawContent);
+  // 电影票根 / 文件卡：第一张自己的截图收进卡片顶部，不再单独铺一条图片墙；多出来的图仍按原逻辑渲染
+  const isShotCard = /\{(?:movies|movie|panfile)\s*:/i.test(rawContent);
+  const cardShot = isShotCard && images.length ? images[0] : null;
+  const outerImages = cardShot ? images.slice(1) : images;
+  const shotAttr = cardShot ? ` data-shot="${escapeHtml(cardShot.url)}"` : '';
   const anim = `animation-delay:${Math.min(idx * 40, 400)}ms`;
 
   if (plain) {
@@ -12907,6 +12954,97 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 }
 .sc-ticket-pan:hover{ opacity:1; }
 .sc-ticket-pan .iconify{ font-size:21px; }
+/* ===== 网盘文件：竖版文件卡 =====
+   跟影视票根同构：整幅截图 + 左上角图标 + 撕口虚线 + 说说描述 + 底部透明详情按钮。
+   截图来自说说第一张图；标题取正文首行、描述取其余正文；URL 来自 {panfile:url=...}。 */
+.sc-file{
+  --tk-bg:var(--sp-bg,#fffefb);
+  --tk-ink:var(--sp-ink,#26232e);
+  --tk-muted:var(--sp-muted,#5b6a65);
+  --tk-line:var(--sp-line,rgba(31,84,74,.18));
+  --tk-accent:var(--sp-accent,#17635a);
+  --tk-soft:var(--sp-soft,rgba(31,122,107,.10));
+  --tk-tear-h:214px;
+  width:360px; max-width:100%; min-height:0; height:auto;
+  display:flex; flex-direction:column; align-items:stretch; gap:0;
+  margin:14px 0; padding:0; overflow:hidden;
+  border:1px solid var(--tk-line); border-radius:22px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg);
+  color:var(--tk-ink);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16);
+  cursor:default;
+  clip-path:inset(0 round 22px);
+  -webkit-mask:
+    radial-gradient(circle 11px at 0 var(--tk-tear-h), transparent 98%, #000 100%) left / 51% 100% no-repeat,
+    radial-gradient(circle 11px at 100% var(--tk-tear-h), transparent 98%, #000 100%) right / 51% 100% no-repeat;
+  -webkit-mask-composite:source-over;
+  mask:
+    radial-gradient(circle 11px at 0 var(--tk-tear-h), transparent 98%, #000 100%) left / 51% 100% no-repeat,
+    radial-gradient(circle 11px at 100% var(--tk-tear-h), transparent 98%, #000 100%) right / 51% 100% no-repeat;
+  mask-composite:add;
+}
+.sc-file:hover{ transform:translateY(-3px); border-color:var(--tk-accent); }
+.sc-file-hero{
+  position:relative; flex:0 0 202px; height:202px; margin:0;
+  border-radius:0; overflow:hidden; background:var(--tk-soft);
+}
+.sc-file-shot{
+  position:absolute; inset:0; display:block;
+  background-position:center 30%; background-size:cover; background-repeat:no-repeat;
+}
+.sc-file-hero::after{
+  content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.32) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,.04) 52%,rgba(0,0,0,.76) 100%);
+}
+.sc-file-badge{ background:rgba(18,12,26,.38); }
+.sc-file-hero-txt{
+  position:absolute; left:16px; right:16px; bottom:14px; z-index:3;
+  display:flex; flex-direction:column; gap:4px;
+}
+.sc-file .sc-title{
+  font-size:1.3rem; line-height:1.25; font-weight:800; color:#fff;
+  white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; text-shadow:0 2px 10px rgba(0,0,0,.66);
+}
+.sc-file-hero-sub{
+  font-size:.74rem; color:rgba(255,255,255,.92);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-shadow:0 1px 6px rgba(0,0,0,.66);
+}
+.sc-file-tear{ position:relative; flex:0 0 24px; height:24px; margin:0; }
+.sc-file-tear::before{
+  content:""; position:absolute; left:16px; right:16px; top:50%;
+  border-top:1.5px dashed var(--tk-line);
+}
+.sc-file-tear::after{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.65;
+  background:
+    radial-gradient(circle 16px at 0 50%, transparent 0 11px, var(--tk-accent) 11px 12.6px, transparent 13px),
+    radial-gradient(circle 16px at 100% 50%, transparent 0 11px, var(--tk-accent) 11px 12.6px, transparent 13px);
+}
+.sc-file-quote{
+  margin:0 16px 16px; padding:0 0 0 12px;
+  border-left:2px solid var(--tk-accent);
+  font-size:.86rem; line-height:1.72; color:var(--tk-ink);
+  display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
+  word-break:break-word;
+}
+.sc-file-foot{
+  display:flex; align-items:center; gap:10px;
+  margin:0 16px; padding:13px 0 15px; border-top:1.5px dashed var(--tk-line);
+}
+.sc-file .sc-poster{
+  flex:0 0 42px; width:42px; height:42px; min-height:0;
+  position:relative; overflow:hidden; border-radius:10px;
+  background:var(--tk-soft); border:0; color:var(--tk-accent);
+}
+.sc-file .sc-poster .iconify{ font-size:1.3rem; opacity:.78; }
+.sc-file-foot-txt{
+  flex:1 1 auto; min-width:0; font-size:.76rem; color:var(--tk-muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sc-file-cta{ color:var(--tk-accent); }
+
 /* ===== 图书：竖版卡片（参考 App Store 推荐卡） =====
    大封面 + 左上角类型图标 + 渐变信息区 + 底部缩略图/书名评分/圆形详情按钮 */
 .sc-book{
@@ -13211,6 +13349,27 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 :is(#content#content, #mainScroll#mainScroll) .sc-movie :is(.sc-title,.sc-ticket-hero-sub,.sc-ticket-badge){ color:#fff !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-poster{ border-radius:8px !important; }
 :is(#content#content, #mainScroll#mainScroll) .sc-poster img{ border:0 !important; box-shadow:none !important; border-radius:8px !important; }
+/* 文件卡：跟票根同口径压过全站直角化 / 统一 14px 圆角 / 深色背景覆盖 */
+:is(#content#content, #mainScroll#mainScroll) .sc-card.sc-file{
+  border-radius:22px !important; border:1px solid var(--tk-line) !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%),var(--tk-bg) !important;
+  clip-path:inset(0 round 22px) !important;
+  width:360px !important; padding:0 !important; gap:0 !important;
+  display:flex !important; flex-direction:column; align-items:stretch;
+}
+:is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-hero{
+  border-radius:0 !important; margin:0 !important; width:100% !important;
+  flex:0 0 202px !important; height:202px !important;
+}
+:is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-cta{ border-radius:999px !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-file .sc-poster{ border-radius:10px !important; border:0 !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-file :is(.sc-file-quote,.sc-file-hero-sub,.sc-file-foot-txt,.sc-file-cta,.sc-file-badge,.sc-title){
+  -webkit-text-fill-color:currentColor !important;
+}
+:is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-quote{ color:var(--tk-ink) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-foot-txt{ color:var(--tk-muted) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-cta{ color:var(--tk-accent) !important; }
+:is(#content#content, #mainScroll#mainScroll) .sc-file :is(.sc-title,.sc-file-hero-sub,.sc-file-badge){ color:#fff !important; }
 /* 音乐海报卡：压过全站直角化 / .sc-card 统一 14px 圆角 / 深色主题的背景覆盖 */
 :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-music{
   border-radius:22px !important; border:1px solid var(--mu-line) !important;
@@ -13270,12 +13429,12 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner .banner-mark{
 
 /* 左上角图标徽标 / 圆形详情按钮：统一压过全站 border-radius:0 !important，
    并固定尺寸，避免主题里的通用 span / button 规则把图标撑成长条 */
-:is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-badge,.sc-book-mark,.sc-music-badge){
+:is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-badge,.sc-book-mark,.sc-music-badge,.sc-file-badge){
   border-radius:0 0 16px 0 !important;
   width:42px !important; height:42px !important; padding:0 !important;
   color:#fff !important; -webkit-text-fill-color:currentColor !important;
 }
-:is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-cta,.sc-ticket-pan,.sc-book-cta,.sc-music-cta){
+:is(#content#content, #mainScroll#mainScroll) :is(.sc-ticket-cta,.sc-ticket-pan,.sc-book-cta,.sc-music-cta,.sc-file-cta){
   border-radius:999px !important;
   width:40px !important; height:40px !important; padding:0 !important;
 }
@@ -13289,7 +13448,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]) :is(#content#content,#main
    书卡封面 / 唱片封面 / 票根底部海报都是 <img>，去掉上面的 filter:none 覆盖后自动跟随。
    票根顶部截图、书卡缩略图是 background-image 的 <span>，img 规则管不到，这里单独补；
    音乐卡的整幅背景本身常驻 brightness(.72)，深色下再压到 .58 才看得出主题差异。 */
-html:is([data-theme="dark"],[data-theme="halloween"]) :is(#content#content,#mainScroll#mainScroll) :is(.sc-ticket-shot,.sc-book-thumb){
+html:is([data-theme="dark"],[data-theme="halloween"]) :is(#content#content,#mainScroll#mainScroll) :is(.sc-ticket-shot,.sc-file-shot,.sc-book-thumb){
   filter:brightness(.7) !important;
 }
 html:is([data-theme="dark"],[data-theme="halloween"]) :is(#content#content,#mainScroll#mainScroll) .sc-music-bg{
@@ -13393,6 +13552,18 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
   :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-grid{ margin:0 14px; gap:12px; }
   :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-foot{ margin:0 14px; }
   :is(#content#content, #mainScroll#mainScroll) .sc-movie .sc-ticket-tear::before{ left:14px; right:14px; }
+
+  /* ===== 文件卡手机端：撑满内容区；凹口 / 虚线位置与 PC 保持一致 ===== */
+  :is(#content#content, #mainScroll#mainScroll) .sc-card.sc-file{
+    width:100% !important; max-width:none !important;
+    padding:0 !important;
+    border-radius:20px !important;
+    clip-path:inset(0 round 20px) !important;
+  }
+  :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-hero{ margin:0 !important; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-quote{ margin:0 14px 16px; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-foot{ margin:0 14px; }
+  :is(#content#content, #mainScroll#mainScroll) .sc-file .sc-file-tear::before{ left:14px; right:14px; }
 }
 @media (prefers-reduced-motion:reduce){
   .sc-card,.sc-card:hover{ transition:none; transform:none; }
