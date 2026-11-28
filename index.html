@@ -1240,10 +1240,27 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
         </div>
         <ul aria-label="站点导航与工具" class="retro-tools">
           <li><button aria-label="首页" class="tab-btn" data-view="say" type="button"><span class="iconify" data-icon="lucide:house"></span><span class="nav-label">首页</span></button></li>
+          <li><button aria-controls="tagBar" aria-expanded="false" aria-label="标签" class="tab-btn" id="tagDrawerOpen" type="button"><span class="iconify" data-icon="lucide:tags"></span><span class="nav-label">标签</span><span class="text-xs hidden" id="tagSelectedCount"></span></button></li>
           <li><button aria-label="相册" class="tab-btn" data-view="photos" type="button"><span class="iconify" data-icon="lucide:images"></span><span class="nav-label">相册</span></button></li>
-          <li><button aria-label="看过" class="tab-btn" data-view="watched" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button></li>
-          <li><button aria-label="想看" class="tab-btn" data-view="watchlist" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button></li>
-          <li><button aria-label="摘录" class="tab-btn" data-view="clips" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button></li>
+          <li class="file-search-li">
+            <button aria-controls="fileSearchPanel" aria-expanded="false" aria-haspopup="true" aria-label="资源搜索" class="tab-btn file-search-btn" id="fileSearchBtn" type="button"><span class="iconify" data-icon="ci:file-search"></span><span class="nav-label">资源</span></button>
+            <div aria-label="资源搜索" class="file-search-panel" id="fileSearchPanel" role="dialog">
+              <div class="fs-input-row">
+                <span aria-hidden="true" class="iconify fs-input-ico" data-icon="ci:file-search"></span>
+                <input aria-label="搜索文件资源" autocomplete="off" id="fsInput" placeholder="搜索文件资源标题 / 关键词" type="search"/>
+                <button aria-label="关闭资源搜索" class="fs-close" id="fsClose" type="button"><span aria-hidden="true" class="iconify" data-icon="lucide:x"></span></button>
+              </div>
+              <div class="fs-results" id="fsResults"></div>
+            </div>
+          </li>
+          <li class="marks-drop-li">
+            <button aria-controls="marksMenu" aria-expanded="false" aria-haspopup="true" aria-label="标记" class="tab-btn marks-drop-btn" id="marksMenuBtn" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">标记</span><span aria-hidden="true" class="iconify tools-caret" data-icon="lucide:chevron-down"></span></button>
+            <div aria-label="标记" class="tools-menu marks-menu" id="marksMenu" role="menu">
+              <button class="tab-btn tools-item" data-view="watched" role="menuitem" type="button"><span class="iconify" data-icon="lucide:clapperboard"></span><span class="nav-label">看过</span></button>
+              <button class="tab-btn tools-item" data-view="watchlist" role="menuitem" type="button"><span class="iconify" data-icon="lucide:heart"></span><span class="nav-label">想看</span></button>
+              <button class="tab-btn tools-item" data-view="clips" role="menuitem" type="button"><span class="iconify" data-icon="lucide:quote"></span><span class="nav-label">摘录</span></button>
+            </div>
+          </li>
           <li class="menu-li-music">
             <button aria-label="音乐" class="tab-btn music-trigger" type="button"><span class="iconify" data-icon="lucide:music-2"></span><span class="nav-label">音乐</span><span class="hidden" id="musicDot"></span></button>
           </li>
@@ -1256,9 +1273,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
               <button class="tab-btn tools-item" data-view="hot" role="menuitem" type="button"><span class="iconify" data-icon="lucide:flame"></span><span class="nav-label">热搜</span></button>
               <button class="tab-btn tools-item" data-view="bookmarks" role="menuitem" type="button"><span class="iconify" data-icon="lucide:bookmark"></span><span class="nav-label">书签</span></button>
               <span aria-hidden="true" class="tools-sep"></span>
-              <button aria-controls="tagBar" aria-expanded="false" class="tab-btn tools-item" id="tagDrawerOpen" role="menuitem" type="button">
-                <span class="iconify" data-icon="lucide:tags"></span><span class="nav-label">标签</span><span class="text-xs hidden" id="tagSelectedCount"></span>
-              </button>
               <button aria-pressed="false" class="tab-btn tools-item theme-toggle" id="themeToggleBtn" role="menuitem" type="button" title="当前浅色模式，点击切换到深色模式">
                 <span aria-hidden="true" class="theme-icon-stack"><span class="iconify theme-icon-sun" data-icon="lucide:sun"></span><span class="iconify theme-icon-moon" data-icon="lucide:moon"></span></span>
                 <span class="nav-label">主题</span>
@@ -1296,6 +1310,52 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
       </div>
     </div>
   </section>
+</div>
+<!-- 两个说说详情弹窗放在 #mainScroll 内：站点卡片样式（票根/文件卡/书卡/音乐卡）
+     全部限定在 #content / #mainScroll 作用域里，放外面会掉样式、渲染成扁平块。
+     它们都是 position:fixed，换到这个容器里视觉位置不变。 -->
+<div class="cmdk-overlay" id="cmdkMemoModal">
+<div aria-label="说说详情" class="cmdk-panel cmdk-memo-panel" role="dialog">
+<div class="cmdk-memo-bar">
+<span class="iconify text-lg text-primary" data-icon="mdi:chat-processing-outline"></span>
+<span class="text-sm font-semibold">说说详情</span>
+<button aria-label="返回搜索" class="cmdk-memo-close btn btn-ghost btn-xs btn-circle ml-auto" type="button">
+<span class="iconify text-base" data-icon="mdi:close"></span>
+</button>
+</div>
+<div class="cmdk-results" id="cmdkMemoBody"></div>
+</div>
+</div>
+<!-- ======================= 说说全文弹窗：卡片 more 按钮打开，独立于搜索面板 ======================= -->
+<div aria-hidden="true" class="say-detail-overlay" id="sayDetailModal">
+  <div aria-label="说说详情" aria-modal="true" class="say-detail-panel" role="dialog">
+    <div class="say-detail-bar">
+      <span aria-hidden="true" class="iconify say-detail-ico" data-icon="mdi:chat-processing-outline"></span>
+      <span class="say-detail-title">说说详情</span>
+      <button aria-label="关闭" class="say-detail-close" id="sayDetailClose" type="button"><span aria-hidden="true" class="iconify" data-icon="mdi:close"></span></button>
+    </div>
+    <div class="say-detail-body" id="sayDetailBody"></div>
+  </div>
+</div>
+<!-- 全站快速搜索（Ctrl+K）：和详情弹窗同在 #mainScroll 的 isolation 上下文里，
+     否则详情（z10020）会被这个列表（z10000）盖住看不见 -->
+<div class="cmdk-overlay" id="cmdkOverlay">
+<div aria-label="全站搜索" class="cmdk-panel" role="dialog">
+<div class="cmdk-input-row">
+<span class="iconify text-xl opacity-60 shrink-0" data-icon="lucide:search"></span>
+<input autocomplete="off" id="cmdkInput" placeholder="搜索说说 / 书签 / 影视…" type="text"/>
+<button aria-label="关闭" class="cmdk-close btn btn-ghost btn-xs btn-circle shrink-0" type="button">
+<span class="iconify text-base" data-icon="mdi:close"></span>
+</button>
+</div>
+<div class="cmdk-results" id="cmdkResults"></div>
+<div class="cmdk-footer">
+<span><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs ml-0.5">↓</kbd> 选择</span>
+<span><kbd class="kbd kbd-xs">Enter</kbd> 打开</span>
+<span><kbd class="kbd kbd-xs">Esc</kbd> 关闭</span>
+<span class="ml-auto opacity-70">说说 · 书签 · 影视</span>
+</div>
+</div>
 </div>
 </main>
 <button aria-label="回到顶部" class="btn btn-circle btn-sm shadow-lg z-40 opacity-0 pointer-events-none transition-all duration-300 bg-base-100 border-base-300" id="toTop"><span class="iconify text-xl" data-icon="gg:pin-top"></span></button>
@@ -1377,48 +1437,6 @@ html:is([data-theme="dark"],[data-theme="halloween"]){--home-paper:#211b29;--hom
 </div>
 <button aria-label="上一张（循环）" class="imgbox-cycle imgbox-cycle-prev" hidden id="imgBoxCyclePrev" type="button"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></svg></button>
 <button aria-label="下一张（循环）" class="imgbox-cycle imgbox-cycle-next" hidden id="imgBoxCycleNext" type="button"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"/></svg></button>
-</div>
-<!-- ======================= 全站快速搜索（Ctrl+K） ======================= -->
-<div class="cmdk-overlay" id="cmdkOverlay">
-<div aria-label="全站搜索" class="cmdk-panel" role="dialog">
-<div class="cmdk-input-row">
-<span class="iconify text-xl opacity-60 shrink-0" data-icon="lucide:search"></span>
-<input autocomplete="off" id="cmdkInput" placeholder="搜索说说 / 书签 / 影视…" type="text"/>
-<button aria-label="关闭" class="cmdk-close btn btn-ghost btn-xs btn-circle shrink-0" type="button">
-<span class="iconify text-base" data-icon="mdi:close"></span>
-</button>
-</div>
-<div class="cmdk-results" id="cmdkResults"></div>
-<div class="cmdk-footer">
-<span><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs ml-0.5">↓</kbd> 选择</span>
-<span><kbd class="kbd kbd-xs">Enter</kbd> 打开</span>
-<span><kbd class="kbd kbd-xs">Esc</kbd> 关闭</span>
-<span class="ml-auto opacity-70">说说 · 书签 · 影视</span>
-</div>
-</div>
-</div>
-<div class="cmdk-overlay" id="cmdkMemoModal">
-<div aria-label="说说详情" class="cmdk-panel cmdk-memo-panel" role="dialog">
-<div class="cmdk-memo-bar">
-<span class="iconify text-lg text-primary" data-icon="mdi:chat-processing-outline"></span>
-<span class="text-sm font-semibold">说说详情</span>
-<button aria-label="返回搜索" class="cmdk-memo-close btn btn-ghost btn-xs btn-circle ml-auto" type="button">
-<span class="iconify text-base" data-icon="mdi:close"></span>
-</button>
-</div>
-<div class="cmdk-results" id="cmdkMemoBody"></div>
-</div>
-</div>
-<!-- ======================= 说说全文弹窗：卡片 more 按钮打开，独立于搜索面板 ======================= -->
-<div aria-hidden="true" class="say-detail-overlay" id="sayDetailModal">
-  <div aria-label="说说详情" aria-modal="true" class="say-detail-panel" role="dialog">
-    <div class="say-detail-bar">
-      <span aria-hidden="true" class="iconify say-detail-ico" data-icon="mdi:chat-processing-outline"></span>
-      <span class="say-detail-title">说说详情</span>
-      <button aria-label="关闭" class="say-detail-close" id="sayDetailClose" type="button"><span aria-hidden="true" class="iconify" data-icon="lucide:x"></span></button>
-    </div>
-    <div class="say-detail-body" id="sayDetailBody"></div>
-  </div>
 </div>
 <script>
 /* ============================================================
@@ -1599,6 +1617,7 @@ const MOCK_TAGS = {
   tag_food:   '吃喝',
   tag_read:   '读书',
   tag_music:  '音乐',
+  tag_file:   '文件',   // 生产后台给带网盘链接的说说统一打的标签，本地造数据同款
 };
 
 // 图片本地化后仍需绝对 URL：parseContent 的 imgRe 只匹配 http(s) 开头的地址
@@ -1608,9 +1627,9 @@ const MOCK_MEMOS = (() => {
   const now = Date.now();
   const day = 864e5;
   const items = [
-    { d: 0.046, tags: ['tag_dev'], c: `百度网盘资料包 · 文件清单\n\n整理的一批常用 PDF 和模板，百度网盘分享，打开完整链接就行；手机点按钮会拉起百度网盘，电脑上直接开网页。\n\n![文件列表](${mockImg('panlist')})\n\n{panfile:url=https://pan.baidu.com/s/1KqO0qVo2cDNBK_hKvZ584w?pwd=tbjh}` },
-    { d: 0.045, tags: ['tag_dev'], c: `字体与图标素材包 · 文件清单\n\n整理好的字体与图标素材包，按目录分好了，直接打开就能看；手机点按钮会拉起夸克，电脑上直接开网页。\n\n![文件列表](${mockImg('panlist')})\n\n{panfile:url=https://pan.quark.cn/s/2a0705d402e9}` },
-    { d: 0.04, tags: ['tag_read'], c: `最近重看了一遍，还是会被那种「乱世里的小人物命运」戳到。李炳宪演得真好，眼神里全是戏。\n\n{movies:id=27059183}\n\n{moviespan:url=https://pan.quark.cn/s/2a0705d402e9}\n\n配乐也绝，听一遍就忘不掉。\n\n![剧照](${mockImg('rain1')})` },
+    { d: 0.046, tags: ['tag_dev','tag_file'], c: `百度网盘资料包 · 文件清单\n\n整理的一批常用 PDF 和模板，百度网盘分享，打开完整链接就行；手机点按钮会拉起百度网盘，电脑上直接开网页。\n\n![文件列表](${mockImg('panlist')})\n\n{panfile:url=https://pan.baidu.com/s/1KqO0qVo2cDNBK_hKvZ584w?pwd=tbjh}` },
+    { d: 0.045, tags: ['tag_dev','tag_file'], c: `字体与图标素材包 · 文件清单\n\n整理好的字体与图标素材包，按目录分好了，直接打开就能看；手机点按钮会拉起夸克，电脑上直接开网页。\n\n![文件列表](${mockImg('panlist')})\n\n{panfile:url=https://pan.quark.cn/s/2a0705d402e9}` },
+    { d: 0.04, tags: ['tag_read','tag_file'], c: `最近重看了一遍，还是会被那种「乱世里的小人物命运」戳到。李炳宪演得真好，眼神里全是戏。\n\n{movies:id=27059183}\n\n{moviespan:url=https://pan.quark.cn/s/2a0705d402e9}\n\n配乐也绝，听一遍就忘不掉。\n\n![剧照](${mockImg('rain1')})` },
     { d: 0.03, tags: ['tag_music'], c: '深夜单曲循环。翻到《日不落》，前奏一响就想起好多年前的晚上。\n\n{music:id=\'209643\'}\n\n有些歌不用听懂歌词，氛围到了就够了。' },
     { d: 0.02, tags: ['tag_read'], c: '翻完《志怪》，佐野诚子写的是六朝那些奇奇怪怪的小故事，短短一篇却有余味。\n\n{book:id=\'38521378\'}\n\n睡前读一两则，挺好。' },
     { d: 0.1, tags: ['tag_daily','tag_photo'], c: `傍晚在江边散步，风很大，云烧起来了。\n\n![晚霞](${mockImg('sunset1')})\n![](${mockImg('sunset2')})` },
@@ -4520,9 +4539,11 @@ function syncTabActive(view) {
     t.classList.toggle('bg-base-300', on);
     t.classList.toggle('text-primary', on);
   });
-  // 当前视图藏在工具下拉里时，触发键也要亮，否则整行看不出选中态
+  // 当前视图藏在下拉里时，触发键也要亮，否则整行看不出选中态
   const toolsBtn = document.getElementById('toolsMenuBtn');
   if (toolsBtn) toolsBtn.classList.toggle('has-active', !!document.querySelector('#toolsMenu .tab-btn.active'));
+  const marksBtn = document.getElementById('marksMenuBtn');
+  if (marksBtn) marksBtn.classList.toggle('has-active', !!document.querySelector('#marksMenu .tab-btn.active'));
 }
 
 function switchView(view) {
@@ -4752,6 +4773,54 @@ document.querySelectorAll('.tab-btn[data-view]').forEach(t => {
     if (item && item.id !== 'themeToggleBtn') close();
   });
 
+  li.addEventListener('focusout', e => { if (!li.contains(e.relatedTarget)) close(); });
+  document.addEventListener('pointerdown', e => { if (isOpen() && !li.contains(e.target)) close(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen()) close(); });
+})();
+
+/* ============================================================
+   标记下拉：看过 / 想看 / 摘录
+   与工具下拉同一套玻璃 + 开合走位，只换触发键和菜单 id。
+   各项的 data-view 点击逻辑由上面的全局绑定负责，这里只管开合。
+============================================================ */
+(function initMarksMenu() {
+  const btn = document.getElementById('marksMenuBtn');
+  const menu = document.getElementById('marksMenu');
+  if (!btn || !menu) return;
+  const li = btn.closest('.marks-drop-li');
+  const items = () => Array.from(menu.querySelectorAll('.tools-item'));
+  const isOpen = () => menu.classList.contains('open');
+
+  function open(focusIndex) {
+    fileSearchClose();   // 两个浮层不同时开
+    menu.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    if (focusIndex === undefined) return;
+    const list = items();
+    (list[focusIndex] || list[0])?.focus({ preventScroll: true });
+  }
+  function close() {
+    if (!isOpen()) return;
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    if (menu.contains(document.activeElement)) btn.focus({ preventScroll: true });
+  }
+
+  btn.addEventListener('click', () => { isOpen() ? close() : open(); });
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); open(0); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); open(items().length - 1); }
+  });
+  menu.addEventListener('keydown', e => {
+    const list = items();
+    const i = list.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); list[(i + 1) % list.length]?.focus({ preventScroll: true }); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); list[(i - 1 + list.length) % list.length]?.focus({ preventScroll: true }); }
+    else if (e.key === 'Home') { e.preventDefault(); list[0]?.focus({ preventScroll: true }); }
+    else if (e.key === 'End') { e.preventDefault(); list[list.length - 1]?.focus({ preventScroll: true }); }
+    else if (e.key === 'Escape') { e.preventDefault(); close(); }
+  });
+  menu.addEventListener('click', e => { if (e.target.closest('.tools-item')) close(); });
   li.addEventListener('focusout', e => { if (!li.contains(e.relatedTarget)) close(); });
   document.addEventListener('pointerdown', e => { if (isOpen() && !li.contains(e.target)) close(); }, true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen()) close(); });
@@ -4999,7 +5068,10 @@ function cmdkExec(idx) {
     const m = (state.searchMemosCache || []).find(x => x.id === it.memoId);
     if (!m) return;
     const body = $('#cmdkMemoBody');
-    body.innerHTML = `<div class="px-2">${memoCard(m, 0, { plain: true })}</div>`;
+    // id="content" 是为了让站点卡片样式规则（#content#content ...）在弹窗里也命中，
+    // 否则短码卡片会掉圆角/凹口/主题色，渲染成扁平块。页面原本那个 #content 不受影响：
+    // 所有 JS 都只通过 getElementById 取第一个，没有 querySelectorAll('#content ...')。
+    body.innerHTML = `<div class="say-detail-wrap" id="content">${memoCard(m, 0, { plain: true, imgs: [] })}</div>`;
     $('#cmdkMemoModal').classList.add('open');
     body.scrollTop = 0;
   } else if (it.url) {
@@ -5081,16 +5153,237 @@ document.addEventListener('keydown', e => {
   }
 });
 
+/* ============================================================
+   资源搜索：只查带「文件」标签的说说，输入即筛选（下拉，不是弹窗）
+   数据复用 cmdk 的说说全量缓存；点结果才弹「说说详情」。
+============================================================ */
+const fsBtn = document.getElementById('fileSearchBtn');
+const fsPanel = document.getElementById('fileSearchPanel');
+const fsInput = document.getElementById('fsInput');
+const fsResults = document.getElementById('fsResults');
+const fsState = { open: false, list: [], active: -1, loading: false };
+
+function fileSearchClose() {
+  if (!fsPanel) return;
+  fsPanel.classList.remove('open');
+  fsState.open = false;
+  fsBtn?.setAttribute('aria-expanded', 'false');
+  if (fsInput) fsInput.value = '';
+  fsState.active = -1;
+}
+
+function fileSearchOpen() {
+  if (!fsPanel || !fsBtn || !fsInput) return;
+  // 与工具/标记下拉互斥，避免两层浮层叠在一起
+  document.getElementById('toolsMenu')?.classList.remove('open');
+  document.getElementById('toolsMenuBtn')?.setAttribute('aria-expanded', 'false');
+  document.getElementById('marksMenu')?.classList.remove('open');
+  document.getElementById('marksMenuBtn')?.setAttribute('aria-expanded', 'false');
+
+  fsPanel.classList.add('open');
+  fsBtn.setAttribute('aria-expanded', 'true');
+  fsState.open = true;
+  fsPosition();
+  fsRender();
+  // 立刻聚焦：.open 加上后 visibility 已可见，不等动画，键盘用户直接能打字
+  fsInput.focus({ preventScroll: true });
+  fsEnsureData();
+}
+
+/* 窄屏下按钮在导航行中间，360px 的面板按 right:0 会溢出屏幕左边；
+   这里按视口重新算相对 li 的偏移，保证面板左右都留在屏内。 */
+function fsPosition() {
+  if (!fsPanel || !fsBtn) return;
+  fsPanel.style.left = '';
+  fsPanel.style.right = '';
+  fsPanel.style.width = '';
+  if (window.innerWidth > 760) return;
+  const li = fsBtn.closest('.file-search-li');
+  if (!li) return;
+  const r = li.getBoundingClientRect();
+  const w = Math.min(window.innerWidth - 24, 480);
+  const left = Math.max(12, Math.min(r.right, window.innerWidth - 12) - w);
+  fsPanel.style.left = (left - r.left) + 'px';
+  fsPanel.style.right = 'auto';
+  fsPanel.style.width = w + 'px';
+}
+window.addEventListener('resize', () => { if (fsState.open) fsPosition(); });
+
+/* 标签 id 解析：生产后台把带网盘链接的说说统一打「文件」标签。
+   tagNameMap 是 id→中文名，这里反查出 id；同时兼容历史数据直接存中文名。 */
+function fsFileTagIds() {
+  const ids = new Set(['文件']);
+  tagNameMap.forEach((name, id) => { if (name === '文件') ids.add(id); });
+  return ids;
+}
+
+/* 从正文里捞网盘链接，用来给结果行标平台图标 */
+function fsPanUrl(m) {
+  const raw = String(m?.content || '');
+  return raw.match(/\{\s*panfile\s*:\s*url\s*=\s*['"]?([^\s'"}]+)/i)?.[1]
+      || raw.match(/\{\s*moviespan\s*:\s*url\s*=\s*['"]?([^\s'"}]+)/i)?.[1]
+      || raw.match(/https?:\/\/(?:pan\.)?(?:quark\.cn|baidu\.com)\/[^\s)\]}'"]+/i)?.[0]
+      || '';
+}
+
+function fsPlain(m) {
+  return String(m?.content || '')
+    .replace(/\{\s*[^{}]+\}/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/https?:\/\/[^\s<>"']+/g, ' ')
+    .replace(/[#*>`_~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function fsHi(text, q) {
+  const s = String(text || '');
+  if (!q) return escapeHtml(s);
+  const i = s.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return escapeHtml(s);
+  return escapeHtml(s.slice(0, i)) + '<mark>' + escapeHtml(s.slice(i, i + q.length)) + '</mark>' + escapeHtml(s.slice(i + q.length));
+}
+
+async function fsEnsureData() {
+  await loadTags();   // 等标签名映射就绪，否则识别不出「文件」
+  fsRender();
+  if (state.searchMemosCache || fsState.loading) return;
+  fsState.loading = true;
+  try {
+    if (USE_MOCK) { await sleep(180); state.searchMemosCache = MOCK_MEMOS; }
+    else {
+      const first = await fetchData({ view: 'say', page: 1, tags: [] });
+      const all = [...(first.data || [])];
+      const pages = first.totalPages || 1;
+      if (pages > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: pages - 1 }, (_, i) => fetchData({ view: 'say', page: i + 2, tags: [] }))
+        );
+        rest.forEach(r => all.push(...(r.data || [])));
+      }
+      state.searchMemosCache = all;
+    }
+  } catch {} finally {
+    fsState.loading = false;
+    if (fsState.open) fsRender();
+  }
+}
+
+function fsBuildList(q) {
+  const ids = fsFileTagIds();
+  const kw = q.trim().toLowerCase();
+  const stamp = m => new Date(String(m.rawDate || '').replace(' ', 'T')).getTime() || 0;
+  return (state.searchMemosCache || [])
+    .filter(m => {
+      if (!(m.tags || []).some(t => ids.has(t))) return false;
+      if (!kw) return true;
+      return fsPlain(m).toLowerCase().includes(kw)
+        || fsPanUrl(m).toLowerCase().includes(kw)
+        || String(m.rawDate || '').includes(kw);
+    })
+    .sort((a, b) => stamp(b) - stamp(a));
+}
+
+function fsRender() {
+  if (!fsState.open || !fsResults || !fsInput) return;
+  if (!state.searchMemosCache) {
+    fsResults.innerHTML = `<div class="fs-empty"><span class="iconify" data-icon="ci:file-search"></span>正在加载文件资源…</div>`;
+    return;
+  }
+  const q = fsInput.value.trim();
+  const list = fsBuildList(q);
+  fsState.list = list;
+  if (fsState.active >= list.length) fsState.active = list.length - 1;
+
+  if (!list.length) {
+    fsResults.innerHTML = `<div class="fs-empty"><span class="iconify" data-icon="lucide:search"></span>${q ? '没有找到相关文件，换个关键词试试' : '还没有带「文件」标签的说说'}</div>`;
+    return;
+  }
+  fsResults.innerHTML = list.slice(0, 40).map((m, i) => {
+    const title = fsPlain(m).slice(0, 52) || '（文件资源）';
+    const url = fsPanUrl(m);
+    const plat = url ? scPanPlatform(url) : null;
+    const sub = `${plat ? plat.name + ' · ' : ''}${relativeTime(m.rawDate)}`;
+    return `<button type="button" class="fs-item ${i === fsState.active ? 'active' : ''}" data-idx="${i}" style="animation-delay:${Math.min(i, 8) * 25}ms">
+      <span class="fs-ico"><span class="iconify" data-icon="${plat ? plat.icon : 'arcticons:folder-cloud'}"></span></span>
+      <span class="fs-body"><span class="fs-title">${fsHi(title, q)}</span><span class="fs-sub">${escapeHtml(sub)}</span></span>
+      <span class="iconify fs-arrow" data-icon="lucide:chevron-right"></span>
+    </button>`;
+  }).join('');
+  fsResults.querySelectorAll('.fs-item').forEach(el => {
+    el.addEventListener('click', () => fsExec(Number(el.dataset.idx)));
+  });
+}
+
+function fsExec(idx) {
+  const m = fsState.list[idx];
+  if (!m) return;
+  // 搜索到的说说未必在当前页索引里，补一份再走现成的全文详情弹窗
+  if (!sayMemoIndex.has(m.id)) {
+    const parsed = parseContent(m.content);
+    const imgs = parsed.images.length ? parsed.images
+      : (Array.isArray(m.images) ? m.images.map(url => ({ url, alt: '' })) : []);
+    sayMemoIndex.set(m.id, { m, parsed, imgs });
+  }
+  // 记下来源和关键词，详情关闭时把搜索列表原样还回来
+  fsSavedQuery = fsInput.value;
+  sayDetailFromFs = true;
+  fileSearchClose();
+  openSayDetail(m.id, fsBtn);
+}
+
+if (fsBtn && fsPanel && fsInput) {
+  fsBtn.addEventListener('click', () => { fsState.open ? fileSearchClose() : fileSearchOpen(); });
+  fsInput.addEventListener('input', () => { fsState.active = -1; fsRender(); });
+  fsInput.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!fsState.list.length) return;
+      const d = e.key === 'ArrowDown' ? 1 : -1;
+      fsState.active = fsState.active < 0
+        ? (d > 0 ? 0 : fsState.list.length - 1)
+        : (fsState.active + d + fsState.list.length) % fsState.list.length;
+      fsResults.querySelectorAll('.fs-item').forEach(el =>
+        el.classList.toggle('active', Number(el.dataset.idx) === fsState.active));
+      fsResults.querySelector(`.fs-item[data-idx="${fsState.active}"]`)?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      fsExec(fsState.active >= 0 ? fsState.active : 0);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      fileSearchClose();
+      fsBtn.focus({ preventScroll: true });
+    }
+  });
+  document.getElementById('fsClose')?.addEventListener('click', () => {
+    fileSearchClose();
+    fsBtn.focus({ preventScroll: true });
+  });
+  document.addEventListener('pointerdown', e => {
+    const li = fsBtn.closest('.file-search-li');
+    if (fsState.open && li && !li.contains(e.target)) fileSearchClose();
+  }, true);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && fsState.open) {
+      fileSearchClose();
+      fsBtn.focus({ preventScroll: true });
+    }
+  });
+}
+
 /* ---------- 说说卡片 more：全文弹窗（独立于搜索面板，复用 memoCard plain 渲染） ---------- */
 const sayDetailModal = $('#sayDetailModal');
 const sayDetailBody = $('#sayDetailBody');
 let sayDetailOpener = null;
+let sayDetailFromFs = false;   // 详情是否由资源搜索结果打开
+let fsSavedQuery = '';         // 打开详情前的搜索关键词，关闭后原样回到列表
 function openSayDetail(id, opener) {
   const rec = sayMemoIndex.get(id);
   if (!rec) return;
   sayDetailOpener = opener || null;
   // 只给文字：图已经在卡片封面上有，弹窗里再铺一遍九宫格是重复，还得多滚一屏
-  sayDetailBody.innerHTML = `<div class="say-detail-wrap">${memoCard(rec.m, 0, { plain: true, parsed: rec.parsed, imgs: [] })}</div>`;
+  // 同上：借 #content 标识让短码卡片样式在详情里生效
+  sayDetailBody.innerHTML = `<div class="say-detail-wrap" id="content">${memoCard(rec.m, 0, { plain: true, parsed: rec.parsed, imgs: [] })}</div>`;
   sayDetailModal.classList.add('open');
   sayDetailModal.setAttribute('aria-hidden', 'false');
   document.documentElement.classList.add('pop-lock');   // 与全屏弹窗同款文档滚动锁
@@ -5103,7 +5396,16 @@ function closeSayDetail() {
   sayDetailModal.setAttribute('aria-hidden', 'true');
   document.documentElement.classList.remove('pop-lock');
   sayDetailBody.innerHTML = '';
-  sayDetailOpener?.focus?.({ preventScroll: true });
+  if (sayDetailFromFs) {
+    // 从资源搜索点进来的：回到刚才那串关键词筛出来的列表，而不是整个退出搜索
+    sayDetailFromFs = false;
+    fileSearchOpen();
+    fsInput.value = fsSavedQuery;
+    fsRender();
+    fsInput.focus({ preventScroll: true });
+  } else {
+    sayDetailOpener?.focus?.({ preventScroll: true });
+  }
   sayDetailOpener = null;
 }
 document.addEventListener('click', e => {
@@ -11586,7 +11888,7 @@ html:is([data-theme="dark"],[data-theme="halloween"]){ --gl-menu:rgba(20,11,38,.
 #mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(3){ --d:.08s; }
 #mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(5){ --d:.13s; }
 #mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(6){ --d:.17s; }
-#mainScroll#mainScroll .tools-menu.open .tools-item:nth-child(7){ --d:.21s; }
+/* 标记下拉只有三行，自己的节拍在文件末尾那段里给 */
 #mainScroll#mainScroll .tools-menu .tools-item .iconify{ font-size:15px!important;color:var(--sp-muted);transition:color .15s ease; }
 #mainScroll#mainScroll .tools-menu .tools-item .theme-icon-stack{ width:15px!important;height:15px!important; }
 #mainScroll#mainScroll .tools-menu .tools-item .nav-label{ flex:0 0 auto!important;font-size:12.5px!important;letter-spacing:.02em!important; }
@@ -11882,25 +12184,43 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner{
   background:rgba(8,6,16,.5); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
 }
 .say-detail-overlay.open{ display:flex; }
+/* 详情外框跟工具搜索详情（.cmdk-panel）同一套实底面板 */
 .say-detail-panel{
-  width:min(620px,100%); max-height:80vh; display:flex; flex-direction:column;
-  background:var(--gl-panel); -webkit-backdrop-filter:blur(22px) saturate(1.5); backdrop-filter:blur(22px) saturate(1.5);
-  border:1px solid var(--gl-border); border-radius:16px !important;
-  box-shadow:var(--gl-shadow); overflow:hidden; animation:fadeUp .18s ease both;
+  width:min(440px,100%); max-height:80vh; display:flex; flex-direction:column;
+  background:var(--color-base-100); color:var(--color-base-content);
+  border:1px solid var(--color-base-300); border-radius:16px !important;
+  box-shadow:0 24px 64px -20px rgb(0 0 0 / .45);
+  overflow:hidden; animation:fadeUp .18s ease both;
 }
 .say-detail-bar{
   display:flex; align-items:center; gap:8px; flex:0 0 auto;
-  padding:12px 16px; border-bottom:1px solid var(--gl-hair); color:var(--sp-ink);
+  padding:12px 16px; border-bottom:1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent); color:var(--sp-ink);
 }
 .say-detail-ico{ font-size:18px; color:var(--sp-accent); }
 .say-detail-title{ font:600 14px/1.2 var(--font-family); color:var(--sp-ink); letter-spacing:.02em; }
-.say-detail-close{
-  margin-left:auto; width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center;
-  border:0; border-radius:8px !important; background:transparent; color:var(--sp-muted);
-  cursor:var(--cursor-pointer); transition:background-color .16s ease, color .16s ease;
+/* 关闭键跟工具搜索详情（.cmdk-memo-close）同款：裸图标、零描边，hover 只变色。
+   注意：全局 button{2px 描边 + 8px 圆角 + hover 位移}带 !important，普通 .类 规则压不住，
+   必须用两位 id 的高权重 + !important，否则这里会显示成方框按钮。 */
+#mainScroll#mainScroll .say-detail-bar .say-detail-close{
+  margin-left:auto; width:24px!important; height:24px!important; padding:0!important;
+  display:inline-flex; align-items:center; justify-content:center;
+  border:0!important; border-radius:999px!important; background:transparent!important; box-shadow:none!important;
+  color:var(--sp-muted)!important; -webkit-text-fill-color:var(--sp-muted)!important;
+  cursor:var(--cursor-pointer)!important; transform:none!important;
+  transition:color .16s ease, -webkit-text-fill-color .16s ease, background-color .16s ease!important;
 }
-.say-detail-close:hover{ background:var(--sp-soft); color:var(--sp-ink); }
-.say-detail-close .iconify{ font-size:18px; }
+#mainScroll#mainScroll .say-detail-bar .say-detail-close:hover,
+#mainScroll#mainScroll .say-detail-bar .say-detail-close:active{
+  background:transparent!important; box-shadow:none!important; transform:none!important;
+  color:var(--sp-ink)!important; -webkit-text-fill-color:var(--sp-ink)!important;
+}
+#mainScroll#mainScroll .say-detail-bar .say-detail-close .iconify{ font-size:16px!important; }
+/* 弹窗打开时代码会 focus 这个键，浏览器默认 outline 会画出一个圆环，跟方框一样碍眼。
+   这里只去掉焦点框、不改颜色：打开时就是一颗灰 ✕，跟工具搜索详情一模一样。 */
+#mainScroll#mainScroll .say-detail-bar .say-detail-close:focus,
+#mainScroll#mainScroll .say-detail-bar .say-detail-close:focus-visible{
+  outline:none!important; box-shadow:none!important;
+}
 .say-detail-body{
   flex:1 1 auto; min-height:0; overflow-y:auto; padding:14px 18px 18px;
   color:var(--sp-ink); scrollbar-width:thin; scrollbar-color:var(--sp-line) transparent;
@@ -11909,7 +12229,10 @@ html[data-theme="light"] #mainScroll#mainScroll .feed-banner{
 .say-detail-body::-webkit-scrollbar-track{ background:transparent; }
 .say-detail-body::-webkit-scrollbar-thumb{ background:var(--sp-line); border-radius:8px !important; }
 .say-detail-body::-webkit-scrollbar-thumb:hover{ background:var(--sp-accent); }
-.say-detail-wrap .memo-entry{ max-width:none !important; margin:0 !important; padding:0 !important; }
+/* 详情里的短码卡片（票根/文件卡等）跟首页一样宽，居中展示，不贴左 */
+.say-detail-wrap{ display:flex; flex-direction:column; align-items:center; }
+.say-detail-wrap .memo-entry{ width:100%; max-width:none !important; margin:0 !important; padding:0 !important; }
+.say-detail-wrap .sc-card{ margin-inline:auto !important; }
 .say-detail-wrap .memo-text{ color:var(--sp-ink) !important; -webkit-text-fill-color:var(--sp-ink) !important; }
 /* 全文正文字号：与卡片截断正文（.say-text）同一号 17px / 1.6，点 more 前后字不跳
    ——原来靠 Tailwind 任意值 text-[17px] leading-relaxed，实测运行时没生成、退回根字号 16.5px，
@@ -13585,6 +13908,144 @@ html:is([data-theme="dark"],[data-theme="halloween"]) .sc-card{ background:rgba(
 @media (prefers-reduced-motion:reduce){
   .sc-card,.sc-card:hover{ transition:none; transform:none; }
   .sc-cover,.sc-loading .sc-poster{ animation:none; }
+}
+</style>
+<style id="file-search-nav">
+/* ============================================================
+   标记下拉 + 资源搜索（只查带「文件」标签的说说）
+   放在文件最后：整站那条 * { border-radius:0 !important } 会抹平圆角，
+   这里统一用 #mainScroll#mainScroll 双 id 权重把浮层的圆角/配色拿回来。
+   ============================================================ */
+
+/* --- 详情弹窗：外框贴着卡片宽度，圆角不被全站直角化抹掉 --- */
+#mainScroll#mainScroll .say-detail-panel{ border-radius:16px!important; }
+/* cmdk 的搜索面板与详情面板同为 .cmdk-overlay（10000），详情 DOM 更靠前会被盖住；
+   详情要压在查询列表之上，层级单独抬高一档。 */
+#cmdkMemoModal#cmdkMemoModal{ z-index:10020!important; }
+/* 搜索面板移进 #mainScroll 后也会被双 id 直角化清圆角，这里补回来 */
+#cmdkOverlay#cmdkOverlay .cmdk-panel{ border-radius:16px!important; }
+/* 工具搜索的详情也收成同样的贴卡片宽度 */
+#cmdkMemoModal#cmdkMemoModal .cmdk-panel{ width:min(440px,100%)!important; border-radius:16px!important; }
+
+/* --- 标记下拉：触发键亮灯 + 三行入场节拍 --- */
+#mainScroll#mainScroll .retro-tools .marks-drop-btn.has-active{
+  color:var(--sp-accent)!important;-webkit-text-fill-color:var(--sp-accent)!important;
+  box-shadow:inset 0 -2px 0 var(--sp-accent)!important;
+}
+#mainScroll#mainScroll .marks-menu.open .tools-item:nth-child(1){ --d:.04s; }
+#mainScroll#mainScroll .marks-menu.open .tools-item:nth-child(2){ --d:.08s; }
+#mainScroll#mainScroll .marks-menu.open .tools-item:nth-child(3){ --d:.12s; }
+
+/* --- 资源搜索：锚在按钮下方的下拉浮层，不是全屏弹窗 --- */
+#mainScroll#mainScroll .file-search-panel{
+  position:absolute!important;top:calc(100% + 9px)!important;right:0!important;z-index:130!important;
+  width:480px;max-width:calc(100vw - 24px);
+  display:flex;flex-direction:column;
+  margin:0!important;padding:0!important;
+  /* 跟工具栏下拉（.tools-menu）同一块玻璃：--gl-menu 是 .96/.95 近乎实底那一档，
+     再叠 backdrop-filter；此前用的 --color-base-100 被主题重定义成 rgba(...,.86)，
+     背景图会透上来，列表标题发糊看不清。 */
+  border:1px solid var(--gl-border)!important;border-radius:16px!important;
+  background:var(--gl-menu)!important;
+  box-shadow:var(--gl-shadow)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.5)!important;backdrop-filter:blur(22px) saturate(1.5)!important;
+  transform-origin:top right!important;
+  opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+  transform:translateY(-10px) scale(.97)!important;
+  transition:opacity .18s ease,transform .22s cubic-bezier(.22,1,.36,1),visibility 0s linear .22s;
+  overflow:hidden;
+}
+#mainScroll#mainScroll .file-search-panel.open{
+  opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:none!important;
+  transition:opacity .22s ease,transform .38s cubic-bezier(.22,1.2,.36,1),visibility 0s;
+}
+/* 输入行 */
+#mainScroll#mainScroll .file-search-panel .fs-input-row{
+  display:flex;align-items:center;gap:10px;flex:0 0 auto;
+  padding:13px 16px;border-bottom:1px solid color-mix(in oklch, var(--color-base-300) 60%, transparent)!important;
+}
+#mainScroll#mainScroll .fs-input-row .fs-input-ico{
+  flex:0 0 auto;font-size:19px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:1!important;
+}
+/* 16px 是硬要求：低于这个字号 iOS Safari 会在聚焦时自动放大页面 */
+#mainScroll#mainScroll .fs-input-row input{
+  flex:1 1 auto;min-width:0;width:100%;
+  margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;
+  font:16px/1.4 var(--font-family)!important;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+  appearance:none!important;-webkit-appearance:none!important;
+}
+#mainScroll#mainScroll .fs-input-row input::placeholder{
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;opacity:.75!important;
+}
+#mainScroll#mainScroll .fs-input-row input::-webkit-search-cancel-button{ display:none; }
+/* 关闭键跟工具搜索同款：裸图标，hover 只变色，不铺底色（全局 button:hover 会位移，这里顶掉） */
+#mainScroll#mainScroll .fs-input-row .fs-close{
+  flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;
+  border:0!important;border-radius:999px!important;background:transparent!important;box-shadow:none!important;
+  color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  cursor:var(--cursor-pointer)!important;transform:none!important;
+  transition:color .16s ease,-webkit-text-fill-color .16s ease,background-color .16s ease!important;
+}
+#mainScroll#mainScroll .fs-input-row .fs-close:hover{
+  background:transparent!important;box-shadow:none!important;transform:none!important;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+}
+#mainScroll#mainScroll .fs-input-row .fs-close .iconify{ font-size:16px!important; }
+/* 结果列表 */
+#mainScroll#mainScroll .file-search-panel .fs-results{
+  max-height:min(46vh,360px);overflow-y:auto;overscroll-behavior:contain;
+  padding:6px!important;scrollbar-width:thin;scrollbar-color:var(--sp-line) transparent;
+}
+#mainScroll#mainScroll .fs-results .fs-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:9px 10px!important;margin:0!important;
+  border:0!important;border-radius:10px!important;background:transparent!important;box-shadow:none!important;
+  color:var(--sp-ink)!important;text-align:left!important;
+  cursor:var(--cursor-pointer)!important;
+  opacity:0;transform:translateY(-4px);
+  animation:fs-item-in .28s cubic-bezier(.22,1,.36,1) forwards;
+  transition:background-color .15s ease!important;
+}
+#mainScroll#mainScroll .fs-results .fs-item:hover,
+#mainScroll#mainScroll .fs-results .fs-item.active{ background:var(--sp-soft)!important; }
+#mainScroll#mainScroll .fs-item .fs-ico{
+  flex:0 0 auto;width:32px;height:32px;display:grid;place-items:center;
+  border-radius:8px!important;background:var(--sp-soft)!important;color:var(--sp-accent)!important;
+}
+#mainScroll#mainScroll .fs-item .fs-ico .iconify{ font-size:17px!important; }
+#mainScroll#mainScroll .fs-item .fs-body{ flex:1 1 auto;min-width:0; }
+#mainScroll#mainScroll .fs-item .fs-title{
+  font-size:13.5px!important;line-height:1.4;
+  color:var(--sp-ink)!important;-webkit-text-fill-color:var(--sp-ink)!important;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#mainScroll#mainScroll .fs-item .fs-sub{
+  font-size:11px!important;line-height:1.5;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#mainScroll#mainScroll .fs-item mark{
+  background:transparent!important;color:var(--sp-accent)!important;font-weight:700!important;border-radius:0!important;
+}
+#mainScroll#mainScroll .fs-item .fs-arrow{ font-size:14px!important;color:var(--sp-muted)!important;opacity:.5; }
+/* 空态 / 加载态 */
+#mainScroll#mainScroll .fs-results .fs-empty{
+  padding:22px 12px!important;text-align:center;
+  font-size:12px!important;color:var(--sp-muted)!important;-webkit-text-fill-color:var(--sp-muted)!important;
+}
+#mainScroll#mainScroll .fs-results .fs-empty .iconify{ display:block;margin:0 auto 8px;font-size:22px!important;opacity:.55; }
+@keyframes fs-item-in{ to{ opacity:1;transform:none; } }
+
+@media (max-width:760px){
+  #mainScroll#mainScroll .file-search-panel{
+    width:min(92vw,480px)!important;top:calc(100% + 7px)!important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #mainScroll#mainScroll .file-search-panel,
+  #mainScroll#mainScroll .fs-results .fs-item{ animation:none!important;transition:none!important; }
+  #mainScroll#mainScroll .fs-results .fs-item{ opacity:1!important;transform:none!important; }
 }
 </style>
 
